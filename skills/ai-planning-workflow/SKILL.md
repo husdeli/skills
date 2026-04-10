@@ -1,6 +1,6 @@
 ---
 name: ai-planning-workflow
-description: "Feedback-driven development workflow for implementing tickets and planning features. Use when: starting work on a ticket, creating an implementation plan, planning a feature, building UI that needs design agreement, requesting feedback after completing a step, marking a ticket complete. Covers ticket creation guidelines, phased implementation with feedback checkpoints, design agreement for UI work, and iteration logging."
+description: "Feedback-driven development workflow for implementing tickets and planning features. Use when: starting work on a ticket, creating a ticket, creating an implementation plan, planning a feature, building UI that needs design agreement, requesting feedback after completing a step, marking a ticket complete. Covers ticket creation guidelines, phased implementation with feedback checkpoints, design agreement for UI work, and iteration logging."
 argument-hint: "Optional: ticket ID or feature name to implement"
 ---
 
@@ -15,6 +15,7 @@ A structured, feedback-driven development methodology for implementing tickets a
 ## When to Use This Skill
 
 - Starting work on a ticket or feature
+- Creating a ticket
 - Creating an implementation plan
 - Building UI that needs design review
 - Requesting feedback after a step
