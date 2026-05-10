@@ -8,9 +8,11 @@ argument-hint: "Optional: ticket ID or feature name to implement"
 
 A structured, feedback-driven development methodology for implementing tickets and features correctly — without completing entire features without review.
 
-## Core Principle
+## Core Principles
 
 **Never complete an entire feature or ticket without requesting feedback multiple times throughout the process.**
+
+**Keep specs short and scannable.** Every sentence must add information. No filler words, no restating the obvious. If a task is too complex to describe concisely, split it into multiple tickets or subtasks instead of writing a bloated spec.
 
 ## When to Use This Skill
 
@@ -41,21 +43,14 @@ After exploring the codebase:
 3. Share the plan using this format:
 
 ```markdown
-## Implementation Plan for [TICKET-ID]
+## Plan: [TICKET-ID]
 
-After reviewing the codebase, I'll follow [existing patterns and conventions found].
+Following [pattern/convention found in codebase].
 
-**Step 1**: [Description]
+**Step 1**: [Description] — Files: [list] — Deliverable: [outcome]
+**Step 2**: [Description] — Files: [list] — Deliverable: [outcome]
 
-- Technical approach: [How, based on existing patterns]
-- Files: [list files to create/modify]
-- Deliverable: [what will be complete]
-
-**Step 2**: ...
-
-After each step, I'll request your feedback before continuing.
-
-Does this approach look good? Any concerns or changes?
+Feedback requested after each step. Good to go?
 ```
 
 4. **Wait for plan approval before starting implementation.**
@@ -71,30 +66,15 @@ If the ticket includes **any UI work**, complete this phase before writing busin
 3. Present for review:
 
 ```markdown
-## 🎨 Design Agreement: [Feature Name]
+## 🎨 Design: [Feature Name]
 
-I've built a static prototype before adding business logic.
-
-### What's Included
+Static prototype — no live data or business logic yet.
 
 - [Component/screen]: [description]
+- Preview: [run instructions + URL]
+- Decisions: [key choices and rationale]
 
-### How to Preview
-
-[Run instructions + URL]
-
-### Design Decisions
-
-- [Decision and rationale]
-
-### What's NOT Included Yet
-
-- Real data integration (placeholder data used)
-- Business logic and validation
-
----
-
-**Does this look good? Any changes before I wire up the logic?**
+Changes before I wire up the logic?
 ```
 
 4. **Iterate until explicitly approved.** Do NOT start business logic until design is signed off.
@@ -111,27 +91,14 @@ For **each step**:
 ```markdown
 ## ✅ Step [N]/[Total]: [Step Name]
 
-### What I Did
+- [Change 1]
+- [Change 2]
 
-- [Specific change 1]
-- [Specific change 2]
+Files: Created [paths] / Modified [paths]
+Verify: [testing instructions]
+Next: [what comes next]
 
-### Files Changed
-
-- Created: [paths]
-- Modified: [paths]
-
-### How to Verify
-
-[Testing instructions]
-
-### Next Step
-
-[What comes next]
-
----
-
-**Please review. Should I proceed to Step [N+1]?**
+Proceed to Step [N+1]?
 ```
 
 3. **Wait for explicit approval before proceeding.**
@@ -139,11 +106,7 @@ For **each step**:
 5. Update the ticket's Iteration Log after each checkpoint:
 
 ```markdown
-- **Iteration N (YYYY-MM-DD HH:MM)**
-  - Summary: [What was done]
-  - Feedback: [User's response]
-  - Changes: [Modifications made]
-  - Status After: [Current status]
+- **Iteration N (YYYY-MM-DD HH:MM)**: [What was done] → [Feedback] → [Changes] → [Status]
 ```
 
 ---
@@ -153,29 +116,14 @@ For **each step**:
 When all steps are done:
 
 ```markdown
-## 🎉 All Implementation Steps Complete
-
-### Summary of Work
-
-- [Major accomplishment 1]
-- [Major accomplishment 2]
-
-### Acceptance Criteria Status
+## 🎉 Done: [TICKET-ID]
 
 - [x] Criterion 1
 - [x] Criterion 2
 
-### Testing Results
+Tests: [summary] | Files: [list]
 
-[Test results summary]
-
-### Files Modified
-
-[Complete list]
-
----
-
-**Ready for final review. If everything looks good, I'll mark this ticket Completed.**
+Mark as Completed?
 ```
 
 **Never mark a ticket Complete without explicit user approval.**
@@ -208,7 +156,6 @@ When all steps are done:
 | "Can you change X to Y?"      | Acknowledge → clarify if needed → implement → request feedback     |
 | "Why did you do it this way?" | Explain rationale → adjust if needed → request feedback            |
 | "This won't work because..."  | Mark Blocked → document issue → propose solutions → wait           |
-| "Can we also add Z?"          | Assess scope → update ticket if needed → get approval for approach |
 | "Can we also add Z?"          | Assess scope → update ticket if needed → get approval for approach |
 
 ---

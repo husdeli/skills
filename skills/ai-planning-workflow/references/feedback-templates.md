@@ -1,33 +1,18 @@
 # Feedback Templates Reference
 
-Copy-paste templates for each feedback checkpoint in the workflow.
-
 ---
 
 ## Implementation Plan (Phase 2)
 
 ```markdown
-## Implementation Plan for [TICKET-ID]
+## Plan: [TICKET-ID]
 
-After reviewing the codebase, I'll follow [existing patterns and conventions found].
+Following [pattern/convention found in codebase].
 
-I'll break this work into X steps:
+**Step 1**: [Description] — Files: [list] — Deliverable: [outcome]
+**Step 2**: [Description] — Files: [list] — Deliverable: [outcome]
 
-**Step 1**: [Description]
-
-- Technical approach: [How, based on existing patterns]
-- Files: [list files to create/modify]
-- Deliverable: [what will be complete]
-
-**Step 2**: [Description]
-
-- Technical approach: [How, based on existing patterns]
-- Files: [list files to create/modify]
-- Deliverable: [what will be complete]
-
-After each step, I'll request your feedback before continuing.
-
-Does this approach look good? Any concerns or changes?
+Feedback requested after each step. Good to go?
 ```
 
 ---
@@ -35,33 +20,15 @@ Does this approach look good? Any concerns or changes?
 ## Design Agreement (Phase 2.5 — UI work only)
 
 ```markdown
-## 🎨 Design Agreement: [Feature Name]
+## 🎨 Design: [Feature Name]
 
-I've built a static prototype before adding any business logic.
+Static prototype — no live data or business logic yet.
 
-### What's Included
+- [Component/screen]: [description]
+- Preview: [run instructions + URL]
+- Decisions: [key choices and rationale]
 
-- [Screen/component 1]: [description]
-- [Screen/component 2]: [description]
-
-### How to Preview
-
-[Run instructions + URL]
-
-### Design Decisions
-
-- [Decision 1 and rationale]
-- [Decision 2 and rationale]
-
-### What's NOT Included Yet
-
-- Real data integration (placeholder data used)
-- Business logic and validation
-- Auth/permission checks
-
----
-
-**Does this design look good? Any layout, styling, or UX changes before I wire up the logic?**
+Changes before I wire up the logic?
 ```
 
 ---
@@ -71,28 +38,14 @@ I've built a static prototype before adding any business logic.
 ```markdown
 ## ✅ Step [N]/[Total]: [Step Name]
 
-### What I Did
+- [Change 1]
+- [Change 2]
 
-- [Specific change 1]
-- [Specific change 2]
-- [Specific change 3]
+Files: Created [paths] / Modified [paths]
+Verify: [testing instructions]
+Next: [what comes next]
 
-### Files Changed
-
-- Created: [paths]
-- Modified: [paths]
-
-### How to Verify
-
-[Testing/review instructions]
-
-### Next Step
-
-[Brief description of what comes next]
-
----
-
-**Please review these changes. Should I proceed to Step [N+1], or would you like any adjustments?**
+Proceed to Step [N+1]?
 ```
 
 ---
@@ -100,11 +53,7 @@ I've built a static prototype before adding any business logic.
 ## Iteration Log Entry (after each checkpoint)
 
 ```markdown
-- **Iteration N (YYYY-MM-DD HH:MM)**
-  - Summary: [What was implemented]
-  - Feedback: [User's response — approval or change requests]
-  - Changes: [Modifications made based on feedback]
-  - Status After: [Current status]
+- **Iteration N (YYYY-MM-DD HH:MM)**: [What was done] → [Feedback] → [Changes] → [Status]
 ```
 
 ---
@@ -112,29 +61,14 @@ I've built a static prototype before adding any business logic.
 ## Final Review (Phase 4)
 
 ```markdown
-## 🎉 All Implementation Steps Complete
-
-### Summary of Work
-
-- [Major accomplishment 1]
-- [Major accomplishment 2]
-
-### Acceptance Criteria Status
+## 🎉 Done: [TICKET-ID]
 
 - [x] Criterion 1
 - [x] Criterion 2
 
-### Testing Results
+Tests: [summary] | Files: [list]
 
-[Test results summary]
-
-### Files Modified
-
-[Complete list]
-
----
-
-**This ticket is ready for final review. Please verify all acceptance criteria are met and code quality standards are satisfied. If everything looks good, I'll mark this ticket Completed.**
+Mark as Completed?
 ```
 
 ---

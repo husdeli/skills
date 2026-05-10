@@ -1,50 +1,39 @@
 # Ticket Creation Guidelines
 
-When creating tickets, focus on WHAT needs to be built, not HOW to build it.
+Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable — if a task is too complex to describe concisely, split it into multiple tickets.
 
 ---
 
-## ✅ DO Include in Tickets
+## ✅ Include
 
-- **Requirements**: What features/functionality need to be delivered
+- **Requirements**: What features/functionality to deliver
 - **Acceptance Criteria**: Observable outcomes and behaviours
-- **User Experience**: How users will interact with the feature
-- **Business Logic**: What rules and constraints apply
-- **High-Level Architecture**: Data flow patterns, reusability principles
-- **Data Requirements**: What data needs to be stored or retrieved (not schema details)
-- **Testing Expectations**: What needs to be tested (not specific test files)
+- **User Experience**: How users interact with the feature
+- **Business Logic**: Rules and constraints
+- **High-Level Architecture**: Data flow, reusability principles
+- **Data Requirements**: What data needs storing/retrieval (not schema details)
+- **Testing Expectations**: What needs testing (not specific test files)
 
 ---
 
-## ❌ DON'T Include in Tickets
+## ❌ Exclude
 
-- **Specific File Paths**: Don't list exact files to create/modify
-- **Library/Package Names**: Don't specify which libraries to use
-- **Component/Module Names**: Don't dictate internal naming
-- **Implementation Patterns**: Don't prescribe specific code patterns
-- **Data Schema Details**: Don't specify exact fields and types
-- **Code-Level Details**: No import statements, hooks, or syntax
+- Specific file paths
+- Library/package names
+- Component/module names
+- Implementation patterns
+- Data schema details
+- Code-level details (imports, hooks, syntax)
 
-**Implementation Steps must describe WHAT needs to happen (outcomes, behaviour, data shape), NOT HOW to achieve it.** Exact implementation decisions belong in the plan created during Phase 2, after the agent has reviewed the codebase.
-
----
-
-## Why This Matters
-
-1. **Flexibility**: Allows choosing the best approach based on existing codebase patterns
-2. **Evolution**: Codebase patterns may change over time
-3. **Autonomy**: Developers can make decisions that fit the current project state
-4. **Focus**: Keeps tickets focused on business value and user outcomes
+Implementation decisions belong in the plan created during Phase 2, after codebase exploration.
 
 ---
 
 ## Good vs Bad Example
 
-❌ **Bad** (too prescriptive):
+❌ **Bad** (prescriptive):
 
 ```markdown
-## Technical Notes
-
 ### Files to Create
 
 - `src/components/Header.tsx`
@@ -59,8 +48,6 @@ When creating tickets, focus on WHAT needs to be built, not HOW to build it.
 ✅ **Good** (outcome-focused):
 
 ```markdown
-## Technical Notes
-
 ### Components Needed
 
 - Header with branding and user profile area
@@ -68,7 +55,6 @@ When creating tickets, focus on WHAT needs to be built, not HOW to build it.
 
 ### Architectural Considerations
 
-- Header should be reusable across authenticated pages
-- Use existing authentication system for user data
-- Follow established UI component patterns
+- Header reusable across authenticated pages
+- Use existing auth system for user data
 ```
