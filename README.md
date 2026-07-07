@@ -21,6 +21,9 @@ That's it — the skills and agents below become available in every session.
   dependency rules across all layers; domain-cohesive feature grouping.
 - **ai-planning-workflow** — Feedback-driven ticket → plan → implement workflow with
   design-agreement and iteration-logging checkpoints.
+- **react-clean** — Rules for clean React components: one component per file, at most one
+  `useEffect`, no data-layer access from components, and the react.dev "You Might Not Need
+  an Effect" anti-patterns.
 
 ### Agents
 - **implementation-planner** — turns a task + codebase into a step-by-step plan.
