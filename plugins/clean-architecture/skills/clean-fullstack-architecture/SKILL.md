@@ -25,15 +25,46 @@ src/
 ├── hooks/           # Top-level React hooks - no domain/data imports
 ├── libs/            # Independent library modules
 ├── services/        # Data layer - external API interactions
-├── features/        # Feature modules (compose all layers)
-│   └── <feature>/
-│       ├── domain/
-│       ├── components/
-│       ├── containers/
-│       ├── hooks/
-│       ├── consts/
-│       └── services/
+├── features/        # Feature modules grouped by DOMAIN (compose all layers)
+│   ├── <domain>/               # single-surface domain — stays flat
+│   │   ├── domain/
+│   │   ├── components/
+│   │   ├── containers/
+│   │   ├── hooks/
+│   │   ├── consts/
+│   │   └── services/
+│   └── <domain>/               # multi-platform / multi-surface domain — nested
+│       ├── common/             # cross-platform code (same layers)
+│       │   ├── domain/
+│       │   ├── containers/
+│       │   ├── hooks/
+│       │   └── services/
+│       └── <sub-domain>/       # one platform; optional <surface>/ level below
+│           ├── domain/
+│           └── components/
 └── ...
+```
+
+Features are grouped by **domain** (a product area), not by surface type. A domain
+owns all of its surfaces; nest into sub-domains and surfaces only when the domain
+earns it (see "Domain-cohesive feature grouping" below). Worked social example:
+
+```
+features/socials/
+  index.ts                       # client-safe public barrel; re-exports common + platforms
+  common/                        # cross-platform code, shared by every platform
+    domain/       socialPost.ts, socialRenderer.ts, platformConstraints.ts
+    containers/   SocialPostEditor.tsx, PostList.tsx, PostInspector.tsx, postPreviews.ts
+    hooks/        useAccounts.ts
+    server/       connect.ts, connectionStore.ts, publish.ts, publishConnector.ts
+  bluesky/                       # sub-domain: earns only a render/preview surface today
+    domain/       blueskyRenderer.ts     # config + registration; imports from common/
+    components/   BlueskyPostPreview.tsx
+    index.ts
+  instagram/
+    domain/       instagramRenderer.ts
+    components/   InstagramPostPreview.tsx
+    index.ts
 ```
 
 ## Layer Definitions and Dependency Rules
@@ -182,6 +213,60 @@ export function useSlideEditor(presentationId: string) {
 }
 ```
 
+### Domain-cohesive feature grouping
+
+Group features by **domain**, not by surface type. Split a scattered `social-renderer` /
+`social-editor` / `social-viewer` set into one `socials/` domain that owns all of its
+surfaces. Nesting order, outermost to innermost:
+
+- **domain** — a product area (e.g. `socials/`). Domains never import each other.
+- **sub-domain** — one variant within the domain, typically a platform (e.g. `bluesky/`,
+  `instagram/`). Appears only with **2+ platforms**.
+- **surface** — a way the sub-domain is used (e.g. `viewer/`, `editor/`). Appears only
+  with **2+ surfaces**; a single-surface sub-domain holds the layers directly.
+- **layers** — the usual clean layers (`domain/`, `components/`, `containers/`, `hooks/`,
+  `services/`) at whatever level is the innermost earned nesting.
+
+**Nest only when it earns it.** Start flat and add a level only when there is real
+plurality to separate:
+
+- A single-surface, single-platform domain stays flat:
+  `features/<domain>/{domain,components,containers,hooks,services}`.
+- Add `<sub-domain>/` folders only once the domain has **2+ platforms**.
+- Add `<surface>/` folders only once a platform has **2+ surfaces**. One earned surface
+  stays flat under the sub-domain — do **not** create an empty `viewer/`/`editor/` scaffold.
+
+**The `common/` slot.** Code shared across a domain's sub-domains lives in
+`features/<domain>/common/`, itself organized by the clean layers. It holds the
+cross-platform core (shared domain logic, the platform-agnostic editor/viewer shell,
+shared hooks and server code). Each sub-domain composes `common/`; `common/` never
+reaches into a sub-domain.
+
+**Dependency rules on the nested shape.** The per-layer matrix below is unchanged — it
+still governs which layer may import which. Layered on top of it:
+
+- Inner layers never depend outward (same as always).
+- **Cross-domain imports are forbidden** — one domain never imports another domain's
+  internals (the existing "features must not cross-depend" rule, now read as "domains").
+- A **sub-domain may depend on its domain's `common/`**, but `common/` must **not** depend
+  on a sub-domain. Invert the edge: compose sub-domains at the domain root/barrel, or have
+  each sub-domain **self-register** into a shared registry that `common/` reads.
+- **Shared cross-cutting seams are a carve-out.** Genuinely cross-domain infrastructure —
+  top-level `models/`, and cross-domain registries such as the renderer registry and the
+  editor-surface registry — stays in its shared top-level location and remains consumable
+  by any domain. Such a registry is the sanctioned seam through which one domain's code
+  discovers another's contributions without a direct cross-domain import.
+
+**Worked example — `socials/`.** `common/` holds the cross-platform core (`socialRenderer`,
+`socialPost`, `platformConstraints`, the platform-agnostic `SocialPostEditor` shell, the
+`useAccounts` hook, and the server connect/publish seam). Each platform is a sub-domain
+(`bluesky/`, `instagram/`) holding only its renderer config + registration and its preview
+component. **Bluesky earns only a single render/preview surface today**, so it stays flat —
+no `viewer/`/`editor/` folders — because the editor is platform-agnostic and lives in
+`common/containers/`. Platforms register themselves: a platform's `domain/` registers its
+renderer into the shared renderer registry, and its barrel registers its preview into
+`common`'s preview registry — so `common/` imports no platform module.
+
 ## Dependency Matrix (Quick Reference)
 
 | Layer           | models | domain | components | containers | hooks | libs | services | features |
@@ -218,6 +303,8 @@ Before writing or reviewing code, verify:
 - [ ] `libs/` has zero imports from any project-specific layer
 - [ ] `models/` has zero imports from any other project layer
 - [ ] Features do not import from other features
+- [ ] No domain imports another domain's internals; shared code is promoted to a top-level layer or a cross-domain registry
+- [ ] `common/` does not import from its own sub-domains (invert via self-registration or wire at the domain root)
 - [ ] All business logic lives in `domain/` or `features/<name>/domain/`, never in components or hooks
 
 ## React-Specific Architecture Guidelines
