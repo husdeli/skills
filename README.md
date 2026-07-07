@@ -30,6 +30,10 @@ That's it — the skills and agents below become available in every session.
 - **plan-reviewer** — reviews a plan for correctness and convention alignment.
 - **coding** — implements an approved plan and verifies it.
 
+### Commands
+- **/orchestrate** — picks the next actionable roadmap task and drives it through
+  plan → review → implement using the three agents above.
+
 ## Repo layout
 
 ```
@@ -39,6 +43,7 @@ plugins/
     .claude-plugin/plugin.json       # plugin manifest
     skills/                          # auto-discovered skills
     agents/                          # auto-discovered agents
+    commands/                        # auto-discovered slash commands
 ```
 
 ## Local development
