@@ -205,7 +205,7 @@ ${taskBlock}
 ${interviewBlock}
 
 Return the plan in your standard Implementation Plan format as the \`plan\` field. Fill \`contextPack\` with the files, symbols, conventions, and the EXACT verification commands (tests, lint, typecheck) for this project. Fill \`riskProfile\` honestly — it drives whether a formal plan review runs.`,
-  { phase: 'Plan', agentType: 'implementation-planner', schema: PLAN_SCHEMA, model: 'opus', effort: 'high', label: 'plan' },
+  { phase: 'Plan', agentType: 'clean-architecture:implementation-planner', schema: PLAN_SCHEMA, model: 'opus', effort: 'high', label: 'plan' },
 )
 
 if (!planResult) {
@@ -252,7 +252,7 @@ ${packText}`
   if (!highRisk) {
     return await agent(`${base}\n\nReview holistically for correctness, completeness, and convention-alignment.`, {
       phase: 'Review',
-      agentType: 'plan-reviewer',
+      agentType: 'clean-architecture:plan-reviewer',
       schema: REVIEW_SCHEMA,
       model: 'opus',
       label: `review#${cycleLabel}`,
@@ -266,7 +266,7 @@ ${packText}`
       REVIEW_LENSES.map((lens) => () =>
         agent(`${base}\n\n${lens.focus}`, {
           phase: 'Review',
-          agentType: 'plan-reviewer',
+          agentType: 'clean-architecture:plan-reviewer',
           schema: REVIEW_SCHEMA,
           model: 'opus',
           label: `review:${lens.key}#${cycleLabel}`,
@@ -332,7 +332,7 @@ ${packText}
 
 ## Review issues to resolve
 ${issuesToText(review.issues)}`,
-        { phase: 'Review', agentType: 'implementation-planner', schema: PLAN_SCHEMA, model: 'opus', label: `revise#${cycle + 1}` },
+        { phase: 'Review', agentType: 'clean-architecture:implementation-planner', schema: PLAN_SCHEMA, model: 'opus', label: `revise#${cycle + 1}` },
       )
       if (!revised) return { status: 'aborted', stage: 'revision', reason: 'revision returned no result' }
       plan = revised.plan
@@ -364,7 +364,7 @@ ${packText}
 
 ## Acceptance criteria
 ${acceptance}`,
-  { phase: 'Implement', agentType: 'coding', schema: IMPL_SCHEMA, model: 'opus', label: 'implement' },
+  { phase: 'Implement', agentType: 'clean-architecture:coding', schema: IMPL_SCHEMA, model: 'opus', label: 'implement' },
 )
 
 if (!impl) return { status: 'aborted', stage: 'implement', reason: 'coding agent returned no result' }
@@ -397,7 +397,7 @@ ${interviewBlock}
 - Make exactly ONE StructuredOutput call.
 
 Set \`passed\` = true when every gating command succeeds (baseline-adjusted per above). List concrete \`failures\` otherwise.`,
-    { phase: 'Verify', agentType: 'verify', schema: VERIFY_SCHEMA, model: 'sonnet', effort: 'low', label: `verify#${fixCycle + 1}` },
+    { phase: 'Verify', agentType: 'clean-architecture:verify', schema: VERIFY_SCHEMA, model: 'sonnet', effort: 'low', label: `verify#${fixCycle + 1}` },
   )
 
   if (!verify) return { status: 'aborted', stage: 'verify', reason: 'verify agent returned no result', plan }
@@ -415,7 +415,7 @@ ${packText}
 
 ## Verification failures to fix
 ${(verify.failures || []).map((f) => `- ${f}`).join('\n')}`,
-      { phase: 'Verify', agentType: 'coding', schema: IMPL_SCHEMA, model: 'opus', label: `fix#${fixCycle + 1}` },
+      { phase: 'Verify', agentType: 'clean-architecture:coding', schema: IMPL_SCHEMA, model: 'opus', label: `fix#${fixCycle + 1}` },
     )
     if (!impl) return { status: 'aborted', stage: 'fix', reason: 'fix agent returned no result', plan }
   }

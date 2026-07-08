@@ -59,7 +59,7 @@ Which options do you want?
 
 5. Record the answers in the ticket (a **Decisions** section) so the plan and every later step build on settled choices.
 
-Skip this phase only for small, unambiguous changes with no product/UX/architecture forks. When automated via `/orchestrate`, this phase is the `feature-interviewer` agent.
+Skip this phase only for small, unambiguous changes with no product/UX/architecture forks.
 
 ---
 

@@ -38,7 +38,7 @@ Workflow({
 })
 ```
 
-The script spawns `implementation-planner`, `plan-reviewer`, and `coding` itself, in a fixed sequence. **You never spawn those three yourself** — the workflow owns them. It returns a structured result (`status: completed | escalate | aborted`) that you act on.
+The script spawns `clean-architecture:implementation-planner`, `clean-architecture:plan-reviewer`, and `clean-architecture:coding` itself, in a fixed sequence. **You never spawn those three yourself** — the workflow owns them. It returns a structured result (`status: completed | escalate | aborted`) that you act on.
 
 ### Context Pack (built once, forwarded automatically)
 Inside the script the planner emits a **context pack** — relevant files, key symbols, conventions, and the exact verification commands — and the script forwards it verbatim to the reviewer, coding, and verify stages so none of them cold-explores the codebase. This is handled in code; you don't manage it. The interview's **Decisions** are passed into the script via `args.interview` and travel into the planner as fixed constraints.
@@ -82,7 +82,7 @@ Track stages with the task/todo tools so the user sees live progress.
 
 **Stage 0.5 — Interview & Challenge (complexity-gated).** Before any planning, pressure-test the feature with the user:
 - **Skip the interview** when the task is trivially unambiguous — a small, well-specified change with no product/UX/architecture forks (e.g. "fix this off-by-one", "rename this field everywhere"). Note in the report that the interview was skipped by the complexity gate.
-- **Otherwise interview.** Spawn `feature-interviewer` with the task description, acceptance criteria, and roadmap context. It reads `prd.md`/`design.md`, explores the codebase, researches the topic, and returns a **Discovery Brief** with a list of **open decisions**, each with options and a recommendation.
+- **Otherwise interview.** Spawn the `clean-architecture:feature-interviewer` agent (use that namespaced `subagent_type`) with the task description, acceptance criteria, and roadmap context. It reads `prd.md`/`design.md`, explores the codebase, researches the topic, and returns a **Discovery Brief** with a list of **open decisions**, each with options and a recommendation.
   - **Put the decisions to the user yourself** with `AskUserQuestion` — a subagent cannot ask. Batch decisions (up to 4 per call), lead each with the interviewer's recommended option (label it "(Recommended)"), and also surface the brief's assumptions for confirmation.
   - Record the answers as a **Decisions** block. Append it to the ticket file (or write `feature-brief.md` if there's no ticket), so the choices are durable.
   - If the answers materially change scope, restate the revised task before planning.
@@ -133,7 +133,7 @@ The deterministic core encodes the retry/escalation policy in code, so it comes 
 - **One task at a time.** Do not execute the whole roadmap.
 - **Interactive shell, deterministic core.** You own the human-facing stages (pick, approve, interview Q&A, status marking, final report). The `orchestrate-core.js` workflow owns plan → review → revise → implement → verify. Do not do the core's work yourself, and do not re-run its stages.
 - **Mark status yourself, at both boundaries.** Set the ticket **and** roadmap to `In Progress` before invoking the workflow, and to `Completed` in both places only on `status: "completed"`. Keep the ticket and roadmap in sync.
-- **Interview before the core runs.** For any non-trivial feature, run `feature-interviewer` and settle its open decisions with the user *before* invoking the workflow — planning on unchallenged assumptions is the failure this prevents. Skip only via the complexity gate; when in doubt, run it.
+- **Interview before the core runs.** For any non-trivial feature, run `clean-architecture:feature-interviewer` and settle its open decisions with the user *before* invoking the workflow — planning on unchallenged assumptions is the failure this prevents. Skip only via the complexity gate; when in doubt, run it.
 - **Pass the interview through `args`.** The Decisions travel into the workflow as `args.interview`; the script forwards them to the planner as fixed constraints and builds the context pack once. You don't manage the pack.
 - **Trust the gates in code.** The review skip gate and the verify/fix loop are deterministic inside the script — don't second-guess or duplicate them.
 - **Never proceed without approval** on the selected task.
