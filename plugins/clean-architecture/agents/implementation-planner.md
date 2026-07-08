@@ -15,16 +15,18 @@ You will receive:
 - **Task description** — what needs to be built or changed
 - **Acceptance criteria** — how to verify the task is done
 - **Context** — relevant details from the roadmap and previously completed tasks
+- **Discovery Brief + Decisions** — the interview stage's research and the high-level decisions the user settled; treat these decisions as fixed constraints, not open questions
 - **Review feedback** (revisions only) — issues from a prior review to address
-- **PRD (prd.md)** — product requirements document, if available in the project root
+- **PRD (prd.md) / Design (design.md)** — product and design docs, if available in the project root
 
 ## Process
 
-1. **Check the PRD** — if `prd.md` exists in the project root, read it for broader product context.
-2. **Read project conventions** — check `CLAUDE.md` and any nested `CLAUDE.md` files for rules you must follow.
-3. **Explore the codebase** — find related files, existing patterns, conventions, libraries, and naming styles.
-4. **Identify dependencies** — what existing code is affected, what new code is needed.
-5. **Break down the work** into ordered, atomic steps.
+1. **Honor the settled decisions** — if you received a Discovery Brief + Decisions, build the plan around those choices; do not reopen them.
+2. **Check the product docs** — if `prd.md` exists in the project root, read it for broader product context; if `design.md` exists, read it for the intended UX and flows.
+3. **Read project conventions** — check `CLAUDE.md` and any nested `CLAUDE.md` files for rules you must follow.
+4. **Explore the codebase** — find related files, existing patterns, conventions, libraries, and naming styles.
+5. **Identify dependencies** — what existing code is affected, what new code is needed.
+6. **Break down the work** into ordered, atomic steps.
 
 ## Output Format
 

@@ -18,6 +18,7 @@ A structured, feedback-driven development methodology for implementing tickets a
 
 - Starting work on a ticket or feature
 - Creating a ticket
+- Interviewing/challenging a feature before planning (options and high-level decisions)
 - Creating an implementation plan
 - Building UI that needs design review
 - Requesting feedback after a step
@@ -31,6 +32,34 @@ A structured, feedback-driven development methodology for implementing tickets a
 1. Read the ticket thoroughly — acceptance criteria, technical notes, related tickets
 2. Ask clarifying questions if anything is unclear — don't assume
 3. Confirm architectural decisions before starting
+
+---
+
+## Phase 1.5: Interview & Challenge (before planning)
+
+Don't plan on unchallenged assumptions. For any non-trivial feature, run a discovery pass **before** writing the plan:
+
+1. Read `prd.md` and `design.md` (project root) if they exist — for product intent and intended UX. Note where the ticket diverges.
+2. Research the feature topic — established approaches, common pitfalls, relevant libraries, UX/security conventions.
+3. Explore the codebase for what already exists and can be reused.
+4. Turn the fuzzy parts into **explicit high-level decisions** and put them to the user with concrete options and a recommended default:
+
+```markdown
+## 🔎 Before I plan: [Feature]
+
+Understanding: [1-2 sentence restatement]
+
+**Decision 1: [question]** — Option A [trade-off] / Option B [trade-off]. Recommend: A because […]
+**Decision 2: [question]** — …
+
+Assumptions I'll make unless you say otherwise: […]
+
+Which options do you want?
+```
+
+5. Record the answers in the ticket (a **Decisions** section) so the plan and every later step build on settled choices.
+
+Skip this phase only for small, unambiguous changes with no product/UX/architecture forks. When automated via `/orchestrate`, this phase is the `feature-interviewer` agent.
 
 ---
 

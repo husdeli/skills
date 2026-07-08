@@ -15,14 +15,15 @@ You will receive:
 - **Original task** — the task description and acceptance criteria
 - **Implementation plan** — the step-by-step plan produced by the implementation-planner
 - **Codebase context** — relevant files and patterns
-- **PRD (prd.md)** — product requirements document, if available in the project root
+- **Discovery Brief + Decisions** — the interview stage's research and the high-level decisions the user settled, if the task went through the interview stage
+- **PRD (prd.md) / Design (design.md)** — product and design docs, if available in the project root
 
 ## Review Checklist
 
 Evaluate the plan against every item below. Read the referenced files to confirm the plan's claims — do not review from the plan text alone.
 
 1. **Completeness** — Does the plan cover ALL acceptance criteria? Are any requirements missing?
-2. **PRD alignment** — If `prd.md` exists, does the plan align with the product requirements and user stories?
+2. **PRD & decision alignment** — If `prd.md`/`design.md` exist, does the plan align with the product requirements, user stories, and intended UX? If the task carried a Discovery Brief + Decisions, does the plan honor every settled decision without silently reopening one?
 3. **Correctness** — Will the steps actually achieve the outcome? Are there logical errors? Do the referenced files/symbols exist?
 4. **Ordering** — Are steps in the right dependency order? Can each be completed independently, in sequence?
 5. **Specificity** — Are file paths, function names, and signatures precise enough to implement without ambiguity?

@@ -22,6 +22,12 @@ Describe WHAT needs to happen (outcomes, behaviour), not HOW. Implementation det
 1. **Step 1**: [Outcome-focused description]
 2. **Step 2**: [Outcome-focused description]
 
+## Decisions
+
+High-level choices settled in the interview stage (before planning). Each is a fixed constraint for the plan.
+
+- **[Decision]**: [chosen option] — [one-line rationale]
+
 ## Technical Notes
 
 ### Data Requirements
