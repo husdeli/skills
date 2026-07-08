@@ -5,9 +5,9 @@ export const meta = {
     'Invoked by the /orchestrate command after the interactive stages (task selection, approval, and the interview decisions) are settled. Drives a single task through planning, gated review with at most one revision cycle, implementation, and verification — all as code-controlled flow, no model-driven orchestration.',
   phases: [
     { title: 'Plan', detail: 'implementation-planner produces plan + context pack + risk profile', model: 'opus' },
-    { title: 'Review', detail: 'plan-reviewer gate + at most one revision cycle', model: 'opus' },
+    { title: 'Review', detail: 'risk-scaled plan-reviewer gate (parallel lenses when high-risk) + at most one revision cycle', model: 'opus' },
     { title: 'Implement', detail: 'coding agent applies the approved plan', model: 'opus' },
-    { title: 'Verify', detail: 'run verification commands; fix-and-recheck loop', model: 'opus' },
+    { title: 'Verify', detail: 'verify agent runs commands concurrently (sonnet); fix loop on opus', model: 'sonnet' },
   ],
 }
 
@@ -16,10 +16,20 @@ export const meta = {
 //   args.task      = { id, title, description, acceptanceCriteria: string[], roadmapContext }
 //   args.interview = { discoveryBrief, decisions } | null   (null when the interview gate skipped it)
 // ---------------------------------------------------------------------------
-const task = (args && args.task) || {}
-const interview = (args && args.interview) || null
+// `args` may arrive already-parsed (object) or string-typed (JSON) depending on
+// how the caller passes it — normalize before reading fields off it.
+let _args = args
+if (typeof _args === 'string') {
+  try {
+    _args = JSON.parse(_args)
+  } catch {
+    _args = null
+  }
+}
+const task = (_args && _args.task) || {}
+const interview = (_args && _args.interview) || null
 const MAX_REVISION_CYCLES = 1
-const MAX_FIX_CYCLES = 2
+const MAX_FIX_CYCLES = 1
 
 const acceptance = Array.isArray(task.acceptanceCriteria)
   ? task.acceptanceCriteria.map((c, i) => `${i + 1}. ${c}`).join('\n')
@@ -195,7 +205,7 @@ ${taskBlock}
 ${interviewBlock}
 
 Return the plan in your standard Implementation Plan format as the \`plan\` field. Fill \`contextPack\` with the files, symbols, conventions, and the EXACT verification commands (tests, lint, typecheck) for this project. Fill \`riskProfile\` honestly — it drives whether a formal plan review runs.`,
-  { phase: 'Plan', agentType: 'implementation-planner', schema: PLAN_SCHEMA, label: 'plan' },
+  { phase: 'Plan', agentType: 'implementation-planner', schema: PLAN_SCHEMA, model: 'opus', effort: 'high', label: 'plan' },
 )
 
 if (!planResult) {
@@ -210,24 +220,25 @@ const packText = packToText(contextPack)
 // ===========================================================================
 // Stage 2 — Review (deterministic complexity gate + at most one revision cycle)
 // ===========================================================================
-phase('Review')
-const skipReview =
-  risk.filesTouched <= 2 &&
-  !risk.addsDependency &&
-  !risk.addsPublicApi &&
-  risk.criteriaAutoCheckable
+// Review lenses. High-risk plans get both, run in PARALLEL (same wall-clock as
+// one reviewer); normal-risk plans get a single holistic review.
+const REVIEW_LENSES = [
+  {
+    key: 'correctness',
+    focus:
+      'Focus on CORRECTNESS and COMPLETENESS: will the plan actually satisfy every acceptance criterion? Look for missing steps, wrong assumptions, unhandled edge cases, and ordering hazards.',
+  },
+  {
+    key: 'conventions',
+    focus:
+      'Focus on CODEBASE FIT: does the plan follow existing conventions, dependency rules, and architectural boundaries? Flag unjustified new public API surface or dependencies.',
+  },
+]
 
-let reviewSummary = 'skipped by complexity gate (trivial, low-risk plan)'
-let approved = true
-
-if (skipReview) {
-  log(`Review gate: SKIPPED — ${risk.filesTouched} file(s), no new deps/API, criteria auto-checkable.`)
-} else {
-  log(`Review gate: REQUIRED — ${risk.filesTouched} file(s), deps=${risk.addsDependency}, api=${risk.addsPublicApi}.`)
-  approved = false
-  for (let cycle = 0; cycle <= MAX_REVISION_CYCLES && !approved; cycle++) {
-    const review = await agent(
-      `You are the plan-reviewer for the /orchestrate pipeline. Evaluate the plan against the task, acceptance criteria, and context pack. Read the referenced files — do not review from the plan text alone. Return APPROVED or CHANGES_REQUESTED with actionable issues.
+// Run the review for the current `plan`. Returns a merged {verdict, summary, issues}
+// (CHANGES_REQUESTED if ANY reviewer requests changes), or null if every reviewer died.
+async function runReview(highRisk, cycleLabel) {
+  const base = `You are the plan-reviewer for the /orchestrate pipeline. Evaluate the plan against the task, acceptance criteria, and context pack. Read the referenced files — do not review from the plan text alone. Return APPROVED or CHANGES_REQUESTED with actionable issues.
 
 ${taskBlock}
 
@@ -236,9 +247,65 @@ ${interviewBlock}
 ## Plan under review
 ${plan}
 
-${packText}`,
-      { phase: 'Review', agentType: 'plan-reviewer', schema: REVIEW_SCHEMA, label: `review#${cycle + 1}` },
+${packText}`
+
+  if (!highRisk) {
+    return await agent(`${base}\n\nReview holistically for correctness, completeness, and convention-alignment.`, {
+      phase: 'Review',
+      agentType: 'plan-reviewer',
+      schema: REVIEW_SCHEMA,
+      model: 'opus',
+      label: `review#${cycleLabel}`,
+    })
+  }
+
+  // parallel() preserves order and yields null for a dead reviewer; tag each
+  // result with its lens BEFORE filtering so labels never drift out of alignment.
+  const reviews = (
+    await parallel(
+      REVIEW_LENSES.map((lens) => () =>
+        agent(`${base}\n\n${lens.focus}`, {
+          phase: 'Review',
+          agentType: 'plan-reviewer',
+          schema: REVIEW_SCHEMA,
+          model: 'opus',
+          label: `review:${lens.key}#${cycleLabel}`,
+        }),
+      ),
     )
+  )
+    .map((r, i) => (r ? { ...r, lens: REVIEW_LENSES[i].key } : null))
+    .filter(Boolean)
+
+  if (!reviews.length) return null
+  return {
+    verdict: reviews.some((r) => r.verdict === 'CHANGES_REQUESTED') ? 'CHANGES_REQUESTED' : 'APPROVED',
+    summary: reviews.map((r) => `[${r.lens}] ${r.summary}`).join(' | '),
+    issues: reviews.flatMap((r) => r.issues || []),
+  }
+}
+
+phase('Review')
+const skipReview =
+  risk.filesTouched <= 2 &&
+  !risk.addsDependency &&
+  !risk.addsPublicApi &&
+  risk.criteriaAutoCheckable
+
+const highRisk = risk.addsPublicApi || risk.addsDependency || risk.filesTouched > 5
+
+let reviewSummary = 'skipped by complexity gate (trivial, low-risk plan)'
+let approved = true
+
+if (skipReview) {
+  log(`Review gate: SKIPPED — ${risk.filesTouched} file(s), no new deps/API, criteria auto-checkable.`)
+} else {
+  log(
+    `Review gate: REQUIRED — ${risk.filesTouched} file(s), deps=${risk.addsDependency}, api=${risk.addsPublicApi}. Mode: ${highRisk ? 'parallel lenses (high-risk)' : 'single holistic'}.`,
+  )
+  approved = false
+  for (let cycle = 0; cycle <= MAX_REVISION_CYCLES && !approved; cycle++) {
+    const review = await runReview(highRisk, cycle + 1)
 
     if (!review) return { status: 'aborted', stage: 'review', reason: 'reviewer returned no result' }
     reviewSummary = review.summary
@@ -265,7 +332,7 @@ ${packText}
 
 ## Review issues to resolve
 ${issuesToText(review.issues)}`,
-        { phase: 'Review', agentType: 'implementation-planner', schema: PLAN_SCHEMA, label: `revise#${cycle + 1}` },
+        { phase: 'Review', agentType: 'implementation-planner', schema: PLAN_SCHEMA, model: 'opus', label: `revise#${cycle + 1}` },
       )
       if (!revised) return { status: 'aborted', stage: 'revision', reason: 'revision returned no result' }
       plan = revised.plan
@@ -297,7 +364,7 @@ ${packText}
 
 ## Acceptance criteria
 ${acceptance}`,
-  { phase: 'Implement', agentType: 'coding', schema: IMPL_SCHEMA, label: 'implement' },
+  { phase: 'Implement', agentType: 'coding', schema: IMPL_SCHEMA, model: 'opus', label: 'implement' },
 )
 
 if (!impl) return { status: 'aborted', stage: 'implement', reason: 'coding agent returned no result' }
@@ -317,8 +384,20 @@ for (; fixCycle <= MAX_FIX_CYCLES; fixCycle++) {
 ## Verification commands
 ${verifyCommands}
 
-Return \`passed\` = true only if tests, lint, and typecheck all succeed. List concrete \`failures\` otherwise.`,
-    { phase: 'Verify', agentType: 'coding', schema: VERIFY_SCHEMA, label: `verify#${fixCycle + 1}` },
+${interviewBlock}
+
+## How to judge pass/fail
+- Judge by whether THIS change introduced failures — not by absolute exit codes.
+- A command that exits non-zero ONLY because of a known pre-existing baseline (e.g. \`tsc -b\` in a repo that already has type errors, when CI gates on build + tests rather than typecheck) is a PASS as long as the failure count is at or below the baseline. Compare against the repo's existing state before blaming the change.
+- Only gate \`passed\` on the project's actual gating commands (build, tests, lint, config validation) as reflected in the settled decisions / acceptance criteria above.
+
+## Output hygiene (important — keeps this within the retry budget)
+- Cap each result's \`output\` to ~3 short lines. Never paste full compiler or test dumps.
+- Summarize failures as concise one-line descriptions in \`failures\`.
+- Make exactly ONE StructuredOutput call.
+
+Set \`passed\` = true when every gating command succeeds (baseline-adjusted per above). List concrete \`failures\` otherwise.`,
+    { phase: 'Verify', agentType: 'verify', schema: VERIFY_SCHEMA, model: 'sonnet', effort: 'low', label: `verify#${fixCycle + 1}` },
   )
 
   if (!verify) return { status: 'aborted', stage: 'verify', reason: 'verify agent returned no result', plan }
@@ -336,7 +415,7 @@ ${packText}
 
 ## Verification failures to fix
 ${(verify.failures || []).map((f) => `- ${f}`).join('\n')}`,
-      { phase: 'Verify', agentType: 'coding', schema: IMPL_SCHEMA, label: `fix#${fixCycle + 1}` },
+      { phase: 'Verify', agentType: 'coding', schema: IMPL_SCHEMA, model: 'opus', label: `fix#${fixCycle + 1}` },
     )
     if (!impl) return { status: 'aborted', stage: 'fix', reason: 'fix agent returned no result', plan }
   }
