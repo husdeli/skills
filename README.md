@@ -26,13 +26,15 @@ That's it — the skills and agents below become available in every session.
   an Effect" anti-patterns.
 
 ### Agents
+- **feature-interviewer** — reads `prd.md`/`design.md`, researches the feature, and
+  returns a Discovery Brief that challenges the idea with open decisions and options.
 - **implementation-planner** — turns a task + codebase into a step-by-step plan.
 - **plan-reviewer** — reviews a plan for correctness and convention alignment.
 - **coding** — implements an approved plan and verifies it.
 
 ### Commands
 - **/orchestrate** — picks the next actionable roadmap task and drives it through
-  plan → review → implement using the three agents above.
+  interview → plan → review → implement using the four agents above.
 
 ## Repo layout
 

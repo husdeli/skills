@@ -1,7 +1,7 @@
 {
   "name": "clean-architecture",
-  "version": "0.1.0",
-  "description": "Clean fullstack architecture skill, AI planning workflow, and the planning/coding/review agents that drive it.",
+  "version": "0.2.0",
+  "description": "Clean fullstack architecture skill, AI planning workflow, and the interview/planning/coding/review agents that drive it.",
   "author": {
     "name": "husdeli",
     "url": "https://github.com/husdeli"
