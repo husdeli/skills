@@ -19,7 +19,7 @@ export const meta = {
 const task = (args && args.task) || {}
 const interview = (args && args.interview) || null
 const MAX_REVISION_CYCLES = 1
-const MAX_FIX_CYCLES = 2
+const MAX_FIX_CYCLES = 1
 
 const acceptance = Array.isArray(task.acceptanceCriteria)
   ? task.acceptanceCriteria.map((c, i) => `${i + 1}. ${c}`).join('\n')
