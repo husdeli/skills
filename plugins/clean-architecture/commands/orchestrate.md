@@ -92,9 +92,9 @@ When in doubt about whether a task is trivial enough to skip, do **not** skip �
 
 **Stage 1 — Run the deterministic core.** Call the **Workflow tool** with `scriptPath: "${CLAUDE_PLUGIN_ROOT}/workflows/orchestrate-core.js"` and the `args` shape shown above (task + interview). The script runs the fixed pipeline for you:
 - **Plan** — `implementation-planner` returns the plan, the context pack, and a **risk profile**.
-- **Review gate** — the script decides deterministically from the risk profile whether `plan-reviewer` runs (skipped only when the plan touches ≤2 files, adds no dependency, adds no public API, and all criteria are auto-checkable). If review runs and returns CHANGES REQUESTED, the script revises the plan **once** and re-reviews; still-not-approved → it returns `status: "escalate"`.
+- **Review gate** — the script decides deterministically from the risk profile whether `plan-reviewer` runs (skipped only when the plan touches ≤2 files, adds no dependency, adds no public API, and all criteria are auto-checkable). When review *is* required, it is **risk-scaled**: high-risk plans (new public API, new dependency, or >5 files) get two reviewers with different lenses (correctness vs. codebase-fit) run **in parallel** and merged (any CHANGES REQUESTED wins); normal-risk plans get a single holistic review. On CHANGES REQUESTED the script revises the plan **once** and re-reviews; still-not-approved → `status: "escalate"`.
 - **Implement** — `coding` applies the approved plan.
-- **Verify** — verification commands run concurrently; on failure the script loops failures back to `coding` (**at most 1 fix cycle**), then re-verifies. Persistent failure → `status: "escalate"`.
+- **Verify** — the lightweight `verify` agent runs the verification commands concurrently on a cheaper model; on failure the script loops failures back to `coding` (**at most 1 fix cycle**), then re-verifies. Persistent failure → `status: "escalate"`.
 
 Do **not** spawn the planner, reviewer, or coding agents yourself, and do **not** re-run verification — the script owns all of that. Wait for the completion notification and read the returned object.
 
