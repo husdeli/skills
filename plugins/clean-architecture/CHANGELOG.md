@@ -5,6 +5,18 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-07-10
+
+### Added
+- **`react-clean` skill — Rule 5 "Keep components and their props small."** Adds hard size
+  ceilings that trigger a refactor: ≤ 150 lines per component file, ≤ 50 lines of returned
+  JSX, ≤ 3 levels of JSX nesting, and one reason to render. Adds props limits: ≤ 5 props,
+  with an ordered remediation (composition via `children`/slots → group related props into
+  one object → split the component) and a ban on boolean-flag soup in favor of a single
+  `variant` union. Cohesive inputs (a typed props object, `children`, event handlers) are
+  explicitly exempt from the props budget.
+- Two matching checklist items and an updated skill `description` covering the new limits.
+
 ## [0.5.0] - 2026-07-09
 
 ### Changed

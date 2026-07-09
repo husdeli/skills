@@ -1,6 +1,6 @@
 ---
 name: react-clean
-description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, or refactoring React code. Enforces one-component-per-file, at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), and the "You Might Not Need an Effect" anti-pattern rules from react.dev.
+description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), and the "You Might Not Need an Effect" anti-pattern rules from react.dev.
 ---
 
 # Clean React Components
@@ -98,9 +98,48 @@ Effects are for **synchronizing with external systems** (a non-React widget, a s
 
 A **legitimate** effect (allowed under the one-effect budget of Rule 2) looks like: connecting to a chat server, subscribing to a browser event, syncing `document.title`, controlling a non-React map/video widget. If it's synchronizing with something *outside* React, it's fine — otherwise remove it.
 
+## Rule 5 — Keep components and their props small
+
+A component that grows past these limits is doing too much. Treat the limits as **hard ceilings that trigger a refactor**, not style suggestions — when you cross one, split before moving on.
+
+**Size limits (per component):**
+
+- **≤ 150 lines** for the whole file (imports excluded). Past that, extract child components or move logic into hooks.
+- **≤ 50 lines** in the returned JSX. A taller tree means you're missing sub-components — pull cohesive branches into their own named components (`<CardHeader />`, `<CardFooter />`).
+- **≤ 3 levels of JSX nesting** in a single return. Deeper nesting is a sub-component waiting to be extracted.
+- **One reason to render.** If a component both fetches/derives *and* lays out several unrelated sections, split it into a container and presentational pieces.
+
+**Props limits (per component):**
+
+- **≤ 5 props.** Crossing this is a signal, not a crime — but stop and apply one of the fixes below rather than adding a sixth.
+- When you need more, prefer, in order:
+  1. **Composition** — pass `children` or slot props (`header`, `actions`) instead of many primitive flags.
+  2. **Group related props into one object** — `user: { name, avatarUrl, role }` instead of `userName`, `userAvatarUrl`, `userRole`.
+  3. **Split the component** — a long prop list usually means two components wearing one costume.
+- **No boolean flag soup.** Several `isX` booleans that select a rendering mode should become a single `variant` union (`variant: 'compact' | 'full'`); mutually exclusive booleans are a design smell.
+- Don't count these against the budget: a single well-typed props object, `children`, and standard event handlers are fine — the limit targets *unrelated* inputs, not cohesive ones.
+
+```tsx
+// ❌ Avoid — 7 props, boolean soup, no cohesion
+function UserBadge({
+  name, avatarUrl, role, isOnline, isCompact, isClickable, onClick,
+}) { /* ... */ }
+
+// ✅ Good — grouped data object + a variant union + composition
+function UserBadge({
+  user,                       // { name, avatarUrl, role, isOnline }
+  variant = 'full',           // 'full' | 'compact'
+  onClick,                    // omit onClick → not clickable
+}: UserBadgeProps) { /* ... */ }
+```
+
+Sub-components extracted to satisfy these limits follow Rule 1: give each its own file (or keep a *tiny* presentational helper alongside its only parent).
+
 ## Checklist before finishing a component
 
 - [ ] One component in the file (or one + a tiny presentational helper).
+- [ ] Component ≤ 150 lines, JSX return ≤ 50 lines and ≤ 3 nesting levels — otherwise sub-components extracted.
+- [ ] ≤ 5 props; extra inputs grouped into an object, passed as `children`/slots, or collapsed into a `variant` union instead of boolean soup.
 - [ ] Zero or one `useEffect`; any others extracted into named custom hooks.
 - [ ] No `fetch`/`axios`/DB access in the component — data comes from a service + TanStack Query hook.
 - [ ] Every remaining effect genuinely synchronizes with an external system (passed the Rule 4 table).
