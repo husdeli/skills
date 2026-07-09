@@ -5,6 +5,27 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-07-09
+
+### Changed
+- **`/orchestrate` core is now persistent-agent, main-loop driven.** The plan → review →
+  revise → implement → verify pipeline no longer runs as a background `Workflow` script;
+  it runs in the main loop with the planner, plan-reviewer, and coding agents each spawned
+  **once** via `Agent` and resumed across revision/fix cycles via `SendMessage`. Their
+  context (the plan, the files they read, prior reasoning) now survives each cycle instead
+  of being re-sent, cutting the token/latency cost of the revision and fix loops. `verify`
+  is still spawned fresh each run (cheap Sonnet; a clean re-run is desired).
+- Because there is no schema enforcement in the main loop, each core agent now ends its
+  reply with a single fenced `json` block (context pack + risk profile, review verdict,
+  implementation summary, verify results) that the orchestrator parses to drive control
+  flow. The deterministic gates are preserved as explicit, mechanical rules: the review-skip
+  gate (≤2 files, no dep, no API, criteria auto-checkable), the high-risk parallel-lens test
+  (new API/dep or >5 files), the single revision cap, and the single fix cap are unchanged.
+
+### Removed
+- Deleted `workflows/orchestrate-core.js` and the `workflows/` directory. The deterministic
+  workflow is fully replaced by the persistent-agent main-loop pipeline above.
+
 ## [0.4.2] - 2026-07-08
 
 ### Changed
@@ -80,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `ai-planning-workflow` skill.
 - `implementation-planner`, `plan-reviewer`, and `coding` agents.
 
+[0.5.0]: https://github.com/husdeli/skills/releases/tag/v0.5.0
 [0.4.1]: https://github.com/husdeli/skills/releases/tag/v0.4.1
 [0.4.0]: https://github.com/husdeli/skills/releases/tag/v0.4.0
 [0.3.0]: https://github.com/husdeli/skills/releases/tag/v0.3.0
