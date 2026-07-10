@@ -5,6 +5,19 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-07-10
+
+### Fixed
+- **The `coding` agent can now actually invoke skills.** Added the `Skill` tool to the
+  agent's `tools` list — previously it was told to "invoke the `react-clean` skill" but
+  had no `Skill` tool, so the instruction was impossible to follow.
+
+### Changed
+- **`coding` agent loads skills up front.** It now invokes the `clean-fullstack-architecture`
+  skill before writing any production code and the `react-clean` skill before touching any
+  React file, handles namespaced skill names, and invokes each skill once per session rather
+  than per file. The `/orchestrate` implement-stage prompt was updated to match.
+
 ## [0.8.1] - 2026-07-10
 
 ### Changed

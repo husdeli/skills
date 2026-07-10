@@ -137,7 +137,7 @@ Merge multiple reviewers: verdict is `CHANGES_REQUESTED` if **any** reviewer req
 
 ```
 Agent(subagent_type: "clean-architecture:coding", model: "opus",
-      prompt: "Implement the approved plan exactly — no scope creep. Follow the react-clean skill for any React file. Match the context pack conventions."
+      prompt: "Implement the approved plan exactly — no scope creep. Load the clean-fullstack-architecture skill before writing production code and the react-clean skill for any React file, and follow them. Match the context pack conventions."
               + approved plan + context pack + acceptance criteria + the JSON contract)
 ```
 Coding must end with:
