@@ -5,6 +5,14 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - 2026-07-10
+
+### Changed
+- **`/design` command no longer hardcodes `design.md`.** Clarifies that the skill decides
+  the filename and whether the design lives in one doc or splits across several
+  cross-referenced docs (`design.md` is only the conventional default), and to update an
+  existing design doc in place rather than create a duplicate.
+
 ## [0.8.0] - 2026-07-10
 
 ### Added
