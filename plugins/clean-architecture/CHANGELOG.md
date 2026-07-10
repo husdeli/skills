@@ -5,6 +5,13 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2026-07-10
+
+### Added
+- **`/design` command.** Loads the `design-doc` skill and drives it to create or update a
+  design doc for a given screen, surface, or flow. Takes the target as an argument and
+  prompts for one if omitted.
+
 ## [0.7.0] - 2026-07-10
 
 ### Added
