@@ -5,6 +5,16 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-07-10
+
+### Added
+- **`design-doc` skill.** Guides creating a design doc (`design.md`) that specifies how a
+  product looks and behaves — the intended end state, not how to build it. Enforces four
+  core rules (target-state not procedure, structural altitude not pixel-level, no changelog,
+  split by concern with cross-references), a standard document shape, a per-surface
+  layout → content → states → responsive pattern, and style rules favoring ASCII layout
+  diagrams and state tables.
+
 ## [0.6.0] - 2026-07-10
 
 ### Added
