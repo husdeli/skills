@@ -5,6 +5,18 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-07-13
+
+### Changed
+- **`feature-interviewer` agent is now selective about what it escalates.** It surfaces an
+  open decision to the user *only* when the choice genuinely needs them: a significant
+  architecture decision, a library or framework choice the codebase doesn't already dictate,
+  a point of genuinely unclear intent, or a contradiction with `prd.md`/`design.md`. Every
+  other choice it resolves itself and records as an assumption. Adds an explicit "what clears
+  the bar" filter, a `Type:` tag and "why it needs you" line per decision, and makes
+  returning zero open decisions a valid outcome — biasing toward a short, high-stakes brief
+  over a long list of choices the user doesn't care about.
+
 ## [0.10.0] - 2026-07-13
 
 ### Added
