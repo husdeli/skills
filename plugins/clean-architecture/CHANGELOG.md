@@ -5,6 +5,19 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2026-07-13
+
+### Added
+- **`prd` skill.** Guides creating or updating a product requirements document — the
+  requirements from the user's point of view, kept durable as tickets and implementation
+  change underneath. Enforces product-only content (no ticket, code, technology, or
+  migration references), cohesive per-product-area descriptions with stable anchor codes
+  instead of atomic per-feature checklists, and positive framing of behavior. Prescribes a
+  fixed eight-section structure and rules for revising a living PRD in place.
+- **`/prd` command.** Loads the `prd` skill and drives it to create or update a product
+  requirements document for a given product or feature. Takes the target as an argument and
+  prompts for one if omitted.
+
 ## [0.9.0] - 2026-07-10
 
 ### Fixed

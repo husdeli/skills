@@ -24,6 +24,10 @@ That's it — the skills and agents below become available in every session.
 - **react-clean** — Rules for clean React components: one component per file, at most one
   `useEffect`, no data-layer access from components, and the react.dev "You Might Not Need
   an Effect" anti-patterns.
+- **design-doc** — Create or update a design doc specifying how a screen, surface, or flow
+  looks and behaves — the intended end state, not how to build it.
+- **prd** — Create or update a product requirements document: product-only content,
+  cohesive per-area descriptions with stable anchor codes, and positive framing.
 
 ### Agents
 - **feature-interviewer** — reads `prd.md`/`design.md`, researches the feature, and
@@ -35,6 +39,10 @@ That's it — the skills and agents below become available in every session.
 ### Commands
 - **/orchestrate** — picks the next actionable roadmap task and drives it through
   interview → plan → review → implement using the four agents above.
+- **/design** — loads the `design-doc` skill to create or update a design doc for a given
+  screen, surface, or flow.
+- **/prd** — loads the `prd` skill to create or update a product requirements document for
+  a given product or feature.
 
 ## Repo layout
 
