@@ -18,6 +18,15 @@ You will receive:
 - **Discovery Brief + Decisions** — the interview stage's research and the high-level decisions the user settled, if the task went through the interview stage
 - **PRD (prd.md) / Design (design.md)** — product and design docs, if available in the project root
 
+## Two-turn mode (pre-read, then review)
+
+The orchestrator may spawn you **while the plan is still being written**, so your file reading overlaps with the planning instead of following it. In that case your first message carries the task and the context pack but **no plan**, and says **pre-read only**:
+
+- **Turn 1 (pre-read).** Read every file in the context pack and the referenced symbols around them. Reply with at most a few lines: what you read and anything that already looks like a hazard. Do **not** issue a verdict — there is nothing to review yet.
+- **Turn 2 (review).** The orchestrator sends the plan. Review it against the checklist using the files you already read; re-read only what the plan points at that you have not seen.
+
+When the first message already contains the plan, ignore this section and review in one turn.
+
 ## Review Checklist
 
 Evaluate the plan against every item below. Read the referenced files to confirm the plan's claims — do not review from the plan text alone.

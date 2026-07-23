@@ -5,6 +5,44 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.14.0] - 2026-07-23
+
+Latency pass on `/orchestrate`: the pipeline was serial end to end, and three stages were
+redoing work an earlier stage had already done. Same gates, same caps, less wall-clock.
+
+### Changed
+- **The planner now scouts in parallel with the interview.** `/orchestrate` spawns
+  `implementation-planner` in **scout-only** mode in the *same tool block* as
+  `feature-interviewer`: it surveys the codebase and emits the context pack while the
+  interview runs and the user answers `AskUserQuestion`, then parks. When the Decisions are
+  settled they go to the *same* agent via `SendMessage` and it plans from files it has
+  already read. Removes a full cold codebase exploration from the critical path.
+- **The reviewer now pre-reads in parallel with the planning.** `plan-reviewer` is spawned
+  in **pre-read only** mode as soon as the context pack exists, gated on the scout's
+  provisional risk profile, so its mandatory file reading overlaps with the plan being
+  written. The real review gate is still applied mechanically to the final risk profile; a
+  pre-warmed reviewer that the gate then skips is simply dropped.
+- **The coding agent no longer runs the full suite.** It does a *targeted* self-check on
+  what it touched; `verify` remains the sole authoritative gate and runs the gating
+  commands concurrently. Previously both ran everything — the coding agent sequentially —
+  which duplicated the slowest block on the path, twice when a fix cycle happened.
+- **Re-verification fails fast.** After a fix, `/orchestrate` hands the previously failing
+  commands to the fresh `verify` agent, which runs those first and reports immediately if
+  any still fails instead of running the rest of the suite for a result that cannot pass.
+- **Normal-risk plan review runs on Sonnet**; the two high-risk lenses stay on Opus.
+- **Thinner spawn prompts.** The verify agent's judging and output-hygiene rules and its
+  JSON contract, and the coding agent's skill obligations, moved out of the `/orchestrate`
+  spawn prompts into the agent definitions, where they are not re-paid on every spawn.
+
+### Added
+- **`e2eCommand` in the context pack.** The planner reports the project's e2e command (or
+  `"none"`), and `/orchestrate` passes it to every `verify` spawn. When supplied, `verify`
+  skips its e2e discovery sweep entirely instead of globbing for `playwright.config.*`,
+  `cypress/`, and `e2e/` on every run.
+- **Two-turn modes** documented in the `implementation-planner` (scout → plan) and
+  `plan-reviewer` (pre-read → review) agent definitions, so both behave correctly whether
+  they are spawned early or in the classic one-turn way.
+
 ## [0.13.0] - 2026-07-23
 
 ### Added

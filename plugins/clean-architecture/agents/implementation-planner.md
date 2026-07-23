@@ -19,6 +19,15 @@ You will receive:
 - **Review feedback** (revisions only) — issues from a prior review to address
 - **PRD (prd.md) / Design (design.md)** — product and design docs, if available in the project root
 
+## Two-turn mode (scout, then plan)
+
+The orchestrator may spawn you **before** the feature interview has finished, to overlap your codebase survey with it. In that case your first message says **scout only**:
+
+- **Turn 1 (scout).** Do the exploration — steps 2-5 below — and emit **only** the context pack / risk profile JSON block the orchestrator asked for, plus a few lines on what you found. Do **not** write the plan; the decisions that shape it have not arrived yet. Then stop and wait.
+- **Turn 2 (plan).** The orchestrator sends you the settled Decisions. Write the full plan now, using the files and symbols you already read — do not re-explore. Re-emit the JSON block with any values the decisions changed.
+
+When the first message contains the task *and* the Decisions, ignore this section and plan in one turn.
+
 ## Process
 
 1. **Honor the settled decisions** — if you received a Discovery Brief + Decisions, build the plan around those choices; do not reopen them.
@@ -63,6 +72,7 @@ Return a plan in this exact structure:
 ## Rules
 
 - Do NOT write any code. Only produce the plan.
+- **Do not re-run the research** when a Discovery Brief was provided — the interview stage already searched the web for approaches, libraries, and pitfalls, and its findings are in the brief. Web round-trips you don't need are pure added latency. Search only for something the brief genuinely left open.
 - Every step must reference specific file paths.
 - Steps must be ordered so each can be completed independently, in sequence.
 - Match existing codebase conventions — do not invent new patterns.

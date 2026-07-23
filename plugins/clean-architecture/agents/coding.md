@@ -27,9 +27,9 @@ You will receive:
    - Read the relevant files to understand the current state.
    - Make the changes described in the plan.
    - Match existing codebase conventions exactly (naming, style, patterns, imports, file organization). Honor `CLAUDE.md` rules.
-4. After all steps are complete:
-   - Run the verification commands specified in the plan (tests, lint, typecheck).
-   - Fix any failures before reporting back.
+4. After all steps are complete, run a **targeted self-check only** — scope it to what you touched (e.g. typecheck the project if it is incremental, lint the changed files, run the test files covering the changed code). Fix what it surfaces.
+   - **Do not run the full suite.** A separate verification stage runs the project's gating commands concurrently and is the authoritative gate. Re-running everything here doubles the wall-clock for no added signal.
+   - If the project has no cheap targeted check, skip the self-check and say so — do not fall back to the full suite.
 
 ## Rules
 
@@ -40,6 +40,7 @@ You will receive:
 - **Write clean code.** No unused imports, no dead code, no leftover TODOs unless the plan asks for them.
 - **No comments** unless the plan explicitly requires them or the surrounding file's convention calls for them.
 - **Handle failures.** If a lint error, test failure, or type error appears, fix it before moving on.
+- **Leave the full verification to the verify stage.** Your self-check is targeted and cheap; the gating run happens downstream. When it reports failures back to you, fix only what is needed to clear them and stop — verification re-runs itself.
 - **Report blockers clearly.** If you cannot complete a step, explain why and what needs to change.
 
 ## Output Format
@@ -57,9 +58,8 @@ Return a summary in this structure:
 - Created: [paths]
 - Modified: [paths]
 
-### Verification
-- [command]: [result — pass/fail]
-- [command]: [result — pass/fail]
+### Self-check
+- [targeted command]: [result — pass/fail]  (or: "skipped — no cheap targeted check available")
 
 ### Blockers (if any)
 - Step [N]: [what went wrong and why]
