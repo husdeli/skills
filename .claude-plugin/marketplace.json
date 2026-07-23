@@ -8,7 +8,6 @@
     {
       "name": "clean-architecture",
       "source": "./plugins/clean-architecture",
-      "version": "0.9.0",
       "description": "Clean fullstack architecture skill, AI planning workflow, and the interview/planning/coding/review agents that drive it."
     }
   ]

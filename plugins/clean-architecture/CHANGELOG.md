@@ -5,6 +5,31 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.13.0] - 2026-07-23
+
+### Added
+- **`verify` agent runs end-to-end tests when the project has them.** It now discovers an
+  e2e suite on its own (scripts matching `e2e`/`cypress`/`playwright`, `playwright.config.*`
+  / `cypress.config.*` / `wdio.conf.*` / `.detoxrc*`, `e2e/` and `cypress/e2e/` directories,
+  `Makefile`/`tox` e2e targets) and runs it even when the handed-over verification commands
+  omit it. A project with no e2e suite is reported as such, not as a failure.
+- **E2E-aware run strategy.** Fast checks (unit tests, lint, typecheck, build) still go out
+  as one concurrent batch; e2e runs afterwards on its own with the maximum timeout, since
+  those suites bind ports, share a database, and drive a browser. The agent lets the
+  project's own tooling start the app (Playwright `webServer`, `start-server-and-test`) and
+  prefers headless/CI invocations over watch modes.
+- **`skipped` verification results.** An e2e suite that cannot run for environment reasons —
+  browsers not installed, no display, a missing service or credentials — is reported as
+  skipped with the reason rather than as a pass or a code failure. `/orchestrate` carries a
+  `skipped` field in the verify JSON contract and requires skipped commands to be named in
+  the completion report.
+
+### Changed
+- `verify` may re-run a **single** e2e spec once to separate a flake from a real break, and
+  must report the retry; whole-suite re-runs remain forbidden. Failure extraction now calls
+  for the failing spec plus the assertion or selector, and explicitly bans pasting e2e
+  traces.
+
 ## [0.12.0] - 2026-07-23
 
 ### Added

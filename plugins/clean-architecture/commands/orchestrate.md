@@ -150,16 +150,17 @@ If it returns nothing → `aborted` (stage `implement`). If `blockers` is non-em
 
 ```
 Agent(subagent_type: "clean-architecture:verify", model: "sonnet",
-      prompt: "Run these verification commands CONCURRENTLY (one parallel Bash batch), then report pass/fail per command."
+      prompt: "Run these verification commands CONCURRENTLY (one parallel Bash batch), then check whether the project has an
+               end-to-end suite and run it separately if it does. Report pass/fail per command."
               + verificationCommands from the context pack + the Decisions
               + judging & output-hygiene rules below + the JSON contract)
 ```
-Judging & hygiene rules to include verbatim: judge by whether THIS change *introduced* failures, not absolute exit codes (a command non-zero only due to a known pre-existing baseline, e.g. `tsc -b`, is a PASS at/below baseline); gate only on the project's actual gating commands (build, tests, lint, config validation) per the Decisions/criteria; cap each result's `output` to ~3 short lines, never paste full dumps; make exactly ONE final JSON block. Contract:
+Judging & hygiene rules to include verbatim: judge by whether THIS change *introduced* failures, not absolute exit codes (a command non-zero only due to a known pre-existing baseline, e.g. `tsc -b`, is a PASS at/below baseline); gate only on the project's actual gating commands (build, tests, lint, config validation, e2e when the project has one) per the Decisions/criteria; an e2e suite that cannot run for environment reasons (browsers not installed, no service, no credentials) is `skipped: true` with the reason, not a pass and not a failure; cap each result's `output` to ~3 short lines, never paste full dumps; make exactly ONE final JSON block. Contract:
 ```json
-{ "passed": true, "results": [{ "command": "", "passed": true, "output": "" }], "failures": [""] }
+{ "passed": true, "results": [{ "command": "", "passed": true, "skipped": false, "output": "" }], "failures": [""] }
 ```
 - If it returns nothing → `aborted` (stage `verify`).
-- If `passed == true` → success, go to Stage 3-of-§3 (mark Completed).
+- If `passed == true` → success, go to Stage 3-of-§3 (mark Completed). If any result is `skipped`, still succeed, but name the skipped command and its reason in the completion report — never present a skipped e2e run as a green one.
 - If `passed == false` and you have **not yet fixed**: `SendMessage(codingId, "Verification failed. Fix ONLY what's needed to make the checks pass — stay within the approved plan, then stop; verification will re-run." + failures)` — the coding agent already holds the plan/pack, **send only the failures**. Then spawn a **fresh** verify agent and re-check.
 - If `passed == false` and you have **already fixed once** → **`escalate`** (stage `verify`) with the failures, leave status `In Progress`, stop.
 
