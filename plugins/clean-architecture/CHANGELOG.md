@@ -5,6 +5,25 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-07-23
+
+### Added
+- **`react-clean` Rule 6 — static imports at the top of the file.** Bans `await import()` /
+  in-function `require()` as a default, with a narrow exception list (route- and
+  component-level code splitting via `lazy`, a heavy dependency on a rare path, browser-only
+  modules under SSR, genuinely optional dependencies). Exceptions must sit at module scope
+  and carry a one-line comment explaining why they are dynamic.
+- **`react-clean` Rule 7 — no prop drilling.** A prop a component only relays to a child is
+  a refactor signal: prefer composition (`children`/slot props), then moving state down or
+  the consumer up, then context for truly global values, then a store for server/app-wide
+  state. One level of pass-through is fine; two or more with untouched intermediates is not.
+  Notes the overlap with the Rule 5 props ceiling — a component with many relayed props
+  should be taking `children`.
+
+### Changed
+- Extended the `react-clean` skill description and finishing checklist to cover both new
+  rules.
+
 ## [0.11.0] - 2026-07-13
 
 ### Changed

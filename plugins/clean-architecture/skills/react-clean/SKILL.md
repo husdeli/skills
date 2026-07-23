@@ -1,6 +1,6 @@
 ---
 name: react-clean
-description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), and the "You Might Not Need an Effect" anti-pattern rules from react.dev.
+description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, passing props down a tree, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), static top-of-file imports (no dynamic or in-function imports unless justified), no prop drilling (compose instead of threading props through), and the "You Might Not Need an Effect" anti-pattern rules from react.dev.
 ---
 
 # Clean React Components
@@ -135,6 +135,75 @@ function UserBadge({
 
 Sub-components extracted to satisfy these limits follow Rule 1: give each its own file (or keep a *tiny* presentational helper alongside its only parent).
 
+## Rule 6 — Static imports at the top of the file
+
+**All imports live at the top of the file as static `import` statements.** No `await import()`, no `require()` inside a function, no lazily pulling a module in on first use.
+
+```tsx
+// ❌ Avoid — import hidden inside the function
+async function handleExport(rows: Row[]) {
+  const { writeXlsx } = await import('./xlsx');
+  return writeXlsx(rows);
+}
+
+// ✅ Good — dependency visible at the top of the file
+import { writeXlsx } from './xlsx';
+
+async function handleExport(rows: Row[]) {
+  return writeXlsx(rows);
+}
+```
+
+Why: top-level imports make a module's dependencies readable at a glance, keep them statically analyzable (tree-shaking, type-checking, refactors, dead-code detection), and avoid turning a synchronous function into an async one just to load code. An in-function import is also a common way to paper over a circular dependency — fix the cycle instead by moving the shared piece into its own module.
+
+**The exceptions — a dynamic import is the right tool when:**
+
+- **Route- or component-level code splitting**: `const Editor = lazy(() => import('./Editor'))` for a genuinely heavy component (a rich-text editor, chart library, PDF viewer) that most sessions never render.
+- **A heavy dependency used on a rare path** — an export-to-XLSX helper behind a rarely clicked button — where the bundle savings are real and measurable.
+- **Browser-only modules in an SSR app**, where the module touches `window` at import time and must not run on the server.
+- **Optional/conditional dependencies** that may legitimately be absent at runtime.
+
+When you take an exception, keep the dynamic import at module scope where possible (`const X = lazy(() => import('./X'))`), not buried in a handler, and add a one-line comment saying *why* it is dynamic. "It might be faster" is not a reason — deferring a 3 kB utility costs clarity and buys nothing.
+
+## Rule 7 — No prop drilling: compose instead
+
+**If a component receives a prop only to hand it to a child — it never reads it, renders it, or acts on it — that's prop drilling. Restructure instead of threading it through.**
+
+```tsx
+// ❌ Avoid — Layout and Sidebar don't use `user`, they just relay it
+function Page({ user }) {
+  return <Layout user={user} />;
+}
+function Layout({ user }) {
+  return <div><Sidebar user={user} /></div>;
+}
+function Sidebar({ user }) {
+  return <div><UserMenu user={user} /></div>;
+}
+
+// ✅ Good — the owner builds the element; intermediates just place it
+function Page({ user }) {
+  return (
+    <Layout sidebar={<Sidebar userMenu={<UserMenu user={user} />} />} />
+  );
+}
+function Layout({ sidebar }) {
+  return <div>{sidebar}</div>;
+}
+```
+
+**Fixes, in order of preference:**
+
+1. **Composition (`children` / slot props).** Let the component that *owns* the data create the element, and let the layers in between accept it as `children` or a named slot (`header`, `sidebar`, `actions`). The middle layers stop knowing about `user` entirely — which also makes them reusable and easier to test.
+2. **Move the state down.** If only one subtree needs the value, the state often belongs in that subtree, not at the top.
+3. **Move the consumer up.** Sometimes the child that needs the data should be rendered by the owner instead of nested deep in a layout.
+4. **Context — for genuinely global, rarely changing values only.** Theme, current user/session, locale, feature flags. Context is not a substitute for composition: reaching for it to avoid two levels of props trades explicit data flow for hidden coupling and re-render surprises. Put a context behind a typed `useX()` hook that throws outside its provider.
+5. **A store (Zustand/Redux/TanStack Query cache)** when the data is server state or genuinely app-wide — never as a workaround for an awkward component tree.
+
+**The rule of thumb:** one level of pass-through is fine. **Two or more levels where the intermediate components never touch the value is a refactor signal** — compose.
+
+Prop drilling and Rule 5's props ceiling usually appear together: a component with eight props where five are relayed downward isn't a component with too many props, it's a component that should be taking `children`.
+
 ## Checklist before finishing a component
 
 - [ ] One component in the file (or one + a tiny presentational helper).
@@ -144,3 +213,5 @@ Sub-components extracted to satisfy these limits follow Rule 1: give each its ow
 - [ ] No `fetch`/`axios`/DB access in the component — data comes from a service + TanStack Query hook.
 - [ ] Every remaining effect genuinely synchronizes with an external system (passed the Rule 4 table).
 - [ ] Derived data is computed during render (or `useMemo`), not stored in state and synced by an effect.
+- [ ] All imports are static and at the top of the file — any dynamic import is one of the Rule 6 exceptions and says why in a comment.
+- [ ] No prop is passed through a component that never uses it — pass-through chains replaced by composition (`children`/slots), relocated state, or context for truly global values.
