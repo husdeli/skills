@@ -21,10 +21,14 @@ That's it — the skills and agents below become available in every session.
   dependency rules across all layers; domain-cohesive feature grouping.
 - **ai-planning-workflow** — Feedback-driven ticket → plan → implement workflow with
   design-agreement and iteration-logging checkpoints.
-- **react-clean** — Rules for clean React components: one component per file, at most one
-  `useEffect`, no data-layer access from components, static top-of-file imports, no prop
-  drilling (compose instead), self-documenting code over comments, and the react.dev "You
-  Might Not Need an Effect" anti-patterns.
+- **ts-clean** — Framework-agnostic rules for any `.ts`/`.tsx` file: one module per file
+  named after its primary export, static top-of-file imports (with the code-splitting /
+  SSR / optional-dependency exceptions spelled out), and self-documenting code over
+  comments.
+- **react-clean** — The React layer on top of `ts-clean`: one component per file, at most
+  one `useEffect`, no data-layer access from components, size and props ceilings, no prop
+  drilling (compose instead), and the react.dev "You Might Not Need an Effect"
+  anti-patterns.
 - **design-doc** — Create or update a design doc specifying how a screen, surface, or flow
   looks and behaves — the intended end state, not how to build it.
 - **prd** — Create or update a product requirements document: product-only content,

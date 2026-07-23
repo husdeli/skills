@@ -5,6 +5,32 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2026-07-24
+
+### Added
+- **`ts-clean` skill — clean TypeScript for every `.ts`/`.tsx` file.** The generic rules
+  were living inside `react-clean`, so they only fired when someone was editing a
+  component: a service could hide an `await import()` in a helper and a domain module could
+  narrate itself line by line without ever tripping a rule. `ts-clean` now owns them —
+  one module per file named after its primary export (`index.ts` stays a barrel), static
+  top-of-file imports with the code-splitting / SSR / optional-dependency exceptions spelled
+  out, and self-documenting code over comments with explicit keep and delete lists.
+
+### Changed
+- **`react-clean` is now the React layer on top of `ts-clean`.** Its old Rule 6 (static
+  imports) and Rule 8 (comments) moved to `ts-clean`; the prop-drilling rule renumbered
+  7 → 6, and Rule 1 kept only the component-specific part of one-module-per-file. A new
+  prerequisite section tells the reader to load `ts-clean` as well, and the finishing
+  checklist defers to its checklist instead of duplicating it.
+- **The coding agent loads `ts-clean` for any TypeScript file**, not just React ones —
+  `react-clean` is now described as stacking on top of it rather than repeating it.
+- **The plan reviewer checks plans against the plugin's skills.** It gained the `Skill`
+  tool and a new checklist item ("Plugin skill compliance"): it loads
+  `clean-fullstack-architecture`, `ts-clean`, and `react-clean` for the code a plan touches,
+  and treats a step that would force a violation as a **major** issue. Previously the coding
+  agent was held to these rules but nothing checked the plan for steps that made them
+  impossible to follow.
+
 ## [0.15.0] - 2026-07-23
 
 ### Added

@@ -190,7 +190,7 @@ Agent(subagent_type: "clean-architecture:coding", model: "opus",
                Targeted self-check only when you are done; the verify stage runs the full gate."
               + approved plan + context pack + acceptance criteria + the JSON contract)
 ```
-Its skill obligations (`clean-fullstack-architecture` before any production code, `react-clean` for any React file) already live in the agent definition — do not restate them here; text in the agent file is free, text in this prompt is paid on every spawn.
+Its skill obligations (`clean-fullstack-architecture` before any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for any React file) already live in the agent definition — do not restate them here; text in the agent file is free, text in this prompt is paid on every spawn.
 Coding must end with:
 ```json
 { "summary": "", "stepsCompleted": [""], "filesChanged": { "created": [""], "modified": [""] }, "blockers": [""] }

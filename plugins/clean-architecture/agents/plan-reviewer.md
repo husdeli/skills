@@ -1,7 +1,7 @@
 ---
 name: plan-reviewer
 description: Reviews an implementation plan for correctness, completeness, and alignment with codebase conventions. Use after planning and before coding, or when the /orchestrate pipeline reaches its review stage. Returns APPROVED or CHANGES REQUESTED — writes no code.
-tools: Read, Grep, Glob, Bash
+tools: Read, Grep, Glob, Bash, Skill
 model: opus
 ---
 
@@ -37,9 +37,14 @@ Evaluate the plan against every item below. Read the referenced files to confirm
 4. **Ordering** — Are steps in the right dependency order? Can each be completed independently, in sequence?
 5. **Specificity** — Are file paths, function names, and signatures precise enough to implement without ambiguity?
 6. **Convention alignment** — Does the plan follow existing codebase patterns, naming, library choices, and `CLAUDE.md` rules?
-7. **Risk coverage** — Are edge cases, error handling, and potential issues addressed?
-8. **Verification** — Are the verification steps sufficient to confirm the task is done?
-9. **Scope** — Is the plan doing too much (scope creep) or too little?
+7. **Plugin skill compliance** — Does the plan respect the plugin's mandatory skills, which the coding agent will be held to? Load them with the `Skill` tool when the plan touches the code they govern (names may be namespaced, e.g. `clean-architecture:ts-clean`) — invoke each once per session:
+   - **`clean-fullstack-architecture`** for any production code — layer boundaries and dependency rules.
+   - **`ts-clean`** for any `.ts`/`.tsx` file — one module per file named after its primary export, static top-of-file imports (flag a planned `await import()`/`require()` inside a function that isn't a listed exception), self-documenting code instead of comments that restate it.
+   - **`react-clean`** for any component or hook — one component per file, at most one `useEffect`, no data-layer access from components, no prop drilling, the "You Might Not Need an Effect" checks, and the size/props ceilings.
+   A plan step that would force a violation (e.g. a component that fetches directly, a file that piles up three effects, a lazy `require()` for a small utility) is a **major** issue.
+8. **Risk coverage** — Are edge cases, error handling, and potential issues addressed?
+9. **Verification** — Are the verification steps sufficient to confirm the task is done?
+10. **Scope** — Is the plan doing too much (scope creep) or too little?
 
 ## Output Format
 
