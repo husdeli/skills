@@ -1,6 +1,6 @@
 ---
 name: react-clean
-description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, passing props down a tree, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), static top-of-file imports (no dynamic or in-function imports unless justified), no prop drilling (compose instead of threading props through), and the "You Might Not Need an Effect" anti-pattern rules from react.dev.
+description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, passing props down a tree, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), static top-of-file imports (no dynamic or in-function imports unless justified), no prop drilling (compose instead of threading props through), self-documenting code over comments (delete comments that restate the code; keep only the *why*), and the "You Might Not Need an Effect" anti-pattern rules from react.dev.
 ---
 
 # Clean React Components
@@ -204,6 +204,67 @@ function Layout({ sidebar }) {
 
 Prop drilling and Rule 5's props ceiling usually appear together: a component with eight props where five are relayed downward isn't a component with too many props, it's a component that should be taking `children`.
 
+## Rule 8 — Let the code explain itself; comment only what code can't say
+
+**Default to zero comments.** A comment that restates the code is noise that rots the moment the code changes. When you feel the urge to explain a line, first try to make the line not need explaining: rename the variable, extract the expression into a named constant, or pull the block into a function whose name *is* the comment.
+
+```tsx
+// ❌ Avoid — comments narrating what the code already says
+function OrderSummary({ order }: OrderSummaryProps) {
+  // check if the order is eligible for free shipping
+  const e = order.total > 50 && order.items.length > 0;
+
+  // handle the click
+  const handleClick = () => {
+    // submit the order
+    submit(order);
+  };
+
+  return (
+    // render the summary
+    <section>{/* ... */}</section>
+  );
+}
+
+// ✅ Good — names carry the meaning, no comments needed
+const FREE_SHIPPING_THRESHOLD = 50;
+
+function OrderSummary({ order }: OrderSummaryProps) {
+  const qualifiesForFreeShipping =
+    order.total > FREE_SHIPPING_THRESHOLD && order.items.length > 0;
+
+  return <section>{/* ... */}</section>;
+}
+```
+
+**Delete on sight:**
+
+- Comments that paraphrase the next line (`// set loading to true`, `// map over the items`, `// return the JSX`).
+- Section banners inside a component (`// --- state ---`, `// handlers`). If a component needs internal chapters, it violates Rule 5 — split it.
+- Commented-out code. Git remembers it; the file shouldn't.
+- Changelog and attribution notes (`// added by ...`, `// updated 2026-01-14`, `// was: useState`). That's what history is for.
+- Redundant JSDoc on a typed function — `@param id The id` adds nothing over `id: string`.
+- Explanations of React itself (`// useEffect runs after render`).
+
+**Keep — these carry information the code genuinely cannot:**
+
+- **Why, not what** — a non-obvious tradeoff, a workaround, or a constraint from outside the file: `// Safari fires resize before layout settles, so we read on the next frame`.
+- **Links to a source of truth** — a spec, ticket, or upstream bug: `// See CORE-1421: the API returns cents, not dollars`.
+- **A required deviation from these rules**, such as the one-line justification a dynamic import owes under Rule 6.
+- **A genuine warning** whose violation isn't visible locally: `// Order matters — the provider must mount before the router`.
+- **Public API docs** on an exported, reused component or hook: a short JSDoc summary of what it's for and any non-obvious usage constraint — not a restatement of its prop types.
+- **`TODO`/`FIXME` with a concrete referent** — an owner, a ticket, or a condition. A bare `// TODO: fix this` is noise.
+
+**Prefer these over a comment, in order:**
+
+1. **A better name** — `qualifiesForFreeShipping` beats `// check eligibility` above `const e`.
+2. **A named constant** — `FREE_SHIPPING_THRESHOLD` beats `// 50 = free shipping threshold` next to a magic number.
+3. **An extracted function or hook** — `useChatConnection(roomId)` beats an effect with a comment explaining what it connects to (this is Rule 2 doing double duty).
+4. **A type** — a `variant: 'compact' | 'full'` union documents the allowed modes better than a comment listing them.
+5. **A test** — the clearest description of intended behavior is an assertion that fails when it breaks.
+
+When you do write a comment, put it above the code it explains, keep it to a sentence, and state the *reason*. If you can't finish the sentence without describing what the next line does, delete the comment and fix the name instead.
+
 ## Checklist before finishing a component
 
 - [ ] One component in the file (or one + a tiny presentational helper).
@@ -215,3 +276,4 @@ Prop drilling and Rule 5's props ceiling usually appear together: a component wi
 - [ ] Derived data is computed during render (or `useMemo`), not stored in state and synced by an effect.
 - [ ] All imports are static and at the top of the file — any dynamic import is one of the Rule 6 exceptions and says why in a comment.
 - [ ] No prop is passed through a component that never uses it — pass-through chains replaced by composition (`children`/slots), relocated state, or context for truly global values.
+- [ ] No comment restates the code, banners a section, or preserves dead code — every surviving comment explains a *why* the code can't, and the names carry the rest.

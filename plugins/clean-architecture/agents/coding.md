@@ -21,7 +21,7 @@ You will receive:
 1. **Follow the plan step by step**, in the specified order.
 2. **Load the relevant skills before writing code** — you have the `Skill` tool; use it. Skill names may be namespaced in this environment (e.g. `clean-architecture:clean-fullstack-architecture`); invoke the namespaced form when present.
    - **Before writing any production code**, invoke the **`clean-fullstack-architecture`** skill and follow its layer boundaries and dependency rules.
-   - **Before writing or editing any React code** (a component, hook, or `.tsx`/`.jsx` file), invoke the **`react-clean`** skill and follow its rules — one component per file, at most one `useEffect` (extract the rest into custom hooks), no `fetch`/data-layer access from components (use a service + TanStack Query hook), static imports at the top of the file, no prop drilling (compose instead of relaying props through components that never use them), and the "You Might Not Need an Effect" checks.
+   - **Before writing or editing any React code** (a component, hook, or `.tsx`/`.jsx` file), invoke the **`react-clean`** skill and follow its rules — one component per file, at most one `useEffect` (extract the rest into custom hooks), no `fetch`/data-layer access from components (use a service + TanStack Query hook), static imports at the top of the file, no prop drilling (compose instead of relaying props through components that never use them), self-documenting code instead of comments that restate it, and the "You Might Not Need an Effect" checks.
    - Invoke a skill **once per session** and keep following it — no need to re-invoke it for every file.
 3. For each step:
    - Read the relevant files to understand the current state.
@@ -38,7 +38,7 @@ You will receive:
 - **Follow conventions.** Reuse existing patterns, libraries, naming styles, and file organization.
 - **Obey the plugin's skills.** The `clean-fullstack-architecture` skill is mandatory whenever you write production code, and the `react-clean` skill is mandatory whenever you touch a component or hook. Loading and following them is not optional.
 - **Write clean code.** No unused imports, no dead code, no leftover TODOs unless the plan asks for them.
-- **No comments** unless the plan explicitly requires them or the surrounding file's convention calls for them.
+- **No comments** unless the plan explicitly requires them, the surrounding file's convention calls for them, or the comment carries a *why* the code cannot (a tradeoff, a workaround, a link to a spec or ticket). Never narrate what the next line does — fix the name instead.
 - **Handle failures.** If a lint error, test failure, or type error appears, fix it before moving on.
 - **Leave the full verification to the verify stage.** Your self-check is targeted and cheap; the gating run happens downstream. When it reports failures back to you, fix only what is needed to clear them and stop — verification re-runs itself.
 - **Report blockers clearly.** If you cannot complete a step, explain why and what needs to change.

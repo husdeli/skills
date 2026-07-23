@@ -5,6 +5,17 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.15.0] - 2026-07-23
+
+### Added
+- **`react-clean` Rule 8 — let the code explain itself.** The skill said nothing about
+  comments, so generated components came back narrated line by line (`// handle the click`,
+  `// --- state ---`, commented-out leftovers). The new rule defaults to zero comments and
+  makes the fix a rename, a named constant, an extracted hook, a type, or a test — with an
+  explicit keep-list for the things code genuinely cannot say: a *why*, a link to a spec or
+  ticket, a justified deviation from another rule, a non-local warning, public API docs, and
+  `TODO`s with a concrete referent. Added to the completion checklist.
+
 ## [0.14.0] - 2026-07-23
 
 Latency pass on `/orchestrate`: the pipeline was serial end to end, and three stages were
