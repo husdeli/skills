@@ -5,6 +5,19 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0] - 2026-07-26
+
+### Added
+- **`design-doc` Rule 5 — no tickets, no code references.** Rule 4 restricted which
+  documents a design doc may *link* to, but nothing stopped the prose itself from citing a
+  ticket or naming the implementation, so drafts came back anchored to `JIRA-1234`, "phase 2",
+  and the component and file names of whatever happened to exist. The new rule bans tickets,
+  issues, PRs, roadmap items, and milestones alongside file paths, component and function
+  names, routes, props, CSS classes, config keys, and code snippets — surfaces and elements
+  are named as the user sees them (the **project sidebar**, the **share dialog**), and a fact
+  that only makes sense by pointing at a ticket or a file is not a design fact at all. The
+  after-drafting checklist gained a matching check.
+
 ## [0.16.0] - 2026-07-24
 
 ### Added

@@ -46,6 +46,15 @@ a screen is built or changed.
    omit it. Never link to implementation or technical docs (data models, renderer
    contracts, deployment, API specs). The design doc describes appearance and
    behavior; how it is built is out of scope and belongs elsewhere.
+5. **No tickets, no code references.** The doc stands on its own and stays true as the
+   work and the codebase move. Never cite a ticket, issue, PR, roadmap item, or
+   milestone (`JIRA-1234`, "per the linked issue", "shipping in phase 2"), and never
+   point at the implementation — file paths, directories, component or function names,
+   routes, props, CSS classes, config keys, or code snippets. Name surfaces and
+   elements by what the user sees them as (the **project sidebar**, the **share
+   dialog**), not by what they are called in the source. If a fact only makes sense by
+   pointing at a ticket or a file, it is not a design fact — drop it or restate it as
+   an observable property of the surface.
 
 ## Document shape
 
@@ -146,5 +155,7 @@ Check the draft against the core rules, then confirm with the user:
 1. Does any sentence describe *how to build* rather than *how it looks/works*? Rewrite it.
 2. Does any line make a pixel-level call (a hex color, a font, an exact size/spacing)?
    Raise the altitude to qualitative intent, or drop it.
-3. Is any part self-contained enough to be its own cross-referenced doc?
-4. Are the states complete (loading, empty, gated, populated, error)?
+3. Does any line cite a ticket/issue/PR or point at the code (a path, component name,
+   route, prop)? Remove it, or restate it as what the user sees.
+4. Is any part self-contained enough to be its own cross-referenced doc?
+5. Are the states complete (loading, empty, gated, populated, error)?
