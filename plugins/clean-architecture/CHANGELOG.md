@@ -5,6 +5,47 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.0] - 2026-07-26
+
+### Changed
+- **The planner sets direction instead of writing the code.** Its old rule — *"add
+  `validateEmail(input: string): boolean` to `src/utils/validation.ts`"* is good — pushed
+  plans down to the altitude of a diff, which pre-decided naming and structure the coding
+  agent's skills are supposed to govern, and made every revision cycle re-litigate code
+  nobody had written yet. The plan now opens with a **Direction** section (which module
+  carries which responsibility, how data flows, what it mirrors) and lists **work items**
+  as *Area / Intent / Direction / Done when* instead of *Files / Action*. Snippets, diffs,
+  signatures, and type definitions are banned outright; naming, signatures, and the edits
+  themselves belong to the coding agent. The counterweight rule is explicit — direction is
+  not vagueness, so every item still names its files, the code to mirror, the API to use,
+  and an observable outcome.
+- **The planner researches best practices instead of deferring to the interview brief.**
+  The old rule told it *not* to re-run research because the brief covered it — but the
+  brief stops at the product/architecture altitude, so nothing checked the implementation
+  approach against the official docs for the versions the project actually pins. The
+  planner now researches the pinned libraries' current idioms and deprecations, the
+  established pattern for the kind of work, and the security/a11y/performance practices
+  that apply, and reports them in a **Best practices applied** section with sources. This
+  happens on the **scout turn**, inside the dead air of the interview, so it costs tokens
+  rather than wall-clock.
+- **The interviewer must search the web, every time.** Research was step 4 of its process
+  but nothing made it mandatory, so a confident-looking brief could be written from memory
+  and quietly recommend an approach that was deprecated two versions ago. The step now
+  spells out the five things to establish (current approach, library landscape, pitfalls,
+  UX conventions, security/privacy/a11y/compliance), demands official docs over blog posts
+  and version checks against what the codebase pins, and a new rule states plainly that a
+  brief whose *Research findings* cite no external source is incomplete.
+- **The reviewer polices altitude and grounding.** Its "Specificity" check asked whether
+  signatures were *precise enough* — the exact thing plans no longer carry. It is replaced
+  by an **Altitude** check that fires in both directions (dictated code is minor, or major
+  when it would force a skill violation; a work item with no files, no approach, or no
+  "done when" is major) and a **Best-practice grounding** check that treats an approach
+  contradicting the pinned version's docs as major.
+- **The coding agent owns the code-level decisions.** It now translates direction into
+  code — choosing naming, signatures, and structure under the plugin's skills — and
+  "deviating from the plan" is redefined as changing the approach, boundaries, or scope,
+  never as picking a name the plan left open.
+
 ## [0.17.0] - 2026-07-26
 
 ### Added

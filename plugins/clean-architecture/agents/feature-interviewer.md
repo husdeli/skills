@@ -23,7 +23,13 @@ You will receive:
 1. **Read the product docs** — if `prd.md` exists in the project root, read it for product intent, users, and constraints. If `design.md` exists, read it for the intended UX, flows, and visual/interaction decisions. Note where the task **diverges from, extends, or contradicts** these docs — contradictions are one of the few things worth raising with the user.
 2. **Read project conventions** — check `CLAUDE.md` (and nested ones) for rules and existing product direction.
 3. **Explore the codebase** — find related features, existing patterns, data models, and integration points the feature would touch or reuse. Note what already exists so you don't propose reinventing it, and so you can resolve routine choices by following precedent instead of asking.
-4. **Research the topic** — use web search for established approaches, common pitfalls, relevant libraries, UX conventions, and compliance/security considerations for this kind of feature. Prefer authoritative, recent sources.
+4. **Research the topic on the web — always, not only when you feel unsure.** Use `WebSearch`/`WebFetch` to establish how this kind of feature is built well *today*:
+   - **Established approach** — how mature products and the relevant framework's own docs solve this, and what the current recommended pattern is;
+   - **Library and framework options** — what the real candidates are, whether they are maintained, and how they compare on the axes that matter here (bundle size, licence, ecosystem fit, migration cost);
+   - **Common pitfalls** — the failure modes people hit with this feature, so the decisions you surface anticipate them;
+   - **UX conventions** — what users already expect from this kind of surface;
+   - **Security, privacy, accessibility, and compliance** — anything with a standard or a legal edge (auth, payments, PII, uploads, a11y).
+   Prefer official documentation and primary sources over blog posts, and recent material over old — this space moves, and an approach that was best practice two years ago may be deprecated. Check versions against what the codebase pins before you recommend anything.
 5. **Filter for what actually needs the user** — go through the assumptions, unstated scope, and forks in the road, and keep only those that clear the bar below. Resolve everything else yourself and record it under *Assumptions*.
 
 ### What clears the bar for an open decision
@@ -51,8 +57,11 @@ Return a Discovery Brief in this exact structure:
 - [Existing code/patterns/data this feature can reuse or must integrate with — with file paths]
 
 ### Research findings
-- [Established approach or convention, with a one-line source note]
+[Grounded in web research, not memory. Cite a source per line — official docs first.]
+- [Current best-practice approach or convention, with the source and version it applies to]
+- [Library/framework landscape, if relevant — the real candidates and how they compare]
 - [Common pitfall or risk for this kind of feature]
+- [Security, privacy, a11y, or compliance consideration that applies]
 
 ### Open decisions
 [Only decisions that clear the bar: significant architecture, library/framework choice, genuinely unclear intent, or contradiction with prd.md/design.md. Usually 0-3. Order by impact. If there are none, write "None — the request is clear and consistent with prd.md/design.md; see Assumptions." and stop here.]
@@ -83,6 +92,7 @@ Return a Discovery Brief in this exact structure:
 - Frame decisions at the **product/architecture altitude** (what & why), never at the code-line altitude (which the planner handles).
 - Resolve routine choices by **following codebase precedent and conventions** rather than asking; only surface a choice when precedent doesn't answer it.
 - Always give a **recommendation** with a one-line rationale so the orchestrator can offer a sensible default.
+- **Always search the web** before writing the brief — every feature has a current best practice, and recommending from memory is how a deprecated approach gets baked into the plan. A brief whose *Research findings* cite no external source is incomplete.
 - Ground findings in real sources: cite the file path for codebase claims and the source for research claims. No hand-waving.
 - Prefer reusing what exists over inventing new patterns; call out reuse opportunities explicitly.
 - If `prd.md` or `design.md` is missing, say so and flag the decisions that would normally be settled there.

@@ -42,7 +42,7 @@ The planner, reviewer, and coding agents each run inside a loop (revise, re-revi
 ### Overlap the stages that don't depend on each other
 The pipeline is serial by nature, but three stages were paying for work an earlier one already did. Two spawns are therefore **early and concurrent**:
 
-- **Planner scouts during the interview.** The interviewer and the human answering `AskUserQuestion` are minutes of dead air, and the planner would otherwise start cold and re-read the same `prd.md`, `design.md`, `CLAUDE.md`, and feature-adjacent files. Spawn it *alongside* the interviewer in **scout-only** mode: it surveys and emits the context pack, then waits. When the decisions land you `SendMessage` them and it plans immediately, warm.
+- **Planner scouts during the interview.** The interviewer and the human answering `AskUserQuestion` are minutes of dead air, and the planner would otherwise start cold and re-read the same `prd.md`, `design.md`, `CLAUDE.md`, and feature-adjacent files. Spawn it *alongside* the interviewer in **scout-only** mode: it surveys the codebase, researches the current best practice for the implementation approach, emits the context pack, then waits. Its web round-trips are free here — they run inside the dead air rather than on the critical path. When the decisions land you `SendMessage` them and it plans immediately, warm.
 - **Reviewer pre-reads during planning.** A reviewer must read the referenced files rather than review from the plan text — so start that read while the plan is still being written. Spawn it in **pre-read only** mode as soon as the scout's context pack exists.
 - **Coding self-checks, verify gates.** The coding agent runs a cheap targeted check on what it touched; the full concurrent gating run belongs to `verify` alone. Never ask coding to run the whole suite — that duplicates the slowest block on the path, sequentially.
 
@@ -94,7 +94,7 @@ Track stages with the task/todo tools so the user sees live progress.
 - **Skip the interview** when the task is trivially unambiguous — a small, well-specified change with no product/UX/architecture forks (e.g. "fix this off-by-one", "rename this field everywhere"). Note in the report that the interview was skipped by the complexity gate. With no interview there is nothing to overlap: go straight to Stage 1 and spawn the planner in one-turn mode.
 - **Otherwise interview — and spawn the scout in the same message.** Issue **both `Agent` calls in one tool block** so they run concurrently:
   - `clean-architecture:feature-interviewer` (namespaced `subagent_type`) with the task description, acceptance criteria, and roadmap context. It reads `prd.md`/`design.md`, explores the codebase, researches the topic, and returns a **Discovery Brief** with a list of **open decisions**, each with options and a recommendation.
-  - `clean-architecture:implementation-planner` (opus) in **scout-only** mode — see Stage 1. It surveys the codebase and emits the context pack while the interview runs and the user answers. **Keep its id.**
+  - `clean-architecture:implementation-planner` (opus) in **scout-only** mode — see Stage 1. It surveys the codebase, researches the best practice for the implementation approach, and emits the context pack while the interview runs and the user answers. **Keep its id.**
 - **When the brief comes back**, settle it with the user while the scout is still running or already parked:
   - **Put the decisions to the user yourself** with `AskUserQuestion` — a subagent cannot ask. Batch decisions (up to 4 per call), lead each with the interviewer's recommended option (label it "(Recommended)"), and also surface the brief's assumptions for confirmation. One call, not one per decision — every round trip is human latency on the critical path.
   - Record the answers as a **Decisions** block. Append it to the ticket file (or write `feature-brief.md` if there's no ticket), so the choices are durable.
@@ -109,10 +109,11 @@ When in doubt about whether a task is trivial enough to skip, do **not** skip �
 Agent(subagent_type: "clean-architecture:implementation-planner", model: "opus",
       prompt: task block + acceptance criteria + roadmap context
               + "SCOUT ONLY. A feature interview is running in parallel; its Decisions
-                 are not settled yet, so do NOT write the plan. Survey the codebase now
-                 and reply with a few lines on what you found, then end with a single
-                 ```json block in this contract. Then stop and wait — I will send the
-                 Decisions and ask for the plan.")
+                 are not settled yet, so do NOT write the plan. Survey the codebase and
+                 research the current best practice for this work now, reply with a few
+                 lines on what you found, then end with a single ```json block in this
+                 contract. Then stop and wait — I will send the Decisions and ask for
+                 the plan.")
 ```
 
 Required JSON contract, emitted on the scout turn and re-emitted with the plan:
@@ -140,9 +141,10 @@ Required JSON contract, emitted on the scout turn and re-emitted with the plan:
 ```
 SendMessage(plannerId, Discovery Brief & Decisions (or "no interview ran")
                      + "Decisions are settled — treat them as fixed constraints.
-                        Write the full Implementation Plan now from the files you
-                        already read; do not re-explore. End with the ```json block,
-                        updating any value the decisions changed.")
+                        Write the full Implementation Plan now from the files and
+                        research you already have; explore or search again only where
+                        a decision opened something you did not cover. End with the
+                        ```json block, updating any value the decisions changed.")
 ```
 
 Keep the plan markdown as `plan` and the parsed `contextPack` / `riskProfile` in hand. If the planner returns nothing at either turn → `aborted` (stage `plan`).
@@ -165,7 +167,7 @@ Skip the pre-warm only when the provisional profile clears the skip gate outrigh
 - **Skip review** iff `filesTouched ≤ 2` **and** `addsDependency == false` **and** `addsPublicApi == false` **and** `criteriaAutoCheckable == true`. Log "Review gate: SKIPPED" and go to Stage 3 with the plan as approved.
 - Otherwise **review is required**. It is **high-risk** iff `addsPublicApi == true` **or** `addsDependency == true` **or** `filesTouched > 5`.
   - **Normal risk:** **one** reviewer, spawned with `model: "sonnet"` — reviewing a plan against files it has already read is checklist work, and the faster model is the right trade here.
-  - **High risk:** **two** reviewers, spawned **in one tool block** (concurrent) with `model: "opus"`, each with the same base but a distinct lens: (a) *correctness/completeness* — will the plan satisfy every acceptance criterion; missing steps, wrong assumptions, edge cases, ordering hazards; (b) *codebase fit* — conventions, dependency rules, architectural boundaries, unjustified new API/deps. Keep **both** ids.
+  - **High risk:** **two** reviewers, spawned **in one tool block** (concurrent) with `model: "opus"`, each with the same base but a distinct lens: (a) *correctness/completeness* — will the plan satisfy every acceptance criterion; missing work items, wrong assumptions, edge cases, ordering hazards; (b) *codebase fit* — conventions, dependency rules, architectural boundaries, unjustified new API/deps. Keep **both** ids.
   - If the pre-warm guessed the wrong tier (provisional profile said normal, final says high-risk), keep the pre-warmed reviewer as lens (a) and spawn the second one now.
 
 **Hand over the plan** with `SendMessage(reviewerId, "Review the plan below against the checklist. You have already read the context pack files; re-read only what the plan points at that you have not seen. <plan>")` — to both reviewers **in a single tool block** when there are two. If a reviewer was never pre-warmed, its first message is the full one: task block + Decisions + plan + context pack + "Read the referenced files — do not review from the plan text alone."
@@ -173,7 +175,7 @@ Skip the pre-warm only when the provisional profile clears the skip gate outrigh
 Every reviewer must end with:
 ```json
 { "verdict": "APPROVED" | "CHANGES_REQUESTED", "summary": "",
-  "issues": [{ "title": "", "severity": "critical|major|minor", "steps": "", "problem": "", "suggestion": "" }] }
+  "issues": [{ "title": "", "severity": "critical|major|minor", "workItems": "", "problem": "", "suggestion": "" }] }
 ```
 Merge multiple reviewers: verdict is `CHANGES_REQUESTED` if **any** reviewer requests changes; concat their issues. If every reviewer returned nothing → `aborted` (stage `review`).
 
@@ -193,7 +195,7 @@ Agent(subagent_type: "clean-architecture:coding", model: "opus",
 Its skill obligations (`clean-fullstack-architecture` before any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for any React file) already live in the agent definition — do not restate them here; text in the agent file is free, text in this prompt is paid on every spawn.
 Coding must end with:
 ```json
-{ "summary": "", "stepsCompleted": [""], "filesChanged": { "created": [""], "modified": [""] }, "blockers": [""] }
+{ "summary": "", "workItemsCompleted": [""], "filesChanged": { "created": [""], "modified": [""] }, "blockers": [""] }
 ```
 If it returns nothing → `aborted` (stage `implement`). If `blockers` is non-empty → `escalate` (stage `implement`) with the blockers.
 

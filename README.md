@@ -35,9 +35,11 @@ That's it — the skills and agents below become available in every session.
   cohesive per-area descriptions with stable anchor codes, and positive framing.
 
 ### Agents
-- **feature-interviewer** — reads `prd.md`/`design.md`, researches the feature, and
-  returns a Discovery Brief that challenges the idea with open decisions and options.
-- **implementation-planner** — turns a task + codebase into a step-by-step plan.
+- **feature-interviewer** — reads `prd.md`/`design.md`, researches the feature on the web,
+  and returns a Discovery Brief that challenges the idea with open decisions and options.
+- **implementation-planner** — turns a task + codebase + researched best practices into a
+  directional plan: where the work lives, what each item must achieve, which approach to
+  follow — and no code for the coding agent to copy.
 - **plan-reviewer** — reviews a plan for correctness and convention alignment.
 - **coding** — implements an approved plan and verifies it.
 
