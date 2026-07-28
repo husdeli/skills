@@ -29,6 +29,13 @@ That's it — the skills and agents below become available in every session.
   one `useEffect`, no data-layer access from components, size and props ceilings, no prop
   drilling (compose instead), and the react.dev "You Might Not Need an Effect"
   anti-patterns.
+- **clean-tanstack-start** — The TanStack Start layer on top of `ts-clean`: the
+  `.functions.ts` / `.server.ts` / plain `.ts` file split, server-only modules kept out of
+  anything a client file can import, and server functions imported statically only — never
+  `await import()`, which defeats environment shaking and can leak server logic into the
+  client bundle. Plus the two safety rules: every server function is its own auth boundary
+  (a route `beforeLoad` guard isn't the data boundary), and no `Cache-Control: public` on
+  an identity-dependent response.
 - **design-doc** — Create or update a design doc specifying how a screen, surface, or flow
   looks and behaves — the intended end state, not how to build it.
 - **prd** — Create or update a product requirements document: product-only content,

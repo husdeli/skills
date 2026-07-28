@@ -5,6 +5,39 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] - 2026-07-28
+
+### Added
+- **`clean-tanstack-start` skill.** `ts-clean` governs how a TypeScript module is shaped, but
+  nothing encoded where TanStack Start *server* code is allowed to live — so server functions
+  ended up beside components, DB clients sat in unsuffixed modules a client file could import,
+  and `ts-clean` Rule 2's code-splitting exception read as license to `await import()` a heavy
+  server module. That last one is the dangerous case: a dynamic import hides the module from
+  the build's environment shaking, so the handler is never replaced with an RPC stub and its
+  server logic can ship to the browser. The skill encodes the framework's three-category file
+  split (`.functions.ts` wrappers, `.server.ts` server-only helpers, plain `.ts` client-safe
+  code) with a table of who may import what, forbids server-only code in any module a client
+  file can reach, and states that server functions are imported statically only — explicitly
+  overriding `ts-clean`'s exceptions, since server code is already excluded from the client
+  bundle and there is no size to save. Code-split the calling component instead.
+
+  Two safety rules from the same guide come with it, because both failure modes are invisible
+  locally. **Every server function is its own auth boundary** — it is an endpoint reachable
+  independently of whichever route renders the calling UI, so a route's `beforeLoad` guard is
+  route UX, not the data boundary; the rule also separates authorization from authentication,
+  since an owner or tenant id arriving in the validated payload is attacker-controlled input.
+  And **`Cache-Control: public` is banned on any identity-dependent response** — it tells every
+  CDN and proxy the body may be served to anyone, so one user's response gets replayed to the
+  next; authenticated responses are `private` with a `Vary: Cookie, Authorization`, sensitive
+  ones `no-store`.
+
+  Source: https://tanstack.com/start/v0/docs/framework/react/guide/server-functions#file-organization
+
+### Changed
+- **The coding agent loads `clean-tanstack-start`.** Its skill list and its "obey the plugin's
+  skills" rule now name the skill alongside `ts-clean` and `react-clean`, triggered by any file
+  that defines, imports, or calls a `createServerFn` server function.
+
 ## [0.18.0] - 2026-07-26
 
 ### Changed
