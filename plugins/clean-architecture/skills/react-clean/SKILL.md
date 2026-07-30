@@ -1,33 +1,31 @@
 ---
 name: react-clean
-description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, passing props down a tree, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), no prop drilling (compose instead of threading props through), and the "You Might Not Need an Effect" anti-pattern rules from react.dev. Builds on the `ts-clean` skill (static imports, self-documenting code over comments, one module per file) — load that one too.
+description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, passing props down a tree, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), no prop drilling (compose instead of threading props through), and the "You Might Not Need an Effect" anti-pattern rules from react.dev. Builds on the `ts-clean` skill — load that one too.
 ---
 
 # Clean React Components
 
-Rules for writing React components that stay readable, testable, and free of the effect-soup that makes React code fragile. Apply these whenever you write or edit a React component or hook.
+Rules for React components that stay readable, testable, and free of the effect-soup that makes React code fragile. Apply them whenever you write or edit a React component or hook.
 
 Reference: https://react.dev/learn/you-might-not-need-an-effect
 
 ## Prerequisite — `ts-clean` applies to every file here
 
-Every rule in the **`ts-clean`** skill applies to React files as well: one module per file,
-static top-of-file imports (React's `lazy(() => import('./X'))` is one of its listed
-exceptions), and self-documenting code instead of comments that restate it. **Load
-`ts-clean` too** — the rules below are the React-specific layer on top of it, not a
-replacement.
+Every rule in the **`ts-clean`** skill applies to React files too (React's
+`lazy(() => import('./X'))` is one of its listed dynamic-import exceptions). **Load `ts-clean`
+too** — the rules below are the React layer on top of it, not a replacement.
 
 ## Rule 1 — One component per file (max two)
 
 Specializes `ts-clean` Rule 1 for components.
 
-- **Prefer exactly one React component per file.** Name the file after the component (`UserCard.tsx` exports `UserCard`).
-- **At most two components per file**, and only when the second is a *very small*, presentational helper used solely by the first (a few lines, no logic of its own). The moment a helper grows logic, its own state, or a second consumer, move it to its own file.
+- **Prefer exactly one React component per file.** Name the file after it (`UserCard.tsx` exports `UserCard`).
+- **At most two components per file**, and only when the second is a *very small*, presentational helper used solely by the first (a few lines, no logic of its own). Once a helper grows logic, its own state, or a second consumer, move it to its own file.
 - Custom hooks live in their own file too (`useUserProfile.ts`), or co-located next to their only consumer — never inlined as a giant closure.
 
 ## Rule 2 — At most one `useEffect` per component
 
-A component may contain **at most one `useEffect`**. When you need more than one, or an effect grows past a few lines, **extract each effect into a named custom hook** that describes its purpose.
+A component may contain **at most one `useEffect`**. When you need more, or an effect grows past a few lines, **extract each effect into a named custom hook** describing its purpose.
 
 ```tsx
 // ❌ Avoid — multiple effects pile up in the component
@@ -80,10 +78,10 @@ function UserCard({ id }: { id: string }) {
 }
 ```
 
-- A component that consumes a query hook this way is a **container** in the `clean-fullstack-architecture` layer taxonomy — put it in `containers/` (or `features/<domain>/containers/`), and keep the presentational piece it renders in `components/`, fed by props. A file under `components/` may still use a *generic, side-effect-free* hook (a media query, a debounce); what it may never do is pull data in.
-- Mutations go through `useMutation` calling a service method, never a bare `fetch` in an event handler either.
+- A component consuming a query hook is a **container** in the `clean-fullstack-architecture` taxonomy — put it in `containers/`, and keep the presentational piece it renders in `components/`, fed by props. A file under `components/` may still use a *generic, side-effect-free* hook (a media query, a debounce); it may never pull data in.
+- Mutations go through `useMutation` calling a service method, never a bare `fetch` in an event handler.
 - The component never sees a URL, a request config, or a `fetch`. It sees `data`, `isPending`, `error`, `mutate`.
-- This also satisfies Rule 2 and Rule 4: TanStack Query owns the fetching effect, race conditions, caching, and cleanup — you don't write that `useEffect` at all.
+- This also satisfies Rules 2 and 4: TanStack Query owns the fetching effect, race conditions, caching, and cleanup — you don't write that `useEffect` at all.
 
 ## Rule 4 — You Might Not Need an Effect
 
@@ -106,11 +104,11 @@ Effects are for **synchronizing with external systems** (a non-React widget, a s
 | **Subscribe to an external store** | `useSyncExternalStore`, not a manual subscribe/unsubscribe effect. |
 | **Initialize the app once** | Run it at module scope / import time, or guard with a module-level `didInit` flag. |
 
-A **legitimate** effect (allowed under the one-effect budget of Rule 2) looks like: connecting to a chat server, subscribing to a browser event, syncing `document.title`, controlling a non-React map/video widget. If it's synchronizing with something *outside* React, it's fine — otherwise remove it.
+A **legitimate** effect (allowed under Rule 2's one-effect budget) looks like: connecting to a chat server, subscribing to a browser event, syncing `document.title`, controlling a non-React map/video widget. If it synchronizes with something *outside* React, it's fine — otherwise remove it.
 
 ## Rule 5 — Keep components and their props small
 
-A component that grows past these limits is doing too much. Treat the limits as **hard ceilings that trigger a refactor**, not style suggestions — when you cross one, split before moving on.
+A component that grows past these limits is doing too much. They are **hard ceilings that trigger a refactor**, not style suggestions — when you cross one, split before moving on.
 
 **Size limits (per component):**
 
@@ -126,8 +124,8 @@ A component that grows past these limits is doing too much. Treat the limits as 
   1. **Composition** — pass `children` or slot props (`header`, `actions`) instead of many primitive flags.
   2. **Group related props into one object** — `user: { name, avatarUrl, role }` instead of `userName`, `userAvatarUrl`, `userRole`.
   3. **Split the component** — a long prop list usually means two components wearing one costume.
-- **No boolean flag soup.** Several `isX` booleans that select a rendering mode should become a single `variant` union (`variant: 'compact' | 'full'`); mutually exclusive booleans are a design smell.
-- Don't count these against the budget: a single well-typed props object, `children`, and standard event handlers are fine — the limit targets *unrelated* inputs, not cohesive ones.
+- **No boolean flag soup.** Several `isX` booleans selecting a rendering mode should become a single `variant` union (`variant: 'compact' | 'full'`); mutually exclusive booleans are a design smell.
+- Don't count against the budget: a single well-typed props object, `children`, and standard event handlers. The limit targets *unrelated* inputs, not cohesive ones.
 
 ```tsx
 // ❌ Avoid — 7 props, boolean soup, no cohesion
@@ -174,13 +172,13 @@ function Layout({ sidebar }) {
 
 **Fixes, in order of preference:**
 
-1. **Composition (`children` / slot props).** Let the component that *owns* the data create the element, and let the layers in between accept it as `children` or a named slot (`header`, `sidebar`, `actions`). The middle layers stop knowing about `user` entirely — which also makes them reusable and easier to test.
-2. **Move the state down.** If only one subtree needs the value, the state often belongs in that subtree, not at the top.
+1. **Composition (`children` / slot props).** Let the component that *owns* the data create the element, and let the layers between accept it as `children` or a named slot (`header`, `sidebar`, `actions`). The middle layers stop knowing about `user` — which also makes them reusable and easier to test.
+2. **Move the state down.** If only one subtree needs the value, the state often belongs there.
 3. **Move the consumer up.** Sometimes the child that needs the data should be rendered by the owner instead of nested deep in a layout.
-4. **Context — for genuinely global, rarely changing values only.** Theme, current user/session, locale, feature flags. Context is not a substitute for composition: reaching for it to avoid two levels of props trades explicit data flow for hidden coupling and re-render surprises. Put a context behind a typed `useX()` hook that throws outside its provider.
-5. **A store (Zustand/Redux/TanStack Query cache)** when the data is server state or genuinely app-wide — never as a workaround for an awkward component tree.
+4. **Context — for global, rarely changing values only.** Theme, session, locale, feature flags. Context is not a substitute for composition: using it to avoid two levels of props trades explicit data flow for hidden coupling and re-render surprises. Put a context behind a typed `useX()` hook that throws outside its provider.
+5. **A store (Zustand/Redux/TanStack Query cache)** when the data is server state or app-wide — never as a workaround for an awkward component tree.
 
-**The rule of thumb:** one level of pass-through is fine. **Two or more levels where the intermediate components never touch the value is a refactor signal** — compose.
+**Rule of thumb:** one level of pass-through is fine. **Two or more levels where the intermediate components never touch the value is a refactor signal** — compose.
 
 Prop drilling and Rule 5's props ceiling usually appear together: a component with eight props where five are relayed downward isn't a component with too many props, it's a component that should be taking `children`.
 
@@ -191,7 +189,7 @@ Prop drilling and Rule 5's props ceiling usually appear together: a component wi
 - [ ] ≤ 5 props; extra inputs grouped into an object, passed as `children`/slots, or collapsed into a `variant` union instead of boolean soup.
 - [ ] Zero or one `useEffect`; any others extracted into named custom hooks.
 - [ ] No `fetch`/`axios`/DB access in the component — data comes from a service + TanStack Query hook.
-- [ ] Every remaining effect genuinely synchronizes with an external system (passed the Rule 4 table).
+- [ ] Every remaining effect synchronizes with an external system (passed the Rule 4 table).
 - [ ] Derived data is computed during render (or `useMemo`), not stored in state and synced by an effect.
 - [ ] No prop is passed through a component that never uses it — pass-through chains replaced by composition (`children`/slots), relocated state, or context for truly global values.
-- [ ] The `ts-clean` checklist also passes for this file — static top-of-file imports (a `lazy(() => import('./X'))` split is one of its exceptions and says why), and no comment that restates the code or banners a section.
+- [ ] The `ts-clean` checklist also passes for this file.

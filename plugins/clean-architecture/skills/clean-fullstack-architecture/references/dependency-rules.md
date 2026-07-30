@@ -2,9 +2,9 @@
 
 ## The Dependency Inversion Principle in Practice
 
-The key insight of Hexagonal Architecture: **business logic defines interfaces (ports), and outer layers implement them (adapters)**. The domain says "I need a way to fetch slides" (port), and the service layer provides the actual HTTP implementation (adapter).
+The key insight of Hexagonal Architecture: **business logic defines interfaces (ports), and outer layers implement them (adapters)**. The domain says "I need a way to fetch slides" (port), and the service layer provides the HTTP implementation (adapter).
 
-In TypeScript/React apps, this often manifests as:
+In TypeScript/React apps, this usually manifests as:
 - Domain exports pure functions and types
 - Services import domain types to ensure API responses conform
 - Feature hooks compose services and domain logic, then feed results to components via props
@@ -32,8 +32,8 @@ import { calculateScore } from '@/domain/scoring';
 interface ScoreDisplayProps { score: number; maxScore: number; }
 ```
 
-A generic, side-effect-free hook from top-level `hooks/` is fine in a component — it is a UI
-utility, not a data source. The line is what the hook *brings in*:
+A generic, side-effect-free hook from top-level `hooks/` is fine in a component — a UI utility,
+not a data source. The line is what the hook *brings in*:
 
 ```typescript
 // OK - generic UI utility, no data, no outside side effect
@@ -70,15 +70,15 @@ import { useAuth } from '@/hooks/useAuth'; // or @/services/auth
 
 ### Shared types between features
 
-Extract to `models/`. If the type is feature-specific but needed by another feature, that's a signal it should be promoted to a shared model.
+Extract to `models/`. A feature-specific type needed by another feature is a signal it should be promoted to a shared model.
 
 ### Feature needs another feature's service
 
-Extract the service to top-level `services/`. If two features need the same API adapter, it belongs at the top level.
+Extract the service to top-level `services/`. Two features needing the same API adapter means it belongs at the top level.
 
 ### Component needs to format business data
 
-Create a pure formatting function in `domain/` or `libs/`, pass the formatted result as a prop. The component should never import the formatter directly from domain.
+Create a pure formatting function in `domain/` or `libs/` and pass the formatted result as a prop. The component never imports the formatter directly from domain.
 
 ### Where do React context providers go?
 
@@ -88,10 +88,10 @@ Create a pure formatting function in `domain/` or `libs/`, pass the formatted re
 
 ### Domains, sub-domains, and the `common/` slot
 
-Features are grouped by **domain** (a product area), and a domain may nest into
-sub-domains (usually platforms) with an optional per-surface level below — but only
-when it earns the nesting (see the skill's "Domain-cohesive feature grouping"). The
-dependency rules on that shape:
+Features are grouped by **domain** (a product area), and a domain may nest into sub-domains
+(usually platforms) with an optional per-surface level below — but only when it earns the
+nesting (see the skill's "Domain-cohesive feature grouping"). The dependency rules on that
+shape:
 
 - **Domains don't cross-import.** One domain never imports another domain's internals —
   the "features must not cross-depend" rule, read at the domain granularity.

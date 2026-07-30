@@ -6,24 +6,13 @@ argument-hint: "Optional: ticket ID or feature name to implement"
 
 # AI Planning Workflow
 
-A structured, feedback-driven development methodology for implementing tickets and features correctly — without completing entire features without review.
+A structured, feedback-driven methodology for implementing tickets and features — without completing entire features without review.
 
 ## Core Principles
 
 **Never complete an entire feature or ticket without requesting feedback multiple times throughout the process.**
 
-**Keep specs short and scannable.** Every sentence must add information. No filler words, no restating the obvious. If a task is too complex to describe concisely, split it into multiple tickets or subtasks instead of writing a bloated spec.
-
-## When to Use This Skill
-
-- Starting work on a ticket or feature
-- Creating a ticket
-- Interviewing/challenging a feature before planning (options and high-level decisions)
-- Creating an implementation plan
-- Building UI that needs design review
-- Requesting feedback after a step
-- Writing or reviewing tickets (what to include vs. exclude)
-- Marking a ticket as complete
+**Keep specs short and scannable.** Every sentence must add information. No filler, no restating the obvious. If a task is too complex to describe concisely, split it into multiple tickets or subtasks instead of writing a bloated spec.
 
 ---
 
@@ -161,7 +150,7 @@ Mark as Completed?
 
 ## Ticket Creation Guidelines
 
-**Summary — tickets should describe WHAT, not HOW:**
+**Tickets describe WHAT, not HOW:**
 
 ✅ Include: requirements, acceptance criteria, UX description, business logic, high-level architecture, data needs, testing expectations  
 ❌ Exclude: specific file paths, implementation-level names, internal module structure, data layer details, code-level patterns

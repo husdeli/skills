@@ -5,7 +5,7 @@ description: "Use when: planning a feature implementation, designing a feature, 
 
 # Clean Fullstack Architecture
 
-This skill enforces Clean Code principles and Hexagonal Architecture (Ports & Adapters) when designing implementations and writing code. The core idea: business logic is at the center, with no knowledge of the outside world. External concerns (APIs, UI frameworks) depend inward toward the domain, never the reverse.
+Enforces Clean Code principles and Hexagonal Architecture (Ports & Adapters) when designing implementations and writing code. Business logic sits at the center with no knowledge of the outside world; external concerns (APIs, UI frameworks) depend inward toward the domain, never the reverse.
 
 ## Core Principles
 
@@ -45,9 +45,9 @@ src/
 └── ...
 ```
 
-Features are grouped by **domain** (a product area), not by surface type. A domain
-owns all of its surfaces; nest into sub-domains and surfaces only when the domain
-earns it (see "Domain-cohesive feature grouping" below). Worked social example:
+Features are grouped by **domain** (a product area), not by surface type. A domain owns all of
+its surfaces; nest into sub-domains and surfaces only when the domain earns it (see
+"Domain-cohesive feature grouping"). Worked social example:
 
 ```
 features/socials/
@@ -71,7 +71,7 @@ features/socials/
 
 ### 1. `models/` - Data Models (Innermost)
 
-TypeScript types, interfaces, and enums that define the shape of business data. Types alone are usually sufficient; classes or additional logic may be added when genuinely needed, but are not the default. No imports from any other project layer.
+TypeScript types, interfaces, and enums defining the shape of business data. Types alone are usually sufficient; classes or added logic are not the default. No imports from any other project layer.
 
 **Allowed dependencies:** None (zero imports from project layers)
 
@@ -89,7 +89,7 @@ export type SlideContent = TextBlock | ImageBlock | ChartBlock;
 
 ### 2. `domain/` - Business Logic
 
-Pure functions and logic that operate on models. This layer defines *what the app does* without knowing *how* data arrives or *how* results are displayed.
+Pure functions and logic operating on models. Defines *what the app does* without knowing *how* data arrives or *how* results are displayed.
 
 **Allowed dependencies:** `models/`, other `domain/` layers (including feature-level domain layers)  
 **Forbidden:** Any import from `services/`, `components/`, `hooks/`, or external API/framework code
@@ -105,9 +105,9 @@ export function reorderSlides(slides: Slide[], fromIndex: number, toIndex: numbe
 
 ### 3. `components/` - Dumb UI Components
 
-Presentational React components that receive all **data** via props. Reusable across any feature. Must not import from `domain/`, `services/`, `features/`, or any data-fetching code.
+Presentational React components receiving all **data** via props. Reusable across any feature. Must not import from `domain/`, `services/`, `features/`, or any data-fetching code.
 
-A component may use a **generic, side-effect-free hook** from top-level `hooks/` — a media query, a debounce, a controlled-input helper, a focus trap. Those are UI utilities, not data access: they read no server state, own no business rules, and swapping one out cannot change what the component renders semantically. What stays forbidden is a hook that *brings data in*: any feature hook, any hook wrapping `useQuery`/`useMutation` or a service call, and any hook whose effect writes to something outside the component.
+A component may use a **generic, side-effect-free hook** from top-level `hooks/` — a media query, a debounce, a controlled-input helper, a focus trap. Those are UI utilities, not data access: they read no server state, own no business rules, and swapping one out cannot change what the component renders semantically. Forbidden is any hook that *brings data in*: a feature hook, a hook wrapping `useQuery`/`useMutation` or a service call, or a hook whose effect writes outside the component.
 
 **Allowed dependencies:** Other `components/`, `libs/`, generic side-effect-free `hooks/`, third-party UI libraries  
 **Forbidden:** `domain/`, `services/`, `features/`, feature hooks, data-fetching or side-effecting hooks, direct state management
@@ -128,7 +128,7 @@ export function SlideCard({ title, thumbnail, isActive, onSelect }: SlideCardPro
 
 ### 4. `containers/` - Smart Components
 
-Connected React components that wire hooks to presentational components. They own local UI state, call hooks to access data and actions, and pass everything down to dumb `components/` via props. Not reusable across contexts — each container is purpose-built for a specific screen or section.
+Connected React components wiring hooks to presentational components. They own local UI state, call hooks for data and actions, and pass everything down to dumb `components/` via props. Not reusable across contexts — each container is purpose-built for a specific screen or section.
 
 **Allowed dependencies:** `models/`, `components/`, `hooks/`, `libs/`  
 **Forbidden:** `domain/`, `services/`, `features/`
@@ -144,11 +144,11 @@ export function SlideEditorContainer({ presentationId }: { presentationId: strin
 }
 ```
 
-**Reading `react-clean` alongside this skill.** `react-clean` says "component" in the plain React sense — any `.tsx` file exporting a component — and its Rule 3 example shows one consuming a TanStack Query hook. In *this* taxonomy that file is a **container**: the moment a component pulls data through a query hook, it belongs in `containers/` (or `features/<domain>/containers/`), not `components/`. Both skills agree on the substance — data arrives through a service + query hook, never a `fetch` in the component — they just draw the naming line differently. `react-clean`'s size, props, effect, and prop-drilling rules apply to `components/` and `containers/` alike.
+**Reading `react-clean` alongside this skill.** `react-clean` says "component" in the plain React sense — any `.tsx` file exporting one — and its Rule 3 example shows one consuming a TanStack Query hook. In *this* taxonomy that file is a **container**: once a component pulls data through a query hook, it belongs in `containers/`, not `components/`. Both skills agree on the substance — data arrives through a service + query hook, never a `fetch` in the component — they draw the naming line differently. `react-clean`'s size, props, effect, and prop-drilling rules apply to both.
 
 ### 5. `hooks/` - Top-Level React Hooks
 
-Reusable React hooks for cross-cutting UI concerns (media queries, local storage, debounce, etc.). These are UI utilities, not business logic containers.
+Reusable React hooks for cross-cutting UI concerns (media queries, local storage, debounce). UI utilities, not business logic containers.
 
 **Allowed dependencies:** Other `hooks/`, `libs/`, React APIs  
 **Forbidden:** `domain/`, `services/`, `features/`
@@ -162,7 +162,7 @@ export function useMediaQuery(query: string): boolean {
 
 ### 6. `libs/` - Independent Library Modules
 
-Self-contained utility packages that could theoretically be extracted as standalone npm packages. Each subfolder is an independent module.
+Self-contained utility packages that could be extracted as standalone npm packages. Each subfolder is an independent module.
 
 **Allowed dependencies:** Other `libs/` modules, third-party packages  
 **Forbidden:** Any project-specific layer (`models/`, `domain/`, `services/`, `features/`, `components/`, `hooks/`)
@@ -175,7 +175,7 @@ export function deriveContrastColor(color: RGB): RGB { ... }
 
 ### 7. `services/` - Data/API Layer (Outermost)
 
-Adapters for external systems (REST APIs, WebSocket, localStorage, etc.). Services implement ports defined by the business logic. Services depend on domain logic to transform data - **the domain never imports from services**.
+Adapters for external systems (REST APIs, WebSocket, localStorage). Services implement ports defined by the business logic and depend on domain logic to transform data — **the domain never imports from services**.
 
 **Allowed dependencies:** `models/`, `domain/`, `libs/`, feature-level `models/`, third-party HTTP/API clients  
 **Forbidden:** `components/`, `containers/`, `hooks/`, `features/`
@@ -193,7 +193,7 @@ export async function fetchSlides(presentationId: string): Promise<Slide[]> {
 
 ### 8. `features/` - Feature Modules (Composition Layer)
 
-Each subfolder is a self-contained feature that composes all necessary layers. Features are where dependency inversion meets the UI - they wire services to domain logic to components.
+Each subfolder is a self-contained feature composing all necessary layers. Features are where dependency inversion meets the UI — they wire services to domain logic to components.
 
 **Internal structure per feature:**
 - `domain/` - Feature-specific business logic (depends on top-level `models/`)
@@ -220,58 +220,51 @@ export function useSlideEditor(presentationId: string) {
 
 ### Domain-cohesive feature grouping
 
-Group features by **domain**, not by surface type. Split a scattered `social-renderer` /
-`social-editor` / `social-viewer` set into one `socials/` domain that owns all of its
-surfaces. Nesting order, outermost to innermost:
+Split a scattered `social-renderer` / `social-editor` / `social-viewer` set into one `socials/`
+domain owning all of its surfaces. Nesting order, outermost to innermost:
 
 - **domain** — a product area (e.g. `socials/`). Domains never import each other.
 - **sub-domain** — one variant within the domain, typically a platform (e.g. `bluesky/`,
   `instagram/`). Appears only with **2+ platforms**.
-- **surface** — a way the sub-domain is used (e.g. `viewer/`, `editor/`). Appears only
-  with **2+ surfaces**; a single-surface sub-domain holds the layers directly.
+- **surface** — a way the sub-domain is used (e.g. `viewer/`, `editor/`). Appears only with
+  **2+ surfaces**; a single-surface sub-domain holds the layers directly.
 - **layers** — the usual clean layers (`domain/`, `components/`, `containers/`, `hooks/`,
-  `services/`, and `server/` where the feature owns server-only code) at whatever level is
-  the innermost earned nesting.
+  `services/`, and `server/` where the feature owns server-only code) at the innermost earned
+  nesting level.
 
-**Nest only when it earns it.** Start flat and add a level only when there is real
-plurality to separate:
+**Nest only when it earns it.** Start flat and add a level only for real plurality:
 
 - A single-surface, single-platform domain stays flat:
   `features/<domain>/{domain,components,containers,hooks,services}`.
 - Add `<sub-domain>/` folders only once the domain has **2+ platforms**.
-- Add `<surface>/` folders only once a platform has **2+ surfaces**. One earned surface
-  stays flat under the sub-domain — do **not** create an empty `viewer/`/`editor/` scaffold.
+- Add `<surface>/` folders only once a platform has **2+ surfaces**. One earned surface stays
+  flat under the sub-domain — do **not** create an empty `viewer/`/`editor/` scaffold.
 
 **The `common/` slot.** Code shared across a domain's sub-domains lives in
-`features/<domain>/common/`, itself organized by the clean layers. It holds the
-cross-platform core (shared domain logic, the platform-agnostic editor/viewer shell,
-shared hooks and server code). Each sub-domain composes `common/`; `common/` never
-reaches into a sub-domain.
+`features/<domain>/common/`, organized by the clean layers. It holds the cross-platform core:
+shared domain logic, the platform-agnostic editor/viewer shell, shared hooks and server code.
 
-**Dependency rules on the nested shape.** The per-layer matrix below is unchanged — it
-still governs which layer may import which. Layered on top of it:
+**Dependency rules on the nested shape.** The per-layer matrix below still governs which layer may
+import which. Layered on top of it:
 
-- Inner layers never depend outward (same as always).
-- **Cross-domain imports are forbidden** — one domain never imports another domain's
-  internals (the existing "features must not cross-depend" rule, now read as "domains").
-- A **sub-domain may depend on its domain's `common/`**, but `common/` must **not** depend
-  on a sub-domain. Invert the edge: compose sub-domains at the domain root/barrel, or have
-  each sub-domain **self-register** into a shared registry that `common/` reads.
+- Inner layers never depend outward.
+- **Cross-domain imports are forbidden** — one domain never imports another domain's internals
+  (the "features must not cross-depend" rule, read as "domains").
+- A **sub-domain may depend on its domain's `common/`**, but `common/` must **not** depend on a
+  sub-domain. Invert the edge: compose sub-domains at the domain root/barrel, or have each
+  sub-domain **self-register** into a shared registry that `common/` reads.
 - **Shared cross-cutting seams are a carve-out.** Genuinely cross-domain infrastructure —
-  top-level `models/`, and cross-domain registries such as the renderer registry and the
-  editor-surface registry — stays in its shared top-level location and remains consumable
-  by any domain. Such a registry is the sanctioned seam through which one domain's code
-  discovers another's contributions without a direct cross-domain import.
+  top-level `models/`, and cross-domain registries such as the renderer and editor-surface
+  registries — stays in its shared top-level location, consumable by any domain. Such a registry
+  is the sanctioned seam through which one domain discovers another's contributions without a
+  direct import.
 
-**Worked example — `socials/`.** `common/` holds the cross-platform core (`socialRenderer`,
-`socialPost`, `platformConstraints`, the platform-agnostic `SocialPostEditor` shell, the
-`useAccounts` hook, and the server connect/publish seam). Each platform is a sub-domain
-(`bluesky/`, `instagram/`) holding only its renderer config + registration and its preview
-component. **Bluesky earns only a single render/preview surface today**, so it stays flat —
-no `viewer/`/`editor/` folders — because the editor is platform-agnostic and lives in
-`common/containers/`. Platforms register themselves: a platform's `domain/` registers its
-renderer into the shared renderer registry, and its barrel registers its preview into
-`common`'s preview registry — so `common/` imports no platform module.
+**Reading the `socials/` tree above.** Each platform is a sub-domain holding only its renderer
+config + registration and its preview component. **Bluesky earns only a single render/preview
+surface today**, so it stays flat — no `viewer/`/`editor/` folders — because the editor is
+platform-agnostic and lives in `common/containers/`. Platforms register themselves: a platform's
+`domain/` registers its renderer into the shared renderer registry, and its barrel registers its
+preview into `common`'s preview registry — so `common/` imports no platform module.
 
 ## Dependency Matrix (Quick Reference)
 
@@ -291,11 +284,11 @@ renderer into the shared renderer registry, and its barrel registers its preview
 When designing or implementing a feature:
 
 1. **Start with models** - Define the data types the feature needs
-2. **Write domain logic** - Implement pure business rules using only models
-3. **Build services** - Create API adapters that use domain logic for validation/transformation
-4. **Create dumb components** - Build presentational UI that takes props
+2. **Write domain logic** - Pure business rules using only models
+3. **Build services** - API adapters using domain logic for validation/transformation
+4. **Create dumb components** - Presentational UI taking props
 5. **Wire in feature hooks** - Compose services + domain + state in feature-specific hooks
-6. **Build containers** - Connect feature hooks to dumb components in smart container components
+6. **Build containers** - Connect feature hooks to dumb components
 
 ## Validation Rules
 
@@ -318,18 +311,11 @@ Before writing or reviewing code, verify:
 
 ### Avoid Overusing Effects
 
-Effects are an escape hatch for synchronizing with external systems. Most data derivation, filtering, or transformation belongs in render logic or `domain/` functions — not in `useEffect`.
-
-Before writing a `useEffect`, ask: is this synchronizing with something *outside* React (DOM, WebSocket, third-party lib)? If not, it likely doesn't need an Effect.
-
-**Common mistakes to avoid:**
-
-- Deriving state from props/state inside `useEffect` — compute it inline during render or in a `domain/` function instead
-- Fetching data in `useEffect` inside components — fetch in hooks (`hooks/` or `features/<name>/hooks/`) and expose the result as state
-- Chains of `useEffect` that update state triggering other effects — flatten into a single computation in `domain/`
-- Using `useEffect` to handle user events — move logic to event handlers directly
-
-**Where logic belongs instead:**
+Effects are an escape hatch for synchronizing with external systems. Data derivation, filtering,
+and transformation belong in render logic or `domain/` functions. Before writing a `useEffect`,
+ask: is this synchronizing with something *outside* React (DOM, WebSocket, third-party lib)? If
+not, it likely doesn't need an Effect. The `react-clean` skill carries the full anti-pattern
+table; this is where each concern lands in the layer taxonomy:
 
 | Concern | Wrong place | Right place |
 |---------|-------------|-------------|
@@ -344,14 +330,14 @@ Reference: [You Might Not Need an Effect](https://react.dev/learn/you-might-not-
 
 Prefer styles co-located with the component, in this order:
 
-1. **Tailwind CSS utility classes** — default choice for all styling. Apply classes directly on JSX elements. Keep conditional class logic readable using `clsx` or `cn` helpers.
-2. **CSS-in-JS** (e.g. `styled-components`, `emotion`) — acceptable when dynamic styles depend on runtime values that would make Tailwind class strings unwieldy.
-3. **Separate `.css` / `.module.css` files** — use only exceptionally, for cases that cannot be handled by the above (e.g. complex keyframe animations, third-party component overrides, or global resets).
+1. **Tailwind CSS utility classes** — default for all styling. Apply classes directly on JSX elements. Keep conditional class logic readable with `clsx` or `cn` helpers.
+2. **CSS-in-JS** (`styled-components`, `emotion`) — when dynamic styles depend on runtime values that would make Tailwind class strings unwieldy.
+3. **Separate `.css` / `.module.css` files** — only for what the above cannot handle (complex keyframe animations, third-party component overrides, global resets).
 
 **Rules:**
-- Never mix all three approaches in the same component — pick one and stay consistent within a file
+- Never mix all three in the same component — pick one and stay consistent within a file
 - Global styles (resets, CSS variables, font-face) live in a single top-level stylesheet (e.g. `src/styles/globals.css`)
-- Design tokens (colors, spacing, radii) should be defined as Tailwind theme values or CSS custom properties — never as magic strings scattered across components
+- Design tokens (colors, spacing, radii) are Tailwind theme values or CSS custom properties — never magic strings scattered across components
 
 ```tsx
 // Preferred: Tailwind with cn() helper for conditional classes
@@ -372,7 +358,7 @@ export function Badge({ variant, children }: BadgeProps) {
 
 ### Data Fetching Flow: useQuery / useMutation + oRPC
 
-Use **React Query** (`useQuery`, `useMutation`) as the data-fetching layer, with **oRPC** as the typed router when available. Never call service functions or fetch APIs directly inside components or containers.
+Use **React Query** (`useQuery`, `useMutation`) as the data-fetching layer, with **oRPC** as the typed router when available. Never call service functions or fetch APIs directly in components or containers.
 
 **Layer responsibilities:**
 
@@ -430,14 +416,11 @@ export function SlideEditorContainer({ presentationId }: { presentationId: strin
 ```
 
 **Rules:**
-- One custom hook per resource/domain entity — don't scatter `useQuery` calls across multiple components
+- One custom hook per resource/domain entity — don't scatter `useQuery` calls across components
 - `queryKey` arrays must be consistent — define them as constants in `features/<name>/consts/` if reused
 - Data transformation (sorting, filtering, deriving) happens in `domain/` functions, not inside the hook or component
-- If oRPC is not available, the hook calls a plain `services/` function instead — the hook interface stays the same
+- Without oRPC, the hook calls a plain `services/` function instead — the hook interface stays the same
 
 ## Additional Resources
 
-### Reference Files
-
-For detailed patterns and examples, consult:
-- **`references/dependency-rules.md`** - Comprehensive dependency rules with edge cases and migration patterns
+- **`references/dependency-rules.md`** — dependency rules with edge cases and migration patterns
