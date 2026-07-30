@@ -32,6 +32,17 @@ import { calculateScore } from '@/domain/scoring';
 interface ScoreDisplayProps { score: number; maxScore: number; }
 ```
 
+A generic, side-effect-free hook from top-level `hooks/` is fine in a component — it is a UI
+utility, not a data source. The line is what the hook *brings in*:
+
+```typescript
+// OK - generic UI utility, no data, no outside side effect
+import { useMediaQuery } from '@/hooks/useMediaQuery';
+
+// BAD - the component now owns data fetching; it belongs in containers/
+import { useSlides } from '@/features/slides/hooks/useSlides';
+```
+
 ### Top-level hooks must NEVER contain business logic
 
 ```typescript

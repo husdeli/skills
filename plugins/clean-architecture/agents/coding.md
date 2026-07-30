@@ -69,3 +69,16 @@ Return a summary in this structure:
 ### Blockers (if any)
 - Item [N]: [what went wrong and why]
 ```
+
+### Machine-readable summary (required)
+
+End every turn — the first implementation pass and every fix cycle alike — with exactly **one**
+fenced `json` block in this shape, and nothing after it. The orchestrator parses it to drive the
+pipeline:
+
+```json
+{ "summary": "", "workItemsCompleted": [""], "filesChanged": { "created": [""], "modified": [""] }, "blockers": [""] }
+```
+
+`blockers` is `[]` when nothing blocked you — a non-empty `blockers` array stops the pipeline,
+so use it only for work you genuinely could not complete.

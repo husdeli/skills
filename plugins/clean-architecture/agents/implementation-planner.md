@@ -80,6 +80,40 @@ Return a plan in this exact structure:
 - [Potential issues or edge cases to watch for]
 ```
 
+### Machine-readable context pack (required)
+
+End **every** turn — the scout turn and the plan turn alike — with exactly **one** fenced `json`
+block in this shape, and nothing after it. The orchestrator parses it to drive the pipeline and
+forwards the context pack to the reviewer, the coding agent, and the verify agent so none of
+them re-explores the codebase:
+
+```json
+{
+  "contextPack": {
+    "relevantFiles": [{ "path": "", "role": "" }],
+    "keySymbols":    [{ "symbol": "", "location": "" }],
+    "conventions":   [""],
+    "verificationCommands": [""],
+    "e2eCommand": ""
+  },
+  "riskProfile": {
+    "filesTouched": 0,
+    "addsDependency": false,
+    "addsPublicApi": false,
+    "criteriaAutoCheckable": false
+  }
+}
+```
+
+- `verificationCommands` are the project's actual gating commands (tests, lint, typecheck,
+  build) as its scripts/configs define them — not invented ones.
+- `e2eCommand` is the project's end-to-end command, or the literal `"none"` when it has no e2e
+  suite. You have already read the project's scripts and configs, so answer it here rather than
+  leaving the verify agent to rediscover it on every run.
+- `riskProfile` on the scout turn is your best estimate; re-emit it with the plan, corrected for
+  whatever the settled decisions changed. `criteriaAutoCheckable` is true only when every
+  acceptance criterion can be confirmed by a command, with no human judgment.
+
 ## Rules
 
 - Do NOT write any code. No snippets, no diffs, no function signatures, no type or schema definitions, no exact strings to paste. If you catch yourself writing something the coder could copy verbatim, replace it with the intent behind it.

@@ -37,7 +37,7 @@ The planner, reviewer, and coding agents each run inside a loop (revise, re-revi
 
 - **Spawn once, keep the handle.** Every `Agent` call returns an id/name. Record the planner's, the reviewer's (two, for high-risk parallel lenses), and the coding agent's.
 - **Resume, don't respawn.** On a revision, `SendMessage` the *same* planner just the review issues — it already holds the plan, task, and context pack. On a re-review, `SendMessage` the *same* reviewer just "re-review the revised plan" — it already read the files. On a fix, `SendMessage` the *same* coding agent just the failures.
-- **Verify is the exception — it stays fresh.** Spawn a new `clean-architecture:verify` agent for each verification run. It is cheap (Sonnet, low effort) and a clean re-run with no memory of the prior attempt is exactly what you want.
+- **Verify is the exception — it stays fresh.** Spawn a new `clean-architecture:verify` agent for each verification run. It is cheap (Sonnet) and a clean re-run with no memory of the prior attempt is exactly what you want.
 
 ### Overlap the stages that don't depend on each other
 The pipeline is serial by nature, but three stages were paying for work an earlier one already did. Two spawns are therefore **early and concurrent**:
@@ -48,7 +48,7 @@ The pipeline is serial by nature, but three stages were paying for work an earli
 
 The cost is that a scouted plan or a pre-read review is occasionally discarded (the gate skips review, or the decisions redirect the task). That is a token cost, not a wall-clock one — take it.
 
-You own all of this in the main loop — there is no background workflow. Because there is no schema enforcement, **each core agent must end its reply with a single fenced ` ```json ` block** in the contract shown per stage; you parse that block to drive control flow. If a block is missing or malformed, `SendMessage` the agent once asking it to re-emit *only* the JSON block; a second failure is an `aborted` result.
+You own all of this in the main loop — there is no background workflow. Because there is no schema enforcement, **each core agent must end its reply with a single fenced ` ```json ` block** in the contract its agent definition specifies; you parse that block to drive control flow. If a block is missing or malformed, `SendMessage` the agent once asking it to re-emit *only* the JSON block; a second failure is an `aborted` result.
 
 ### Context Pack (built once, forwarded automatically)
 The planner emits a **context pack** — relevant files, key symbols, conventions, the exact verification commands, and the project's e2e command — in its JSON block, on its **scout turn**, before the plan exists. You carry it forward: paste it into the reviewer's and coding agent's *first* message, and into every `verify` spawn, so none of them cold-explores the codebase (on later `SendMessage` turns they already have it). The interview's **Decisions** arrive later and go to the planner as its second message.
@@ -111,30 +111,11 @@ Agent(subagent_type: "clean-architecture:implementation-planner", model: "opus",
               + "SCOUT ONLY. A feature interview is running in parallel; its Decisions
                  are not settled yet, so do NOT write the plan. Survey the codebase and
                  research the current best practice for this work now, reply with a few
-                 lines on what you found, then end with a single ```json block in this
-                 contract. Then stop and wait — I will send the Decisions and ask for
-                 the plan.")
+                 lines on what you found, then end with your ```json block. Then stop and
+                 wait — I will send the Decisions and ask for the plan.")
 ```
 
-Required JSON contract, emitted on the scout turn and re-emitted with the plan:
-```json
-{
-  "contextPack": {
-    "relevantFiles": [{ "path": "", "role": "" }],
-    "keySymbols":    [{ "symbol": "", "location": "" }],
-    "conventions":   [""],
-    "verificationCommands": [""],
-    "e2eCommand": ""
-  },
-  "riskProfile": {
-    "filesTouched": 0,
-    "addsDependency": false,
-    "addsPublicApi": false,
-    "criteriaAutoCheckable": false
-  }
-}
-```
-`e2eCommand` is the project's end-to-end command, or the literal `"none"` if it has no e2e suite — the planner has already looked at the project's scripts and configs, so this costs nothing here and saves the verify agent a rediscovery on every run. On the scout turn `riskProfile` is the planner's best estimate; treat it as **provisional**.
+It returns `contextPack` (relevant files, key symbols, conventions, `verificationCommands`, `e2eCommand`) and `riskProfile` (`filesTouched`, `addsDependency`, `addsPublicApi`, `criteriaAutoCheckable`) in a single fenced `json` block. The shape lives in the agent definition — do not restate it in the prompt. On the scout turn `riskProfile` is the planner's best estimate; treat it as **provisional**.
 
 **Then, once the Decisions are settled**, resume the same planner — do not spawn a second one:
 
@@ -143,7 +124,7 @@ SendMessage(plannerId, Discovery Brief & Decisions (or "no interview ran")
                      + "Decisions are settled — treat them as fixed constraints.
                         Write the full Implementation Plan now from the files and
                         research you already have; explore or search again only where
-                        a decision opened something you did not cover. End with the
+                        a decision opened something you did not cover. Re-emit your
                         ```json block, updating any value the decisions changed.")
 ```
 
@@ -172,12 +153,7 @@ Skip the pre-warm only when the provisional profile clears the skip gate outrigh
 
 **Hand over the plan** with `SendMessage(reviewerId, "Review the plan below against the checklist. You have already read the context pack files; re-read only what the plan points at that you have not seen. <plan>")` — to both reviewers **in a single tool block** when there are two. If a reviewer was never pre-warmed, its first message is the full one: task block + Decisions + plan + context pack + "Read the referenced files — do not review from the plan text alone."
 
-Every reviewer must end with:
-```json
-{ "verdict": "APPROVED" | "CHANGES_REQUESTED", "summary": "",
-  "issues": [{ "title": "", "severity": "critical|major|minor", "workItems": "", "problem": "", "suggestion": "" }] }
-```
-Merge multiple reviewers: verdict is `CHANGES_REQUESTED` if **any** reviewer requests changes; concat their issues. If every reviewer returned nothing → `aborted` (stage `review`).
+Every reviewer ends its review turn with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues` — the shape is in the agent definition; do not restate it in the prompt. Merge multiple reviewers: verdict is `CHANGES_REQUESTED` if **any** reviewer requests changes; concat their issues. If every reviewer returned nothing → `aborted` (stage `review`).
 
 **Revision loop — at most ONE cycle:**
 - If verdict is `APPROVED` → proceed to Stage 3.
@@ -190,16 +166,12 @@ Merge multiple reviewers: verdict is `CHANGES_REQUESTED` if **any** reviewer req
 Agent(subagent_type: "clean-architecture:coding", model: "opus",
       prompt: "Implement the approved plan exactly — no scope creep. Match the context pack conventions.
                Targeted self-check only when you are done; the verify stage runs the full gate."
-              + approved plan + context pack + acceptance criteria + the JSON contract)
+              + approved plan + context pack + acceptance criteria)
 ```
-Its skill obligations (`clean-fullstack-architecture` before any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for any React file) already live in the agent definition — do not restate them here; text in the agent file is free, text in this prompt is paid on every spawn.
-Coding must end with:
-```json
-{ "summary": "", "workItemsCompleted": [""], "filesChanged": { "created": [""], "modified": [""] }, "blockers": [""] }
-```
-If it returns nothing → `aborted` (stage `implement`). If `blockers` is non-empty → `escalate` (stage `implement`) with the blockers.
+Its skill obligations (`clean-fullstack-architecture` before any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for any React file) and its JSON contract already live in the agent definition — do not restate them here; text in the agent file is free, text in this prompt is paid on every spawn.
+It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, and `blockers`. If it returns nothing → `aborted` (stage `implement`). If `blockers` is non-empty → `escalate` (stage `implement`) with the blockers.
 
-**Stage 4 — Verify (fresh agent) + fix (persistent coding, at most ONE fix cycle).** Spawn a **new** `clean-architecture:verify` agent (sonnet, low effort) each run:
+**Stage 4 — Verify (fresh agent) + fix (persistent coding, at most ONE fix cycle).** Spawn a **new** `clean-architecture:verify` agent (sonnet) each run:
 
 ```
 Agent(subagent_type: "clean-architecture:verify", model: "sonnet",
@@ -209,12 +181,9 @@ Agent(subagent_type: "clean-architecture:verify", model: "sonnet",
 ```
 Pass `e2eCommand` **every time**, including the literal `"none"` — that is what lets the agent skip its e2e discovery sweep instead of globbing for `playwright.config.*`/`cypress/`/`e2e/` on each spawn. The judging rules (baseline-aware pass/fail, environment blockers are `skipped` not failures, ~3-line output cap), the fail-fast re-run behaviour, and the JSON contract all live in the agent definition — do not restate them in the prompt.
 
-Contract it returns:
-```json
-{ "passed": true, "results": [{ "command": "", "passed": true, "skipped": false, "output": "" }], "failures": [""] }
-```
+It ends with a `json` block carrying `passed`, per-command `results` (each with `passed`, `skipped`, `output`), and `failures` — the shape is in the agent definition.
 - If it returns nothing → `aborted` (stage `verify`).
-- If `passed == true` → success, go to Stage 3-of-§3 (mark Completed). If any result is `skipped`, still succeed, but name the skipped command and its reason in the completion report — never present a skipped e2e run as a green one.
+- If `passed == true` → success, go to **Mark Completed** below. If any result is `skipped`, still succeed, but name the skipped command and its reason in the completion report — never present a skipped e2e run as a green one.
 - If `passed == false` and you have **not yet fixed**: `SendMessage(codingId, "Verification failed. Fix ONLY what's needed to make the checks pass — stay within the approved plan, then stop; verification will re-run." + failures)` — the coding agent already holds the plan/pack, **send only the failures**. Then spawn a **fresh** verify agent and re-check, passing it the **previously failing commands** so it runs those first and bails out early if the fix did not land.
 - If `passed == false` and you have **already fixed once** → **`escalate`** (stage `verify`) with the failures, leave status `In Progress`, stop.
 

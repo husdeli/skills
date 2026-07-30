@@ -80,6 +80,7 @@ function UserCard({ id }: { id: string }) {
 }
 ```
 
+- A component that consumes a query hook this way is a **container** in the `clean-fullstack-architecture` layer taxonomy — put it in `containers/` (or `features/<domain>/containers/`), and keep the presentational piece it renders in `components/`, fed by props. A file under `components/` may still use a *generic, side-effect-free* hook (a media query, a debounce); what it may never do is pull data in.
 - Mutations go through `useMutation` calling a service method, never a bare `fetch` in an event handler either.
 - The component never sees a URL, a request config, or a `fetch`. It sees `data`, `isPending`, `error`, `mutate`.
 - This also satisfies Rule 2 and Rule 4: TanStack Query owns the fetching effect, race conditions, caching, and cleanup — you don't write that `useEffect` at all.

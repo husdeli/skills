@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Reviews an implementation plan for correctness, completeness, and alignment with codebase conventions. Use after planning and before coding, or when the /orchestrate pipeline reaches its review stage. Returns APPROVED or CHANGES REQUESTED — writes no code.
+description: Reviews an implementation plan for correctness, completeness, and alignment with codebase conventions. Use after planning and before coding, or when the /orchestrate pipeline reaches its review stage. Returns APPROVED or CHANGES_REQUESTED — writes no code.
 tools: Read, Grep, Glob, Bash, Skill
 model: opus
 ---
@@ -57,12 +57,12 @@ Return your review in this exact structure:
 ```markdown
 ## Plan Review
 
-### Verdict: APPROVED | CHANGES REQUESTED
+### Verdict: APPROVED | CHANGES_REQUESTED
 
 ### Summary
 [1-2 sentence overall assessment]
 
-### Issues (if CHANGES REQUESTED)
+### Issues (if CHANGES_REQUESTED)
 
 **Issue 1: [Title]**
 - Severity: critical | major | minor
@@ -79,10 +79,23 @@ Return your review in this exact structure:
 - [Optional improvements that are not blockers]
 ```
 
+### Machine-readable verdict (required)
+
+End every **review turn** with exactly **one** fenced `json` block in this shape, and nothing
+after it — the orchestrator parses it to drive the pipeline:
+
+```json
+{ "verdict": "APPROVED" | "CHANGES_REQUESTED", "summary": "",
+  "issues": [{ "title": "", "severity": "critical|major|minor", "workItems": "", "problem": "", "suggestion": "" }] }
+```
+
+`verdict` is exactly `APPROVED` or `CHANGES_REQUESTED` — no other spelling. `issues` is `[]`
+when the verdict is `APPROVED`. A **pre-read turn** emits no JSON block: it has no verdict yet.
+
 ## Rules
 
 - Be strict but fair. A plan with only minor style issues should be APPROVED with recommendations.
-- CHANGES REQUESTED means the plan cannot proceed to coding until the issues are resolved.
+- `CHANGES_REQUESTED` means the plan cannot proceed to coding until the issues are resolved.
 - Every issue must be actionable — "this is bad" is not acceptable; "rename `foo` to `bar` to match the naming convention in `src/utils/`" is.
 - **Critical** issues: missing acceptance criteria, logical errors, wrong/nonexistent file paths.
 - **Major** issues: missing error handling, wrong patterns, insufficient verification.

@@ -5,6 +5,51 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0] - 2026-07-31
+
+### Fixed
+- **The reviewer's verdict token matched nothing the orchestrator parsed.** `plan-reviewer`
+  wrote `CHANGES REQUESTED` (with a space) in its output format while `/orchestrate` branched on
+  `"CHANGES_REQUESTED"`, so the agent was told two spellings in one turn and a rejected plan
+  could be read as an unparseable block. The underscore form is now the only one, in the
+  frontmatter description, the markdown heading, and the rules.
+- **`/orchestrate` referred to a stage that does not exist.** The verify-passed branch sent the
+  orchestrator to "Stage 3-of-§3 (mark Completed)" while Stage 3 is Implement; it now points at
+  the **Mark Completed** step by name.
+- **The verify spawn asked for an effort level the `Agent` tool cannot set.** "sonnet, low
+  effort" is now just "sonnet" — the model is settable, the effort is not.
+
+### Changed
+- **The JSON contracts moved into the agent definitions.** `/orchestrate` already required that
+  anything durable about an agent's behavior live in its definition rather than in a spawn
+  prompt that is re-paid every time — but the planner's context pack / risk profile, the
+  reviewer's verdict, and the coding agent's summary contracts existed *only* in the command,
+  and none of those three agent files mentioned it had to emit JSON at all. Each contract now
+  lives in its agent definition (with per-field guidance the command had no room for), and the
+  command names the fields it parses instead of restating the shape. `verify` already did this.
+- **A component may use a generic, side-effect-free hook.** `clean-fullstack-architecture`
+  forbade `components/` from importing `hooks/` outright, which `react-clean` Rule 3 appeared to
+  contradict — its example component consumes a TanStack Query hook — leaving the coding agent
+  holding two skills that disagreed. The rule now turns on what a hook *brings in*: a media
+  query, a debounce, or a focus trap is a UI utility and is allowed; any feature hook, any hook
+  wrapping `useQuery`/`useMutation` or a service, and any hook with an outside side effect stay
+  forbidden. Both skills also now say plainly that a component consuming a query hook is a
+  **container** in the layer taxonomy — the two skills draw the naming line differently and
+  agree on the substance.
+- **`server/` is a declared feature layer.** The worked `socials/` example used
+  `common/server/`, but the per-feature structure list and the validation checklist never
+  mentioned it. It is now listed with its boundary — never imported from a component,
+  container, or hook — and cross-referenced to `clean-tanstack-start`, which carries the same
+  boundary as file suffixes.
+
+### Removed
+- **`.github/copilot-instructions.md`.** It described a `skills/<name>/` layout the repository
+  stopped using when it became a plugin marketplace, and knew nothing about `agents/`,
+  `commands/`, or the manifests — so it pointed anyone following it at the wrong directory.
+- **`ai-planning-workflow/references/feedback-templates.md`.** Every template in it was already
+  inline in `SKILL.md` at the phase that uses it, verbatim, including the response-patterns
+  table. Two copies of the same text drift; the inline ones are the copies that get read.
+
 ## [0.20.0] - 2026-07-30
 
 ### Added

@@ -173,7 +173,6 @@ Mark as Completed?
 - [Ticket template](./assets/ticket-template.md)
 - [Plan template](./assets/plan-template.md)
 - [Full ticket guidelines](./references/ticket-guidelines.md)
-- [Full feedback templates reference](./references/feedback-templates.md)
 
 ---
 

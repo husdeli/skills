@@ -51,12 +51,15 @@ That's it — the skills and agents below become available in every session.
 - **implementation-planner** — turns a task + codebase + researched best practices into a
   directional plan: where the work lives, what each item must achieve, which approach to
   follow — and no code for the coding agent to copy.
-- **plan-reviewer** — reviews a plan for correctness and convention alignment.
-- **coding** — implements an approved plan and verifies it.
+- **plan-reviewer** — reviews a plan for correctness and convention alignment, and returns
+  `APPROVED` or `CHANGES_REQUESTED`.
+- **coding** — implements an approved plan and runs a targeted self-check.
+- **verify** — runs the project's gating commands (tests, lint, typecheck, e2e when there is
+  one) concurrently and reports pass/fail per command. Writes no code.
 
 ### Commands
 - **/orchestrate** — picks the next actionable roadmap task and drives it through
-  interview → plan → review → implement using the four agents above.
+  interview → plan → review → implement → verify using the five agents above.
 - **/design** — loads the `design-doc` skill to create or update a design doc for a given
   screen, surface, or flow.
 - **/prd** — loads the `prd` skill to create or update a product requirements document for

@@ -105,10 +105,12 @@ export function reorderSlides(slides: Slide[], fromIndex: number, toIndex: numbe
 
 ### 3. `components/` - Dumb UI Components
 
-Presentational React components that receive all data via props. Reusable across any feature. Must not import from `domain/`, `services/`, `features/`, or any data-fetching code.
+Presentational React components that receive all **data** via props. Reusable across any feature. Must not import from `domain/`, `services/`, `features/`, or any data-fetching code.
 
-**Allowed dependencies:** Other `components/`, `libs/`, third-party UI libraries  
-**Forbidden:** `domain/`, `services/`, `features/`, `hooks/` (top-level), direct state management
+A component may use a **generic, side-effect-free hook** from top-level `hooks/` — a media query, a debounce, a controlled-input helper, a focus trap. Those are UI utilities, not data access: they read no server state, own no business rules, and swapping one out cannot change what the component renders semantically. What stays forbidden is a hook that *brings data in*: any feature hook, any hook wrapping `useQuery`/`useMutation` or a service call, and any hook whose effect writes to something outside the component.
+
+**Allowed dependencies:** Other `components/`, `libs/`, generic side-effect-free `hooks/`, third-party UI libraries  
+**Forbidden:** `domain/`, `services/`, `features/`, feature hooks, data-fetching or side-effecting hooks, direct state management
 
 ```typescript
 // components/SlideCard.tsx
@@ -141,6 +143,8 @@ export function SlideEditorContainer({ presentationId }: { presentationId: strin
   return <SlideList slides={slides} activeId={activeSlide?.id} onSelect={selectSlide} />;
 }
 ```
+
+**Reading `react-clean` alongside this skill.** `react-clean` says "component" in the plain React sense — any `.tsx` file exporting a component — and its Rule 3 example shows one consuming a TanStack Query hook. In *this* taxonomy that file is a **container**: the moment a component pulls data through a query hook, it belongs in `containers/` (or `features/<domain>/containers/`), not `components/`. Both skills agree on the substance — data arrives through a service + query hook, never a `fetch` in the component — they just draw the naming line differently. `react-clean`'s size, props, effect, and prop-drilling rules apply to `components/` and `containers/` alike.
 
 ### 5. `hooks/` - Top-Level React Hooks
 
@@ -198,6 +202,7 @@ Each subfolder is a self-contained feature that composes all necessary layers. F
 - `hooks/` - Feature-specific hooks (wire services + domain + UI)
 - `consts/` - Feature-specific constants
 - `services/` - Feature-specific API adapters
+- `server/` - Server-only code for the feature (DB access, secrets, server functions). Never imported from a component, container, or hook — client code reaches it through a service or a server function. In a TanStack Start app the file suffixes carry this same boundary; see the `clean-tanstack-start` skill.
 
 **Allowed dependencies:** All top-level layers (`models/`, `domain/`, `components/`, `hooks/`, `libs/`, `services/`)  
 **Forbidden:** Other `features/` (features must not cross-depend)
@@ -225,7 +230,8 @@ surfaces. Nesting order, outermost to innermost:
 - **surface** — a way the sub-domain is used (e.g. `viewer/`, `editor/`). Appears only
   with **2+ surfaces**; a single-surface sub-domain holds the layers directly.
 - **layers** — the usual clean layers (`domain/`, `components/`, `containers/`, `hooks/`,
-  `services/`) at whatever level is the innermost earned nesting.
+  `services/`, and `server/` where the feature owns server-only code) at whatever level is
+  the innermost earned nesting.
 
 **Nest only when it earns it.** Start flat and add a level only when there is real
 plurality to separate:
@@ -273,7 +279,7 @@ renderer into the shared renderer registry, and its barrel registers its preview
 |-----------------|--------|--------|------------|------------|-------|------|----------|----------|
 | **models**      | -      | NO     | NO         | NO         | NO    | NO   | NO       | NO       |
 | **domain**      | YES    | YES    | NO         | NO         | NO    | NO   | NO       | NO       |
-| **components**  | NO     | NO     | YES        | NO         | NO    | YES  | NO       | NO       |
+| **components**  | NO     | NO     | YES        | NO         | generic only | YES  | NO       | NO       |
 | **containers**  | YES    | NO     | YES        | -          | YES   | YES  | NO       | NO       |
 | **hooks**       | NO     | NO     | NO         | NO         | YES   | YES  | NO       | NO       |
 | **libs**        | NO     | NO     | NO         | NO         | NO    | YES  | NO       | NO       |
@@ -297,7 +303,7 @@ Before writing or reviewing code, verify:
 
 - [ ] No circular dependencies between layers
 - [ ] `domain/` has zero imports from `services/`, `components/`, or `hooks/`
-- [ ] `components/` has zero imports from `domain/`, `services/`, `hooks/`, or `features/`
+- [ ] `components/` has zero imports from `domain/`, `services/`, or `features/`; any `hooks/` import is a generic, side-effect-free UI utility, never a data or feature hook
 - [ ] `containers/` has zero imports from `domain/`, `services/`, or `features/`
 - [ ] `hooks/` (top-level) has zero imports from `domain/`, `services/`, or `features/`
 - [ ] `libs/` has zero imports from any project-specific layer
@@ -305,6 +311,7 @@ Before writing or reviewing code, verify:
 - [ ] Features do not import from other features
 - [ ] No domain imports another domain's internals; shared code is promoted to a top-level layer or a cross-domain registry
 - [ ] `common/` does not import from its own sub-domains (invert via self-registration or wire at the domain root)
+- [ ] No `server/` module is imported from a component, container, or hook — client code reaches it through a service or a server function
 - [ ] All business logic lives in `domain/` or `features/<name>/domain/`, never in components or hooks
 
 ## React-Specific Architecture Guidelines
