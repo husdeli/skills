@@ -5,6 +5,54 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] - 2026-07-30
+
+### Added
+- **`ts-clean` Rule 4 — configuration in `.config.ts`, environment variables validated.**
+  Nothing said where configuration was allowed to live, so per-environment values ended up
+  inline at their use site and `process.env` was read from services, components, and route
+  handlers alike — usually as `process.env.API_KEY!` or `process.env.PORT ?? ''`, which turns
+  a missing variable into an `undefined` that surfaces hours later as a confusing runtime
+  failure, or worse, a silent connection to the wrong place. The rule puts configuration
+  values (base URLs, timeouts, limits, flags, credentials) in a `.config.ts` module named
+  after what it configures and exporting one frozen object, makes those modules the **only**
+  place `process.env` is read, and requires every required variable to be checked at module
+  load and throw with its name — so a misconfigured deploy dies at startup instead of on the
+  first request that needs the value. Optional variables get an explicit typed default with
+  validated coercion (`Number(process.env.PORT)` is `NaN`, `Boolean('false')` is `true`), and
+  secrets and connection targets are never defaulted at all. A project-wide schema validator
+  (Zod, Valibot) satisfies the rule too — the requirement is failing loudly at startup, not a
+  particular helper. Client-imported config may only carry framework-public (`VITE_`,
+  `NEXT_PUBLIC_`) variables; secrets stay in a server-only module.
+
+- **`clean-tanstack-start` Rule 3 — configuration split by environment.** `ts-clean` Rule 4
+  puts configuration in `.config.ts` modules, which in a Start app is not enough on its own: a
+  single config module holding a public base URL beside a Stripe secret is a module a component
+  can import, and the secret ships to the browser. Configuration now splits along the same
+  boundary as the rest of the app — client-safe values (framework-public `VITE_` vars, public
+  URLs, limits, flags) in `*.config.ts`, secrets and internal targets in `*.config.server.ts`,
+  which is a `.server.ts` file for every purpose including Rules 1 and 2. The dependency runs
+  one way: server config may import client config and spread it; client config may never import
+  server config, and no server config value may be re-exported back across the boundary. A
+  value a component genuinely needs is by definition not a secret — it goes in the client-safe
+  config behind a public-prefixed variable, or the component gets the behavior through a server
+  function instead. The old Rules 3–5 renumbered 4–6.
+
+### Changed
+- **The coding agent and plan reviewer enforce Rule 4.** The coding agent's `ts-clean` line
+  names the config-module and env-validation requirements, and the reviewer's plugin-skill
+  check flags a planned `process.env` read outside a `.config.ts`, an unchecked required
+  variable, or a defaulted secret as a **major** issue. The coding agent's
+  `clean-tanstack-start` line names the client/server config split alongside the existing file
+  categories.
+- **The plan reviewer now checks plans against `clean-tanstack-start`.** Its plugin-skill
+  checklist listed `clean-fullstack-architecture`, `ts-clean`, and `react-clean` but never the
+  Start skill, so the coding agent was held to rules the reviewer never read — a plan could
+  direct a `.server.ts` import from a component, an `await import()` of a server function, or a
+  secret in a client-importable config and pass review. The skill is now in the list with its
+  file split, config split, static-import, per-handler auth, and cache-header rules, and a
+  secret in a client-importable config joins the examples of a **major** issue.
+
 ## [0.19.0] - 2026-07-28
 
 ### Added

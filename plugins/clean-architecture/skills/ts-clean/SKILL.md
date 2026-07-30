@@ -1,6 +1,6 @@
 ---
 name: ts-clean
-description: Rules for writing clean TypeScript in any file. INVOKE THIS SKILL before writing or editing ANY `.ts`/`.tsx` file — a service, domain module, hook, utility, config, or React component. Enforces one module per file named after its primary export (index files stay re-export barrels), static top-of-file imports (no `await import()` / `require()` inside a function unless it is a justified code-splitting, SSR, or optional-dependency exception), and self-documenting code over comments (delete comments that restate the code or banner a section; keep only the *why*, links to a spec or ticket, non-local warnings, public API docs, and `TODO`s with a concrete referent). Framework-agnostic — for React files, load `react-clean` as well.
+description: Rules for writing clean TypeScript in any file. INVOKE THIS SKILL before writing or editing ANY `.ts`/`.tsx` file — a service, domain module, hook, utility, config, or React component. Enforces one module per file named after its primary export (index files stay re-export barrels), static top-of-file imports (no `await import()` / `require()` inside a function unless it is a justified code-splitting, SSR, or optional-dependency exception), self-documenting code over comments (delete comments that restate the code or banner a section; keep only the *why*, links to a spec or ticket, non-local warnings, public API docs, and `TODO`s with a concrete referent), and configuration extracted into `.config.ts` modules that are the only place `process.env` is read — every required variable validated at load and throwing by name when missing, optional ones given an explicit typed default, and no secret given a fallback. Framework-agnostic — for React files, load `react-clean` as well.
 ---
 
 # Clean TypeScript
@@ -140,6 +140,76 @@ When you do write a comment, put it above the code it explains, keep it to a sen
 state the *reason*. If you can't finish the sentence without describing what the next line
 does, delete the comment and fix the name instead.
 
+## Rule 4 — Configuration lives in `.config.ts`; environment variables are validated where they're read
+
+**A value that *configures* behavior rather than expressing it belongs in a `.config.ts`
+module** — base URLs, timeouts, retry counts, page sizes, limits, feature flags, credentials,
+anything that changes per environment or per deployment. Code that uses a configuration value
+reads it from a config module; it does not define it inline and never reaches for
+`process.env` itself.
+
+- Name the file after what it configures and export one frozen config object — Rule 1 applies:
+  `stripe.config.ts` exports `stripeConfig`, `pagination.config.ts` exports `paginationConfig`.
+  Keep it beside the feature it configures, not in a global `constants.ts` bag.
+- A value used in exactly one module and derived from nothing can stay a named constant at the
+  top of that module (`FREE_SHIPPING_THRESHOLD` above). Promote it to a `.config.ts` the moment
+  a second consumer appears, it differs per environment, or it comes from `process.env`.
+- **`process.env` is read only inside `.config.ts` files.** One place then lists everything the
+  app needs from its environment, and the rest of the codebase depends on typed values instead
+  of on string keys that may not exist.
+
+**Every required environment variable is checked, and a missing one throws with its name.**
+Never `process.env.X!`, never `?? ''`, never a silent fallback. The check runs at module load,
+so a misconfigured deploy fails at startup rather than on the first request that happens to
+need the value.
+
+```ts
+// ❌ Avoid — env read inline, unchecked, next to a magic number
+export async function chargeCard(amount: number) {
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+  return stripe.charges.create({ amount, currency: 'usd' }, { timeout: 15000 });
+}
+```
+
+```ts
+// ✅ stripe.config.ts — required values validated, defaults explicit
+import { requireEnv } from './requireEnv';
+
+export const stripeConfig = {
+  secretKey: requireEnv('STRIPE_SECRET_KEY'),
+  currency: 'usd',
+  requestTimeoutMs: 15_000,
+} as const;
+```
+
+```ts
+// ✅ requireEnv.ts — its own module, because several config files use it
+export function requireEnv(name: string): string {
+  const value = process.env[name];
+
+  if (!value) {
+    throw new Error(`Missing required environment variable: ${name}`);
+  }
+
+  return value;
+}
+```
+
+- **Optional variables get an explicit, typed default** — and coercion is validated too, since
+  every env var arrives as a string: `Number(process.env.PORT)` silently yields `NaN`, and
+  `Boolean(process.env.DEBUG)` is `true` for the string `'false'`. Parse through a small
+  `optionalNumberEnv` / `booleanEnv` helper that rejects garbage, or compare explicitly
+  (`process.env.DEBUG === 'true'`).
+- **Never default a secret or a connection target.** A friendly fallback for `DATABASE_URL` or
+  `API_KEY` turns a misconfigured production deploy into a silent connection to the wrong
+  place. Those are required, and required means throw.
+- If the project already uses a schema validator (Zod, Valibot, TypeBox), validating the whole
+  `process.env` object once in a single config module satisfies this rule — the requirement is
+  that something fails loudly at startup, not a particular helper.
+- **Only variables the framework marks public** (`VITE_`, `NEXT_PUBLIC_`, …) may appear in a
+  config module that client code imports. Secrets belong in a server-only config module — in a
+  TanStack Start app that means a `*.config.server.ts` file; see `clean-tanstack-start` Rule 3.
+
 ## Checklist before finishing a file
 
 - [ ] One primary export, and the file is named after it — no grab-bag `utils.ts`, no
@@ -148,4 +218,8 @@ does, delete the comment and fix the name instead.
       Rule 2 exceptions, sits at module scope, and says why in a comment.
 - [ ] No comment restates the code, banners a section, or preserves dead code — every
       surviving comment explains a *why* the code can't, and the names carry the rest.
+- [ ] Configuration values live in a `.config.ts` module named after what they configure — no
+      per-environment value or `process.env` read anywhere else.
+- [ ] Every required environment variable throws by name when missing; optional ones have an
+      explicit typed default, coercion is validated, and no secret has a fallback.
 - [ ] For a React file, `react-clean` has been applied on top of this checklist.

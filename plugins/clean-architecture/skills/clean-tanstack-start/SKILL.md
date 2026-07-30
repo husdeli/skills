@@ -1,6 +1,6 @@
 ---
 name: clean-tanstack-start
-description: Rules for organizing and securing TanStack Start server functions and server-only code. INVOKE THIS SKILL before writing or editing ANY file that defines, imports, or calls a `createServerFn` server function, touches a database or secret from application code, or lives in a TanStack Start `src/` tree. Enforces the framework's file-organization convention (`.functions.ts` wrappers, `.server.ts` server-only helpers, plain `.ts` for client-safe code), keeps server-only modules out of anything a client module can reach, forbids dynamic `await import()` of server-function modules — which defeats the build's environment shaking and can leak server logic into the client bundle — requires auth on every server function reading or writing private data (a route `beforeLoad` guard is not the data boundary), and bans `Cache-Control: public` on identity-dependent responses. Builds on the `ts-clean` skill (one module per file, static top-of-file imports) — load that one too.
+description: Rules for organizing and securing TanStack Start server functions and server-only code. INVOKE THIS SKILL before writing or editing ANY file that defines, imports, or calls a `createServerFn` server function, touches a database or secret from application code, or lives in a TanStack Start `src/` tree. Enforces the framework's file-organization convention (`.functions.ts` wrappers, `.server.ts` server-only helpers, plain `.ts` for client-safe code), keeps server-only modules out of anything a client module can reach, splits configuration along the same boundary (client-safe values in `*.config.ts`, secrets and internal targets in `*.config.server.ts`, which server code may read from but never the reverse), forbids dynamic `await import()` of server-function modules — which defeats the build's environment shaking and can leak server logic into the client bundle — requires auth on every server function reading or writing private data (a route `beforeLoad` guard is not the data boundary), and bans `Cache-Control: public` on identity-dependent responses. Builds on the `ts-clean` skill (one module per file, static top-of-file imports) — load that one too.
 ---
 
 # Clean TanStack Start
@@ -14,8 +14,9 @@ Reference: https://tanstack.com/start/v0/docs/framework/react/guide/server-funct
 ## Prerequisite — `ts-clean` applies to every file here
 
 Every rule in the **`ts-clean`** skill applies to these files too: one module per file named
-after its primary export, static top-of-file imports, and self-documenting code instead of
-comments that restate it. **Load `ts-clean` as well** — the rules below are the TanStack Start
+after its primary export, static top-of-file imports, self-documenting code instead of comments
+that restate it, and configuration in `.config.ts` modules with validated environment access.
+**Load `ts-clean` as well** — the rules below are the TanStack Start
 layer on top of it. For components and hooks that *call* server functions, load `react-clean`
 too.
 
@@ -82,7 +83,75 @@ The suffix is only worth something if it is honored in both directions.
 - If a component needs something a `.server.ts` module knows, the answer is a server function
   in `.functions.ts` — never a direct import.
 
-## Rule 3 — Import server functions statically; never `await import()` them
+## Rule 3 — Split configuration by environment: `*.config.ts` is client-safe, `*.config.server.ts` is not
+
+`ts-clean` Rule 4 puts configuration in `.config.ts` modules and makes them the only place
+`process.env` is read. In a Start app that is not enough on its own: one config module holding
+both a public API base URL and a Stripe secret key is a module a component can import, and the
+secret ships to the browser. **Configuration splits along the same boundary as everything else
+in Rule 1.**
+
+```
+src/features/payments/
+├── stripe.config.ts          # client-safe: public keys, base URLs, limits
+└── stripe.config.server.ts   # server-only: secrets, DB URLs, internal endpoints
+```
+
+| File | Holds | Read from |
+|---|---|---|
+| **`*.config.ts`** | Values safe in the browser — `VITE_`-prefixed env vars, public URLs, timeouts, limits, flags | Anywhere |
+| **`*.config.server.ts`** | Secrets, API keys, DB connection strings, internal hostnames, anything unprefixed in the environment | Only from a server function handler, another `.server.ts`, or a server route |
+
+A `*.config.server.ts` file **is** a `.server.ts` file — Rules 1 and 2 apply to it unchanged,
+and its suffix is what any tooling matching `*.server.ts` will see. Name it after its export
+per `ts-clean` Rule 1: `stripe.config.server.ts` exports `stripeServerConfig`.
+
+**The dependency runs one way: server config may import client config; client config may never
+import server config.**
+
+```ts
+// ✅ stripe.config.ts — client-safe, public values only, read from import.meta.env
+import { requirePublicEnv } from '~/config/requirePublicEnv';
+
+export const stripeConfig = {
+  publishableKey: requirePublicEnv('VITE_STRIPE_PUBLISHABLE_KEY'),
+  currency: 'usd',
+} as const;
+
+// ✅ stripe.config.server.ts — builds on the client config, adds the secrets
+import { stripeConfig } from './stripe.config';
+import { requireEnv } from '~/config/requireEnv';
+
+export const stripeServerConfig = {
+  ...stripeConfig,
+  secretKey: requireEnv('STRIPE_SECRET_KEY'),
+  webhookSecret: requireEnv('STRIPE_WEBHOOK_SECRET'),
+} as const;
+
+// ❌ Never — one module, and importing it from a component leaks the secret
+export const stripeConfig = {
+  publishableKey: requirePublicEnv('VITE_STRIPE_PUBLISHABLE_KEY'),
+  secretKey: requireEnv('STRIPE_SECRET_KEY'),
+} as const;
+```
+
+- **Client-safe config reads `import.meta.env`; server config reads `process.env`.** Vite only
+  inlines `VITE_`-prefixed values into the client bundle, and `process.env` isn't there to read
+  in the browser — so the two sides need two helpers (`requirePublicEnv`, `requireEnv`), each
+  validating the same way.
+- **Never re-export a server config value from a client-safe module**, and never widen one
+  by spreading `stripeServerConfig` into something a component imports. The arrow points
+  server-ward only; reversing it defeats the split entirely.
+- **A value a component genuinely needs is not a secret** — put it in `*.config.ts` behind a
+  framework-public env var. If it can't be public, the component doesn't get it: expose the
+  behavior it enables through a server function instead.
+- **Unprefixed env vars are read only in `*.config.server.ts`.** Anything a client-reachable
+  module reads out of the environment is a leak waiting for its first import — and if it isn't
+  `VITE_`-prefixed, it is `undefined` in the browser anyway.
+- Required-vs-optional validation is unchanged from `ts-clean` Rule 4: required variables throw
+  by name at module load on both sides of the split, and no secret gets a fallback.
+
+## Rule 4 — Import server functions statically; never `await import()` them
 
 **Server functions are statically importable from any file, including client components.**
 The build replaces each implementation with an RPC stub in the client bundle, so the handler
@@ -118,7 +187,7 @@ The same holds for `require()`, computed import specifiers, and re-exporting a s
 through a dynamically imported barrel. If the bundler cannot resolve the path at build time,
 the transform does not happen.
 
-## Rule 4 — Every server function is its own auth boundary
+## Rule 5 — Every server function is its own auth boundary
 
 **A server function is an API endpoint reachable independently of whichever route renders the
 UI that calls it.** Anyone can hit it directly with the right payload, without ever loading
@@ -134,7 +203,7 @@ your route.
   check it against the resource — never trust an owner id, tenant id, or role that arrived in
   the validated input.
 
-## Rule 5 — Never `Cache-Control: public` on an identity-dependent response
+## Rule 6 — Never `Cache-Control: public` on an identity-dependent response
 
 `public` tells every CDN and proxy between you and the user that the response may be served to
 anyone. If a handler reads a session, a cookie, or an auth header — or branches on identity at
@@ -166,6 +235,11 @@ price list, a static config. The moment a handler touches the request's identity
 - [ ] No `.server.ts` module is imported from a component, hook, or plain `.ts` — only from a
       handler, another `.server.ts`, or a server route.
 - [ ] No DB client, secret, env read, or filesystem call sits in an unsuffixed `.ts`.
+- [ ] Configuration is split by environment — client-safe values in `*.config.ts`, secrets and
+      internal targets in `*.config.server.ts`, with no client module importing the latter and
+      no server config value re-exported back across the boundary.
+- [ ] Only framework-public (`VITE_`) env vars are read in a client-safe config; every other
+      `process.env` read lives in a `*.config.server.ts`.
 - [ ] Handlers validate their input with `.validator()` and delegate real logic to `.server.ts`.
 - [ ] Every server function is imported statically — no `await import()`, no `require()`, no
       dynamic barrel, whatever the bundle-size argument. Code-split the calling component

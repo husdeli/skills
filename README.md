@@ -23,15 +23,19 @@ That's it — the skills and agents below become available in every session.
   design-agreement and iteration-logging checkpoints.
 - **ts-clean** — Framework-agnostic rules for any `.ts`/`.tsx` file: one module per file
   named after its primary export, static top-of-file imports (with the code-splitting /
-  SSR / optional-dependency exceptions spelled out), and self-documenting code over
-  comments.
+  SSR / optional-dependency exceptions spelled out), self-documenting code over
+  comments, and configuration extracted into `.config.ts` modules that are the only place
+  `process.env` is read — required variables throw by name when missing, optional ones get
+  an explicit typed default, and secrets are never defaulted.
 - **react-clean** — The React layer on top of `ts-clean`: one component per file, at most
   one `useEffect`, no data-layer access from components, size and props ceilings, no prop
   drilling (compose instead), and the react.dev "You Might Not Need an Effect"
   anti-patterns.
 - **clean-tanstack-start** — The TanStack Start layer on top of `ts-clean`: the
   `.functions.ts` / `.server.ts` / plain `.ts` file split, server-only modules kept out of
-  anything a client file can import, and server functions imported statically only — never
+  anything a client file can import, configuration split the same way (client-safe values in
+  `*.config.ts`, secrets in `*.config.server.ts`, which server code may read from but never
+  the reverse), and server functions imported statically only — never
   `await import()`, which defeats environment shaking and can leak server logic into the
   client bundle. Plus the two safety rules: every server function is its own auth boundary
   (a route `beforeLoad` guard isn't the data boundary), and no `Cache-Control: public` on
