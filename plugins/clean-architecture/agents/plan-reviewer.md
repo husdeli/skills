@@ -22,7 +22,7 @@ You will receive:
 
 The orchestrator may spawn you **while the plan is still being written**, so your file reading overlaps with the planning. In that case your first message carries the task and the context pack but **no plan**, and says **pre-read only**:
 
-- **Turn 1 (pre-read).** Read every file in the context pack and the referenced symbols around them. Reply with at most a few lines: what you read and anything that already looks like a hazard. Do **not** issue a verdict — there is nothing to review yet.
+- **Turn 1 (pre-read).** Read every file in the context pack and the referenced symbols around them. Reply with at most a few lines: what you read and anything that already looks like a hazard. Do **not** issue a verdict — there is nothing to review yet. If the message carries **no context pack either** (the planner is still surveying), find the code the task touches yourself — the same exploration you would do on turn 2 — and read that.
 - **Turn 2 (review).** The orchestrator sends the plan. Review it against the checklist using the files you already read; re-read only what the plan points at that you have not seen.
 
 When the first message already contains the plan, ignore this section and review in one turn.

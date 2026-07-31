@@ -5,6 +5,39 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.0] - 2026-07-31
+
+### Added
+- **`/orchestrate-quick` command.** `/orchestrate` is built for a task nobody has thought
+  through yet: it interviews the user, puts decisions to them with `AskUserQuestion`, gates the
+  review on a risk profile, and can spend two Opus reviewers on one plan. For a scoped change or
+  a ticket someone already reasoned about, that is several minutes of human latency and a review
+  tier the task never needed — and the only way to skip it was to drive the agents by hand. The
+  quick command runs the same core with the human-in-the-loop stages removed: **plan → one
+  review → implement → verify**, no interview, no `AskUserQuestion`, no review-skip or
+  high-risk gating. The review always runs, exactly once, with a single Sonnet reviewer; the
+  planner's `riskProfile` is ignored because there is no gate left for it to drive.
+
+  Everything that makes the pipeline correct is unchanged: persistent planner / reviewer /
+  coding agents resumed with `SendMessage`, a fresh `verify` per run, the same one-revision and
+  one-fix caps, the same `escalate`/`aborted` policy, and the same rule that a task is never
+  marked complete unless verification passed. It takes a **task description** as readily as a
+  roadmap path — approval is asked for only when it picked the task from a roadmap, since that
+  is the one choice verification cannot catch. When a stage escalates because the task actually
+  did need decisions, it says so and points at `/orchestrate` rather than improvising an
+  interview.
+
+  The reviewer pre-reads concurrently with the planner, as in `/orchestrate` — but here the
+  overlap is free of the usual caveat: with no gate that can skip the review, a pre-read is
+  never discarded.
+
+### Changed
+- **The plan reviewer can pre-read without a context pack.** Its two-turn mode assumed turn 1
+  always carried the planner's context pack, which is true when the pack was produced during the
+  interview — but `/orchestrate-quick` has no interview to overlap, so it starts the reviewer
+  beside the planner, before any pack exists. Turn 1 now says plainly what to do in that case:
+  find the code the task touches yourself and read it.
+
 ## [0.21.0] - 2026-07-31
 
 ### Fixed

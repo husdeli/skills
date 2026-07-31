@@ -60,6 +60,9 @@ That's it — the skills and agents below become available in every session.
 ### Commands
 - **/orchestrate** — picks the next actionable roadmap task and drives it through
   interview → plan → review → implement → verify using the five agents above.
+- **/orchestrate-quick** — the short pipeline for a task that is already well understood:
+  plan → one review → implement → verify, with no interview and no review gating. Takes a
+  task description or a roadmap/ticket path.
 - **/design** — loads the `design-doc` skill to create or update a design doc for a given
   screen, surface, or flow.
 - **/prd** — loads the `prd` skill to create or update a product requirements document for
