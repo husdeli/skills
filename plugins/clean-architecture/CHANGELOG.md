@@ -5,6 +5,53 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.0] - 2026-08-04
+
+### Added
+- **The services / DTO / adapters boundary in `clean-fullstack-architecture`.** The skill called
+  services "adapters for external systems" and then showed one returning the API's response
+  straight through as a domain type. That is the inversion in name only: whatever the backend
+  returns becomes the domain's model, so a field rename upstream lands in the business logic, the
+  hooks, and the components. Three rules close it.
+
+  **A service is a class with static methods** — one per external resource, named after the file,
+  never instantiated, internals `private static`. Not a bag of loose exported request functions.
+  **A service owns its DTOs**: the shape the wire actually speaks lives in `services/dto/` as
+  type-only leaf modules importing nothing, written unedited — no bending the DTO toward the
+  domain, no widening a model to fit the wire. **A service never returns a DTO**; every public
+  method returns a domain model, a primitive, or `void`.
+
+  **Domain logic never names a DTO.** `models/` is redefined as *domain* models — the domain's own
+  vocabulary, real `Date`s, unions instead of nullable flags — and `domain/` may not take, return,
+  or cast to a wire shape, so the domain stays valid when the API changes.
+
+  A new **`adapters/`** layer sits between them, with its own dependency-matrix row: the only kind
+  of module where a DTO and a domain model appear in the same file. Adapters are pure and
+  synchronous, do no I/O, close the gaps the wire leaves (date parsing, field renaming, collapsing
+  `null`/`undefined`/`""`, deriving discriminants), and raise on a missing required field rather
+  than handing `undefined` to the domain. `services/ → adapters/ → services/dto/` is not a cycle
+  because DTO modules are leaves; an adapter importing a *service* is one, and is forbidden.
+
+  The implementation workflow now separates "define the domain model" from "define the DTO" —
+  deriving the model from the API response is how DTOs end up masquerading as domain models.
+  `references/dependency-rules.md` gains the forbidden patterns (DTO in the domain, service
+  returning a DTO, adapter doing I/O), edge cases (identical DTO and model, per-endpoint shapes,
+  multi-endpoint composition, vendor SDK types, write-direction mapping, testing a static-method
+  service, server functions), and a step-by-step migration for a service that currently returns
+  raw responses.
+
+### Changed
+- **Dependency matrix, validation checklist, and the data-fetching example** updated for the new
+  layer: an `adapters` row and column, five new checklist items, and the oRPC pattern reworked so
+  the hook calls `SlideService.list(...)` instead of the oRPC client — the client is transport the
+  service uses, not a service itself.
+- **`react-clean` Rule 3 and `ts-clean` Rule 1** re-cut their service examples as static-method
+  classes returning domain models (`UserService.ts` exporting `class UserService`), replacing the
+  object-literal `userService` that contradicted the new rule.
+- **`coding` and `plan-reviewer` agents** name the new rules explicitly, so the reviewer flags a
+  service that isn't a static-method class, a method returning a DTO, a DTO named outside
+  `services/`/`adapters/`, and response mapping done anywhere but an adapter.
+
 ## [0.22.0] - 2026-07-31
 
 ### Added

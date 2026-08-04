@@ -5,9 +5,14 @@
 The key insight of Hexagonal Architecture: **business logic defines interfaces (ports), and outer layers implement them (adapters)**. The domain says "I need a way to fetch slides" (port), and the service layer provides the HTTP implementation (adapter).
 
 In TypeScript/React apps, this usually manifests as:
-- Domain exports pure functions and types
-- Services import domain types to ensure API responses conform
+- Domain exports pure functions and domain models
+- Services own the DTOs their external system speaks, and convert them through an adapter so every public method returns a domain model
+- Adapters are the single seam where both shapes are visible
 - Feature hooks compose services and domain logic, then feed results to components via props
+
+The DTO/adapter split is what makes the inversion real rather than nominal. Without it, the
+"domain model" is whatever the API decided to return, and a backend rename becomes a change to
+the business logic.
 
 ## Forbidden Import Patterns
 
@@ -20,6 +25,64 @@ import { api } from '@/services/api-client';
 // GOOD - domain is pure
 import type { Slide } from '@/models/presentation';
 export function validateSlide(slide: Slide): ValidationResult { ... }
+```
+
+### Domain must NEVER name a DTO
+
+```typescript
+// BAD - business rule reading the wire shape; a backend rename breaks the domain
+import type { UserDto } from '@/services/dto/user.dto';
+export function isActive(user: UserDto): boolean {
+  return user.deactivated_at === null;
+}
+
+// GOOD - the adapter already resolved this into a domain concept
+import type { User } from '@/models/user';
+export function canPromote(user: User): boolean {
+  return user.isActive && user.tenureYears >= 1;
+}
+```
+
+The same applies to a DTO reaching the domain indirectly — as a generic argument, a
+`ReturnType<typeof SomeService.get>`, or a structurally-identical inline type. If the field names
+came from the wire, it is a DTO whatever it is called.
+
+### Services must NEVER return a DTO
+
+```typescript
+// BAD - the wire shape escapes into the hook, the query cache, and every component below
+export class UserService {
+  static async getById(id: string): Promise<UserDto> {
+    return apiClient.get<UserDto>(`/users/${id}`);
+  }
+}
+
+// GOOD - the boundary converts, so callers only ever see a domain model
+export class UserService {
+  static async getById(id: string): Promise<User> {
+    return userAdapter.toDomain(await apiClient.get<UserDto>(`/users/${id}`));
+  }
+}
+```
+
+### Adapters must NEVER do I/O
+
+```typescript
+// BAD - the adapter fetches, so it is really a second service
+import { UserService } from '@/services/UserService';
+export const orderAdapter = {
+  async toDomain(dto: OrderDto): Promise<Order> {
+    const owner = await UserService.getById(dto.owner_id); // I/O + a service->adapter->service cycle
+    return { id: dto.order_id, owner };
+  },
+};
+
+// GOOD - the adapter maps what it was given; the service composes the calls
+export const orderAdapter = {
+  toDomain(dto: OrderDto, owner: User): Order {
+    return { id: dto.order_id, owner };
+  },
+};
 ```
 
 ### Components must NEVER import from domain or services
@@ -67,6 +130,55 @@ import { useAuth } from '@/hooks/useAuth'; // or @/services/auth
 ```
 
 ## Edge Cases
+
+### The DTO is identical to the domain model
+
+Keep both types and write the trivial adapter anyway. Today's identity is a coincidence of the
+current API, and the cost of collapsing them is paid later: the first backend rename turns a
+one-line adapter change into an edit across the domain, the hooks, and the components. Do not
+alias them (`type UserDto = User`) — that is the same coupling with extra ceremony.
+
+### The API returns a different shape per endpoint
+
+One DTO per *response shape*, not per entity: `UserSummaryDto` for the list endpoint,
+`UserDetailDto` for the detail endpoint. The adapter exposes one method per shape
+(`toDomain`, `toDomainFromSummary`), and both produce the same domain model — with the summary
+mapping either filling defaults or producing a narrower model the domain declares explicitly.
+Never let "the list endpoint returns a partial user" become optional fields on the domain model.
+
+### A service call needs data from two endpoints
+
+The **service** composes the calls; the adapter stays pure and takes both pieces as arguments
+(`orderAdapter.toDomain(orderDto, ownerDto)`). If the composition needs a *different* resource's
+service, that is a signal to compose in a feature hook instead — one service class never calls
+another.
+
+### Third-party SDK types
+
+An SDK's exported response type *is* the DTO — re-export it from `services/dto/` rather than
+hand-copying it, and keep it behind the adapter exactly like a hand-written DTO. The domain must
+never import a type from a vendor package.
+
+### Where write-direction mapping goes
+
+In the same adapter, as a separate method (`toCreateDto`, `toPatchDto`). Take the narrowest input
+that expresses the intent — the changed fields, not the whole model — so a partial update does
+not require constructing a full domain object first.
+
+### Testing a static-method service
+
+Substitution is at the module level (`vi.mock('@/services/UserService')`), not by injecting an
+instance. That means the adapter carries the logic worth unit-testing: it is pure, synchronous,
+and testable without any mocking at all. Test adapters directly, and mock services at their
+module boundary in hook and container tests.
+
+### Server functions and services
+
+A `createServerFn` wrapper is the transport, like the oRPC client — it belongs behind a service
+class, not in a hook. The DTO/adapter boundary still applies on whichever side owns the external
+call: a server function reading a third-party API converts to domain models before returning, so
+the wire shape never crosses to the client. See the `clean-tanstack-start` skill for the file
+suffixes that keep those modules server-only.
 
 ### Shared types between features
 
@@ -126,6 +238,28 @@ registerPostPreview(BLUESKY_RENDERER_ID, BlueskyPostPreview);
 2. Extract to a function in `domain/`
 3. Import in the feature hook, pass result to component via props
 4. Verify component no longer imports from `domain/`
+
+### Introducing the DTO/adapter boundary into a service that returns raw responses
+
+When a service hands the API's own shape upward, the wire shape is already spread across hooks,
+containers, and components. Unpick it from the inside out:
+
+1. **Name the current shape as a DTO.** Move the response interface to
+   `services/dto/<resource>.dto.ts` unchanged — no renaming yet. Everything still compiles.
+2. **Write the domain model** in `models/` the way the *domain* wants it: its own field names,
+   real `Date`s, unions instead of nullable flags. Decide this from the business, not from the
+   DTO.
+3. **Write the adapter** `toDomain(dto) => model`, and unit-test it — it is pure, so this is the
+   cheapest test in the migration.
+4. **Convert at the service boundary.** Change each public method's return type to the domain
+   model and map through the adapter. Every consumer now fails to typecheck; that failure list is
+   the exact scope of the change.
+5. **Fix consumers upward**, replacing wire field names with model ones. Any consumer that was
+   doing its own date parsing, null-collapsing, or field renaming loses that code — the adapter
+   now owns it.
+6. **Convert the functions to a static-method class** last, once the shapes are settled, so the
+   two refactors don't interleave in the same diff.
+7. **Verify** no DTO type is imported outside `services/` and `adapters/`.
 
 ### Moving shared feature code to top level
 

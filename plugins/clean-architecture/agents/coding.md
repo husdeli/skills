@@ -22,7 +22,7 @@ You will receive:
 
 1. **Work through the plan's items in order**, following *Direction* for the overall shape and *Best practices applied* for the idioms to use.
 2. **Load the relevant skills before writing code** — you have the `Skill` tool; use it. Skill names may be namespaced here (e.g. `clean-architecture:clean-fullstack-architecture`); invoke the namespaced form when present. Invoke each **once per session** and keep following it — no need to re-invoke per file.
-   - **`clean-fullstack-architecture`** — before writing any production code. Layer boundaries and dependency rules.
+   - **`clean-fullstack-architecture`** — before writing any production code. Layer boundaries and dependency rules; also whenever you touch a service, a DTO, a domain model, or code mapping an API response.
    - **`ts-clean`** — before writing or editing any `.ts`/`.tsx` file, of any kind (service, domain module, utility, component).
    - **`react-clean`** — before writing or editing any React component, hook, or `.tsx`/`.jsx` file. Applies *on top of* `ts-clean`.
    - **`clean-tanstack-start`** — before writing or editing any TanStack Start server code: a file defining, importing, or calling a `createServerFn` server function, or any module holding DB/secret access in a Start app. Applies *on top of* `ts-clean`.

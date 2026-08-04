@@ -13,8 +13,8 @@ top for the component-specific rules (effects, props, data access, composition).
 
 ## Rule 1 — One module per file, named after what it exports
 
-- **One primary export per file**, and name the file after it: `userService.ts` exports
-  `userService`, `parseInvoice.ts` exports `parseInvoice`, `UserCard.tsx` exports `UserCard`.
+- **One primary export per file**, and name the file after it: `UserService.ts` exports
+  `UserService`, `parseInvoice.ts` exports `parseInvoice`, `UserCard.tsx` exports `UserCard`.
 - Additional exports are fine only when they are *part of the same thing* — the types,
   constants, or a tiny private helper that only this export uses. Once a second export grows
   its own logic, its own state, or a second consumer, move it to its own file.

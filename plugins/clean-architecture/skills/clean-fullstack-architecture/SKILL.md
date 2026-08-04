@@ -1,6 +1,6 @@
 ---
 name: clean-fullstack-architecture
-description: "Use when: planning a feature implementation, designing a feature, creating an implementation plan, planning architecture, writing feature code, creating a new feature, adding a service, structuring the project, adding a component, adding a hook, adding domain logic, or writing any production code. Enforces Clean Code principles and Hexagonal Architecture with strict dependency rules across all layers."
+description: "Use when: planning a feature implementation, designing a feature, creating an implementation plan, planning architecture, writing feature code, creating a new feature, adding a service, calling an API, defining a DTO or a domain model, mapping an API response, structuring the project, adding a component, adding a hook, adding domain logic, or writing any production code. Enforces Clean Code principles and Hexagonal Architecture with strict dependency rules across all layers — including that every service is a class of static methods owning its DTOs, that domain logic names only domain models and never a DTO, and that an adapter is the only place the two shapes meet."
 ---
 
 # Clean Fullstack Architecture
@@ -18,13 +18,15 @@ Enforces Clean Code principles and Hexagonal Architecture (Ports & Adapters) whe
 
 ```
 src/
-├── models/          # Innermost layer - pure data types
+├── models/          # Innermost layer - pure DOMAIN models, never DTOs
 ├── domain/          # Business logic - depends only on models
 ├── components/      # Dumb UI components - no domain/data imports
 ├── containers/      # Smart components - compose hooks with dumb components
 ├── hooks/           # Top-level React hooks - no domain/data imports
 ├── libs/            # Independent library modules
-├── services/        # Data layer - external API interactions
+├── adapters/        # DTO -> domain model translation - the only layer that sees both
+├── services/        # Data layer - static-method classes; own their DTOs
+│   └── dto/         # Wire shapes - type-only leaf modules, zero project imports
 ├── features/        # Feature modules grouped by DOMAIN (compose all layers)
 │   ├── <domain>/               # single-surface domain — stays flat
 │   │   ├── domain/
@@ -32,12 +34,15 @@ src/
 │   │   ├── containers/
 │   │   ├── hooks/
 │   │   ├── consts/
+│   │   ├── adapters/
 │   │   └── services/
+│   │       └── dto/
 │   └── <domain>/               # multi-platform / multi-surface domain — nested
 │       ├── common/             # cross-platform code (same layers)
 │       │   ├── domain/
 │       │   ├── containers/
 │       │   ├── hooks/
+│       │   ├── adapters/
 │       │   └── services/
 │       └── <sub-domain>/       # one platform; optional <surface>/ level below
 │           ├── domain/
@@ -69,9 +74,11 @@ features/socials/
 
 ## Layer Definitions and Dependency Rules
 
-### 1. `models/` - Data Models (Innermost)
+### 1. `models/` - Domain Models (Innermost)
 
 TypeScript types, interfaces, and enums defining the shape of business data. Types alone are usually sufficient; classes or added logic are not the default. No imports from any other project layer.
+
+These are **domain models** — shaped by the business, not by any external system. A model is written the way the domain wants to talk about the thing: the domain's own names, real `Date` objects, discriminated unions instead of nullable flags, no field that exists only because some API returns it. The wire shape lives in a **DTO** (see `services/`), and the two are never the same type. If a model has `snake_case` keys, `string` dates, or a field named after an API's internals, a DTO has leaked in — fix it in the adapter, not by widening the model.
 
 **Allowed dependencies:** None (zero imports from project layers)
 
@@ -91,8 +98,10 @@ export type SlideContent = TextBlock | ImageBlock | ChartBlock;
 
 Pure functions and logic operating on models. Defines *what the app does* without knowing *how* data arrives or *how* results are displayed.
 
+**Domain logic never relies on a DTO.** It operates only on domain models, and it never names a DTO type — not as a parameter, not as a return type, not in a cast. If a domain function needs a field that only exists on the wire shape, either the model is missing that field or the function is doing translation work that belongs in an adapter. The domain must stay valid when the external API changes its shape.
+
 **Allowed dependencies:** `models/`, other `domain/` layers (including feature-level domain layers)  
-**Forbidden:** Any import from `services/`, `components/`, `hooks/`, or external API/framework code
+**Forbidden:** Any import from `services/` (including its `dto/`), `adapters/`, `components/`, `hooks/`, or external API/framework code
 
 ```typescript
 // domain/presentation-logic.ts
@@ -173,25 +182,132 @@ export function parseHexColor(hex: string): RGB { ... }
 export function deriveContrastColor(color: RGB): RGB { ... }
 ```
 
-### 7. `services/` - Data/API Layer (Outermost)
+### 7. `adapters/` - DTO → Domain Translation
 
-Adapters for external systems (REST APIs, WebSocket, localStorage). Services implement ports defined by the business logic and depend on domain logic to transform data — **the domain never imports from services**.
+The seam between the wire and the domain. An adapter is the **only** kind of module where a DTO
+and a domain model are named in the same file. It converts between them and does nothing else —
+no fetching, no caching, no business rules.
 
-**Allowed dependencies:** `models/`, `domain/`, `libs/`, feature-level `models/`, third-party HTTP/API clients  
-**Forbidden:** `components/`, `containers/`, `hooks/`, `features/`
+- **One adapter per resource**, named after it: `userAdapter.ts` exports `userAdapter`
+  (`ts-clean` Rule 1).
+- `toDomain(dto)` maps inbound wire → model. Write-direction methods (`toCreateDto`,
+  `toPatchDto`) map an outbound model or intent → wire.
+- **Adapters are pure and synchronous.** No `await`, no HTTP client, no reading ambient state —
+  anything time- or environment-dependent is passed in by the caller.
+- **Close the gaps the wire leaves**: parse date strings into `Date`, rename fields to the
+  domain's vocabulary, collapse the API's `null` / `undefined` / `""` into the single
+  representation the model defines, derive the discriminant the domain switches on. A missing
+  required field is an error the adapter raises — never an `undefined` handed to the domain.
+- Where a model carries an invariant, build it through the domain's own factory or validator
+  rather than casting an object literal into the type.
+
+**Allowed dependencies:** `models/`, `domain/` (factories/validators), `libs/`, DTO modules
+(`import type` only)  
+**Forbidden:** service classes, `components/`, `containers/`, `hooks/`, `features/`, any HTTP
+client or I/O
 
 ```typescript
-// services/presentation-api.ts
-import type { Slide } from '@/models/presentation';
-import { validateSlideOrder } from '@/domain/presentation-logic';
+// adapters/userAdapter.ts
+import type { User } from '@/models/user';
+import type { UserDto } from '@/services/dto/user.dto';
 
-export async function fetchSlides(presentationId: string): Promise<Slide[]> {
-  const response = await api.get(`/presentations/${presentationId}/slides`);
-  return response.data;
+export const userAdapter = {
+  toDomain(dto: UserDto): User {
+    return {
+      id: dto.user_id,
+      displayName: dto.display_name,
+      createdAt: new Date(dto.created_at),
+      isActive: dto.deactivated_at === null,
+    };
+  },
+
+  toPatchDto(patch: { displayName: string }): Pick<UserDto, 'display_name'> {
+    return { display_name: patch.displayName };
+  },
+};
+```
+
+**Why this isn't a cycle.** `services/` imports `adapters/`, and an adapter imports DTO *types*
+out of `services/dto/`. DTO modules are type-only leaves importing nothing, so the real edge runs
+`dto → adapter → service` and stays acyclic. An adapter that imports a **service** is a genuine
+cycle and is forbidden.
+
+### 8. `services/` - Data/API Layer (Outermost)
+
+The only layer that talks to external systems (REST/RPC APIs, WebSocket, localStorage, vendor
+SDKs). Services implement ports defined by the business logic — **the domain never imports from
+services**.
+
+**A service is a class with static methods.**
+
+- One service class per file, named after it: `UserService.ts` exports `class UserService`.
+- **Every method is `static`.** The class is never instantiated and holds no instance state — it
+  is a named namespace for one external resource, not an object graph. Internals (URL building,
+  header assembly, retry wrapping) are `private static`.
+- One service per external resource, not one per screen.
+- Because the class is static, tests substitute it by mocking the module, not by injecting an
+  instance. Keep methods individually mockable — one call path each, no method reaching into
+  another's private state.
+
+**A service owns its DTOs.** The DTO is what the external system actually speaks — `snake_case`
+fields, string dates, nullable everything, whatever the wire hands you. It lives in
+`services/dto/<resource>.dto.ts` (or `features/<name>/services/dto/`), is **type-only**, and
+imports nothing from any project layer. Never bend a DTO toward the domain, and never widen a
+model to accommodate the wire — the whole point of the pair is that each side is free to change.
+
+**A service never returns a DTO.** Every public method returns a domain model, a primitive, or
+`void`, converted through an adapter. DTOs are private to the services + adapters pair: no hook,
+container, component, or domain function ever names one.
+
+**Allowed dependencies:** `adapters/`, its own `dto/`, `models/`, `domain/`, `libs/`,
+feature-level `models/`, third-party HTTP/API clients  
+**Forbidden:** `components/`, `containers/`, `hooks/`, `features/`; returning a DTO from a public
+method
+
+```typescript
+// services/dto/user.dto.ts — wire shape, zero project imports
+export interface UserDto {
+  user_id: string;
+  display_name: string;
+  created_at: string;
+  deactivated_at: string | null;
+}
+
+// services/UserService.ts
+import type { User } from '@/models/user';
+import { userAdapter } from '@/adapters/userAdapter';
+import { apiClient } from '@/libs/apiClient';
+import type { UserDto } from './dto/user.dto';
+
+export class UserService {
+  static async getById(id: string): Promise<User> {
+    const dto = await apiClient.get<UserDto>(`/users/${id}`);
+    return userAdapter.toDomain(dto);
+  }
+
+  static async list(): Promise<User[]> {
+    const dtos = await apiClient.get<UserDto[]>('/users');
+    return dtos.map(userAdapter.toDomain);
+  }
+
+  static async rename(user: User, displayName: string): Promise<User> {
+    const dto = await apiClient.patch<UserDto>(
+      `/users/${user.id}`,
+      userAdapter.toPatchDto({ displayName }),
+    );
+    return userAdapter.toDomain(dto);
+  }
 }
 ```
 
-### 8. `features/` - Feature Modules (Composition Layer)
+```typescript
+// BAD - loose function, and the DTO escapes into everything upstream
+export async function fetchUser(id: string): Promise<UserDto> {
+  return apiClient.get<UserDto>(`/users/${id}`);
+}
+```
+
+### 9. `features/` - Feature Modules (Composition Layer)
 
 Each subfolder is a self-contained feature composing all necessary layers. Features are where dependency inversion meets the UI — they wire services to domain logic to components.
 
@@ -201,16 +317,17 @@ Each subfolder is a self-contained feature composing all necessary layers. Featu
 - `containers/` - Feature-specific smart components (wire feature hooks to components)
 - `hooks/` - Feature-specific hooks (wire services + domain + UI)
 - `consts/` - Feature-specific constants
-- `services/` - Feature-specific API adapters
+- `adapters/` - Feature-specific DTO → domain model translation
+- `services/` - Feature-specific service classes, with their DTOs in `services/dto/`
 - `server/` - Server-only code for the feature (DB access, secrets, server functions). Never imported from a component, container, or hook — client code reaches it through a service or a server function. In a TanStack Start app the file suffixes carry this same boundary; see the `clean-tanstack-start` skill.
 
-**Allowed dependencies:** All top-level layers (`models/`, `domain/`, `components/`, `hooks/`, `libs/`, `services/`)  
+**Allowed dependencies:** All top-level layers (`models/`, `domain/`, `components/`, `hooks/`, `libs/`, `adapters/`, `services/`)  
 **Forbidden:** Other `features/` (features must not cross-depend)
 
 ```typescript
 // features/slide-editor/hooks/useSlideEditor.ts
 import { reorderSlides } from '@/domain/presentation-logic';
-import { fetchSlides, saveSlides } from '@/services/presentation-api';
+import { SlideService } from '@/services/SlideService';
 import type { Slide } from '@/models/presentation';
 
 export function useSlideEditor(presentationId: string) {
@@ -268,27 +385,38 @@ preview into `common`'s preview registry — so `common/` imports no platform mo
 
 ## Dependency Matrix (Quick Reference)
 
-| Layer           | models | domain | components | containers | hooks | libs | services | features |
-|-----------------|--------|--------|------------|------------|-------|------|----------|----------|
-| **models**      | -      | NO     | NO         | NO         | NO    | NO   | NO       | NO       |
-| **domain**      | YES    | YES    | NO         | NO         | NO    | NO   | NO       | NO       |
-| **components**  | NO     | NO     | YES        | NO         | generic only | YES  | NO       | NO       |
-| **containers**  | YES    | NO     | YES        | -          | YES   | YES  | NO       | NO       |
-| **hooks**       | NO     | NO     | NO         | NO         | YES   | YES  | NO       | NO       |
-| **libs**        | NO     | NO     | NO         | NO         | NO    | YES  | NO       | NO       |
-| **services**    | YES    | YES    | NO         | NO         | NO    | YES  | -        | models only |
-| **features**    | YES    | YES    | YES        | YES        | YES   | YES  | YES      | NO       |
+| Layer           | models | domain | components | containers | hooks | libs | adapters | services | features |
+|-----------------|--------|--------|------------|------------|-------|------|----------|----------|----------|
+| **models**      | -      | NO     | NO         | NO         | NO    | NO   | NO       | NO       | NO       |
+| **domain**      | YES    | YES    | NO         | NO         | NO    | NO   | NO       | NO       | NO       |
+| **components**  | NO     | NO     | YES        | NO         | generic only | YES  | NO   | NO       | NO       |
+| **containers**  | YES    | NO     | YES        | -          | YES   | YES  | NO       | NO       | NO       |
+| **hooks**       | NO     | NO     | NO         | NO         | YES   | YES  | NO       | NO       | NO       |
+| **libs**        | NO     | NO     | NO         | NO         | NO    | YES  | NO       | NO       | NO       |
+| **adapters**    | YES    | YES    | NO         | NO         | NO    | YES  | YES      | DTO types only | NO |
+| **services**    | YES    | YES    | NO         | NO         | NO    | YES  | YES      | -        | models only |
+| **features**    | YES    | YES    | YES        | YES        | YES   | YES  | YES      | YES      | NO       |
+
+The **services → services** cell covers a service's own `dto/` modules and shared transport (a
+typed RPC client, a configured HTTP client) that is bound to project types and so cannot live in
+`libs/`. It does **not** license one service class to call another: two services needing the same
+call means the call belongs to one of them, and the composition belongs in a feature hook.
 
 ## Implementation Workflow
 
 When designing or implementing a feature:
 
-1. **Start with models** - Define the data types the feature needs
+1. **Start with domain models** - Define the types the *business* needs, in the domain's own vocabulary, before looking at any API response
 2. **Write domain logic** - Pure business rules using only models
-3. **Build services** - API adapters using domain logic for validation/transformation
-4. **Create dumb components** - Presentational UI taking props
-5. **Wire in feature hooks** - Compose services + domain + state in feature-specific hooks
-6. **Build containers** - Connect feature hooks to dumb components
+3. **Define the DTOs** - Write down what the external system actually returns, unedited, in `services/dto/`
+4. **Write the adapter** - Pure `toDomain` (and any write-direction) mapping between the two shapes
+5. **Build the service** - A static-method class calling the external system and returning domain models through the adapter
+6. **Create dumb components** - Presentational UI taking props
+7. **Wire in feature hooks** - Compose services + domain + state in feature-specific hooks
+8. **Build containers** - Connect feature hooks to dumb components
+
+Steps 1 and 3 are deliberately separate. Deriving the model from the API response is how DTOs end
+up masquerading as domain models — decide what the domain wants first, then map onto it.
 
 ## Validation Rules
 
@@ -306,6 +434,11 @@ Before writing or reviewing code, verify:
 - [ ] `common/` does not import from its own sub-domains (invert via self-registration or wire at the domain root)
 - [ ] No `server/` module is imported from a component, container, or hook — client code reaches it through a service or a server function
 - [ ] All business logic lives in `domain/` or `features/<name>/domain/`, never in components or hooks
+- [ ] Every service is a class with only `static` methods, one class per file, file named after the class — no loose exported request functions, no instantiation
+- [ ] No public service method returns a DTO; every return is a domain model, a primitive, or `void`
+- [ ] DTO types are imported only by `services/` and `adapters/` — never by `domain/`, `models/`, a hook, a container, or a component
+- [ ] `models/` and `domain/` name no DTO and carry no wire-shaped field (`snake_case` keys, `string` dates, API-internal names)
+- [ ] Every adapter is pure and synchronous, imports no HTTP client, and imports no service (a service → adapter → service cycle)
 
 ## React-Specific Architecture Guidelines
 
@@ -364,32 +497,56 @@ Use **React Query** (`useQuery`, `useMutation`) as the data-fetching layer, with
 
 | Layer | Role |
 |-------|------|
-| `services/` or `features/<name>/services/` | oRPC router client / API adapter — defines typed procedures |
+| `services/dto/` | The shapes the API actually returns — type-only, never seen above the service |
+| `services/` or `features/<name>/services/` | Static-method service class per resource — calls the oRPC/HTTP client, returns domain models |
+| `adapters/` or `features/<name>/adapters/` | Converts the service's DTOs into domain models |
 | `features/<name>/hooks/` | Custom hooks wrapping `useQuery`/`useMutation` — single source of truth for a resource |
 | `containers/` or `features/<name>/containers/` | Consumes the custom hook, passes data to dumb components |
-| `domain/` | Transforms or validates data returned from the hook before rendering |
+| `domain/` | Transforms or validates the models returned from the hook before rendering |
+
+The oRPC client is **infrastructure the service uses**, not a service itself: it is the typed
+transport, so it stays behind the service class rather than being called from a hook.
 
 **Canonical pattern:**
 
 ```typescript
-// services/orpc.ts — oRPC client setup (if oRPC is available)
+// services/orpcClient.ts — transport, not a service: it exposes no domain operation
 import { createORPCClient } from '@orpc/client';
 export const orpc = createORPCClient<AppRouter>({ baseURL: '/api' });
 
+// services/SlideService.ts — the only place the transport is touched
+import type { Slide } from '@/models/presentation';
+import { slideAdapter } from '@/adapters/slideAdapter';
+import { orpc } from './orpcClient';
+import type { SlideDto } from './dto/slide.dto';
+
+export class SlideService {
+  static async list(presentationId: string): Promise<Slide[]> {
+    const dtos: SlideDto[] = await orpc.slides.list({ presentationId });
+    return dtos.map(slideAdapter.toDomain);
+  }
+
+  static async reorder(presentationId: string, from: number, to: number): Promise<Slide[]> {
+    const dtos: SlideDto[] = await orpc.slides.reorder({ presentationId, from, to });
+    return dtos.map(slideAdapter.toDomain);
+  }
+}
+
 // features/slides/hooks/useSlides.ts — custom query hook
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { orpc } from '@/services/orpc'; // or a plain service function if no oRPC
+import { SlideService } from '@/services/SlideService';
 
 export function useSlides(presentationId: string) {
   const queryClient = useQueryClient();
 
   const slides = useQuery({
     queryKey: ['slides', presentationId],
-    queryFn: () => orpc.slides.list({ presentationId }),
+    queryFn: () => SlideService.list(presentationId),
   });
 
   const reorder = useMutation({
-    mutationFn: orpc.slides.reorder,
+    mutationFn: ({ from, to }: { from: number; to: number }) =>
+      SlideService.reorder(presentationId, from, to),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['slides', presentationId] }),
   });
 
@@ -409,7 +566,7 @@ export function SlideEditorContainer({ presentationId }: { presentationId: strin
     <SlideList
       slides={sorted}
       isLoading={slides.isLoading}
-      onReorder={(from, to) => reorder.mutate({ presentationId, from, to })}
+      onReorder={(from, to) => reorder.mutate({ from, to })}
     />
   );
 }
@@ -417,9 +574,11 @@ export function SlideEditorContainer({ presentationId }: { presentationId: strin
 
 **Rules:**
 - One custom hook per resource/domain entity — don't scatter `useQuery` calls across components
+- The hook calls the **service class**, never the oRPC client or `fetch` directly
+- What the hook hands back is already domain models — a `queryFn` returning a DTO puts the wire shape into the query cache, the container, and every component below it
 - `queryKey` arrays must be consistent — define them as constants in `features/<name>/consts/` if reused
-- Data transformation (sorting, filtering, deriving) happens in `domain/` functions, not inside the hook or component
-- Without oRPC, the hook calls a plain `services/` function instead — the hook interface stays the same
+- Data transformation (sorting, filtering, deriving) happens in `domain/` functions, not inside the hook or component; *shape* translation happens in the adapter, not either of them
+- Without oRPC, the service calls a plain HTTP client instead — every layer above it is unchanged
 
 ## Additional Resources
 

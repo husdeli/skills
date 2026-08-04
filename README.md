@@ -18,7 +18,9 @@ That's it — the skills and agents below become available in every session.
 
 ### Skills
 - **clean-fullstack-architecture** — Clean Code + Hexagonal Architecture with strict
-  dependency rules across all layers; domain-cohesive feature grouping.
+  dependency rules across all layers; domain-cohesive feature grouping. Services are classes
+  of static methods that own the DTOs their API speaks and never return one; domain logic
+  names only domain models; an `adapters/` layer is the single place the two shapes meet.
 - **ai-planning-workflow** — Feedback-driven ticket → plan → implement workflow with
   design-agreement and iteration-logging checkpoints.
 - **ts-clean** — Framework-agnostic rules for any `.ts`/`.tsx` file: one module per file

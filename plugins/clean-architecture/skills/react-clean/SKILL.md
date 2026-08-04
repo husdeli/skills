@@ -56,16 +56,19 @@ Each `use*` hook owns its single effect plus its cleanup. The component reads as
 Use the **service + TanStack Query** combination, optionally wrapped in a custom query hook:
 
 ```tsx
-// services/userService.ts — the ONLY place that knows how to fetch
-export const userService = {
-  getById: (id: string) => api.get<User>(`/users/${id}`).then(r => r.data),
-};
+// services/UserService.ts — the ONLY place that knows how to fetch
+export class UserService {
+  static async getById(id: string): Promise<User> {
+    const dto = await api.get<UserDto>(`/users/${id}`);
+    return userAdapter.toDomain(dto);
+  }
+}
 
 // hooks/useUser.ts — a custom query hook wrapping TanStack Query
 export function useUser(id: string) {
   return useQuery({
     queryKey: ['user', id],
-    queryFn: () => userService.getById(id),
+    queryFn: () => UserService.getById(id),
   });
 }
 
@@ -81,6 +84,7 @@ function UserCard({ id }: { id: string }) {
 - A component consuming a query hook is a **container** in the `clean-fullstack-architecture` taxonomy — put it in `containers/`, and keep the presentational piece it renders in `components/`, fed by props. A file under `components/` may still use a *generic, side-effect-free* hook (a media query, a debounce); it may never pull data in.
 - Mutations go through `useMutation` calling a service method, never a bare `fetch` in an event handler.
 - The component never sees a URL, a request config, or a `fetch`. It sees `data`, `isPending`, `error`, `mutate`.
+- The service is a **class with static methods** that returns **domain models**, converting the API's DTO through an adapter — so no wire shape reaches the query cache or the component. See `clean-fullstack-architecture` for the services/adapters/DTO rules.
 - This also satisfies Rules 2 and 4: TanStack Query owns the fetching effect, race conditions, caching, and cleanup — you don't write that `useEffect` at all.
 
 ## Rule 4 — You Might Not Need an Effect
