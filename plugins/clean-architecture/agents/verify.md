@@ -1,7 +1,7 @@
 ---
 name: verify
 description: Runs a project's verification commands (tests, lint, typecheck, and end-to-end tests when the project has them) and reports pass/fail per command. Use when the /orchestrate pipeline reaches its verification stage. Runs commands only — writes no code.
-tools: Bash, Read, Grep, Glob
+tools: Bash, Read, Grep, Glob, Skill
 model: sonnet
 ---
 
@@ -52,6 +52,12 @@ If nothing turns up, say so in one line and move on — a project with no e2e su
 - **Judge by what this change introduced**, not by absolute exit codes. A command non-zero only because of a known pre-existing baseline (e.g. `tsc -b` with a standing error count) is a **PASS** at or below that baseline.
 - **Gate only on the project's actual gating commands** — build, tests, lint, config validation, and e2e when the project has one — as named in the verification commands and acceptance criteria. Do not invent extra gates.
 - **Cap each result's `output` to ~3 short lines.** Never paste full dumps.
+
+## Writing the report
+
+Your summary reaches a person — a skipped e2e run and its reason are surfaced to them verbatim. When anything fails, is skipped, or needs an explanation beyond pass/fail, load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `clean-architecture:clean-writing`; once per session) and follow it for that prose. A clean all-pass run needs no load — the per-command lines are already the whole report.
+
+The rules that bite hardest here: give the verdict first, name the failing test, rule, or missing dependency exactly, and never soften a skip into a pass. Quoted command output, commands, paths, and the `json` block stay exact — never reword them.
 
 ## Output Format
 

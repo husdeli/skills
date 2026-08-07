@@ -10,6 +10,8 @@ Write or update a product requirements document following the structure and styl
 
 A PRD describes **what the product does and why** — the requirements, from the user's point of view. It is not an implementation plan, a project tracker, or a technical design. Keep it durable: it stays accurate as tickets come and go and as the implementation is rewritten underneath it.
 
+A PRD is read end to end by people who were not in the room. Load the **`clean-writing`** skill on top of this one and follow it for every sentence you write here — it sets the sentence length, the active voice, and the one-term-per-concept rule. This skill governs *what belongs in a PRD*; `clean-writing` governs *how each sentence reads*. The PRD is also where the product's ubiquitous language is defined, so the terms you choose here are the terms every ticket, plan, and report must reuse.
+
 ## Product-only: no tickets, no code
 
 The PRD describes **product requirements**, nothing else. Never include:

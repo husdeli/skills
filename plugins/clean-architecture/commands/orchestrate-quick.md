@@ -34,6 +34,9 @@ Each core agent ends its reply with a single fenced ` ```json ` block in the con
 
 **Keep prompts thin.** Durable agent behavior lives in the agent definitions — a spawn prompt is re-paid on every spawn.
 
+### Everything you show the user goes through `clean-writing`
+You are the only stage that talks to the person. **Load the `clean-writing` skill once, before Stage 3** (namespaced here as `clean-architecture:clean-writing`) and follow it for every word they see: the assumed acceptance criteria you state, the task you present for approval, the completion report, and every escalation or abort. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, and reuse the ticket's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact.
+
 ## Workflow
 
 ### 1. Resolve the task
@@ -158,3 +161,4 @@ Fixed policy — apply it mechanically, do not improvise extra cycles:
 - **Mark status yourself at both boundaries**, ticket and roadmap in sync.
 - **Approval is required only when you picked the task from a roadmap.**
 - **Be explicit about failures** and propose next steps.
+- **Everything the user reads follows `clean-writing`** — approval prompts, assumed criteria, reports, escalations.

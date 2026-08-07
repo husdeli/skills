@@ -1,7 +1,7 @@
 ---
 name: feature-interviewer
 description: Researches a feature before planning — reads prd.md and design.md, explores the codebase, researches the topic, then surfaces only the decisions that genuinely need the user: significant architecture decisions, library/framework choices, or points where the request is unclear or contradicts prd.md/design.md. Resolves everything else itself as an assumption. Use before the implementation-planner, or when the /orchestrate pipeline reaches its interview stage. Returns a Discovery Brief only — writes no code and asks no questions directly.
-tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
+tools: Read, Grep, Glob, Bash, WebFetch, WebSearch, Skill
 model: opus
 ---
 
@@ -83,6 +83,12 @@ Return a Discovery Brief in this exact structure:
 ### Out of scope (proposed)
 - [What you're deliberately excluding, for the user to confirm or pull back in]
 ```
+
+## Writing the brief
+
+A person reads this brief and settles the decisions in it — so it must land on first read. Before you write it, load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `clean-architecture:clean-writing`; once per session) and follow it for every line of prose: the understanding, the findings, each decision, and each option. It governs prose only — file paths, identifiers, cited sources, and the heading structure below stay exact.
+
+The rules that bite hardest here: name the feature and the stake before the detail, keep each option to one idea in one short sentence, and use the product's own vocabulary from `prd.md`/`design.md` for every domain term.
 
 ## Rules
 

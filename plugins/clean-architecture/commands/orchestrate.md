@@ -53,6 +53,12 @@ There is no background workflow, and no schema enforcement: **each core agent en
 ### Context Pack (built once, forwarded automatically)
 The planner emits a **context pack** — relevant files, key symbols, conventions, the exact verification commands, and the project's e2e command — in its JSON block on the **scout turn**, before the plan exists. Paste it into the reviewer's and coding agent's *first* message and into every `verify` spawn, so none of them cold-explores the codebase (later `SendMessage` turns already have it). The interview's **Decisions** arrive later, as the planner's second message.
 
+## Everything you show the user goes through `clean-writing`
+
+You are the only stage that talks to the person. **Load the `clean-writing` skill once, before Stage 1** (namespaced here as `clean-architecture:clean-writing`) and follow it for every word they see: the task you present for approval, every `AskUserQuestion` question and option label, the Decisions you record, the completion report, and every escalation or abort.
+
+The agents apply it to their own output, but you are what the user actually reads — a brief that landed cleanly still fails the user if you relay it badly. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, keep an option label to one short phrase, and reuse the roadmap's and `prd.md`'s own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact.
+
 ## Core Principle: Next Task, Full Completion
 
 Drive one task through the entire pipeline. Do not batch tasks. When it is done, stop and let the user ask for the next.
@@ -230,3 +236,4 @@ A fixed retry/escalation policy — apply it mechanically, do not improvise extr
 - **Apply the gates mechanically.** The review-skip gate (≤2 files, no dep, no API, criteria auto-checkable), the high-risk test (new API/dep or >5 files), the single revision cap, and the single fix cap are fixed thresholds.
 - **Never proceed without approval** on the selected task, and never start a task whose dependencies are incomplete.
 - **Be explicit about failures** and propose next steps.
+- **Everything the user reads follows `clean-writing`** — approval prompts, questions, decisions, reports, escalations.

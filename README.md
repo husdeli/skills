@@ -42,6 +42,14 @@ That's it — the skills and agents below become available in every session.
   client bundle. Plus the two safety rules: every server function is its own auth boundary
   (a route `beforeLoad` guard isn't the data boundary), and no `Cache-Control: public` on
   an identity-dependent response.
+- **clean-writing** — The standard for every output a person reads: a brief, a plan, a review
+  verdict, a report, a question, a PRD, a ticket, a chat reply. Context before the point,
+  ASD-STE100 Simplified Technical English (one idea per sentence, active voice with a named
+  actor, one word for one meaning, no jargon or metaphor), the project's ubiquitous language
+  from `prd.md`/`design.md`/`CLAUDE.md`, and the answer before the reasoning. Governs prose
+  only — code, identifiers, paths, quoted output, and the agents' `json` blocks stay exact.
+  Invoked directly, it re-pitches a message that didn't land. Every agent, command, and
+  document skill in this plugin routes its human-facing output through it.
 - **design-doc** — Create or update a design doc specifying how a screen, surface, or flow
   looks and behaves — the intended end state, not how to build it.
 - **prd** — Create or update a product requirements document: product-only content,

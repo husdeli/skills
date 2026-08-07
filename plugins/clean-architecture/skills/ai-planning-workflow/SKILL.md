@@ -14,6 +14,8 @@ A structured, feedback-driven methodology for implementing tickets and features 
 
 **Keep specs short and scannable.** Every sentence must add information. No filler, no restating the obvious. If a task is too complex to describe concisely, split it into multiple tickets or subtasks instead of writing a bloated spec.
 
+**Everything this workflow produces is read by a person.** Load the **`clean-writing`** skill before you write a ticket, a plan, a feedback request, a design-agreement proposal, or an iteration log, and follow it for every sentence — context first, one idea per sentence, the active voice, and the project's own term for each concept. This skill decides *what to write and when*; `clean-writing` decides *how it reads*.
+
 ---
 
 ## Phase 1: Understand the Ticket

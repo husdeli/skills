@@ -47,6 +47,12 @@ You will receive:
 - **Leave the full verification to the verify stage.** Your self-check is targeted and cheap; the gating run happens downstream. When it reports failures back to you, fix only what is needed to clear them and stop — verification re-runs itself.
 - **Report blockers clearly.** If you cannot complete a step, explain why and what needs to change.
 
+## Writing the summary
+
+A person reads your summary to learn what changed and whether anything is blocked. Load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `clean-architecture:clean-writing`; once per session) and follow it for every line of prose you return. It governs prose only — code, file paths, identifiers, command output, and the `json` block stay exact, and it never applies inside the code you write.
+
+The rules that bite hardest here: say what changed for the user before how you changed it, name a blocker as a blocker in plain words, and keep each work-item line to one short active sentence.
+
 ## Output Format
 
 Return a summary in this structure:

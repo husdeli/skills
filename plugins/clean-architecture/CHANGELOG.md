@@ -5,6 +5,48 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.24.0] - 2026-08-07
+
+### Added
+- **`clean-writing` — the standard for every output a person reads.** The plugin governed the
+  code an agent writes and the documents it produces, but nothing governed the prose. An agent
+  ends a task holding a plan, twenty files, and a dozen tool results, then writes a summary that
+  is obvious only from inside that context. The reader was never in it.
+
+  The skill sets four rules. **Land the context before the point** — one to three opening
+  sentences naming what this is about, what triggered it, and what it means for the reader.
+  **Write Simplified Technical English** — twelve applicable ASD-STE100 writing rules: one idea
+  per sentence, 20 words for an instruction and 25 for a description, active voice with a named
+  actor, one word for one meaning, the plain common word, noun clusters capped at three, no
+  telegraphic style, no jargon or idiom or metaphor or hedging, specific quantities, vertical
+  lists, warning before instruction. (The standard's 900-word approved dictionary is not
+  available to an agent, so the skill says so rather than claiming compliance.) **Use the
+  project's ubiquitous language** — domain terms taken from `prd.md`, `design.md`, `CLAUDE.md`,
+  the ticket, then the code, one term per concept, never a coined synonym. **Give the answer
+  before the reasoning** — verdict first, failure reported as failure, the ask on the last line.
+
+  The skill governs prose only. Code, identifiers, file paths, commands, quoted tool output, and
+  the agents' fenced `json` contract blocks are explicitly exempt and stay byte-exact.
+
+  Invoked directly, it runs in **re-pitch mode**: the last message failed, so rewrite it from
+  scratch, add the context that was skipped, halve the length, and do not defend the original.
+  Adapted from Matt Pocock's `wait-what` skill.
+
+### Changed
+- **Every human-directed output in the workflow now routes through `clean-writing`.** Each of the
+  five agents gained a "Writing the …" section naming the rules that bite hardest for its own
+  artifact — the discovery brief, the plan, the review verdict, the implementation summary, the
+  verification report. `feature-interviewer`, `implementation-planner`, and `verify` gained the
+  `Skill` tool to load it; `verify` loads it only when something fails or is skipped, since a
+  clean all-pass run has no prose to govern.
+- **`/orchestrate` and `/orchestrate-quick` load it before the first stage that produces user-
+  facing text.** The orchestrator is the only stage that talks to the person, so the rules cover
+  the task presented for approval, every `AskUserQuestion` question and option label, the recorded
+  Decisions, the completion report, and every escalation or abort.
+- **`prd`, `design-doc`, and `ai-planning-workflow` build on it.** Each states the split: those
+  skills decide *what belongs in the document*, `clean-writing` decides *how each sentence reads*.
+  The `/prd` and `/design` commands load both.
+
 ## [0.23.0] - 2026-08-04
 
 ### Added

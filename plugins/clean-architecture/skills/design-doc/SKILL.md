@@ -13,6 +13,12 @@ of each page — its regions, hierarchy, and flow — how it is arranged, and ho
 It is the shared reference designers and engineers agree on *before* a screen is built or
 changed.
 
+Designers, engineers, and product people all read this doc and must read it the same way. Load
+the **`clean-writing`** skill on top of this one and follow it for every sentence — it sets the
+sentence length, the active voice, and the one-term-per-concept rule. This skill governs *what
+belongs in a design doc*; `clean-writing` governs *how each sentence reads*. Take every domain
+term from `prd.md` rather than coining a new one for the same thing.
+
 ## Core rules
 
 1. **Define the target state — never a procedure.** A design doc says how the system *is
