@@ -77,6 +77,9 @@ That's it — the skills and agents below become available in every session.
   screen, surface, or flow.
 - **/prd** — loads the `prd` skill to create or update a product requirements document for
   a given product or feature.
+- **/explain** — explains what is happening in plain language: the work you just did, a
+  file, an error, a diff, or a concept. Reads the code before explaining, defines every
+  term of art on first use, and treats code as an anchor rather than the explanation.
 
 ## Repo layout
 

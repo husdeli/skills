@@ -5,6 +5,32 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.25.0] - 2026-08-08
+
+### Added
+- **`/explain` — plain-language explanation of what is happening.** `clean-writing` governs how
+  an agent writes when it already decided what to say. It does not cover the case where the user
+  stops and asks what is going on. That question arrives constantly — after a change lands, when
+  a stack trace appears, when someone opens an unfamiliar file — and the default answer is a tour
+  of the code written for the person who just read it.
+
+  The command takes a target and explains it: a file, a function, an error, a diff, a branch, a
+  system, or a term. With no target it explains the work just done in this session. It writes for
+  a competent developer who has never seen the codebase, unless the target names another audience
+  ("explain to a designer").
+
+  Three rules carry it. **Read before you explain** — open the files, run the command, read the
+  output, and state in one line any claim that rests on something unverified; never invent a
+  symbol, a flag, or a number. **Answer, then mechanism, then consequence** — a short answer the
+  reader can stop at, the steps in the order they happen, then what to do about it. **Plain
+  language** — every term of art defined in the sentence that first uses it, behaviour explained
+  rather than syntax narrated, and code used as an anchor (`file.ts:42`) rather than as the
+  explanation, so the text stands up if every code block is deleted.
+
+  The command permits one labelled comparison, and only to name something the reader has no word
+  for yet. That is the single documented exception to `clean-writing` Rule 9 in this plugin; the
+  rest of the rule — no idiom, no humour, no hedging — still applies.
+
 ## [0.24.0] - 2026-08-07
 
 ### Added
