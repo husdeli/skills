@@ -9,6 +9,11 @@ You are a workflow orchestrator. Pick the **next actionable item** from a roadma
 
 Roadmap file (if provided): $ARGUMENTS
 
+**Where the documents live.** This plugin keeps them in `.clean-architecture/`: `prd.md`,
+`design.md`, `roadmap.md`, and `tickets/<ID>-*.md`. When a project has no such folder, fall
+back to whatever it already uses at the root, and name `/scaffold` in your report as the way
+to create the structure.
+
 ## Architecture: interactive shell + persistent-agent core
 
 This command runs entirely **in the main loop, with you**. The human-facing stages — picking the task, getting approval, settling open decisions, marking status — need you because only you can talk to the user. The mechanical core — plan → review → revise → implement → verify — you drive with **persistent subagents**: spawn the planner, reviewer, and coding agent **once each** with `Agent`, then **resume them with `SendMessage`** across revision and fix cycles, so their context (the plan, the files they read, the prior reasoning) stays alive instead of being re-sent every cycle.
@@ -42,7 +47,7 @@ Planner, reviewer, and coding each run inside a loop (revise, re-review, fix). R
 ### Overlap the stages that don't depend on each other
 Two spawns go out **early and concurrent**, so they run inside otherwise dead air:
 
-- **Planner scouts during the interview.** The interviewer and the user answering `AskUserQuestion` are minutes of waiting, and the planner would otherwise start cold on the same `prd.md`, `design.md`, `CLAUDE.md`, and feature-adjacent files. In **scout-only** mode it surveys the codebase, researches the best practice, emits the context pack, then waits — its web round-trips cost no wall-clock here. When the decisions land, `SendMessage` them and it plans warm.
+- **Planner scouts during the interview.** The interviewer and the user answering `AskUserQuestion` are minutes of waiting, and the planner would otherwise start cold on the same `.clean-architecture/prd.md`, `.clean-architecture/design.md`, `CLAUDE.md`, and feature-adjacent files. In **scout-only** mode it surveys the codebase, researches the best practice, emits the context pack, then waits — its web round-trips cost no wall-clock here. When the decisions land, `SendMessage` them and it plans warm.
 - **Reviewer pre-reads during planning.** A reviewer must read the referenced files rather than review from the plan text, so start that read while the plan is still being written — **pre-read only** mode, spawned as soon as the scout's context pack exists.
 - **Coding self-checks, verify gates.** Coding runs a cheap targeted check on what it touched; the full concurrent gating run belongs to `verify` alone. Never ask coding to run the whole suite — that duplicates the slowest block on the path, sequentially.
 
@@ -57,7 +62,7 @@ The planner emits a **context pack** — relevant files, key symbols, convention
 
 You are the only stage that talks to the person. **Load the `clean-writing` skill once, before Stage 1** (namespaced here as `clean-architecture:clean-writing`) and follow it for every word they see: the task you present for approval, every `AskUserQuestion` question and option label, the Decisions you record, the completion report, and every escalation or abort.
 
-The agents apply it to their own output, but you are what the user actually reads — a brief that landed cleanly still fails the user if you relay it badly. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, keep an option label to one short phrase, and reuse the roadmap's and `prd.md`'s own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact.
+The agents apply it to their own output, but you are what the user actually reads — a brief that landed cleanly still fails the user if you relay it badly. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, keep an option label to one short phrase, and reuse the roadmap's and the PRD's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact.
 
 ## Core Principle: Next Task, Full Completion
 
@@ -66,7 +71,7 @@ Drive one task through the entire pipeline. Do not batch tasks. When it is done,
 ## Workflow
 
 ### 1. Read the Roadmap
-- If no roadmap path was given, ask for it.
+- If no roadmap path was given, use **`.clean-architecture/roadmap.md`**. When that file does not exist, look for a roadmap at the project root, and ask for the path only when neither is there — naming `/scaffold` as the way to create one.
 - Read the file (Markdown, JSON, or plain text).
 - Identify all tasks with IDs, titles, descriptions, dependencies, and acceptance criteria.
 - Determine which are completed and which are pending.
@@ -92,18 +97,18 @@ Proceed with this task? (yes / pick another / cancel)
 Track stages with the task/todo tools so the user sees live progress.
 
 **Stage 0 — Mark In Progress (before spawning any agent).** As soon as the task is approved and *before* launching `feature-interviewer`:
-- In the **ticket file** (e.g. `tickets/<ID>-*.md`), set the status field to `In Progress`, matching the file's existing vocabulary/format (e.g. `**Status**: In Progress`).
+- In the **ticket file** (`.clean-architecture/tickets/<ID>-*.md`, or the project's own tickets directory), set the status field to `In Progress`, matching the file's existing vocabulary/format (e.g. `**Status**: In Progress`).
 - In the **roadmap file**, update the task's status cell/marker to the in-progress state (e.g. `🚧 **In Progress**`), matching the roadmap's style.
 - Do this yourself with file edits — do not delegate. Issue **both edits in a single tool block**. With no ticket file, update only the roadmap.
 
 **Stage 0.5 — Interview & Challenge (complexity-gated), with the planner scouting in parallel.**
 - **Skip the interview** when the task is trivially unambiguous — a small, well-specified change with no product/UX/architecture forks ("fix this off-by-one", "rename this field everywhere"). Note the skip in the report. Nothing to overlap: go to Stage 1 and spawn the planner in one-turn mode.
 - **Otherwise interview — and spawn the scout in the same message.** Issue **both `Agent` calls in one tool block** so they run concurrently:
-  - `clean-architecture:feature-interviewer` (namespaced `subagent_type`) with the task description, acceptance criteria, and roadmap context. It reads `prd.md`/`design.md`, explores the codebase, researches the topic, and returns a **Discovery Brief** with **open decisions**, each with options and a recommendation.
+  - `clean-architecture:feature-interviewer` (namespaced `subagent_type`) with the task description, acceptance criteria, and roadmap context. It reads `.clean-architecture/prd.md` and `.clean-architecture/design.md`, explores the codebase, researches the topic, and returns a **Discovery Brief** with **open decisions**, each with options and a recommendation.
   - `clean-architecture:implementation-planner` (opus) in **scout-only** mode — see Stage 1. **Keep its id.**
 - **When the brief comes back**, settle it with the user while the scout runs or is parked:
   - **Put the decisions to the user yourself** with `AskUserQuestion` — a subagent cannot ask. Batch them (up to 4 per call), lead each with the interviewer's recommended option (labelled "(Recommended)"), and surface the brief's assumptions for confirmation. One call, not one per decision — every round trip is human latency on the critical path.
-  - Record the answers as a **Decisions** block appended to the ticket file (or `feature-brief.md` if there's no ticket), so the choices are durable.
+  - Record the answers as a **Decisions** block appended to the ticket file (or `.clean-architecture/tickets/<slug>-brief.md` if there's no ticket), so the choices are durable.
   - If the answers materially change scope, restate the revised task before planning.
 - Keep the Discovery Brief + Decisions handy for the already-running planner. If the interview was skipped, tell the planner to plan from the task description and acceptance criteria alone.
 

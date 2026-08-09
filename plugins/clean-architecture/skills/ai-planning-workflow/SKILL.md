@@ -30,7 +30,7 @@ A structured, feedback-driven methodology for implementing tickets and features 
 
 Don't plan on unchallenged assumptions. For any non-trivial feature, run a discovery pass **before** writing the plan:
 
-1. Read `prd.md` and `design.md` (project root) if they exist — for product intent and intended UX. Note where the ticket diverges.
+1. Read `.clean-architecture/prd.md` and `.clean-architecture/design.md` if they exist — for product intent and intended UX. Note where the ticket diverges. Fall back to the project root when the folder is absent.
 2. Research the feature topic — established approaches, common pitfalls, relevant libraries, UX/security conventions.
 3. Explore the codebase for what already exists and can be reused.
 4. Turn the fuzzy parts into **explicit high-level decisions** and put them to the user with concrete options and a recommended default:
@@ -151,6 +151,11 @@ Mark as Completed?
 ---
 
 ## Ticket Creation Guidelines
+
+**Tickets live in `.clean-architecture/tickets/`**, one file per ticket, named
+`<ID>-<slug>.md` (e.g. `SW-001-user-login.md`). The roadmap that orders them is
+`.clean-architecture/roadmap.md`. Run `/scaffold` when the folder does not exist yet. A
+project that already keeps tickets elsewhere keeps them there — do not start a second home.
 
 **Tickets describe WHAT, not HOW:**
 

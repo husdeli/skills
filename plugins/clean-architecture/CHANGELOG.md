@@ -5,6 +5,50 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.0] - 2026-08-09
+
+### Added
+- **`.clean-architecture/` — one home for the PRD, the design doc, the roadmap, and the
+  tickets.** Until now each document had its own convention and its own default location: the
+  PRD at the root as `PRD.md`, the design doc as `design.md`, tickets under a `tickets/`
+  directory nobody named, and the roadmap wherever the user pointed. Five agents and four
+  skills each re-stated where to look, and a project that used any of those names for
+  something else collided silently.
+
+  Every document now lives in `.clean-architecture/` at the project root: `prd.md`,
+  `design.md`, `roadmap.md`, and `tickets/<ID>-<slug>.md`. The folder is named after the
+  plugin, so it collides with nothing a project would already have, and it groups the
+  documents a person edits by hand away from the source tree.
+
+  **Existing projects keep working.** Every agent and command falls back to the project root
+  when the folder does not exist, so a repo with a root-level `prd.md` needs no migration.
+
+- **`/scaffold` — create the folder and its stubs.** Takes an optional product name. It
+  writes `prd.md`, `design.md`, and `roadmap.md` carrying the exact headings each skill
+  expects, plus `tickets/TEMPLATE.md` copied from the `ai-planning-workflow` template. It
+  never overwrites a file that exists, reports each file as created or kept, and invents no
+  product content — the stubs are shape, not requirements.
+
+  When it finds a root-level `prd.md`, `PRD.md`, `design.md`, `roadmap.md`, or `tickets/`, it
+  **asks** before touching them, and moves them with `git mv` so history survives. A file left
+  in place still resolves through the fallback.
+
+  It ends by naming the next step rather than running it: `/prd` first, because every later
+  document takes its vocabulary from the PRD, then `/design`, then `/orchestrate`.
+
+### Changed
+- **Every doc-path reference now points at the folder.** `feature-interviewer`,
+  `implementation-planner`, and `plan-reviewer` read `.clean-architecture/prd.md` and
+  `.clean-architecture/design.md`; `/orchestrate` defaults its roadmap argument to
+  `.clean-architecture/roadmap.md` instead of asking for a path; `/orchestrate` and
+  `/orchestrate-quick` write ticket status to `.clean-architecture/tickets/<ID>-*.md`; the
+  `prd`, `design-doc`, and `ai-planning-workflow` skills name the folder as the write target;
+  and `clean-writing` takes the ubiquitous language from the folder's PRD and design doc.
+- **The interviewer names `/scaffold` when the PRD or the design doc is missing**, instead of
+  only reporting the gap.
+- **A brief with no ticket file lands in `.clean-architecture/tickets/<slug>-brief.md`**,
+  replacing the loose root-level `feature-brief.md`.
+
 ## [0.25.0] - 2026-08-08
 
 ### Added

@@ -16,7 +16,7 @@ You will receive:
 - **Implementation plan** — the directional plan from the implementation-planner: context, researched best practices, an overall direction, and ordered work items stated as intent + approach rather than as code
 - **Codebase context** — relevant files and patterns
 - **Discovery Brief + Decisions** — the interview stage's research and the decisions the user settled, if the task went through the interview stage
-- **PRD (prd.md) / Design (design.md)** — product and design docs, if available in the project root
+- **PRD / Design** — `.clean-architecture/prd.md` and `.clean-architecture/design.md`, if the project has them
 
 ## Two-turn mode (pre-read, then review)
 
@@ -32,7 +32,7 @@ When the first message already contains the plan, ignore this section and review
 Evaluate the plan against every item below. Read the referenced files to confirm the plan's claims — do not review from the plan text alone.
 
 1. **Completeness** — Does the plan cover ALL acceptance criteria? Are any requirements missing?
-2. **PRD & decision alignment** — If `prd.md`/`design.md` exist, does the plan align with the product requirements, user stories, and intended UX? If the task carried a Discovery Brief + Decisions, does the plan honor every settled decision without silently reopening one?
+2. **PRD & decision alignment** — If `.clean-architecture/prd.md` or `.clean-architecture/design.md` exists (or the project-root fallback), does the plan align with the product requirements, user stories, and intended UX? If the task carried a Discovery Brief + Decisions, does the plan honor every settled decision without silently reopening one?
 3. **Correctness** — Will the work items achieve the outcome? Are there logical errors? Do the referenced files and modules exist?
 4. **Ordering** — Are work items in the right dependency order? Can each be completed independently, in sequence?
 5. **Altitude** — The plan must set direction, not write the code. Flag it in either direction:

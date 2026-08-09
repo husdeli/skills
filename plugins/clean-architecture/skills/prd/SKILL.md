@@ -1,12 +1,17 @@
 ---
 name: prd
-description: "Create or update a product requirements document in the style of PRD.md. Use when: asked to write a PRD, draft or revise product requirements, document a new product or feature set, update an existing PRD, or maintain a living spec."
+description: "Create or update a product requirements document at .clean-architecture/prd.md. Use when: asked to write a PRD, draft or revise product requirements, document a new product or feature set, update an existing PRD, or maintain a living spec."
 argument-hint: "The product or feature to write or update a PRD for"
 ---
 
 # PRD Skill
 
-Write or update a product requirements document following the structure and style of this project's `PRD.md`.
+Write or update a product requirements document following the structure and style below.
+
+**Where it lives.** The PRD is `.clean-architecture/prd.md`, alongside the design doc, the
+roadmap, and the tickets. Create the folder if it is missing. When the project already keeps
+a PRD at the root (`prd.md`/`PRD.md`), update that file in place instead — one PRD per
+project, never two.
 
 A PRD describes **what the product does and why** — the requirements, from the user's point of view. It is not an implementation plan, a project tracker, or a technical design. Keep it durable: it stays accurate as tickets come and go and as the implementation is rewritten underneath it.
 

@@ -14,6 +14,24 @@ In Claude Code:
 
 That's it — the skills and agents below become available in every session.
 
+## Where your product docs live
+
+Every document the plugin reads or writes sits in one folder at your project root:
+
+```
+.clean-architecture/
+  prd.md              product requirements — what the product does and why
+  design.md           design doc — how each surface looks and behaves
+  roadmap.md          the ordered task list /orchestrate picks from
+  tickets/
+    TEMPLATE.md       copy per task, named <ID>-<slug>.md
+    SW-001-user-login.md
+```
+
+Run **`/scaffold`** to create it. The name is plugin-scoped so it collides with nothing in
+your repo, and every agent falls back to the project root when a project already keeps a
+`prd.md`, `design.md`, or `tickets/` of its own — an existing setup keeps working untouched.
+
 ## What's in the `clean-architecture` plugin
 
 ### Skills
@@ -46,7 +64,7 @@ That's it — the skills and agents below become available in every session.
   verdict, a report, a question, a PRD, a ticket, a chat reply. Context before the point,
   ASD-STE100 Simplified Technical English (one idea per sentence, active voice with a named
   actor, one word for one meaning, no jargon or metaphor), the project's ubiquitous language
-  from `prd.md`/`design.md`/`CLAUDE.md`, and the answer before the reasoning. Governs prose
+  from the PRD, the design doc, and `CLAUDE.md`, and the answer before the reasoning. Governs prose
   only — code, identifiers, paths, quoted output, and the agents' `json` blocks stay exact.
   Invoked directly, it re-pitches a message that didn't land. Every agent, command, and
   document skill in this plugin routes its human-facing output through it.
@@ -56,7 +74,7 @@ That's it — the skills and agents below become available in every session.
   cohesive per-area descriptions with stable anchor codes, and positive framing.
 
 ### Agents
-- **feature-interviewer** — reads `prd.md`/`design.md`, researches the feature on the web,
+- **feature-interviewer** — reads the PRD and design doc, researches the feature on the web,
   and returns a Discovery Brief that challenges the idea with open decisions and options.
 - **implementation-planner** — turns a task + codebase + researched best practices into a
   directional plan: where the work lives, what each item must achieve, which approach to
@@ -68,6 +86,9 @@ That's it — the skills and agents below become available in every session.
   one) concurrently and reports pass/fail per command. Writes no code.
 
 ### Commands
+- **/scaffold** — creates `.clean-architecture/` with stub files for the PRD, the design doc,
+  the roadmap, and a ticket template. Never overwrites an existing file, and offers to move a
+  root-level `prd.md`, `design.md`, or `tickets/` into the folder with `git mv`.
 - **/orchestrate** — picks the next actionable roadmap task and drives it through
   interview → plan → review → implement → verify using the five agents above.
 - **/orchestrate-quick** — the short pipeline for a task that is already well understood:

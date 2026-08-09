@@ -1,12 +1,17 @@
 ---
 name: design-doc
-description: "Create a design doc (design.md) that specifies how a product looks and behaves. Use when: asked to write a design doc, spec a screen/surface/flow, or document how the app is supposed to look and behave. A design doc defines the target state — not how to build it"
+description: "Create a design doc at .clean-architecture/design.md that specifies how a product looks and behaves. Use when: asked to write a design doc, spec a screen/surface/flow, or document how the app is supposed to look and behave. A design doc defines the target state — not how to build it"
 argument-hint: "The screen, surface, or system to specify"
 ---
 
 # Design-doc skill
 
-Create a design doc (conventionally `design.md`) following the structure and style below.
+Create a design doc following the structure and style below.
+
+**Where it lives.** Design docs sit in `.clean-architecture/`, with `design.md` as the
+single-doc default. A split design keeps every part in that same folder. Create the folder if
+it is missing. When the project already keeps a design doc at the root, update that file in
+place instead.
 
 A design doc is a **specification of the intended end state**: the **high-level structure**
 of each page — its regions, hierarchy, and flow — how it is arranged, and how it responds.
@@ -17,7 +22,7 @@ Designers, engineers, and product people all read this doc and must read it the 
 the **`clean-writing`** skill on top of this one and follow it for every sentence — it sets the
 sentence length, the active voice, and the one-term-per-concept rule. This skill governs *what
 belongs in a design doc*; `clean-writing` governs *how each sentence reads*. Take every domain
-term from `prd.md` rather than coining a new one for the same thing.
+term from `.clean-architecture/prd.md` rather than coining a new one for the same thing.
 
 ## Core rules
 
@@ -45,7 +50,7 @@ term from `prd.md` rather than coining a new one for the same thing.
    — a shared app shell, a family of editors, an onboarding flow — give it its own design
    doc and reference it rather than inlining and duplicating it. Cross-reference by named
    section (`§3.5`) within a doc and by relative filename between design docs. **Reference
-   only other design docs and the PRD** — and the PRD only when a `PRD.md` (or equivalent)
+   only other design docs and the PRD** — and the PRD only when `prd.md` (or an equivalent)
    actually exists in the project; otherwise omit it. Never link to implementation or
    technical docs (data models, renderer contracts, deployment, API specs). How it is built
    is out of scope.
@@ -65,7 +70,7 @@ term from `prd.md` rather than coining a new one for the same thing.
 
 **Status**: Living document
 **Last updated**: <YYYY-MM-DD>
-**Related**: `PRD.md` (product requirements) — only if a PRD exists; plus any other design docs
+**Related**: `prd.md` (product requirements) — only if a PRD exists; plus any other design docs
 
 <Opening paragraph: what this doc covers and what it does not — the WHAT, not the HOW.
 If a PRD exists, state how this doc relates to it (PRD says what the product does;

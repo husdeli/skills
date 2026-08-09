@@ -47,13 +47,15 @@ You are the only stage that talks to the person. **Load the `clean-writing` skil
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
+Documents live in `.clean-architecture/`: `prd.md`, `design.md`, `roadmap.md`, and `tickets/<ID>-*.md`. A bare path resolves against that folder first, then the project root.
+
 Never start a task whose dependencies are incomplete.
 
 Track the stages with the task/todo tools so the user sees live progress.
 
 ### 2. Mark In Progress
 Before spawning anything, set the status yourself with file edits — **both edits in one tool block**:
-- **Ticket file** (e.g. `tickets/<ID>-*.md`) → status `In Progress`, matching the file's existing vocabulary/format.
+- **Ticket file** (`.clean-architecture/tickets/<ID>-*.md`, or the project's own tickets directory) → status `In Progress`, matching the file's existing vocabulary/format.
 - **Roadmap file** → the task's status cell/marker to the in-progress state (e.g. `🚧 **In Progress**`), matching the roadmap's style.
 
 Whichever of the two exists. With a bare task description and no files, skip this stage.

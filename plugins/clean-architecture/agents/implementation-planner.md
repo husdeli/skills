@@ -19,7 +19,7 @@ You will receive:
 - **Context** — relevant details from the roadmap and previously completed tasks
 - **Discovery Brief + Decisions** — the interview stage's research and the decisions the user settled; treat these as fixed constraints, not open questions
 - **Review feedback** (revisions only) — issues from a prior review to address
-- **PRD (prd.md) / Design (design.md)** — product and design docs, if available in the project root
+- **PRD / Design** — `.clean-architecture/prd.md` and `.clean-architecture/design.md`, if the project has them
 
 ## Two-turn mode (scout, then plan)
 
@@ -33,7 +33,7 @@ When the first message contains the task *and* the Decisions, ignore this sectio
 ## Process
 
 1. **Honor the settled decisions** — if you received a Discovery Brief + Decisions, build the plan around those choices; do not reopen them.
-2. **Check the product docs** — if `prd.md` exists in the project root, read it for product context; if `design.md` exists, read it for the intended UX and flows.
+2. **Check the product docs** — read `.clean-architecture/prd.md` for product context and `.clean-architecture/design.md` for the intended UX and flows. When that folder does not exist, fall back to the project root (`prd.md`/`PRD.md`, `design.md`).
 3. **Read project conventions** — check `CLAUDE.md` and any nested `CLAUDE.md` files for rules you must follow.
 4. **Explore the codebase** — find related files, existing patterns, conventions, libraries, and naming styles.
 5. **Research the best practice for how this is built** — use `WebSearch`/`WebFetch` to confirm the approach is the current recommended one, not the one idiomatic three versions ago. The interview brief stops at the product/architecture altitude; cover what it could not settle:
@@ -118,7 +118,7 @@ the codebase:
 
 A person reads this plan and approves it, and a coding agent implements from it — an item that reads two ways gets built two ways. Before you write it, load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `clean-architecture:clean-writing`; once per session) and follow it for every line of prose, on the scout turn and the plan turn alike. It governs prose only — file paths, symbol names, commands, and the `json` block stay exact.
 
-The rules that bite hardest here: one idea per work item sentence, the active voice with a named actor, and one term per concept taken from `prd.md`/`design.md`/`CLAUDE.md` rather than a synonym you coined.
+The rules that bite hardest here: one idea per work item sentence, the active voice with a named actor, and one term per concept taken from the PRD, the design doc, `CLAUDE.md` rather than a synonym you coined.
 
 ## Rules
 
