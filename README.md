@@ -1,7 +1,7 @@
 # husdeli skills
 
-A Claude Code plugin marketplace bundling architecture and workflow skills plus the
-agents that drive them.
+A Claude Code and Codex plugin marketplace for architecture rules and reviewed development
+workflows.
 
 ## Install
 
@@ -12,7 +12,14 @@ In Claude Code:
 /plugin install clean-architecture@husdeli-skills
 ```
 
-That's it — the skills and agents below become available in every session.
+In Codex:
+
+```shell
+codex plugin marketplace add husdeli/skills
+codex plugin add clean-architecture@husdeli-skills
+```
+
+Start a new session after installation so the skills become available.
 
 ## Where your product docs live
 
@@ -22,15 +29,14 @@ Every document the plugin reads or writes sits in one folder at your project roo
 .clean-architecture/
   prd.md              product requirements — what the product does and why
   design.md           design doc — how each surface looks and behaves
-  roadmap.md          the ordered task list /orchestrate picks from
+  roadmap.md          the ordered task list the orchestrator picks from
   tickets/
     TEMPLATE.md       copy per task, named <ID>-<slug>.md
     SW-001-user-login.md
 ```
 
-Run **`/scaffold`** to create it. The name is plugin-scoped so it collides with nothing in
-your repo, and every agent falls back to the project root when a project already keeps a
-`prd.md`, `design.md`, or `tickets/` of its own — an existing setup keeps working untouched.
+Run **`/scaffold`** in Claude Code or **`$clean-architecture:scaffold`** in Codex to create it.
+Every agent falls back to the project root when a project already keeps these documents there.
 
 ## What's in the `clean-architecture` plugin
 
@@ -64,8 +70,8 @@ your repo, and every agent falls back to the project root when a project already
   verdict, a report, a question, a PRD, a ticket, a chat reply. Context before the point,
   ASD-STE100 Simplified Technical English (one idea per sentence, active voice with a named
   actor, one word for one meaning, no jargon or metaphor), the project's ubiquitous language
-  from the PRD, the design doc, and `CLAUDE.md`, and the answer before the reasoning. Governs prose
-  only — code, identifiers, paths, quoted output, and the agents' `json` blocks stay exact.
+  from the PRD, the design doc, `AGENTS.md`, and `CLAUDE.md`, and the answer before the reasoning.
+  Governs prose only — code, identifiers, paths, quoted output, and the agents' `json` blocks stay exact.
   Invoked directly, it re-pitches a message that didn't land. Every agent, command, and
   document skill in this plugin routes its human-facing output through it.
 - **design-doc** — Create or update a design doc specifying how a screen, surface, or flow
@@ -85,7 +91,7 @@ your repo, and every agent falls back to the project root when a project already
 - **verify** — runs the project's gating commands (tests, lint, typecheck, e2e when there is
   one) concurrently and reports pass/fail per command. Writes no code.
 
-### Commands
+### Commands and Codex skills
 - **/scaffold** — creates `.clean-architecture/` with stub files for the PRD, the design doc,
   the roadmap, and a ticket template. Never overwrites an existing file, and offers to move a
   root-level `prd.md`, `design.md`, or `tickets/` into the folder with `git mv`.
@@ -102,27 +108,47 @@ your repo, and every agent falls back to the project root when a project already
   file, an error, a diff, or a concept. Reads the code before explaining, defines every
   term of art on first use, and treats code as an anchor rather than the explanation.
 
+Use these equivalents in a Codex prompt:
+
+| Claude Code | Codex |
+| --- | --- |
+| `/scaffold [product]` | `$clean-architecture:scaffold [product]` |
+| `/orchestrate [roadmap]` | `$clean-architecture:orchestrate [roadmap]` |
+| `/orchestrate-quick [task]` | `$clean-architecture:orchestrate-quick [task]` |
+| `/design [target]` | `$clean-architecture:design-doc [target]` |
+| `/prd [target]` | `$clean-architecture:prd [target]` |
+| `/explain [target]` | `$clean-architecture:explain [target]` |
+
 ## Repo layout
 
 ```
 .claude-plugin/marketplace.json     # marketplace manifest (lists plugins)
+.agents/plugins/marketplace.json    # Codex marketplace manifest
 plugins/
   clean-architecture/
-    .claude-plugin/plugin.json       # plugin manifest
-    skills/                          # auto-discovered skills
-    agents/                          # auto-discovered agents
-    commands/                        # auto-discovered slash commands
+    .claude-plugin/plugin.json       # Claude Code plugin manifest
+    .codex-plugin/plugin.json        # Codex plugin manifest
+    skills/                          # shared rules and Codex entry points
+    agents/                          # agent definitions and Codex role contracts
+    commands/                        # Claude commands and shared workflow sources
 ```
 
 ## Local development
 
-To test changes without publishing, add this checkout as a local marketplace:
+To test changes in Claude Code without publishing:
 
 ```
 /plugin marketplace add /path/to/this/repo
 /plugin install clean-architecture@husdeli-skills
 ```
 
-After editing a skill or agent, run `/plugin marketplace update husdeli-skills` to pick
-up the changes. Bump `version` in `plugins/clean-architecture/.claude-plugin/plugin.json`
-when publishing a release.
+To test changes in Codex without publishing:
+
+```shell
+codex plugin marketplace add /path/to/this/repo
+codex plugin add clean-architecture@husdeli-skills
+```
+
+After a Claude Code edit, run `/plugin marketplace update husdeli-skills`.
+After a Codex edit, run `codex plugin add clean-architecture@husdeli-skills` and start a new session.
+Keep both plugin manifest versions equal when publishing a release.

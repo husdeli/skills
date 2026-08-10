@@ -47,7 +47,7 @@ Planner, reviewer, and coding each run inside a loop (revise, re-review, fix). R
 ### Overlap the stages that don't depend on each other
 Two spawns go out **early and concurrent**, so they run inside otherwise dead air:
 
-- **Planner scouts during the interview.** The interviewer and the user answering `AskUserQuestion` are minutes of waiting, and the planner would otherwise start cold on the same `.clean-architecture/prd.md`, `.clean-architecture/design.md`, `CLAUDE.md`, and feature-adjacent files. In **scout-only** mode it surveys the codebase, researches the best practice, emits the context pack, then waits — its web round-trips cost no wall-clock here. When the decisions land, `SendMessage` them and it plans warm.
+- **Planner scouts during the interview.** The interviewer and the user answering `AskUserQuestion` are minutes of waiting, and the planner would otherwise start cold on the same product docs, project instructions, and feature-adjacent files. In **scout-only** mode it surveys the codebase, researches the best practice, emits the context pack, then waits — its web round-trips cost no wall-clock here. When the decisions land, `SendMessage` them and it plans warm.
 - **Reviewer pre-reads during planning.** A reviewer must read the referenced files rather than review from the plan text, so start that read while the plan is still being written — **pre-read only** mode, spawned as soon as the scout's context pack exists.
 - **Coding self-checks, verify gates.** Coding runs a cheap targeted check on what it touched; the full concurrent gating run belongs to `verify` alone. Never ask coding to run the whole suite — that duplicates the slowest block on the path, sequentially.
 

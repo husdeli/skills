@@ -5,6 +5,27 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.27.0] - 2026-08-10
+
+### Added
+
+- **Codex plugin support.** The repository now includes a Codex marketplace manifest and a
+  `.codex-plugin/plugin.json` manifest. Codex can install the same plugin source as Claude Code.
+- **Codex command entry points.** The new `scaffold`, `explain`, `orchestrate`, and
+  `orchestrate-quick` skills provide Codex equivalents for the Claude Code slash commands.
+  The existing `prd` and `design-doc` skills provide the other two command equivalents.
+- **Codex subagent protocol.** Both orchestrators map the shared workflow to persistent Codex
+  planners, reviewers, and coding agents. Each verification run uses a fresh Codex agent.
+
+### Changed
+
+- **The workflow now reads both project instruction formats.** Agents read applicable
+  `AGENTS.md` and `CLAUDE.md` files, so each host keeps its native project conventions.
+- **The TanStack Start skill now has valid YAML frontmatter.** Quoting its description lets the
+  Codex plugin validator parse `Cache-Control: public` without changing the skill behavior.
+- **Every skill now follows the shared frontmatter schema.** The document skills no longer use
+  optional Claude-only argument hints, and every skill passes the Codex skill validator.
+
 ## [0.26.0] - 2026-08-09
 
 ### Added

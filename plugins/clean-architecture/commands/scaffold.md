@@ -29,7 +29,7 @@ Product name (if provided): $ARGUMENTS
 - **Substitute the product name** wherever the stubs show `<product>`, when `$ARGUMENTS`
   gave one. Otherwise leave `TBD`.
 - **Create the folder at the project root** — the directory holding `.git`, `package.json`,
-  or `CLAUDE.md`. Not the current working directory when that sits deeper.
+  `AGENTS.md`, or `CLAUDE.md`. Not the current working directory when that sits deeper.
 
 ## 1. Check what is already there
 

@@ -1,7 +1,6 @@
 ---
 name: ai-planning-workflow
 description: "Feedback-driven development workflow for implementing tickets and planning features. Use when: starting work on a ticket, creating a ticket, creating an implementation plan, planning a feature, building UI that needs design agreement, requesting feedback after completing a step, marking a ticket complete. Covers ticket creation guidelines, phased implementation with feedback checkpoints, design agreement for UI work, and iteration logging."
-argument-hint: "Optional: ticket ID or feature name to implement"
 ---
 
 # AI Planning Workflow
@@ -154,7 +153,7 @@ Mark as Completed?
 
 **Tickets live in `.clean-architecture/tickets/`**, one file per ticket, named
 `<ID>-<slug>.md` (e.g. `SW-001-user-login.md`). The roadmap that orders them is
-`.clean-architecture/roadmap.md`. Run `/scaffold` when the folder does not exist yet. A
+`.clean-architecture/roadmap.md`. Run the platform's scaffold entry point when the folder does not exist yet. A
 project that already keeps tickets elsewhere keeps them there — do not start a second home.
 
 **Tickets describe WHAT, not HOW:**

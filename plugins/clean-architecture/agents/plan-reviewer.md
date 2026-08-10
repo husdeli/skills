@@ -1,6 +1,6 @@
 ---
 name: plan-reviewer
-description: Reviews an implementation plan for correctness, completeness, and alignment with codebase conventions. Use after planning and before coding, or when the /orchestrate pipeline reaches its review stage. Returns APPROVED or CHANGES_REQUESTED — writes no code.
+description: Reviews an implementation plan for correctness, completeness, and alignment with codebase conventions. Use after planning and before coding, or when the orchestrator reaches its review stage. Returns APPROVED or CHANGES_REQUESTED — writes no code.
 tools: Read, Grep, Glob, Bash, Skill
 model: opus
 ---
@@ -39,7 +39,7 @@ Evaluate the plan against every item below. Read the referenced files to confirm
    - **Too low** — snippets, diffs, function signatures, type/schema definitions, or exact strings to paste. That is the coding agent's call, and pinning it in the plan bypasses the skills it must apply. **Minor** on its own, **major** when the dictated code would violate a plugin skill or a codebase convention.
    - **Too high** — a work item with no named files/modules, no approach to follow, or no observable "done when". If a competent engineer would have to guess the approach or come back with a question, it is under-specified: **major**.
 6. **Best-practice grounding** — Does the plan's approach reflect current practice for the libraries and versions this project pins, with sources cited? An approach contradicting the official docs for the pinned version, or relying on a deprecated API, is **major**. Unsourced best-practice claims that drive a real decision are **minor**.
-7. **Convention alignment** — Does the plan follow existing codebase patterns, naming, library choices, and `CLAUDE.md` rules?
+7. **Convention alignment** — Does the plan follow existing codebase patterns, naming, library choices, and applicable `AGENTS.md` and `CLAUDE.md` rules?
 8. **Plugin skill compliance** — Does the plan respect the plugin's mandatory skills, which the coding agent will be held to? Load them with the `Skill` tool when the plan touches the code they govern (names may be namespaced, e.g. `clean-architecture:ts-clean`) — invoke each once per session:
    - **`clean-fullstack-architecture`** for any production code — layer boundaries and dependency rules. Flag a planned service that isn't a static-method class, a service method returning a DTO, a DTO named outside `services/`/`adapters/` (especially in domain logic, a query hook, or a component), and API-response mapping planned anywhere but an adapter.
    - **`ts-clean`** for any `.ts`/`.tsx` file — flag a planned `await import()`/`require()` inside a function that isn't a listed exception, a `process.env` read outside a `.config.ts`, an unchecked required variable, or a defaulted secret.

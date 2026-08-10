@@ -1,0 +1,20 @@
+{
+  "name": "husdeli-skills",
+  "interface": {
+    "displayName": "husdeli skills"
+  },
+  "plugins": [
+    {
+      "name": "clean-architecture",
+      "source": {
+        "source": "local",
+        "path": "./plugins/clean-architecture"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}

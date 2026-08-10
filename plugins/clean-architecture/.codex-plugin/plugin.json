@@ -1,0 +1,39 @@
+{
+  "name": "clean-architecture",
+  "version": "0.27.0",
+  "description": "Clean fullstack architecture skills and feedback-driven development workflows.",
+  "author": {
+    "name": "husdeli",
+    "url": "https://github.com/husdeli"
+  },
+  "homepage": "https://github.com/husdeli/skills",
+  "repository": "https://github.com/husdeli/skills",
+  "keywords": [
+    "architecture",
+    "clean-code",
+    "hexagonal",
+    "typescript",
+    "react",
+    "tanstack-start",
+    "planning",
+    "workflow"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Clean Architecture",
+    "shortDescription": "Architecture rules and development workflows",
+    "longDescription": "Plan, review, implement, and verify changes with clean architecture rules for TypeScript, React, and TanStack Start.",
+    "developerName": "husdeli",
+    "category": "Developer Tools",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/husdeli/skills",
+    "defaultPrompt": [
+      "Plan and implement the next roadmap task.",
+      "Review this code against the architecture rules.",
+      "Create the clean architecture project documents."
+    ]
+  }
+}
