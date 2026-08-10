@@ -1,7 +1,6 @@
 ---
 name: prd
 description: "Create or update a product requirements document at .clean-architecture/prd.md. Use when: asked to write a PRD, draft or revise product requirements, document a new product or feature set, update an existing PRD, or maintain a living spec."
-argument-hint: "The product or feature to write or update a PRD for"
 ---
 
 # PRD Skill

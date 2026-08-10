@@ -1,7 +1,6 @@
 ---
 name: design-doc
 description: "Create a design doc at .clean-architecture/design.md that specifies how a product looks and behaves. Use when: asked to write a design doc, spec a screen/surface/flow, or document how the app is supposed to look and behave. A design doc defines the target state — not how to build it"
-argument-hint: "The screen, surface, or system to specify"
 ---
 
 # Design-doc skill

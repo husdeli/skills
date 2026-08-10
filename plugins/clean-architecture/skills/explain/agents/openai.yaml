@@ -1,0 +1,4 @@
+interface:
+  display_name: "Explain Cleanly"
+  short_description: "Explain code and changes in plain language"
+  default_prompt: "Use $explain to explain the current change in plain language."

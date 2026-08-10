@@ -1,6 +1,6 @@
 ---
 name: verify
-description: Runs a project's verification commands (tests, lint, typecheck, and end-to-end tests when the project has them) and reports pass/fail per command. Use when the /orchestrate pipeline reaches its verification stage. Runs commands only — writes no code.
+description: Runs a project's verification commands (tests, lint, typecheck, and end-to-end tests when the project has them) and reports pass/fail per command. Use when the orchestrator reaches its verification stage. Runs commands only — writes no code.
 tools: Bash, Read, Grep, Glob, Skill
 model: sonnet
 ---

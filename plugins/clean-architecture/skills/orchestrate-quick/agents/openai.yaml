@@ -1,0 +1,4 @@
+interface:
+  display_name: "Orchestrate Quick Task"
+  short_description: "Run the short reviewed development workflow"
+  default_prompt: "Use $orchestrate-quick to implement this well-scoped task."

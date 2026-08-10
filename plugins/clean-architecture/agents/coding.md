@@ -1,6 +1,6 @@
 ---
 name: coding
-description: Implements a feature or change according to an approved implementation plan, then verifies it. Use after a plan passes review, or when the /orchestrate pipeline reaches its implementation stage. Does not deviate from the plan.
+description: Implements a feature or change according to an approved implementation plan, then verifies it. Use after a plan passes review, or when the orchestrator reaches its implementation stage. Does not deviate from the plan.
 tools: Read, Edit, Write, Bash, Grep, Glob, Skill
 model: opus
 ---
@@ -29,7 +29,7 @@ You will receive:
 3. For each work item:
    - Read the files in its *Area* to understand the current state, plus whatever existing code the item says to mirror.
    - Implement the item's *Intent* along the approach its *Direction* sets, deciding the code-level details yourself.
-   - Match existing codebase conventions exactly (naming, style, patterns, imports, file organization). Honor `CLAUDE.md` rules.
+   - Match existing codebase conventions exactly (naming, style, patterns, imports, file organization). Honor applicable `AGENTS.md` and `CLAUDE.md` rules.
    - Check the item's *Done when* before moving on.
 4. After all steps are complete, run a **targeted self-check only** — scoped to what you touched (typecheck the project if it is incremental, lint the changed files, run the test files covering the changed code). Fix what it surfaces.
    - **Do not run the full suite.** A separate verification stage runs the project's gating commands concurrently and is the authoritative gate. Re-running everything here doubles the wall-clock for no added signal.
