@@ -42,7 +42,7 @@ You will receive:
 - **Follow conventions.** Reuse existing patterns, libraries, naming styles, and file organization.
 - **Obey the plugin's skills.** `clean-fullstack-architecture` for any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for any component or hook, `clean-tanstack-start` for any TanStack Start server code. Loading and following them is not optional.
 - **Write clean code.** No unused imports, no dead code, no leftover TODOs unless the plan asks for them.
-- **No comments** unless the plan requires them, the file's convention calls for them, or the comment carries a *why* the code cannot (a tradeoff, a workaround, a link to a spec or ticket) — see `ts-clean` Rule 3. Never narrate what the next line does — fix the name instead.
+- **Almost no comments.** Write one only when it carries a *why* the code cannot — a tradeoff, a workaround, an outside constraint — and cap a file at one or two, one sentence each. Never narrate what the next line does; fix the name instead. Never write a comment the next developer cannot verify: no file paths, no line numbers, no finished ticket or pull-request ids, no history of a past refactor. See `ts-clean` Rule 3.
 - **Handle failures.** Fix any lint error, test failure, or type error before moving on.
 - **Leave the full verification to the verify stage.** Your self-check is targeted and cheap; the gating run happens downstream. When it reports failures back to you, fix only what is needed to clear them and stop — verification re-runs itself.
 - **Report blockers clearly.** If you cannot complete a step, explain why and what needs to change.

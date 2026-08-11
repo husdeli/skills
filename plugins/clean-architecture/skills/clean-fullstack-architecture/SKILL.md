@@ -13,6 +13,7 @@ Enforces Clean Code principles and Hexagonal Architecture (Ports & Adapters) whe
 2. **Separation of Concerns**: Each layer has a single responsibility and a clear boundary.
 3. **Framework Independence**: Business logic must not import framework-specific code (React hooks, API clients, etc.).
 4. **Testability**: Every layer can be tested in isolation by mocking the layer it depends on.
+5. **Self-documenting code**: Names carry the meaning, so comments stay rare. Cap a file at one or two comments, one sentence each, and write one only for a *why* the code cannot state. Never write a comment the next developer cannot verify — no file paths, no line numbers, no finished tickets, no history of a past refactor. See `ts-clean` Rule 3.
 
 ## Project Structure
 
@@ -108,7 +109,7 @@ Pure functions and logic operating on models. Defines *what the app does* withou
 import type { Slide } from '@/models/presentation';
 
 export function reorderSlides(slides: Slide[], fromIndex: number, toIndex: number): Slide[] {
-  // Pure business logic - no API calls, no React
+  // ...
 }
 ```
 
@@ -131,7 +132,7 @@ interface SlideCardProps {
 }
 
 export function SlideCard({ title, thumbnail, isActive, onSelect }: SlideCardProps) {
-  // Pure presentation - all data comes through props
+  // ...
 }
 ```
 
@@ -165,7 +166,7 @@ Reusable React hooks for cross-cutting UI concerns (media queries, local storage
 ```typescript
 // hooks/useMediaQuery.ts
 export function useMediaQuery(query: string): boolean {
-  // Generic, reusable - no business logic
+  // ...
 }
 ```
 
@@ -331,7 +332,7 @@ import { SlideService } from '@/services/SlideService';
 import type { Slide } from '@/models/presentation';
 
 export function useSlideEditor(presentationId: string) {
-  // Wires together domain logic + services + React state
+  // ...
 }
 ```
 
@@ -439,6 +440,7 @@ Before writing or reviewing code, verify:
 - [ ] DTO types are imported only by `services/` and `adapters/` — never by `domain/`, `models/`, a hook, a container, or a component
 - [ ] `models/` and `domain/` name no DTO and carry no wire-shaped field (`snake_case` keys, `string` dates, API-internal names)
 - [ ] Every adapter is pure and synchronous, imports no HTTP client, and imports no service (a service → adapter → service cycle)
+- [ ] Each file carries at most one or two comments, each a single sentence stating a *why*, and none points at a file, a line, a finished ticket, or a past refactor
 
 ## React-Specific Architecture Guidelines
 

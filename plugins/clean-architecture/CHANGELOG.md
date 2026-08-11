@@ -5,6 +5,32 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.28.0] - 2026-08-11
+
+### Changed
+
+- **Comments are now capped, not just discouraged.** The old rule said "default to zero
+  comments" and then listed six kinds worth keeping, so generated code still arrived with a
+  comment above every second block — more prose than a developer can keep true as the code moves.
+  `ts-clean` Rule 3 now sets a hard budget: at most one or two comments in a file, one sentence
+  each, never more than two lines. A third comment is narration, and the fix is better names.
+
+- **A comment may no longer point at anything a reader cannot verify.** Three new entries on the
+  delete-on-sight list: the history of finished work (a closed ticket, a pull request, a commit,
+  a past refactor), pointers into the codebase (a file path, a line number, "see the other
+  service"), and the internals of another module. Files move, lines shift, and a ticket id means
+  nothing to whoever opens the file next year. A durable external source — a published spec
+  section or an upstream bug — still qualifies; an internal ticket id does not.
+
+- **Public API JSDoc is no longer a standing exception.** A summary block over a well-named
+  export repeats the name. Document an export only when correct use needs a constraint the types
+  cannot carry.
+
+- **The rule now reaches every code-writing path.** `clean-fullstack-architecture` carries it as
+  a core principle and a validation checkbox, and the `coding` agent states the cap directly
+  instead of deferring the whole question to `ts-clean`. Its own examples no longer narrate their
+  elided function bodies.
+
 ## [0.27.0] - 2026-08-10
 
 ### Added

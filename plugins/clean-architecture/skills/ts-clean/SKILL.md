@@ -1,6 +1,6 @@
 ---
 name: ts-clean
-description: Rules for writing clean TypeScript in any file. INVOKE THIS SKILL before writing or editing ANY `.ts`/`.tsx` file — a service, domain module, hook, utility, config, or React component. Enforces one module per file named after its primary export (index files stay re-export barrels), static top-of-file imports (no `await import()` / `require()` inside a function outside the listed code-splitting, SSR, and optional-dependency exceptions), self-documenting code over comments (keep only the *why*, spec or ticket links, non-local warnings, public API docs, and `TODO`s with a concrete referent), and configuration in `.config.ts` modules that are the only place `process.env` is read — required variables validated at load and throwing by name, optional ones given a typed default, secrets never defaulted. Framework-agnostic — for React files, load `react-clean` as well.
+description: Rules for writing clean TypeScript in any file. INVOKE THIS SKILL before writing or editing ANY `.ts`/`.tsx` file — a service, domain module, hook, utility, config, or React component. Enforces one module per file named after its primary export (index files stay re-export barrels), static top-of-file imports (no `await import()` / `require()` inside a function outside the listed code-splitting, SSR, and optional-dependency exceptions), self-documenting code over comments (at most one or two per file, one sentence each, keeping only a *why* that stays verifiable — never a file path, a line number, a finished ticket, or a past refactor), and configuration in `.config.ts` modules that are the only place `process.env` is read — required variables validated at load and throwing by name, optional ones given a typed default, secrets never defaulted. Framework-agnostic — for React files, load `react-clean` as well.
 ---
 
 # Clean TypeScript
@@ -67,9 +67,14 @@ clarity and buys nothing.
 ## Rule 3 — Let the code explain itself; comment only what code can't say
 
 **Default to zero comments.** A comment that restates the code is noise that rots the moment the
-code changes. When you want to explain a line, first make the line not need explaining: rename
+code changes. Someone else maintains every line you write, and a comment is a second thing they
+must keep true. When you want to explain a line, first make the line not need explaining: rename
 the variable, extract the expression into a named constant, or pull the block into a function
 whose name *is* the comment.
+
+**The budget is hard: at most one or two comments in a file, one sentence each, never more than
+two lines.** A comment that needs a paragraph is a design problem — fix the code instead. If you
+are about to add a third comment, you are narrating; delete them and improve the names.
 
 ```ts
 // ❌ Avoid — comments narrating what the code already says
@@ -99,23 +104,37 @@ export function getShippingCost(order: Order) {
   module needs internal chapters, split it (Rule 1).
 - Commented-out code. Git remembers it; the file shouldn't.
 - Changelog and attribution notes (`// added by ...`, `// updated 2026-01-14`, `// was: useState`).
-- Redundant JSDoc on a typed function — `@param id The id` adds nothing over `id: string`.
+- **History of work already done** — a finished ticket, a pull request, a commit, a migration, a
+  past refactor (`// added for CORE-1421`, `// part of the auth rewrite`, `// since we moved off
+  Redux`). The reader cannot check it and cannot maintain it. If the constraint still holds,
+  state the constraint; if it no longer holds, the comment is a lie.
+- **Pointers into the codebase** — a file path, a line number, a directory, or "see the other
+  service". Files move and lines shift, so the pointer is wrong within a month. Let the import
+  or the call site show the relationship.
+- **Internals of another module** — how a caller behaves, what a service does inside, what shape
+  a downstream function expects. That is the other module's job to state through its types.
+- JSDoc that a reader gets from the signature — `@param id The id` adds nothing over
+  `id: string`, and a summary block over a well-named export adds nothing over its name. Document
+  an export only when using it correctly needs a constraint the types don't carry.
 - Explanations of the language or framework itself (`// await resolves the promise`).
 
-**Keep — these carry information the code cannot:**
+**Keep — only these carry information the code cannot, and only when the reason is not obvious:**
 
-- **Why, not what** — a non-obvious tradeoff, workaround, or outside constraint:
+- **Why, not what** — a non-obvious tradeoff, workaround, or outside constraint that stays true
+  as the code around it changes:
   `// Safari fires resize before layout settles, so we read on the next frame`.
-- **Links to a source of truth** — a spec, ticket, or upstream bug:
-  `// See CORE-1421: the API returns cents, not dollars`.
 - **A required deviation from these rules**, such as the justification a dynamic import owes
   under Rule 2.
 - **A warning whose violation isn't visible locally**:
   `// Order matters — the provider must mount before the router`.
-- **Public API docs** on an exported, reused module: a short JSDoc summary of its purpose and any
-  non-obvious usage constraint — not a restatement of its parameter types.
-- **`TODO`/`FIXME` with a concrete referent** — an owner, ticket, or condition. A bare
-  `// TODO: fix this` is noise.
+- **A link to a durable external source** — a published spec section or an upstream bug — when
+  the code exists only because of it: `// Workaround for webkit.org/b/253266`. An internal
+  ticket, PR, or commit id is not durable and does not qualify.
+- **`TODO`/`FIXME` with an open referent** — an open ticket or a stated condition
+  (`// TODO: drop when the v2 endpoint ships`). A bare `// TODO: fix this` is noise.
+
+One sentence each. State the reason, not the mechanism, and never name a file, a line, or a past
+piece of work to make the point.
 
 **Prefer these over a comment, in order:** a better name (`qualifiesForFreeShipping` over
 `// check eligibility` above `const e`); a named constant (`FREE_SHIPPING_THRESHOLD` over
@@ -125,7 +144,9 @@ commented block); a type (`variant: 'compact' | 'full'` over a comment listing t
 
 When you do write a comment, put it above the code it explains, keep it to a sentence, and state
 the *reason*. If you can't finish the sentence without describing what the next line does, delete
-the comment and fix the name.
+the comment and fix the name. Ask one question before you keep it: **will the next developer be
+able to tell, a year from now, whether this is still true?** If not, it does not belong in the
+file.
 
 ## Rule 4 — Configuration lives in `.config.ts`; environment variables are validated where they're read
 
@@ -201,8 +222,10 @@ export function requireEnv(name: string): string {
       implementation inside an `index.ts` barrel.
 - [ ] All imports are static and at the top — any dynamic import is a Rule 2 exception, sits at
       module scope, and says why in a comment.
-- [ ] No comment restates the code, banners a section, or preserves dead code — every surviving
-      comment explains a *why* the code can't.
+- [ ] The file has at most one or two comments, one sentence each — none restates the code,
+      banners a section, or preserves dead code.
+- [ ] No comment names a file, a line, a past ticket, a pull request, or a finished migration —
+      every surviving comment states a *why* that a reader can still verify next year.
 - [ ] Configuration values live in a `.config.ts` module named after what they configure — no
       per-environment value or `process.env` read anywhere else.
 - [ ] Every required environment variable throws by name when missing; optional ones have an

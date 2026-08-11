@@ -50,7 +50,8 @@ Every agent falls back to the project root when a project already keeps these do
 - **ts-clean** — Framework-agnostic rules for any `.ts`/`.tsx` file: one module per file
   named after its primary export, static top-of-file imports (with the code-splitting /
   SSR / optional-dependency exceptions spelled out), self-documenting code over
-  comments, and configuration extracted into `.config.ts` modules that are the only place
+  comments (a hard cap of one or two per file, one sentence each, and never a pointer to a
+  file, a line, or a finished ticket), and configuration extracted into `.config.ts` modules that are the only place
   `process.env` is read — required variables throw by name when missing, optional ones get
   an explicit typed default, and secrets are never defaulted.
 - **react-clean** — The React layer on top of `ts-clean`: one component per file, at most
