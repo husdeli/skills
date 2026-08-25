@@ -1,20 +1,17 @@
 ---
 name: ts-clean
-description: Rules for writing clean TypeScript in any file. INVOKE THIS SKILL before writing or editing ANY `.ts`/`.tsx` file — a service, domain module, hook, utility, config, or React component. Enforces one module per file named after its primary export (index files stay re-export barrels), static top-of-file imports (no `await import()` / `require()` inside a function outside the listed code-splitting, SSR, and optional-dependency exceptions), self-documenting code over comments (at most one or two per file, one sentence each, keeping only a *why* that stays verifiable — never a file path, a line number, a finished ticket, or a past refactor), and configuration in `.config.ts` modules that are the only place `process.env` is read — required variables validated at load and throwing by name, optional ones given a typed default, secrets never defaulted. Framework-agnostic — for React files, load `react-clean` as well.
+description: Rules for writing clean TypeScript in any file. INVOKE THIS SKILL before writing or editing ANY `.ts`/`.tsx` file — a service, domain module, hook, utility, or config file. Enforces one module per file named after its primary export (index files stay re-export barrels), dot-suffixed names for the modules that carry an architecture role (`user.service.ts`, `user.repository.ts`, `user.dto.ts`) while plain modules keep plain names, static top-of-file imports (no `await import()` / `require()` inside a function outside the listed code-splitting, SSR, and optional-dependency exceptions), self-documenting code over comments (at most one or two per file, one sentence each, keeping only a *why* that stays verifiable — never a file path, a line number, a finished ticket, or a past refactor), and configuration in `.config.ts` modules that are the only place `process.env` is read — required variables validated at load and throwing by name, optional ones given a typed default, secrets never defaulted. Framework-agnostic.
 ---
 
 # Clean TypeScript
 
-Rules for **every** TypeScript file — service, domain module, utility, config, test, or React
-component. They govern how a module is shaped and how it reads, not any framework.
-
-For React components and hooks, these rules still apply — load the **`react-clean`** skill on
-top for the component-specific rules (effects, props, data access, composition).
+Rules for **every** TypeScript file — service, domain module, utility, config, or test. They
+govern how a module is shaped and how it reads, not any framework.
 
 ## Rule 1 — One module per file, named after what it exports
 
-- **One primary export per file**, and name the file after it: `UserService.ts` exports
-  `UserService`, `parseInvoice.ts` exports `parseInvoice`, `UserCard.tsx` exports `UserCard`.
+- **One primary export per file**, and name the file after it: `parseInvoice.ts` exports
+  `parseInvoice`, `UserCard.tsx` exports `UserCard`, `user.service.ts` exports `UserService`.
 - Additional exports are fine only when they are *part of the same thing* — the types,
   constants, or a tiny private helper that only this export uses. Once a second export grows
   its own logic, its own state, or a second consumer, move it to its own file.
@@ -22,6 +19,30 @@ top for the component-specific rules (effects, props, data access, composition).
   that defines behavior hides that behavior from the directory listing.
 - A file whose name doesn't tell you what's inside (`utils.ts`, `helpers.ts`, `misc.ts`) is a
   bag, not a module. Split it into named modules by responsibility.
+
+### Dot notation for the modules that carry an architecture role
+
+- **A module that fills a role the architecture names is called `<subject>.<role>.ts`** —
+  `user.service.ts`, `user.repository.ts`, `user.adapter.ts`, `user.dto.ts`, `user.model.ts`,
+  `stripe.config.ts`. The subject says what the module is about, the suffix says which layer it
+  belongs to.
+- The export keeps its own natural name; the file name just spells the same thing in two parts.
+  `user.service.ts` exports `UserService`, `user.repository.ts` exports `UserRepository`,
+  `user.dto.ts` exports the `User*Dto` types. Rule 1 holds unchanged.
+- **Not for everything.** A plain module keeps a plain name — `parseInvoice.ts`,
+  `formatCurrency.ts`, `useUser.ts`, `UserCard.tsx`. The suffix is for the kinds a reader has to
+  place in the architecture to understand the file, and a role exists only if the architecture
+  defines it.
+- **Never invent a role to earn a suffix.** `user.helpers.ts`, `user.utils.ts`, and
+  `user.manager.ts` are the bag from the bullet above with a dot in it. Split by responsibility
+  instead.
+- **One role per file.** A name that would need `.service.repository.ts` is describing two
+  modules. A framework may stack its own marker on top of the role — an environment or boundary
+  suffix such as `stripe.config.server.ts` — and that is a different axis, not a second role.
+
+Why: the suffix turns a directory listing into a layer map, keeps one resource's files together
+when sorted (`user.dto.ts`, `user.repository.ts`, `user.service.ts`), and gives tooling — lint
+rules, import boundaries, codegen — a glob to match a layer on.
 
 ## Rule 2 — Static imports at the top of the file
 
@@ -51,7 +72,7 @@ dependency — fix the cycle instead, by moving the shared piece into its own mo
 **The exceptions — a dynamic import is the right tool when:**
 
 - **Route- or module-level code splitting** for a heavy dependency most sessions never reach (a
-  rich-text editor, a chart or PDF library). In React: `const Editor = lazy(() => import('./Editor'))`.
+  rich-text editor, a chart or PDF library), loaded lazily at the split point.
 - **A heavy dependency on a rare path** — an export-to-XLSX helper behind a rarely clicked
   button — where the bundle savings are measurable.
 - **Environment-only modules** that must not load in the other environment: a browser-only
@@ -226,8 +247,9 @@ export function requireEnv(name: string): string {
       banners a section, or preserves dead code.
 - [ ] No comment names a file, a line, a past ticket, a pull request, or a finished migration —
       every surviving comment states a *why* that a reader can still verify next year.
+- [ ] Every module with an architecture role is named `<subject>.<role>.ts`, and no plain module
+      was given a role it doesn't have.
 - [ ] Configuration values live in a `.config.ts` module named after what they configure — no
       per-environment value or `process.env` read anywhere else.
 - [ ] Every required environment variable throws by name when missing; optional ones have an
       explicit typed default, coercion is validated, and no secret has a fallback.
-- [ ] For a React file, `react-clean` has been applied on top of this checklist.

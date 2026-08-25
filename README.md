@@ -48,7 +48,9 @@ Every agent falls back to the project root when a project already keeps these do
 - **ai-planning-workflow** — Feedback-driven ticket → plan → implement workflow with
   design-agreement and iteration-logging checkpoints.
 - **ts-clean** — Framework-agnostic rules for any `.ts`/`.tsx` file: one module per file
-  named after its primary export, static top-of-file imports (with the code-splitting /
+  named after its primary export, dot notation for the modules that carry an architecture
+  role (`user.service.ts`, `user.repository.ts`, `user.dto.ts`) while plain modules keep
+  plain names, static top-of-file imports (with the code-splitting /
   SSR / optional-dependency exceptions spelled out), self-documenting code over
   comments (a hard cap of one or two per file, one sentence each, and never a pointer to a
   file, a line, or a finished ticket), and configuration extracted into `.config.ts` modules that are the only place

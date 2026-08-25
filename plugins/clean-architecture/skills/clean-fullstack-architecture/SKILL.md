@@ -13,21 +13,22 @@ Enforces Clean Code principles and Hexagonal Architecture (Ports & Adapters) whe
 2. **Separation of Concerns**: Each layer has a single responsibility and a clear boundary.
 3. **Framework Independence**: Business logic must not import framework-specific code (React hooks, API clients, etc.).
 4. **Testability**: Every layer can be tested in isolation by mocking the layer it depends on.
-5. **Self-documenting code**: Names carry the meaning, so comments stay rare. Cap a file at one or two comments, one sentence each, and write one only for a *why* the code cannot state. Never write a comment the next developer cannot verify — no file paths, no line numbers, no finished tickets, no history of a past refactor. See `ts-clean` Rule 3.
+5. **Role-suffixed file names**: A module that fills a layer role is named `<subject>.<role>.ts` — `user.service.ts`, `user.adapter.ts`, `user.dto.ts`, `user.model.ts`. Domain logic, components, containers, hooks, and libs are named after what they do, not after a layer. See `ts-clean` Rule 1.
+6. **Self-documenting code**: Names carry the meaning, so comments stay rare. Cap a file at one or two comments, one sentence each, and write one only for a *why* the code cannot state. Never write a comment the next developer cannot verify — no file paths, no line numbers, no finished tickets, no history of a past refactor. See `ts-clean` Rule 3.
 
 ## Project Structure
 
 ```
 src/
-├── models/          # Innermost layer - pure DOMAIN models, never DTOs
+├── models/          # Innermost layer - pure DOMAIN models, never DTOs (*.model.ts)
 ├── domain/          # Business logic - depends only on models
 ├── components/      # Dumb UI components - no domain/data imports
 ├── containers/      # Smart components - compose hooks with dumb components
 ├── hooks/           # Top-level React hooks - no domain/data imports
 ├── libs/            # Independent library modules
-├── adapters/        # DTO -> domain model translation - the only layer that sees both
-├── services/        # Data layer - static-method classes; own their DTOs
-│   └── dto/         # Wire shapes - type-only leaf modules, zero project imports
+├── adapters/        # DTO -> domain model translation (*.adapter.ts) - the only layer that sees both
+├── services/        # Data layer - static-method classes (*.service.ts); own their DTOs
+│   └── dto/         # Wire shapes (*.dto.ts) - type-only leaf modules, zero project imports
 ├── features/        # Feature modules grouped by DOMAIN (compose all layers)
 │   ├── <domain>/               # single-surface domain — stays flat
 │   │   ├── domain/
@@ -84,7 +85,7 @@ These are **domain models** — shaped by the business, not by any external syst
 **Allowed dependencies:** None (zero imports from project layers)
 
 ```typescript
-// models/presentation.ts
+// models/presentation.model.ts
 export interface Slide {
   id: string;
   title: string;
@@ -106,7 +107,7 @@ Pure functions and logic operating on models. Defines *what the app does* withou
 
 ```typescript
 // domain/presentation-logic.ts
-import type { Slide } from '@/models/presentation';
+import type { Slide } from '@/models/presentation.model';
 
 export function reorderSlides(slides: Slide[], fromIndex: number, toIndex: number): Slide[] {
   // ...
@@ -189,8 +190,8 @@ The seam between the wire and the domain. An adapter is the **only** kind of mod
 and a domain model are named in the same file. It converts between them and does nothing else —
 no fetching, no caching, no business rules.
 
-- **One adapter per resource**, named after it: `userAdapter.ts` exports `userAdapter`
-  (`ts-clean` Rule 1).
+- **One adapter per resource**, named `<resource>.adapter.ts`: `user.adapter.ts` exports
+  `userAdapter` (`ts-clean` Rule 1).
 - `toDomain(dto)` maps inbound wire → model. Write-direction methods (`toCreateDto`,
   `toPatchDto`) map an outbound model or intent → wire.
 - **Adapters are pure and synchronous.** No `await`, no HTTP client, no reading ambient state —
@@ -208,8 +209,8 @@ no fetching, no caching, no business rules.
 client or I/O
 
 ```typescript
-// adapters/userAdapter.ts
-import type { User } from '@/models/user';
+// adapters/user.adapter.ts
+import type { User } from '@/models/user.model';
 import type { UserDto } from '@/services/dto/user.dto';
 
 export const userAdapter = {
@@ -241,7 +242,8 @@ services**.
 
 **A service is a class with static methods.**
 
-- One service class per file, named after it: `UserService.ts` exports `class UserService`.
+- One service class per file, named `<resource>.service.ts`: `user.service.ts` exports
+  `class UserService`.
 - **Every method is `static`.** The class is never instantiated and holds no instance state — it
   is a named namespace for one external resource, not an object graph. Internals (URL building,
   header assembly, retry wrapping) are `private static`.
@@ -274,9 +276,9 @@ export interface UserDto {
   deactivated_at: string | null;
 }
 
-// services/UserService.ts
-import type { User } from '@/models/user';
-import { userAdapter } from '@/adapters/userAdapter';
+// services/user.service.ts
+import type { User } from '@/models/user.model';
+import { userAdapter } from '@/adapters/user.adapter';
 import { apiClient } from '@/libs/apiClient';
 import type { UserDto } from './dto/user.dto';
 
@@ -328,8 +330,8 @@ Each subfolder is a self-contained feature composing all necessary layers. Featu
 ```typescript
 // features/slide-editor/hooks/useSlideEditor.ts
 import { reorderSlides } from '@/domain/presentation-logic';
-import { SlideService } from '@/services/SlideService';
-import type { Slide } from '@/models/presentation';
+import { SlideService } from '@/services/slide.service';
+import type { Slide } from '@/models/presentation.model';
 
 export function useSlideEditor(presentationId: string) {
   // ...
@@ -435,7 +437,8 @@ Before writing or reviewing code, verify:
 - [ ] `common/` does not import from its own sub-domains (invert via self-registration or wire at the domain root)
 - [ ] No `server/` module is imported from a component, container, or hook — client code reaches it through a service or a server function
 - [ ] All business logic lives in `domain/` or `features/<name>/domain/`, never in components or hooks
-- [ ] Every service is a class with only `static` methods, one class per file, file named after the class — no loose exported request functions, no instantiation
+- [ ] Every service is a class with only `static` methods, one class per file, the file named `<resource>.service.ts` — no loose exported request functions, no instantiation
+- [ ] Every service, adapter, DTO, and model file carries its role suffix (`*.service.ts`, `*.adapter.ts`, `*.dto.ts`, `*.model.ts`), and no domain, component, container, or hook file was given one
 - [ ] No public service method returns a DTO; every return is a domain model, a primitive, or `void`
 - [ ] DTO types are imported only by `services/` and `adapters/` — never by `domain/`, `models/`, a hook, a container, or a component
 - [ ] `models/` and `domain/` name no DTO and carry no wire-shaped field (`snake_case` keys, `string` dates, API-internal names)
@@ -512,13 +515,13 @@ transport, so it stays behind the service class rather than being called from a 
 **Canonical pattern:**
 
 ```typescript
-// services/orpcClient.ts — transport, not a service: it exposes no domain operation
+// services/orpcClient.ts — transport, not a service: no domain operation, so no .service.ts
 import { createORPCClient } from '@orpc/client';
 export const orpc = createORPCClient<AppRouter>({ baseURL: '/api' });
 
-// services/SlideService.ts — the only place the transport is touched
-import type { Slide } from '@/models/presentation';
-import { slideAdapter } from '@/adapters/slideAdapter';
+// services/slide.service.ts — the only place the transport is touched
+import type { Slide } from '@/models/presentation.model';
+import { slideAdapter } from '@/adapters/slide.adapter';
 import { orpc } from './orpcClient';
 import type { SlideDto } from './dto/slide.dto';
 
@@ -536,7 +539,7 @@ export class SlideService {
 
 // features/slides/hooks/useSlides.ts — custom query hook
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { SlideService } from '@/services/SlideService';
+import { SlideService } from '@/services/slide.service';
 
 export function useSlides(presentationId: string) {
   const queryClient = useQueryClient();

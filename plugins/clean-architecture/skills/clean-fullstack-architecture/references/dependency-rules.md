@@ -23,7 +23,7 @@ the business logic.
 import { api } from '@/services/api-client';
 
 // GOOD - domain is pure
-import type { Slide } from '@/models/presentation';
+import type { Slide } from '@/models/presentation.model';
 export function validateSlide(slide: Slide): ValidationResult { ... }
 ```
 
@@ -37,7 +37,7 @@ export function isActive(user: UserDto): boolean {
 }
 
 // GOOD - the adapter already resolved this into a domain concept
-import type { User } from '@/models/user';
+import type { User } from '@/models/user.model';
 export function canPromote(user: User): boolean {
   return user.isActive && user.tenureYears >= 1;
 }
@@ -69,7 +69,7 @@ export class UserService {
 
 ```typescript
 // BAD - the adapter fetches, so it is really a second service
-import { UserService } from '@/services/UserService';
+import { UserService } from '@/services/user.service';
 export const orderAdapter = {
   async toDomain(dto: OrderDto): Promise<Order> {
     const owner = await UserService.getById(dto.owner_id); // I/O + a service->adapter->service cycle
@@ -126,7 +126,7 @@ export function useDebounce<T>(value: T, delay: number): T { ... }
 import { useAuth } from '@/features/auth/hooks/useAuth';
 
 // GOOD - extract shared logic to top-level domain/services/hooks
-import { useAuth } from '@/hooks/useAuth'; // or @/services/auth
+import { useAuth } from '@/hooks/useAuth'; // or @/services/auth.service
 ```
 
 ## Edge Cases
@@ -167,7 +167,7 @@ not require constructing a full domain object first.
 
 ### Testing a static-method service
 
-Substitution is at the module level (`vi.mock('@/services/UserService')`), not by injecting an
+Substitution is at the module level (`vi.mock('@/services/user.service')`), not by injecting an
 instance. That means the adapter carries the logic worth unit-testing: it is pure, synchronous,
 and testable without any mocking at all. Test adapters directly, and mock services at their
 module boundary in hook and container tests.
@@ -246,11 +246,11 @@ containers, and components. Unpick it from the inside out:
 
 1. **Name the current shape as a DTO.** Move the response interface to
    `services/dto/<resource>.dto.ts` unchanged — no renaming yet. Everything still compiles.
-2. **Write the domain model** in `models/` the way the *domain* wants it: its own field names,
-   real `Date`s, unions instead of nullable flags. Decide this from the business, not from the
-   DTO.
-3. **Write the adapter** `toDomain(dto) => model`, and unit-test it — it is pure, so this is the
-   cheapest test in the migration.
+2. **Write the domain model** in `models/<resource>.model.ts` the way the *domain* wants it: its
+   own field names, real `Date`s, unions instead of nullable flags. Decide this from the
+   business, not from the DTO.
+3. **Write the adapter** in `adapters/<resource>.adapter.ts` — `toDomain(dto) => model` — and
+   unit-test it. It is pure, so this is the cheapest test in the migration.
 4. **Convert at the service boundary.** Change each public method's return type to the domain
    model and map through the adapter. Every consumer now fails to typecheck; that failure list is
    the exact scope of the change.

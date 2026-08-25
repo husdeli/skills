@@ -56,7 +56,7 @@ Each `use*` hook owns its single effect plus its cleanup. The component reads as
 Use the **service + TanStack Query** combination, optionally wrapped in a custom query hook:
 
 ```tsx
-// services/UserService.ts — the ONLY place that knows how to fetch
+// services/user.service.ts — the ONLY place that knows how to fetch
 export class UserService {
   static async getById(id: string): Promise<User> {
     const dto = await api.get<UserDto>(`/users/${id}`);

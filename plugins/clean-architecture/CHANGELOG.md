@@ -5,6 +5,41 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.29.0] - 2026-08-25
+
+### Added
+
+- **File names now carry the layer.** `ts-clean` Rule 1 gains dot notation for the modules that
+  fill a role the architecture names: `<subject>.<role>.ts` — `user.service.ts`,
+  `user.repository.ts`, `user.adapter.ts`, `user.dto.ts`, `user.model.ts`. The export keeps its
+  own name, so `user.service.ts` still exports `UserService`; what changes is that a directory
+  listing reads as a layer map, one resource's files sort together, and lint rules or codegen get
+  a glob to match a layer on. The rule is deliberately narrow: a plain module keeps a plain name
+  (`parseInvoice.ts`, `useUser.ts`, `UserCard.tsx`), an invented role (`user.utils.ts`,
+  `user.manager.ts`) is the `utils.ts` bag with a dot in it, and a name that would need
+  `.service.repository.ts` is two modules.
+
+- **`clean-fullstack-architecture` carries the same rule** as a core principle, annotates its
+  layer tree with the suffixes (`*.model.ts`, `*.adapter.ts`, `*.service.ts`, `*.dto.ts`), and
+  validates it: every service, adapter, DTO, and model file has its role suffix, and no domain,
+  component, container, or hook file was given one.
+
+### Changed
+
+- **`ts-clean` no longer mentions React.** The skill is framework-agnostic, but its text still
+  said "or React component", pointed at `react-clean`, and used `lazy(() => import('./Editor'))`
+  as its code-splitting example — so a reader on a Node or backend file was told about a
+  framework that was not in play. All three are gone. The `.ts`/`.tsx` scope is unchanged, and
+  `react-clean` still builds on `ts-clean` from its own side.
+
+- **Every service, adapter, and model example was renamed to the new convention** —
+  `services/UserService.ts` to `services/user.service.ts`, `adapters/userAdapter.ts` to
+  `adapters/user.adapter.ts`, `models/presentation.ts` to `models/presentation.model.ts` — across
+  `clean-fullstack-architecture`, its `dependency-rules.md` reference, and `react-clean`. Two
+  kinds keep their plain names on purpose, and the examples now say so: domain logic, hooks,
+  components, and containers, which are named after what they do, and a transport module that
+  exposes no domain operation (`services/orpcClient.ts`).
+
 ## [0.28.0] - 2026-08-11
 
 ### Changed
