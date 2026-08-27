@@ -5,6 +5,45 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.30.0] - 2026-08-27
+
+### Added
+
+- **`/code` — the direct implementation path.** The plugin had two ways to write code, and both
+  ran a pipeline: `/orchestrate` (interview → plan → review → implement → verify, five agents)
+  and `/orchestrate-quick` (plan → review → implement → verify, four). A fix or a small feature
+  paid for a planner and a reviewer it did not need. `/code` runs one agent — the same `coding`
+  agent the pipelines use — with no plan in front of it. The command stays thin on purpose: the
+  agent already loads `clean-fullstack-architecture`, `ts-clean`, `react-clean`, and
+  `clean-tanstack-start` from its own definition, so a spawn prompt that restated them would
+  re-pay that text on every spawn.
+
+  The command has one guard against becoming a worse orchestrator. When the request turns out to
+  carry open product or architecture decisions, or to span many files in an order that matters,
+  it names `/orchestrate` or `/orchestrate-quick` and stops instead of improvising a plan. Its
+  report also names every gating command that nobody ran, because no verify agent stands behind
+  it — the coding agent's targeted self-check is the only check.
+
+- **`$clean-architecture:code` for Codex** — `skills/code/`, the Codex entry point that reads the
+  same `commands/code.md` and the subagent protocol, plus its `agents/openai.yaml` interface.
+
+### Changed
+
+- **The `coding` agent no longer requires a plan.** Its input was an approved implementation plan,
+  and its first rule forbade deviating from one — so a request arriving without a plan left the
+  agent with nothing to obey. Its input is now a **work brief** in one of two shapes: an approved
+  plan from either orchestrator, or a request sent with no plan. With a plan, the direction is
+  settled and the old rule holds. With a request, the agent breaks the work into items, finds the
+  files, and chooses the approach itself, and the request's scope is the boundary it must not
+  cross. Acceptance criteria became optional in both shapes: when the brief carries none, the
+  agent derives them and reports what it assumed. One rule is new — when no verify stage follows,
+  the agent's targeted self-check is the only check, so it must name every gating command that
+  nobody ran. The skills, the conventions, the comment cap, and the `json` contract are
+  unchanged.
+
+- **The Codex subagent protocol covers `commands/code.md`** as well as the two orchestrate
+  commands, and maps `/code` to `$code`. Its `coding` task name already existed.
+
 ## [0.29.0] - 2026-08-25
 
 ### Added

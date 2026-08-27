@@ -90,7 +90,8 @@ Every agent falls back to the project root when a project already keeps these do
   follow — and no code for the coding agent to copy.
 - **plan-reviewer** — reviews a plan for correctness and convention alignment, and returns
   `APPROVED` or `CHANGES_REQUESTED`.
-- **coding** — implements an approved plan and runs a targeted self-check.
+- **coding** — implements a work brief and runs a targeted self-check. The brief is an approved
+  plan from either orchestrator, or a request `/code` sends with no plan at all.
 - **verify** — runs the project's gating commands (tests, lint, typecheck, e2e when there is
   one) concurrently and reports pass/fail per command. Writes no code.
 
@@ -103,6 +104,11 @@ Every agent falls back to the project root when a project already keeps these do
 - **/orchestrate-quick** — the short pipeline for a task that is already well understood:
   plan → one review → implement → verify, with no interview and no review gating. Takes a
   task description or a roadmap/ticket path.
+- **/code** — hands your request straight to the **coding** agent, which loads the coding skills
+  itself. One agent, no planner, no reviewer, no verify agent: it finds the files, writes the
+  change, runs a targeted self-check, and the command reports what it did and what nobody ran.
+  Use it for a fix or a small feature you already understand; it hands off to
+  `/orchestrate-quick` or `/orchestrate` when the request turns out to need a plan.
 - **/design** — loads the `design-doc` skill to create or update a design doc for a given
   screen, surface, or flow.
 - **/prd** — loads the `prd` skill to create or update a product requirements document for
@@ -118,6 +124,7 @@ Use these equivalents in a Codex prompt:
 | `/scaffold [product]` | `$clean-architecture:scaffold [product]` |
 | `/orchestrate [roadmap]` | `$clean-architecture:orchestrate [roadmap]` |
 | `/orchestrate-quick [task]` | `$clean-architecture:orchestrate-quick [task]` |
+| `/code [request]` | `$clean-architecture:code [request]` |
 | `/design [target]` | `$clean-architecture:design-doc [target]` |
 | `/prd [target]` | `$clean-architecture:prd [target]` |
 | `/explain [target]` | `$clean-architecture:explain [target]` |

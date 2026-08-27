@@ -1,0 +1,4 @@
+interface:
+  display_name: "Code Cleanly"
+  short_description: "Implement a change with the coding subagent"
+  default_prompt: "Use $code to implement this change with the clean architecture rules."

@@ -1,6 +1,6 @@
 # Codex Subagent Protocol
 
-Use this protocol with `commands/orchestrate.md` and `commands/orchestrate-quick.md`.
+Use this protocol with `commands/orchestrate.md`, `commands/orchestrate-quick.md`, and `commands/code.md`.
 The command file defines workflow behavior. This protocol replaces only Claude-specific tools and runtime terms.
 
 ## Contents
@@ -43,7 +43,7 @@ Apply these replacements while executing the shared command:
 | `WebSearch`, `WebFetch` | Use Codex web tools and cite the sources that the role requires. |
 | `opus`, `sonnet`, or another Claude model | Omit the model override and inherit the current Codex model. |
 | `CLAUDE.md` | Read applicable `AGENTS.md` files first. Also read `CLAUDE.md` when present. |
-| `/scaffold`, `/orchestrate`, `/orchestrate-quick` | Use `$scaffold`, `$orchestrate`, `$orchestrate-quick`. |
+| `/scaffold`, `/orchestrate`, `/orchestrate-quick`, `/code` | Use `$scaffold`, `$orchestrate`, `$orchestrate-quick`, `$code`. |
 | `/design`, `/prd`, `/explain` | Use `$design-doc`, `$prd`, `$explain`. |
 | `$ARGUMENTS` | Use the text that follows the Codex skill invocation. |
 
@@ -196,9 +196,10 @@ Do not change the shared plan-reviewer contract.
 
 ## 11. Handle missing collaboration tools
 
-The full and quick workflows require Codex collaboration tools.
+The full workflow, the quick workflow, and `$code` require Codex collaboration tools.
 If `spawn_agent`, `followup_task`, or `wait_agent` is unavailable, stop before changing task status.
 
 Tell the user that this Codex session does not provide subagents.
 Suggest starting the workflow in a Codex session with collaboration enabled.
 Do not silently replace the reviewed workflow with one main-agent pass.
+For `$code`, the coding subagent is the whole workflow, so the same rule applies.
