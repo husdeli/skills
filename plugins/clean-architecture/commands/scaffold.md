@@ -17,7 +17,13 @@ Product name (if provided): $ARGUMENTS
   roadmap.md          the ordered task list /orchestrate picks from
   tickets/
     TEMPLATE.md       copy this per task, named <ID>-<slug>.md
+    todo/             a ticket waits here until an orchestrator starts it
+    in-progress/      the ticket being built — in progress, blocked, or in review
+    done/             a completed ticket
 ```
+
+A ticket moves between the three folders as its status changes. The `ai-planning-workflow`
+skill holds the mapping and the move rules.
 
 ## Rules
 
@@ -30,6 +36,8 @@ Product name (if provided): $ARGUMENTS
   gave one. Otherwise leave `TBD`.
 - **Create the folder at the project root** — the directory holding `.git`, `package.json`,
   `AGENTS.md`, or `CLAUDE.md`. Not the current working directory when that sits deeper.
+- **Create all three status folders**, even though they start empty. Write a `.gitkeep` file
+  into each one, because git does not track an empty directory.
 
 ## 1. Check what is already there
 
@@ -44,6 +52,12 @@ move each into the folder with `git mv` (preserving history), or to leave it whe
 Moving a file is the user's call — never move one without an explicit yes. A file left in
 place still works: every agent falls back to the project root when the folder has no such
 document.
+
+A **flat tickets folder** needs the same explicit yes. That is a `tickets/` directory holding
+ticket files directly, with no `todo/`, `in-progress/`, or `done/` inside it. Offer to create
+the three folders and to `git mv` each ticket into the one its status field names, and report
+the count per folder afterwards. When the user says no, leave every file where it is: a flat
+folder still works, because every agent reads the status field inside the ticket.
 
 ## 2. Write the stubs
 
@@ -166,6 +180,8 @@ type hierarchy, spacing, motion, responsiveness, and the shared shell. Qualitati
 
 Status values: ⬜ **Pending** · 🚧 **In Progress** · ✅ **Completed** · 🚫 **Blocked**
 
+Tickets sit in `tickets/todo/`, `tickets/in-progress/`, or `tickets/done/`. Find one by name.
+
 | ID | Task | Status | Depends on |
 | --- | --- | --- | --- |
 | SW-001 | <task title> | ⬜ **Pending** | — |
@@ -180,7 +196,7 @@ Status values: ⬜ **Pending** · 🚧 **In Progress** · ✅ **Completed** · �
 
 - [ ] <An observable outcome someone can check.>
 
-**Ticket**: `tickets/SW-001-<slug>.md`
+**Ticket**: `SW-001-<slug>.md`
 ```
 
 **`.clean-architecture/tickets/TEMPLATE.md`**
@@ -189,6 +205,9 @@ Copy the `ai-planning-workflow` skill's ticket template verbatim from
 `skills/ai-planning-workflow/assets/ticket-template.md` in the plugin directory
 (`${CLAUDE_PLUGIN_ROOT}/skills/ai-planning-workflow/assets/ticket-template.md`). If that
 file is unreadable, write the template from the skill's documented ticket shape instead.
+
+The template stays at the top of `tickets/`, outside the three status folders. It is a
+template, not a ticket, so it never moves.
 
 ## 3. Report and hand off
 

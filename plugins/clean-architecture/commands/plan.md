@@ -11,7 +11,7 @@ Request: $ARGUMENTS
 
 This is the intake path. `/prd` writes the PRD, `/design` writes the design doc, and `/orchestrate` builds a task that is already on the roadmap — but nothing turned a request into those tasks, so the roadmap had to be filled by hand before any pipeline had something to pick. `/plan` is that missing step, and it stops exactly where `/orchestrate` starts.
 
-**Where the documents live.** This plugin keeps them in `.clean-architecture/`: `prd.md`, `design.md`, `roadmap.md`, and `tickets/<ID>-<slug>.md`. When a project has no such folder, fall back to whatever it already uses at the root.
+**Where the documents live.** This plugin keeps them in `.clean-architecture/`: `prd.md`, `design.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`, where `<status>` is `todo`, `in-progress`, or `done`. Every ticket this command writes starts in `todo/`, because no work has started on it. When a project has no such folder, fall back to whatever it already uses at the root, and when its tickets folder is flat, write the ticket straight into it.
 
 ## Architecture: you write, one agent researches
 
@@ -84,7 +84,7 @@ One gate, before you write any file:
 | --- | --- | --- | --- |
 | [ID] | [title] | [IDs or —] | [one line] |
 
-Tickets: one per row, in `.clean-architecture/tickets/`.
+Tickets: one per row, in `.clean-architecture/tickets/todo/`.
 
 Proceed? (yes / adjust / cancel)
 ```
@@ -110,16 +110,16 @@ and follow it. Do not restate its rules from memory.
 
 **Design doc** — only when the request changes what a surface looks like or how it behaves. Load the **`design-doc`** skill and follow it: the per-surface pattern (layout → content → states → responsive), the structural altitude, no tickets and no code references. Bump `Last updated`.
 
-**Roadmap** — append the approved rows to the table with status `⬜ **Pending**`, matching the file's existing style, and add one detail section per row: what the task delivers in two or three sentences, its acceptance criteria as checkboxes, and its ticket path. Bump `Last updated`. Never write any status other than pending — in-progress and completed belong to whoever builds the task.
+**Roadmap** — append the approved rows to the table with status `⬜ **Pending**`, matching the file's existing style, and add one detail section per row: what the task delivers in two or three sentences, its acceptance criteria as checkboxes, and its ticket file name. Cite the ticket by name (`SW-001-<slug>.md`), never by path — the file moves between the status folders as the work progresses. Bump `Last updated`. Never write any status other than pending — in-progress and completed belong to whoever builds the task.
 
-**Tickets** — copy `.clean-architecture/tickets/TEMPLATE.md` once per row, named `<ID>-<slug>.md`. When there is no template, use the ticket shape from the **`ai-planning-workflow`** skill. Load that skill's ticket guidelines and follow them:
+**Tickets** — copy `.clean-architecture/tickets/TEMPLATE.md` once per row into `.clean-architecture/tickets/todo/`, named `<ID>-<slug>.md`. When there is no template, use the ticket shape from the **`ai-planning-workflow`** skill. Load that skill's ticket guidelines and follow them, including where a ticket lives and when it moves:
 
 - **What, not how.** No file paths, no component or module names, no library names, no schema detail — those are the planner's job inside `/orchestrate`.
 - **The `Decisions` section is the one exception**, and the reason this command runs an interview: record each settled choice as a fixed constraint, one line with its rationale. A library chosen in the interview is named here, and nowhere else.
 - **Acceptance criteria are observable outcomes**, and they match the roadmap row.
-- **Status is `Not Started`**, `Created` is today.
+- **Status is `Not Started`**, so the file goes in `todo/`. `Created` is today.
 - Under `Related`, cite the PRD's area anchor code (e.g. `CONTENT`) and any sibling ticket. The link runs ticket → PRD, never back.
-- **Never overwrite an existing ticket file.** A name collision means the ID is wrong — fix the ID.
+- **Never overwrite an existing ticket file.** Check every status folder for the ID before you write, because a completed ticket sits in `done/`. A name collision means the ID is wrong — fix the ID.
 
 ### 6. Report
 
@@ -151,7 +151,7 @@ Do not run `/orchestrate` yourself. Name it and stop.
 - **Documents only.** No code, and no implementation plan — the planner inside `/orchestrate` decides how the work is done.
 - **Interview before you write.** Every request that reaches Stage 3 gets one; a request too small to interview was handed to `/code` in Stage 1.
 - **Never write a file before the user approves the breakdown.**
-- **Statuses stay at the start** — pending in the roadmap, `Not Started` in the ticket. This command never marks progress.
+- **Statuses stay at the start** — pending in the roadmap, `Not Started` in the ticket, and the ticket file in `todo/`. This command never marks progress, and never moves a ticket out of `todo/`.
 - **The link runs one way.** A ticket may cite a PRD area code; the PRD and the design doc never cite a ticket, an ID, or a roadmap row.
 - **Reuse the product's words** from the PRD for every domain term, in every document you touch — a second name for the same thing is how two documents start disagreeing.
 - **Never renumber or overwrite** an existing row, ID, or ticket.

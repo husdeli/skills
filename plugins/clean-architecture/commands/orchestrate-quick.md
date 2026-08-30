@@ -47,15 +47,15 @@ You are the only stage that talks to the person. **Load the `clean-writing` skil
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
-Documents live in `.clean-architecture/`: `prd.md`, `design.md`, `roadmap.md`, and `tickets/<ID>-*.md`. A bare path resolves against that folder first, then the project root.
+Documents live in `.clean-architecture/`: `prd.md`, `design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`, `in-progress`, or `done`. A bare path resolves against that folder first, then the project root. **Find a ticket by its ID, never by a stored path** — glob `.clean-architecture/tickets/*/<ID>-*.md` first, then `.clean-architecture/tickets/<ID>-*.md` for a project that still keeps its tickets flat.
 
 Never start a task whose dependencies are incomplete.
 
 Track the stages with the task/todo tools so the user sees live progress.
 
 ### 2. Mark In Progress
-Before spawning anything, set the status yourself with file edits — **both edits in one tool block**:
-- **Ticket file** (`.clean-architecture/tickets/<ID>-*.md`, or the project's own tickets directory) → status `In Progress`, matching the file's existing vocabulary/format.
+Before spawning anything, set the status yourself with file edits — **the edits in one tool block**:
+- **Ticket file** (found by ID, or the project's own tickets directory) → status `In Progress`, matching the file's existing vocabulary/format, and **`git mv` it into `.clean-architecture/tickets/in-progress/`**. Skip the move when that folder does not exist: the project keeps its tickets flat, and the status field alone carries the state there.
 - **Roadmap file** → the task's status cell/marker to the in-progress state (e.g. `🚧 **In Progress**`), matching the roadmap's style.
 
 Whichever of the two exists. With a bare task description and no files, skip this stage.
@@ -130,7 +130,7 @@ It ends with a `json` block carrying `passed`, per-command `results` (`passed`, 
 - `passed == false`, **already fixed once** → **`escalate`** (stage `verify`) with the failures. Leave the status `In Progress` and stop.
 
 ### 7. Mark Completed (only on success)
-Record it in **both** places yourself, with file edits — ticket status `Completed`, roadmap marker updated (e.g. `✅ **Completed**`), each matching its file's existing style. Never mark either place complete unless verification passed. Report only after both are updated.
+Record it in **both** places yourself, with file edits — ticket status `Completed` and the ticket file `git mv`-ed into `.clean-architecture/tickets/done/`, roadmap marker updated (e.g. `✅ **Completed**`), each matching its file's existing style. Skip the move in a project whose tickets folder is flat. Never mark either place complete unless verification passed. Report only after both are updated.
 
 ### 8. Report
 ```markdown
@@ -148,8 +148,8 @@ Omit the status line when there was no ticket or roadmap to mark.
 
 ## Failure Handling
 Fixed policy — apply it mechanically, do not improvise extra cycles:
-- **`escalate`** → a stage hit its cap (plan still rejected after 1 revision, coding blocker, verification still failing after 1 fix). Surface `stage` + `reason` + details; leave the status `In Progress`.
-- **`aborted`** → an agent returned no usable result (died, or no valid JSON block after one retry). Report and stop; leave the status `In Progress`.
+- **`escalate`** → a stage hit its cap (plan still rejected after 1 revision, coding blocker, verification still failing after 1 fix). Surface `stage` + `reason` + details; leave the status `In Progress` and the ticket file in `in-progress/`.
+- **`aborted`** → an agent returned no usable result (died, or no valid JSON block after one retry). Report and stop; leave the status `In Progress` and the ticket file in `in-progress/`.
 - Never mark a task complete unless verification passed.
 - If a stage escalates because the task turned out to need decisions this pipeline cannot make, say so and point at `/orchestrate` — do not improvise an interview here.
 
@@ -160,7 +160,7 @@ Fixed policy — apply it mechanically, do not improvise extra cycles:
 - **Concurrent calls go in one tool block**, or they are not concurrent.
 - **Never duplicate the gating run.** Coding self-checks; `verify` runs the full suite once per cycle, with the previously failing commands first on a re-verify.
 - **One revision, one fix.** Both caps are hard.
-- **Mark status yourself at both boundaries**, ticket and roadmap in sync.
+- **Mark status yourself at both boundaries**, ticket and roadmap in sync — and the ticket file moves into the folder its new status names, in the same stage that writes the status.
 - **Approval is required only when you picked the task from a roadmap.**
 - **Be explicit about failures** and propose next steps.
 - **Everything the user reads follows `clean-writing`** — approval prompts, assumed criteria, reports, escalations.

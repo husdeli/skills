@@ -5,6 +5,50 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.32.0] - 2026-08-30
+
+### Added
+
+- **Status folders for tickets.** Every ticket used to sit in one flat `tickets/` folder, and the
+  only way to see what was waiting, what was being built, and what had shipped was to open the
+  files or read the roadmap table. The tickets folder now holds three subfolders — `todo/`,
+  `in-progress/`, and `done/` — and a ticket moves between them as the work progresses. A
+  directory listing is now the board.
+
+  The folder never becomes a second source of truth. The `**Status**` field inside the ticket
+  stays the record, and the file moves in the same step that rewrites that field, so the two
+  cannot drift apart. Five status values map onto three folders: `Not Started` is `todo/`,
+  `Completed` is `done/`, and `In Progress`, `Blocked`, and `Review` all sit in `in-progress/`,
+  because all three mean the work has started and has not shipped. Moves use `git mv`, so a
+  ticket keeps its history.
+
+  Because a ticket's path now changes, nothing may store one. Every reader finds a ticket by its
+  ID instead — `tickets/*/<ID>-*.md` first, then `tickets/<ID>-*.md` — and the roadmap cites its
+  ticket by file name rather than by a path a later move would invalidate.
+
+  A project that already keeps its tickets in one flat folder keeps working unchanged. The
+  commands detect the flat layout, skip the move, and write the status field alone. `/scaffold`
+  offers to sort a flat folder into the three status folders with `git mv`, and asks first — like
+  every other move it offers.
+
+### Changed
+
+- **`/scaffold` creates the three status folders**, each with a `.gitkeep`, since git does not
+  track an empty directory. Its roadmap stub cites a ticket by file name, and names the three
+  folders so a reader knows where to look. The ticket template stays at the top of `tickets/`,
+  outside the status folders: it is a template, not a ticket, so it never moves.
+- **`/plan` writes every new ticket into `tickets/todo/`.** It already refused to set a status
+  past `Not Started`; it now also refuses to move a ticket out of `todo/`. Its collision check
+  reads every status folder before it writes, because a completed ticket sits in `done/`.
+- **`/orchestrate` and `/orchestrate-quick` move the ticket at both status boundaries.** Marking
+  In Progress moves it into `in-progress/`; marking Completed moves it into `done/`. An escalated
+  or aborted run leaves the ticket in `in-progress/`, matching the status it leaves behind. A
+  Decisions brief written when no ticket exists lands beside the ticket it serves, and moves with
+  it.
+- **The `ai-planning-workflow` skill holds the convention** — the folder layout, the status
+  mapping, the `git mv` rule, the lookup order, and the flat-folder fallback. The commands state
+  the operational rule and point there.
+
 ## [0.31.0] - 2026-08-30
 
 ### Added

@@ -22,6 +22,8 @@ A structured, feedback-driven methodology for implementing tickets and features 
 1. Read the ticket thoroughly — acceptance criteria, technical notes, related tickets
 2. Ask clarifying questions if anything is unclear — don't assume
 3. Confirm architectural decisions before starting
+4. Once the work starts, set the ticket's status to `In Progress` and move the file into
+   `in-progress/` — see [Where tickets live](#where-tickets-live)
 
 ---
 
@@ -145,16 +147,50 @@ Tests: [summary] | Files: [list]
 Mark as Completed?
 ```
 
-**Never mark a ticket Complete without explicit user approval.**
+**Never mark a ticket Complete without explicit user approval.** On approval, write the status
+into the ticket and move the file into `done/` in the same step — see
+[Where tickets live](#where-tickets-live).
 
 ---
 
 ## Ticket Creation Guidelines
 
-**Tickets live in `.clean-architecture/tickets/`**, one file per ticket, named
-`<ID>-<slug>.md` (e.g. `SW-001-user-login.md`). The roadmap that orders them is
-`.clean-architecture/roadmap.md`. Run the platform's scaffold entry point when the folder does not exist yet. A
-project that already keeps tickets elsewhere keeps them there — do not start a second home.
+### Where tickets live
+
+**Tickets live in `.clean-architecture/tickets/`, in one folder per status**, one file per
+ticket, named `<ID>-<slug>.md` (e.g. `SW-001-user-login.md`):
+
+```
+.clean-architecture/tickets/
+  TEMPLATE.md          copy this per ticket — the template itself never moves
+  todo/                SW-001-user-login.md
+  in-progress/         SW-002-session-timeout.md
+  done/                SW-003-password-reset.md
+```
+
+The folder is the board. The `**Status**` field inside the file is the record. The two never
+disagree, because the file moves in the same step that rewrites its status field. Five status
+values map onto three folders:
+
+| Status field | Folder |
+| --- | --- |
+| `Not Started` | `todo/` |
+| `In Progress`, `Blocked`, `Review` | `in-progress/` |
+| `Completed` | `done/` |
+
+**Move a ticket with `git mv`**, so the file keeps its history. Move it plainly in a project
+without git.
+
+**Find a ticket by its ID, never by a stored path** — the path changes as the work progresses.
+Glob `.clean-architecture/tickets/*/<ID>-*.md` first, then `.clean-architecture/tickets/<ID>-*.md`
+for a project that still keeps its tickets flat. Cite a ticket by file name, so that no later
+move invalidates the reference.
+
+**A flat `tickets/` folder stays flat.** Never build the status folders around tickets that are
+already in flight. Keep writing the status field in place, and name the platform's scaffold
+entry point as the way to migrate. Run that entry point when the tickets folder does not exist
+at all. The roadmap that orders the tickets is `.clean-architecture/roadmap.md`. A project that
+already keeps tickets elsewhere keeps them there — do not start a second home.
 
 **Tickets describe WHAT, not HOW:**
 

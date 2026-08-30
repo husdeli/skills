@@ -10,9 +10,12 @@ You are a workflow orchestrator. Pick the **next actionable item** from a roadma
 Roadmap file (if provided): $ARGUMENTS
 
 **Where the documents live.** This plugin keeps them in `.clean-architecture/`: `prd.md`,
-`design.md`, `roadmap.md`, and `tickets/<ID>-*.md`. When a project has no such folder, fall
-back to whatever it already uses at the root, and name `/scaffold` in your report as the way
-to create the structure.
+`design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`,
+`in-progress`, or `done`. **Find a ticket by its ID, never by a stored path** — it moves as its
+status changes. Glob `.clean-architecture/tickets/*/<ID>-*.md` first, then
+`.clean-architecture/tickets/<ID>-*.md` for a project that still keeps its tickets flat. When a
+project has no such folder, fall back to whatever it already uses at the root, and name
+`/scaffold` in your report as the way to create the structure.
 
 ## Architecture: interactive shell + persistent-agent core
 
@@ -97,9 +100,11 @@ Proceed with this task? (yes / pick another / cancel)
 Track stages with the task/todo tools so the user sees live progress.
 
 **Stage 0 — Mark In Progress (before spawning any agent).** As soon as the task is approved and *before* launching `feature-interviewer`:
-- In the **ticket file** (`.clean-architecture/tickets/<ID>-*.md`, or the project's own tickets directory), set the status field to `In Progress`, matching the file's existing vocabulary/format (e.g. `**Status**: In Progress`).
+- Find the **ticket file** by its ID — glob `.clean-architecture/tickets/*/<ID>-*.md`, then `.clean-architecture/tickets/<ID>-*.md`, then the project's own tickets directory.
+- Set its status field to `In Progress`, matching the file's existing vocabulary/format (e.g. `**Status**: In Progress`).
+- **Move the ticket to `.clean-architecture/tickets/in-progress/`** with `git mv`, in this same stage. Skip the move when that folder does not exist: the project keeps its tickets flat, and the status field alone carries the state there.
 - In the **roadmap file**, update the task's status cell/marker to the in-progress state (e.g. `🚧 **In Progress**`), matching the roadmap's style.
-- Do this yourself with file edits — do not delegate. Issue **both edits in a single tool block**. With no ticket file, update only the roadmap.
+- Do this yourself with file edits — do not delegate. Issue **the edits in a single tool block**. With no ticket file, update only the roadmap.
 
 **Stage 0.5 — Interview & Challenge (complexity-gated), with the planner scouting in parallel.**
 - **Skip the interview** when the task is trivially unambiguous — a small, well-specified change with no product/UX/architecture forks ("fix this off-by-one", "rename this field everywhere"). Note the skip in the report. Nothing to overlap: go to Stage 1 and spawn the planner in one-turn mode.
@@ -108,7 +113,7 @@ Track stages with the task/todo tools so the user sees live progress.
   - `clean-architecture:implementation-planner` (opus) in **scout-only** mode — see Stage 1. **Keep its id.**
 - **When the brief comes back**, settle it with the user while the scout runs or is parked:
   - **Put the decisions to the user yourself** with `AskUserQuestion` — a subagent cannot ask. Batch them (up to 4 per call), lead each with the interviewer's recommended option (labelled "(Recommended)"), and surface the brief's assumptions for confirmation. One call, not one per decision — every round trip is human latency on the critical path.
-  - Record the answers as a **Decisions** block appended to the ticket file (or `.clean-architecture/tickets/<slug>-brief.md` if there's no ticket), so the choices are durable.
+  - Record the answers as a **Decisions** block appended to the ticket file (or `.clean-architecture/tickets/in-progress/<slug>-brief.md` if there's no ticket), so the choices are durable. A brief lives beside the ticket it serves, and moves with it.
   - If the answers materially change scope, restate the revised task before planning.
 - Keep the Discovery Brief + Decisions handy for the already-running planner. If the interview was skipped, tell the planner to plan from the task description and acceptance criteria alone.
 
@@ -201,13 +206,13 @@ It ends with a `json` block carrying `passed`, per-command `results` (`passed`, 
 
 **Act on the result.** You have assembled one of:
 - **`completed`** → mark Completed (below). Keep `reviewRan`, `interviewRan`, the reviewer summary, and the implementation/verification details for the report.
-- **`escalate`** → **do not mark complete.** Surface the `stage`, `reason`, and any `issues`/`failures`/`blockers`; leave the ticket/roadmap `In Progress`; stop.
-- **`aborted`** → an agent returned nothing. Report it; leave status `In Progress`; stop.
+- **`escalate`** → **do not mark complete.** Surface the `stage`, `reason`, and any `issues`/`failures`/`blockers`; leave the ticket and the roadmap `In Progress`, and the ticket file in `in-progress/`; stop.
+- **`aborted`** → an agent returned nothing. Report it; leave the status `In Progress` and the ticket file in `in-progress/`; stop.
 
 **Mark Completed (only on success).** Record it in **both** places yourself, with file edits:
-- In the **ticket file**, set the status field to `Completed`, matching its existing vocabulary/format.
+- In the **ticket file**, set the status field to `Completed`, matching its existing vocabulary/format, then **move it to `.clean-architecture/tickets/done/`** with `git mv`. Move any brief you wrote with it. Skip the move in a project whose tickets folder is flat.
 - In the **roadmap file**, update the task's status cell/marker (e.g. `✅ **Completed**`), matching the roadmap's style.
-- Never mark either place complete unless verification passed — otherwise leave `In Progress` and escalate.
+- Never mark either place complete unless verification passed — otherwise leave the status `In Progress`, leave the file in `in-progress/`, and escalate.
 
 Report only after both are updated.
 
@@ -226,8 +231,8 @@ Report only after both are updated.
 
 ## Failure Handling
 A fixed retry/escalation policy — apply it mechanically, do not improvise extra cycles:
-- **`escalate`** → a stage hit its limit (plan still rejected after 1 revision, coding blocker, verification still failing after 1 fix cycle). Surface `stage` + `reason` + details. Leave status `In Progress`.
-- **`aborted`** → an agent returned no usable result (died, or no valid JSON block after one retry). Report and stop; leave status `In Progress`.
+- **`escalate`** → a stage hit its limit (plan still rejected after 1 revision, coding blocker, verification still failing after 1 fix cycle). Surface `stage` + `reason` + details. Leave the status `In Progress` and the ticket file in `in-progress/`.
+- **`aborted`** → an agent returned no usable result (died, or no valid JSON block after one retry). Report and stop; leave the status `In Progress` and the ticket file in `in-progress/`.
 - Never mark a task complete unless verification passed.
 
 ## Rules
@@ -236,7 +241,7 @@ A fixed retry/escalation policy — apply it mechanically, do not improvise extr
 - **Concurrent calls go in one tool block**, or they are not concurrent.
 - **Never duplicate the gating run.** Coding self-checks; `verify` runs the full suite once per cycle, with the previously failing commands on a re-verify.
 - **Keep prompts thin.** Durable agent behavior belongs in the agent definition — the spawn prompt is re-paid every time.
-- **Mark status yourself at both boundaries**, ticket and roadmap in sync.
+- **Mark status yourself at both boundaries**, ticket and roadmap in sync — and the ticket file moves into the folder its new status names, in the same stage that writes the status.
 - **Interview before planning** for any non-trivial feature; skip only via the complexity gate.
 - **Apply the gates mechanically.** The review-skip gate (≤2 files, no dep, no API, criteria auto-checkable), the high-risk test (new API/dep or >5 files), the single revision cap, and the single fix cap are fixed thresholds.
 - **Never proceed without approval** on the selected task, and never start a task whose dependencies are incomplete.

@@ -32,8 +32,16 @@ Every document the plugin reads or writes sits in one folder at your project roo
   roadmap.md          the ordered task list the orchestrator picks from
   tickets/
     TEMPLATE.md       copy per task, named <ID>-<slug>.md
-    SW-001-user-login.md
+    todo/             SW-001-user-login.md
+    in-progress/      SW-002-session-timeout.md
+    done/             SW-003-password-reset.md
 ```
+
+A ticket moves between the three status folders as the work progresses, and its `Status` field
+always names the folder it sits in. The commands move it for you: into `in-progress/` when an
+orchestrator starts the task, into `done/` when verification passes. A project that already
+keeps its tickets in one flat folder keeps working — `/scaffold` offers the migration, and
+never forces it.
 
 Run **`/scaffold`** in Claude Code or **`$clean-architecture:scaffold`** in Codex to create it.
 Every agent falls back to the project root when a project already keeps these documents there.
@@ -97,12 +105,15 @@ Every agent falls back to the project root when a project already keeps these do
 
 ### Commands and Codex skills
 - **/scaffold** — creates `.clean-architecture/` with stub files for the PRD, the design doc,
-  the roadmap, and a ticket template. Never overwrites an existing file, and offers to move a
-  root-level `prd.md`, `design.md`, or `tickets/` into the folder with `git mv`.
+  the roadmap, a ticket template, and the `todo/`, `in-progress/`, and `done/` ticket folders.
+  Never overwrites an existing file, and offers to move a root-level `prd.md`, `design.md`, or
+  `tickets/` into the folder with `git mv` — including sorting a flat tickets folder into the
+  three status folders.
 - **/plan** — turns a request into the documents the rest of the plugin reads: it interviews
   with the **feature-interviewer** agent, settles the open decisions with you, then updates the
-  PRD and the design doc, appends the roadmap tasks, and writes one ticket per task. It writes
-  no code and sets no status past pending — `/orchestrate` takes it from there.
+  PRD and the design doc, appends the roadmap tasks, and writes one ticket per task into
+  `tickets/todo/`. It writes no code and sets no status past pending — `/orchestrate` takes it
+  from there.
 - **/orchestrate** — picks the next actionable roadmap task and drives it through
   interview → plan → review → implement → verify using the five agents above.
 - **/orchestrate-quick** — the short pipeline for a task that is already well understood:
