@@ -5,6 +5,50 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.33.0] - 2026-08-30
+
+### Changed
+
+- **Codex and Claude Code no longer share a skills directory.** Every `SKILL.md` under a plugin's
+  `skills/` folder is visible to Claude Code — its manifest `skills` field only *adds* directories
+  to that scan, it cannot subtract one — so the six Codex entry points that wrap a Claude command
+  (`orchestrate`, `orchestrate-quick`, `code`, `plan`, `scaffold`, `explain`) sat in a Claude
+  session's skill index describing a runtime that was not running. Nothing but a name collision
+  with the same-named command kept them out of the way, and a collision is not a guarantee.
+
+  The six moved to a new `codex-skills/` folder, and `.codex-plugin/plugin.json` points its
+  `skills` field there. Claude Code scans `skills/`, which now holds the eight shared skills and
+  not one line of Codex instruction. The split is structural: a Claude session cannot reach a
+  Codex file, whatever the resolution order does.
+
+  Codex keeps every skill it had. `codex-skills/` also holds a short entry point for each shared
+  skill — `prd`, `design-doc`, `ai-planning-workflow`, `clean-writing`,
+  `clean-fullstack-architecture`, `ts-clean`, `react-clean`, and `clean-tanstack-start` — that
+  names when the skill applies and then reads the one real copy in `skills/`. The rules live in
+  exactly one file, as before.
+
+- **The orchestration skills no longer force a Codex protocol read.** `$orchestrate`,
+  `$orchestrate-quick`, `$code`, and `$plan` each opened by ordering the agent to read
+  `references/codex-subagents.md` completely, and then named that protocol a second source of
+  truth beside the shared command. The same `SKILL.md` files load in Claude Code, where the
+  protocol translates tools that are already correct — so every run paid for a document that
+  described another runtime, and the "protocol overrides Claude-only tool syntax" line invited
+  the agent to reach for `collaboration.spawn_agent` in a session that has the `Agent` tool.
+
+  The read is now conditional. Each skill says to run the workflow with the subagent, file, and
+  user-input tools of the current runtime, and adds one line: in a Codex session, also read the
+  protocol before creating a subagent. The shared command in `commands/` is the single source of
+  truth for stages, gates, and limits in both runtimes.
+
+  Codex behavior is unchanged. The protocol file stays where it is, keeps every rule, and is
+  still required reading there — a Codex session that skips it has no `Agent` tool to fall back
+  on.
+
+- **Two descriptions dropped a runtime from their text.** `$orchestrate` and `$orchestrate-quick`
+  described themselves as driving a task "with persistent Codex subagents" while also serving
+  Claude Code. Both now say "with persistent subagents". The `$name` and `/name` equivalence
+  stays, because that is the part a Codex user needs.
+
 ## [0.32.0] - 2026-08-30
 
 ### Added

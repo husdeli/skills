@@ -139,6 +139,9 @@ When a role definition says to load a skill, make the agent read the installed s
 The agent must read the complete file before taking the action that triggers it.
 The agent must follow any directly required references from that file.
 
+The rule files live in `skills/`, not in `codex-skills/`.
+`codex-skills/` holds the entry points a user invokes with `$`, and each one reads the shared file.
+
 Use these local names for the current plugin:
 
 - `clean-writing`

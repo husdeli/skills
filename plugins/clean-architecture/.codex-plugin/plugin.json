@@ -1,6 +1,6 @@
 {
   "name": "clean-architecture",
-  "version": "0.32.0",
+  "version": "0.33.0",
   "description": "Clean fullstack architecture skills and feedback-driven development workflows.",
   "author": {
     "name": "husdeli",
@@ -18,7 +18,7 @@
     "planning",
     "workflow"
   ],
-  "skills": "./skills/",
+  "skills": "./codex-skills/",
   "interface": {
     "displayName": "Clean Architecture",
     "shortDescription": "Architecture rules and development workflows",

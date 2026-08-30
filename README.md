@@ -145,6 +145,10 @@ Use these equivalents in a Codex prompt:
 | `/prd [target]` | `$clean-architecture:prd [target]` |
 | `/explain [target]` | `$clean-architecture:explain [target]` |
 
+Each Codex entry point lives in `codex-skills/`, and each one reads the shared source in
+`commands/` or `skills/`. Claude Code scans `skills/` only, so no Codex instruction reaches a
+Claude session.
+
 ## Repo layout
 
 ```
@@ -154,7 +158,8 @@ plugins/
   clean-architecture/
     .claude-plugin/plugin.json       # Claude Code plugin manifest
     .codex-plugin/plugin.json        # Codex plugin manifest
-    skills/                          # shared rules and Codex entry points
+    skills/                          # shared rules and document skills, read by both runtimes
+    codex-skills/                    # Codex entry points, never loaded by Claude Code
     agents/                          # agent definitions and Codex role contracts
     commands/                        # Claude commands and shared workflow sources
 ```

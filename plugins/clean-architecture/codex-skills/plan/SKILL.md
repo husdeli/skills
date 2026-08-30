@@ -11,13 +11,12 @@ Turn the request into product documents and work items with the shared plan comm
 
 1. Resolve `../../commands/plan.md` from this skill directory.
 2. Read the command file completely before you create a subagent or write a document.
-3. Read [the Codex subagent protocol](../orchestrate/references/codex-subagents.md) completely.
-4. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
-5. Create the feature interviewer as the protocol describes, and read every skill the command names — `clean-writing`, `prd`, `design-doc`, and `ai-planning-workflow` — from `<PLUGIN_ROOT>/skills/<name>/SKILL.md` before you write the document each one governs.
+3. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
+4. Create the feature interviewer with the subagent tool of the current runtime, and read every skill the command names — `clean-writing`, `prd`, `design-doc`, and `ai-planning-workflow` — from the plugin's `skills/<name>/SKILL.md` before you write the document each one governs.
 
-Treat the shared command as the source of truth for the stages, the approval gate, the document rules, and the report. Treat the Codex protocol as the source of truth for tool calls and runtime terms.
+Treat the shared command as the source of truth for the stages, the approval gate, the document rules, and the report.
 
-The Codex protocol overrides Claude-only tool syntax. It does not change what the command writes or when it stops.
+In a Codex session, also read [the Codex subagent protocol](../orchestrate/references/codex-subagents.md) before you create the interviewer. It names the Codex tool calls and runtime terms that stand in for the Claude ones. It changes nothing the command writes, and nothing about when it stops.
 
 ## Required breakdown approval
 
