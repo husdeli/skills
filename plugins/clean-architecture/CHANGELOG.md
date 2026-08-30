@@ -5,6 +5,43 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.31.0] - 2026-08-30
+
+### Added
+
+- **`/plan` — the intake command that fills the roadmap.** Every document this plugin reads had
+  a writer except the two that drive the work. `/prd` wrote the PRD, `/design` wrote the design
+  doc, `/scaffold` wrote a roadmap holding one placeholder row, and `/orchestrate` consumed a
+  roadmap somebody had to fill by hand. `/plan` closes that gap: it takes a request in plain
+  words and leaves behind an updated PRD, an updated design doc, ordered roadmap tasks, and one
+  ticket per task, ready for `/orchestrate` to pick up.
+
+  It runs an interview first. The `feature-interviewer` agent reads the product docs, explores
+  the codebase, and researches the topic on the web while the command reads the same documents
+  itself for the vocabulary, the affected surfaces, and the roadmap's ID scheme — both calls go
+  out in one tool block, so the research costs no wall-clock. The open decisions come back to
+  the user through `AskUserQuestion`, and the answers become the ticket's `Decisions` section,
+  which is the one place a chosen library may be named.
+
+  One approval gate stands in front of every file write: the command presents the PRD and design
+  sections it would touch and the roadmap rows it would add, and waits. After the yes, it writes
+  in dependency order — PRD, design doc, roadmap, tickets — so each document takes its vocabulary
+  from the one before it. Three rules keep the documents from drifting into each other: the link
+  runs one way (a ticket cites a PRD area code, never the reverse), tickets stay at what-not-how
+  because the planner inside `/orchestrate` decides the how, and every status this command writes
+  is a starting status — pending in the roadmap, `Not Started` in the ticket. A request that
+  needs no document at all is handed to `/code` before the interview ever runs.
+
+- **`$clean-architecture:plan` for Codex** — `skills/plan/`, the Codex entry point that reads the
+  same `commands/plan.md` and the subagent protocol, plus its `agents/openai.yaml` interface.
+
+### Changed
+
+- **The Codex subagent protocol covers `commands/plan.md`** as well as the two orchestrate
+  commands and `commands/code.md`. It maps `/plan` to `$plan`, states that invoking `$plan` is
+  not approval for the breakdown it proposes, and requires the session to stop rather than plan
+  from memory when no collaboration tools are available.
+
 ## [0.30.0] - 2026-08-27
 
 ### Added

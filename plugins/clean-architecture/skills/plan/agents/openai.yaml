@@ -1,0 +1,4 @@
+interface:
+  display_name: "Plan A Feature"
+  short_description: "Turn a request into product documents and tickets"
+  default_prompt: "Use $plan to turn this request into roadmap tasks and tickets."

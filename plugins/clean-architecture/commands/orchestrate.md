@@ -77,7 +77,7 @@ Drive one task through the entire pipeline. Do not batch tasks. When it is done,
 - Determine which are completed and which are pending.
 
 ### 2. Pick the Next Task
-Select a task that is **pending** and whose **dependencies are all satisfied**. If several qualify, pick the lowest ID or ask which to prioritize. Present it:
+Select a task that is **pending** and whose **dependencies are all satisfied**. If several qualify, pick the lowest ID or ask which to prioritize. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task. Present it:
 
 ```markdown
 ## Next Task

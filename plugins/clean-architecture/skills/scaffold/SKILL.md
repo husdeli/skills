@@ -22,4 +22,5 @@ In the final handoff, use these Codex skill names:
 
 - `$clean-architecture:prd`
 - `$clean-architecture:design-doc`
+- `$clean-architecture:plan`
 - `$clean-architecture:orchestrate`

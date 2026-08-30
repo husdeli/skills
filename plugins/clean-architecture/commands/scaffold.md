@@ -200,6 +200,8 @@ its old and new path. Then offer the next step, in this order:
 
 1. `/prd <product>` — fill the PRD first. Every later document takes its vocabulary from it.
 2. `/design <surface>` — specify the surfaces once the PRD names them.
-3. `/orchestrate .clean-architecture/roadmap.md` — start building once the roadmap has a task.
+3. `/plan <request>` — turn a request into roadmap tasks and tickets. The roadmap stub holds a
+   placeholder row, not a task.
+4. `/orchestrate .clean-architecture/roadmap.md` — start building once the roadmap has a task.
 
 Do not run these yourself. Name them and stop.
