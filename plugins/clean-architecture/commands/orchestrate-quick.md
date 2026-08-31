@@ -47,7 +47,7 @@ You are the only stage that talks to the person. **Load the `clean-writing` skil
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
-Documents live in `.clean-architecture/`: `prd.md`, `design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`, `in-progress`, or `done`. A bare path resolves against that folder first, then the project root. **Find a ticket by its ID, never by a stored path** — glob `.clean-architecture/tickets/*/<ID>-*.md` first, then `.clean-architecture/tickets/<ID>-*.md` for a project that still keeps its tickets flat.
+Documents live in `.clean-architecture/`: `prd.md`, one `<subject>.design.md` per design subject, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`, `in-progress`, or `done`. A bare path resolves against that folder first, then the project root. **Find a ticket by its ID, never by a stored path** — glob `.clean-architecture/tickets/*/<ID>-*.md` first, then `.clean-architecture/tickets/<ID>-*.md` for a project that still keeps its tickets flat.
 
 Never start a task whose dependencies are incomplete.
 

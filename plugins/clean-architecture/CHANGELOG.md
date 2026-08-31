@@ -5,6 +5,69 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.35.0] - 2026-08-31
+
+### Changed
+
+- **Design docs are one file per subject: `<subject>.design.md`.** A single `design.md` made
+  every design compete for one file. The doc grew until nobody read it whole, a change to one
+  subject touched the same file as every other, and the name said nothing about what was
+  inside.
+
+  A design doc now covers one subject and carries its name — `checkout.design.md`,
+  `event-ingestion.design.md`, `app-shell.design.md` — all beside `prd.md` in
+  `.clean-architecture/`. The name is the subject, never the document: not `design-billing.md`,
+  not `billing-design.md`. `overview.design.md` is the optional entry point that names the
+  parts of the whole solution and points at the rest. Docs cross-reference each other by file
+  name.
+
+  The `design-doc` skill's "when to split" guidance became "choosing the subject": splitting is
+  the convention now, not a judgment call at the end, so the skill says how to pick the subject
+  before the first line and names the three signs that a second doc has started — a section the
+  rest of the doc does not depend on, the same design restated for a second reader, and a
+  subject that needs "and" to say what it covers.
+
+  `/scaffold` writes `overview.design.md`, writes it only when the project has no design doc at
+  all, and offers to `git mv` a lone `design.md` onto the new name. `/design` lists
+  `*.design.md` before writing and updates the matching doc in place. `/plan` updates the docs
+  whose subjects the request touches. The interviewer, the planner, and the plan reviewer list
+  `*.design.md` and read the ones their task touches.
+
+  **A project on the old shape keeps working.** Every reader falls back to a single
+  `design.md`, in the folder or at the project root, and nothing renames it without an explicit
+  yes.
+
+## [0.34.0] - 2026-08-31
+
+### Changed
+
+- **The `design-doc` skill now specifies a solution, not a user interface.** Every part of the
+  skill assumed the subject was a screen: the per-surface pattern ran layout → content →
+  states → responsive, the altitude rule was written against hex values and font families, and
+  the states table asked for "Appearance". A design for a queue, a permission model, or an
+  integration had nowhere to go, so the skill either produced a UI doc for a non-UI subject or
+  was skipped.
+
+  The subject is now anything a team designs — a system, a service, a data flow, an
+  integration, a background job, a rule, or a screen — and the skill says outright that a user
+  interface is one case, not the default. The pattern generalizes to structure → behavior →
+  states → variation and limits, with **Behavior** as the new center: one unit of work followed
+  from where it enters to where it leaves, so a reader can trace a complete path through the
+  solution. The states table asks what happens rather than what it looks like, and names the
+  failures worth covering — invalid input, a missing permission, an unavailable dependency, a
+  duplicate. A table of common subjects shows what fills each section for a system, a flow, an
+  integration, a rule, and a screen.
+
+  The altitude rule generalizes with it. The test is no longer pixels: a decision belongs to
+  the part that owns it when it can change without a neighbor observing the difference. Naming
+  a technology or a number is allowed when that choice *is* the design decision and changes
+  observable behavior — a store that guarantees ordering, a retry budget of three attempts —
+  and stays qualitative when it is not.
+
+  `/design`, the `/scaffold` design stub, the `/plan` document stage, the Codex entry point,
+  and the three agents that read `design.md` follow the same wording. `/design` takes a system,
+  a service, a flow, an integration, or a screen as its target.
+
 ## [0.33.0] - 2026-08-30
 
 ### Changed

@@ -1,23 +1,44 @@
 ---
 name: design-doc
-description: "Create a design doc at .clean-architecture/design.md that specifies how a product looks and behaves. Use when: asked to write a design doc, spec a screen/surface/flow, or document how the app is supposed to look and behave. A design doc defines the target state — not how to build it"
+description: "Create a design doc at .clean-architecture/<subject>.design.md that specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when: asked to write a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen. A design doc defines the target state — not how to build it"
 ---
 
 # Design-doc skill
 
 Create a design doc following the structure and style below.
 
-**Where it lives.** Design docs sit in `.clean-architecture/`, with `design.md` as the
-single-doc default. A split design keeps every part in that same folder. Create the folder if
-it is missing. When the project already keeps a design doc at the root, update that file in
-place instead.
+**Where they live.** Design docs sit in `.clean-architecture/`, **one file per subject**, named
+`<subject>.design.md` — `checkout.design.md`, `event-ingestion.design.md`,
+`app-shell.design.md`. Create the folder if it is missing. There is no single `design.md`: a
+design doc covers one subject, and the file name is that subject.
 
-A design doc is a **specification of the intended end state**: the **high-level structure**
-of each page — its regions, hierarchy, and flow — how it is arranged, and how it responds.
-It is the shared reference designers and engineers agree on *before* a screen is built or
-changed.
+- **Name the subject, not the document.** `billing.design.md` — never `design-billing.md`,
+  `billing-design.md`, or `billing.design.doc.md`. Kebab-case, and singular where that reads
+  naturally.
+- **One subject per file.** A name that needs "and" in it describes two docs.
+- **`overview.design.md`** is the optional entry point. It names the parts of the whole
+  solution, says how they fit together, and points at the per-subject docs. Write it once a
+  project has more than a handful of them.
+- **Cross-reference by relative filename** — "see `app-shell.design.md`" — never by copying
+  the content across.
+- **Find the docs by listing** `.clean-architecture/*.design.md`, then read the ones the task
+  touches.
 
-Designers, engineers, and product people all read this doc and must read it the same way. Load
+**A project that already keeps a single design doc** — `.clean-architecture/design.md`, or
+`design.md` at the root — keeps working. Read it, and update that file in place. Split it into
+`<subject>.design.md` files only when the user asks for the split.
+
+A design doc is a **specification of the intended end state of one solution**: the **parts** it
+is built from, how those parts fit together, how work flows through it **end to end**, and how
+it **behaves** — including when something fails. It is the shared reference the team agrees on
+*before* the solution is built or changed.
+
+The subject can be anything a team designs: a whole system, one service, a data flow, an
+integration with an outside party, a background job, a permission model, a pricing rule, or a
+user-facing screen. **A user interface is one kind of subject, not the default one.** Pick the
+subject first, then apply the same pattern to it.
+
+Engineers, designers, and product people all read this doc and must read it the same way. Load
 the **`clean-writing`** skill on top of this one and follow it for every sentence — it sets the
 sentence length, the active voice, and the one-term-per-concept rule. This skill governs *what
 belongs in a design doc*; `clean-writing` governs *how each sentence reads*. Take every domain
@@ -25,141 +46,181 @@ term from `.clean-architecture/prd.md` rather than coining a new one for the sam
 
 ## Core rules
 
-1. **Define the target state — never a procedure.** A design doc says how the system *is
-   supposed to look and work*, in the present tense, as settled fact. It never explains *how
-   to build it*: no steps, no "first do X then Y", no implementation choices (component
-   names, file paths, libraries, code, API shapes, data schemas unless the schema *is* the
-   spec). If a sentence tells someone what to *do*, rewrite it as a statement of what *is*.
-2. **Stay at the structural altitude — not the pixel.** Specify page structure, regions and
-   their arrangement, visual hierarchy, navigation and flow between surfaces, and behavior.
-   Do **not** make fine-grained visual decisions — no specific colors or hex values, font
-   families or type scales, pixel sizes, exact spacing, border radii, or shadow values.
-   Where a visual quality matters, state it **qualitatively** ("a small, consistent
-   palette", "one accent color", "a clear three-level heading hierarchy", "generous
-   spacing"), and leave the concrete tokens to the design system. Rule of thumb: if a
-   decision could be captured in a theme file or style token, it is too low-level for this
-   doc.
+1. **Define the target state — never a procedure.** A design doc says how the solution *is
+   supposed to work*, in the present tense, as settled fact. It never explains *how to build
+   it*: no steps, no "first do X then Y", no migration order, no build tasks. If a sentence
+   tells someone what to *do*, rewrite it as a statement of what *is*.
+2. **Stay at the structural altitude — not the implementation detail.** Specify the parts and
+   what each one is responsible for, the boundaries between them, what crosses each boundary,
+   the path work takes through them, and the behavior at every step. Do **not** make
+   fine-grained decisions that a part can change on its own without anyone outside it
+   noticing — class, function, and file names, code, library calls, query text, framework
+   choices, config keys, and, for a screen, hex colors, font families, pixel sizes, spacing,
+   or radii. Rule of thumb: **if a decision could change without changing anything a
+   neighboring part observes, it is too low-level for this doc.**
+
+   Name a part by the **role it plays** (the **event queue**, the **rate limiter**, the
+   **project sidebar**). Name a concrete technology or a concrete number only when that
+   choice *is* the design decision and changes observable behavior — a store that guarantees
+   ordering, a retry budget of three attempts, a page size of 50. Where a quality matters but
+   the value does not, state it **qualitatively** ("a small, consistent palette", "retried
+   until it succeeds or the deadline passes").
 3. **No changelog. Ever.** The doc describes the current intended design, not its history.
    No "Changelog", "History", or "Revisions" section, and no annotations for when or why a
    section changed. Version history lives in git. When you revise a design doc, edit the
    affected sections in place and update the `Last updated` date — leave no trace of the
    prior state in the prose.
-4. **Split by concern; cross-reference to isolate logic.** Keep one coherent surface or
-   family of surfaces per document. When a slice of the design is self-contained and reused
-   — a shared app shell, a family of editors, an onboarding flow — give it its own design
-   doc and reference it rather than inlining and duplicating it. Cross-reference by named
-   section (`§3.5`) within a doc and by relative filename between design docs. **Reference
+4. **One subject per document; cross-reference to isolate logic.** Every design doc covers
+   one subject and carries its name — a shared app shell, an authentication model, an
+   ingestion pipeline, an onboarding flow. When the design needs a second subject, write a
+   second `<subject>.design.md` and reference it, rather than inlining and duplicating it.
+   Cross-reference by named section (`§3.5`) within a doc and by relative filename between
+   design docs. **Reference
    only other design docs and the PRD** — and the PRD only when `prd.md` (or an equivalent)
-   actually exists in the project; otherwise omit it. Never link to implementation or
-   technical docs (data models, renderer contracts, deployment, API specs). How it is built
-   is out of scope.
+   actually exists in the project; otherwise omit it. Never link to build or operations docs
+   (deployment runbooks, setup guides, generated API references).
 5. **No tickets, no code references.** The doc stands on its own and stays true as the work
    and the codebase move. Never cite a ticket, issue, PR, roadmap item, or milestone
    (`JIRA-1234`, "per the linked issue", "shipping in phase 2"), and never point at the
-   implementation — file paths, directories, component or function names, routes, props, CSS
-   classes, config keys, or code snippets. Name surfaces and elements by what the user sees
-   them as (the **project sidebar**, the **share dialog**), not by what they are called in
-   the source. If a fact only makes sense by pointing at a ticket or a file, it is not a
-   design fact — drop it or restate it as an observable property of the surface.
+   implementation — file paths, directories, class or function names, routes, props, CSS
+   classes, config keys, or code snippets. Name every part by what it *is* in the solution,
+   not by what it is called in the source. If a fact only makes sense by pointing at a ticket
+   or a file, it is not a design fact — drop it or restate it as an observable property of
+   the solution.
 
 ## Document shape
 
+The file is `<subject>.design.md`, and the title names the same subject.
+
 ```
-# <Doc title> — <what it specifies>
+# <Subject> — design
 
 **Status**: Living document
 **Last updated**: <YYYY-MM-DD>
-**Related**: `prd.md` (product requirements) — only if a PRD exists; plus any other design docs
+**Related**: `prd.md` (product requirements) — only if a PRD exists; plus each
+`<other-subject>.design.md` this design touches
 
 <Opening paragraph: what this doc covers and what it does not — the WHAT, not the HOW.
 If a PRD exists, state how this doc relates to it (PRD says what the product does;
-design says how it presents / behaves).>
+design says how the solution works).>
 
 ---
 
 ## 1. Foundations
 
-Cross-cutting design intent applying to every surface unless a later section overrides it
-(color, type, spacing, motion, responsiveness, shared shell/layout). State each as a short
-declarative bullet, **qualitatively** — the *character* of the palette, type hierarchy, and
-spacing, never concrete hex values, font names, or pixel sizes (those live in the design
-system, per rule 2).
+Cross-cutting design intent applying to every part unless a later section overrides it: the
+principles the design holds to, the constraints it works within, the vocabulary it uses, and
+the qualities every part shares (consistency, failure handling, security posture, and — for
+a user interface — the character of the layout, type hierarchy, spacing, and motion). State
+each as a short declarative bullet, **qualitatively**, per rule 2.
 
 ---
 
-## 2. <First surface / screen>
+## 2. <First part, surface, or flow>
 
-<One or two sentences naming the surface and its role.>
+<One or two sentences naming it and its role in the solution.>
 
-### 2.1 Layout
-### 2.2 Content
+### 2.1 Structure
+### 2.2 Behavior
 ### 2.3 States
-### 2.4 Responsive
+### 2.4 Variation and limits
 
-## 3. <Next surface>
+## 3. <Next part>
 …
 
-## N. Other screens (planned)
+## N. Other parts (planned)
 
-A stub list of surfaces not yet specified, to be filled in following the same
-layout → content → states → responsive pattern.
+A stub list of parts of this subject not yet specified, to be filled in following the same
+structure → behavior → states → variation pattern. A part that turns out to be a subject of
+its own leaves this list and becomes `<subject>.design.md`.
 ```
 
-### The per-surface pattern
+### The per-subject pattern
 
-Specify each screen/surface in this order (§2.x above). Not every surface needs all four,
-but keep the order:
+Specify each part, surface, or flow in this order (§2.x above). Not every subject needs all
+four, but keep the order:
 
-- **Layout** — how the surface is arranged: regions, columns, what sits where. Use an
+- **Structure** — what the subject is built from and how it is arranged: the components and
+  the boundaries between them, the stages of a flow, or the regions of a screen. Use an
   **ASCII diagram** for any non-trivial arrangement.
-- **Content** — what each region holds: the elements, labels, and copy examples, top to
-  bottom.
-- **States** — a **table** of the meaningful states and how each looks. Columns:
-  `State | Appearance`. Cover at least: loading, empty, signed-out/permission-gated,
-  populated, and error/edge where relevant.
-- **Responsive** — how the layout adapts across wide / medium / small widths (what reflows,
-  stacks, collapses, or hides).
+- **Behavior** — how it actually works, end to end. Follow one unit of work from where it
+  enters to where it leaves: what triggers it, what each part decides, what it hands on, and
+  what the caller gets back. Name what each boundary carries. A reader must be able to trace
+  a complete path through the subject from this section alone.
+- **States** — a **table** of the meaningful states or outcomes and what each one means.
+  Columns: `State | What happens`. Cover the normal case plus the ones that are easy to
+  forget: empty, not yet authorized, invalid input, a dependency that is slow or unavailable,
+  a retry or a duplicate, a conflict, and — for a screen — loading, empty, gated, populated,
+  and error.
+- **Variation and limits** — how the subject changes under different conditions (role or
+  permission, configuration, tenant, region, volume, or screen width for a user interface),
+  and the boundaries it holds within (capacity, timeouts, retry budgets, ordering and
+  consistency guarantees). State a number only when it is a design decision, per rule 2.
+
+### Common subjects
+
+The pattern is the same for every subject; only what fills each section changes.
+
+| Subject | Structure | Behavior | States | Variation and limits |
+| --- | --- | --- | --- | --- |
+| System or service | Components and their boundaries | The path of one request | Success, rejection, dependency failure | Load, configuration, guarantees |
+| Flow or pipeline | Stages and what connects them | What each stage does to one item | Skipped, retried, dead-lettered | Volume, ordering, backlog |
+| Integration | The two sides and the contract between them | One exchange, both directions | Accepted, rejected, timed out, replayed | Rate limits, versioning |
+| Rule or model | The entities and their relations | How a decision is reached | Allowed, denied, undefined | Role, tenant, edge cases |
+| Screen or surface | Regions and their arrangement | What the user does and what answers | Loading, empty, gated, populated, error | Screen width, permission |
 
 ## Style rules
 
-- **Present tense, declarative.** "The hero is a two-column split." Not "we will build", not
-  "you should add", not "to create the hero…".
+- **Present tense, declarative.** "Each upload enters the queue once." Not "we will build",
+  not "you should add", not "to create the queue…".
 - **Bold a term where it is defined**, then reuse it plainly. Bold the load-bearing nouns
-  (**sidebar**, **backlink**, **default project**) so the structure is scannable.
-- **ASCII diagrams** for layout — box-drawing characters, labeled regions, and a one-line
-  caption underneath explaining any non-obvious relationship.
-- **Tables for states and for matrices** (e.g. auth-dependent chrome). Prose for everything
-  with nuance.
+  (**event queue**, **default project**, **sidebar**) so the structure is scannable.
+- **ASCII diagrams** for anything with shape — boxes and arrows for parts and flows, labeled
+  regions for a screen layout — with a one-line caption underneath explaining any non-obvious
+  relationship.
+- **Tables for states and for matrices** (e.g. permission-dependent behavior). Prose for
+  everything with nuance.
 - **Cross-reference generously** with `§` section numbers so a rule stated once is pointed
   to, never restated. Between docs, link by relative filename.
-- **Copy examples in parentheses or quotes** ("Start free", "No credit card required") to
-  make intent concrete without prescribing final wording.
-- **Name behavior, not mechanism.** "Rotation pauses while the pointer rests on the card" —
-  not which event handler or state hook does it.
+- **Concrete examples in parentheses or quotes** — a sample value, a sample message, a sample
+  label ("Start free") — to make intent concrete without prescribing the final form.
+- **Name behavior, not mechanism.** "A second submission of the same order changes nothing" —
+  not which lock, index, or state hook enforces it.
 - Keep prose tight. Every sentence adds a fact about the design.
 
-## When to split into a new doc
+## Choosing the subject of a doc
 
-Give a slice of the design its own document (and cross-reference it) when it is:
+The subject decides the file name, so choose it before you write a line. A good subject is:
 
-- **Self-contained** — a coherent surface or family describable on its own (the app shell,
-  the landing page, the editor family, an onboarding flow).
-- **Reused across surfaces** — a shared layout or pattern that would otherwise be duplicated
-  and drift.
-- **Large enough to stand alone** — a surface whose full spec would swamp the parent.
+- **Self-contained** — describable on its own (an authentication model, an ingestion
+  pipeline, the app shell, an onboarding flow).
+- **Reused across parts** — a shared contract, layout, or pattern that would otherwise be
+  duplicated in several docs and drift.
+- **Whole** — big enough that the four sections have something to say, small enough that one
+  reader holds it in their head.
 
-The split doc stays a **design doc** — appearance and behavior only — and the parent
-references it by name (e.g. "see `app-shell.md`") instead of repeating it. Each split doc
-carries the same header block (Status / Last updated / Related) and links back through
-`Related`. Never spin off (or link to) an implementation doc.
+Start a second doc — `<other-subject>.design.md` — as soon as one of these appears:
+
+- A section describes something the rest of the doc does not depend on.
+- The same design is being restated for a second reader or a second part.
+- The doc needs "and" to say what it covers.
+
+Every doc carries the same header block (Status / Last updated / Related), links to its
+siblings through `Related`, and stays a **design doc** — structure and behavior only. The doc
+that references another names it by file (e.g. "see `event-ingestion.design.md`") instead of
+repeating it. Never spin off (or link to) a build or operations doc.
 
 ## After drafting
 
 Check the draft against the core rules, then confirm with the user:
-1. Does any sentence describe *how to build* rather than *how it looks/works*? Rewrite it.
-2. Does any line make a pixel-level call (a hex color, a font, an exact size/spacing)?
-   Raise the altitude to qualitative intent, or drop it.
-3. Does any line cite a ticket/issue/PR or point at the code (a path, component name, route,
-   prop)? Remove it, or restate it as what the user sees.
-4. Is any part self-contained enough to be its own cross-referenced doc?
-5. Are the states complete (loading, empty, gated, populated, error)?
+1. Does any sentence describe *how to build* rather than *how it works*? Rewrite it.
+2. Can a reader trace one complete path through the solution, from what starts it to what
+   comes out? If not, the Behavior section is incomplete.
+3. Does any line make a call a single part could change on its own — a name in the source, a
+   library, a query, a hex color, a font, an exact size? Raise the altitude, or drop it.
+4. Does any line cite a ticket/issue/PR or point at the code (a path, class name, route,
+   prop)? Remove it, or restate it as an observable property.
+5. Is any part self-contained enough to be its own `<subject>.design.md`, cross-referenced
+   from here?
+6. Are the states complete, including the failures — invalid input, a missing permission, an
+   unavailable dependency, a duplicate?

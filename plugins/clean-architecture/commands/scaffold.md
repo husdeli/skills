@@ -13,7 +13,8 @@ Product name (if provided): $ARGUMENTS
 ```
 .clean-architecture/
   prd.md              product requirements — what the product does and why
-  design.md           design doc — how each surface looks and behaves
+  overview.design.md  design doc — how the solution works, end to end. One file per
+                      subject, named <subject>.design.md; this is the entry point
   roadmap.md          the ordered task list /orchestrate picks from
   tickets/
     TEMPLATE.md       copy this per task, named <ID>-<slug>.md
@@ -29,6 +30,9 @@ skill holds the mapping and the move rules.
 
 - **Never overwrite.** Create a file only when it does not exist. Report each existing file
   as kept, and leave its contents alone.
+- **One design stub, at most.** Write `overview.design.md` only when the project has no design
+  doc at all — no `*.design.md` file, and no single `design.md` in the folder or at the root.
+  Report the one it already has as kept.
 - **Write stubs, not content.** Each stub carries only the headings and the placeholder
   lines below. Do not invent product requirements, surfaces, or tasks — the person fills
   them in, or `/prd` and `/design` do.
@@ -46,12 +50,20 @@ Look for documents this plugin would otherwise create twice:
 - `.clean-architecture/` itself — if it exists, you are filling gaps, not scaffolding.
 - Root-level `prd.md`, `PRD.md`, `design.md`, `DESIGN.md`, `roadmap.md`, `ROADMAP.md`.
 - A root-level `tickets/` directory.
+- A design doc under either name: `*.design.md` files, or a single `design.md`.
 
 If any of these exist outside `.clean-architecture/`, **ask before touching them**: offer to
 move each into the folder with `git mv` (preserving history), or to leave it where it is.
 Moving a file is the user's call — never move one without an explicit yes. A file left in
 place still works: every agent falls back to the project root when the folder has no such
 document.
+
+A **single `design.md`** needs the same explicit yes. Design docs are one file per subject,
+named `<subject>.design.md`, so a lone `design.md` is the older shape. Offer to `git mv` it to
+`.clean-architecture/overview.design.md` and say the rename is only a rename — no content
+moves, and splitting it by subject is a later job for `/design`. When the user says no, leave
+it: every agent reads a single `design.md` as a fallback. Skip the offer when the project
+already has `*.design.md` files.
 
 A **flat tickets folder** needs the same explicit yes. That is a `tickets/` directory holding
 ticket files directly, with no `todo/`, `in-progress/`, or `done/` inside it. Offer to create
@@ -118,7 +130,8 @@ One stable uppercase anchor code per area, in the heading.>
 - <A concrete product decision that blocks design or implementation.>
 ```
 
-**`.clean-architecture/design.md`**
+**`.clean-architecture/overview.design.md`** — the entry-point design doc. Every later
+subject gets its own `<subject>.design.md` beside it, written by `/design`.
 
 ```markdown
 # <product> — design
@@ -128,47 +141,49 @@ One stable uppercase anchor code per area, in the heading.>
 **Related**: `prd.md` (product requirements)
 
 <What this doc covers and what it does not. The PRD says what the product does; this doc
-says how it presents and behaves.>
+says how the solution works, and points at each `<subject>.design.md` for the detail.>
 
 ---
 
 ## 1. Foundations
 
-<Cross-cutting design intent applying to every surface: the character of the palette, the
-type hierarchy, spacing, motion, responsiveness, and the shared shell. Qualitative only.>
+<Cross-cutting design intent applying to every part: the principles the design holds to, the
+constraints it works within, and the qualities every part shares. Qualitative only.>
 
 ---
 
-## 2. <First surface>
+## 2. <First part, flow, or surface>
 
-<One or two sentences naming the surface and its role.>
+<One or two sentences naming it and its role in the solution.>
 
-### 2.1 Layout
+### 2.1 Structure
 
-<An ASCII diagram of the regions, with a one-line caption.>
+<An ASCII diagram of the parts and what connects them, with a one-line caption.>
 
-### 2.2 Content
+### 2.2 Behavior
 
-<What each region holds, top to bottom.>
+<One unit of work followed from where it enters to where it leaves.>
 
 ### 2.3 States
 
-| State | Appearance |
+| State | What happens |
 | --- | --- |
-| Loading | <what the user sees> |
-| Empty | <what the user sees> |
-| Populated | <what the user sees> |
-| Error | <what the user sees> |
+| Normal | <the expected outcome> |
+| Empty | <no work to do, or nothing to show> |
+| Not authorized | <what the caller gets> |
+| Failure | <invalid input, or an unavailable dependency> |
 
-### 2.4 Responsive
+### 2.4 Variation and limits
 
-<What reflows, stacks, collapses, or hides across wide, medium, and small widths.>
+<How the behavior changes by role, configuration, volume, or screen width, and the limits
+it holds within.>
 
 ---
 
-## N. Other screens (planned)
+## N. Other parts (planned)
 
-- <Surface not yet specified.>
+- <Part not yet specified. A part large enough to stand alone becomes its own
+  `<subject>.design.md`.>
 ```
 
 **`.clean-architecture/roadmap.md`**
@@ -218,7 +233,8 @@ Report the tree you created, marking each file `created` or `kept`, and each mov
 its old and new path. Then offer the next step, in this order:
 
 1. `/prd <product>` — fill the PRD first. Every later document takes its vocabulary from it.
-2. `/design <surface>` — specify the surfaces once the PRD names them.
+2. `/design <target>` — specify how each system, flow, or surface works once the PRD names
+   it. Each run writes or updates one `<subject>.design.md`.
 3. `/plan <request>` — turn a request into roadmap tasks and tickets. The roadmap stub holds a
    placeholder row, not a task.
 4. `/orchestrate .clean-architecture/roadmap.md` — start building once the roadmap has a task.

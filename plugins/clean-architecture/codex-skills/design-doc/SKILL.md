@@ -1,6 +1,6 @@
 ---
 name: design-doc
-description: Create or update the design doc at `.clean-architecture/design.md`, which specifies how a product looks and behaves. Use when asked to write a design doc, or to specify a screen, a surface, or a flow.
+description: Create or update a design doc at `.clean-architecture/<subject>.design.md`, which specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when asked to write a design doc, or to specify a system, a service, a flow, an integration, or a screen.
 ---
 
 # design-doc

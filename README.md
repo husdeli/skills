@@ -28,7 +28,8 @@ Every document the plugin reads or writes sits in one folder at your project roo
 ```
 .clean-architecture/
   prd.md              product requirements — what the product does and why
-  design.md           design doc — how each surface looks and behaves
+  overview.design.md  design docs — how the solution works, end to end. One file per
+                      subject: checkout.design.md, event-ingestion.design.md, …
   roadmap.md          the ordered task list the orchestrator picks from
   tickets/
     TEMPLATE.md       copy per task, named <ID>-<slug>.md
@@ -85,8 +86,12 @@ Every agent falls back to the project root when a project already keeps these do
   Governs prose only — code, identifiers, paths, quoted output, and the agents' `json` blocks stay exact.
   Invoked directly, it re-pitches a message that didn't land. Every agent, command, and
   document skill in this plugin routes its human-facing output through it.
-- **design-doc** — Create or update a design doc specifying how a screen, surface, or flow
-  looks and behaves — the intended end state, not how to build it.
+- **design-doc** — Create or update a design doc specifying how a solution works: the parts
+  it is built from, how work flows through it end to end, the states it reaches, and the
+  limits it holds within. The subject is a system, a service, a flow, an integration, a rule,
+  or a screen — a user interface is one case, not the default. One file per subject, named
+  `<subject>.design.md`, so the file name says what it specifies. The doc states the intended
+  end state, not how to build it.
 - **prd** — Create or update a product requirements document: product-only content,
   cohesive per-area descriptions with stable anchor codes, and positive framing.
 
@@ -108,7 +113,7 @@ Every agent falls back to the project root when a project already keeps these do
   the roadmap, a ticket template, and the `todo/`, `in-progress/`, and `done/` ticket folders.
   Never overwrites an existing file, and offers to move a root-level `prd.md`, `design.md`, or
   `tickets/` into the folder with `git mv` — including sorting a flat tickets folder into the
-  three status folders.
+  three status folders and renaming a lone `design.md` to `overview.design.md`.
 - **/plan** — turns a request into the documents the rest of the plugin reads: it interviews
   with the **feature-interviewer** agent, settles the open decisions with you, then updates the
   PRD and the design doc, appends the roadmap tasks, and writes one ticket per task into
@@ -124,8 +129,8 @@ Every agent falls back to the project root when a project already keeps these do
   change, runs a targeted self-check, and the command reports what it did and what nobody ran.
   Use it for a fix or a small feature you already understand; it hands off to
   `/orchestrate-quick` or `/orchestrate` when the request turns out to need a plan.
-- **/design** — loads the `design-doc` skill to create or update a design doc for a given
-  screen, surface, or flow.
+- **/design** — loads the `design-doc` skill to create or update `<subject>.design.md` for a
+  given system, service, flow, integration, or screen.
 - **/prd** — loads the `prd` skill to create or update a product requirements document for
   a given product or feature.
 - **/explain** — explains what is happening in plain language: the work you just did, a

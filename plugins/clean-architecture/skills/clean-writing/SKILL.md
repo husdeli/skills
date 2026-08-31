@@ -1,6 +1,6 @@
 ---
 name: clean-writing
-description: Rules for every piece of prose a person reads — a discovery brief, an implementation plan, a review verdict, a verification report, a question put to the user, a PRD, a design doc, a ticket, a commit message, a pull-request body, or a chat reply. INVOKE THIS SKILL before writing any output directed at a human, and before asking the user a question. Enforces context first (the reader was never in your context window), ASD-STE100 Simplified Technical English (one idea per sentence, active voice, short sentences, one word for one meaning, no jargon or metaphor), the project's ubiquitous language taken from .clean-architecture/prd.md, .clean-architecture/design.md, AGENTS.md, CLAUDE.md, and the code, and the answer before the reasoning. Invoke it directly on a message that did not land, to re-pitch that message.
+description: Rules for every piece of prose a person reads — a discovery brief, an implementation plan, a review verdict, a verification report, a question put to the user, a PRD, a design doc, a ticket, a commit message, a pull-request body, or a chat reply. INVOKE THIS SKILL before writing any output directed at a human, and before asking the user a question. Enforces context first (the reader was never in your context window), ASD-STE100 Simplified Technical English (one idea per sentence, active voice, short sentences, one word for one meaning, no jargon or metaphor), the project's ubiquitous language taken from .clean-architecture/prd.md, the .clean-architecture design docs, AGENTS.md, CLAUDE.md, and the code, and the answer before the reasoning. Invoke it directly on a message that did not land, to re-pitch that message.
 ---
 
 # Clean Writing
@@ -80,7 +80,7 @@ and follow the dictionary's principle: the plain common word, in one meaning.
 The reader knows this product by the names the product uses. Use those names.
 
 - **Take the vocabulary from the project**, in this order: `.clean-architecture/prd.md`,
-  `.clean-architecture/design.md`, `AGENTS.md`, `CLAUDE.md`, the ticket or roadmap, then the code. Read them before you write about a domain you have
+  `.clean-architecture/*.design.md` (or a single `design.md`), `AGENTS.md`, `CLAUDE.md`, the ticket or roadmap, then the code. Read them before you write about a domain you have
   not written about in this session.
 - **One term per concept, everywhere.** If the PRD says "workspace", never write "project",
   "board", or "space" for the same thing.

@@ -10,7 +10,7 @@ You are a workflow orchestrator. Pick the **next actionable item** from a roadma
 Roadmap file (if provided): $ARGUMENTS
 
 **Where the documents live.** This plugin keeps them in `.clean-architecture/`: `prd.md`,
-`design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`,
+one `<subject>.design.md` per design subject, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`,
 `in-progress`, or `done`. **Find a ticket by its ID, never by a stored path** — it moves as its
 status changes. Glob `.clean-architecture/tickets/*/<ID>-*.md` first, then
 `.clean-architecture/tickets/<ID>-*.md` for a project that still keeps its tickets flat. When a
@@ -109,7 +109,7 @@ Track stages with the task/todo tools so the user sees live progress.
 **Stage 0.5 — Interview & Challenge (complexity-gated), with the planner scouting in parallel.**
 - **Skip the interview** when the task is trivially unambiguous — a small, well-specified change with no product/UX/architecture forks ("fix this off-by-one", "rename this field everywhere"). Note the skip in the report. Nothing to overlap: go to Stage 1 and spawn the planner in one-turn mode.
 - **Otherwise interview — and spawn the scout in the same message.** Issue **both `Agent` calls in one tool block** so they run concurrently:
-  - `clean-architecture:feature-interviewer` (namespaced `subagent_type`) with the task description, acceptance criteria, and roadmap context. It reads `.clean-architecture/prd.md` and `.clean-architecture/design.md`, explores the codebase, researches the topic, and returns a **Discovery Brief** with **open decisions**, each with options and a recommendation.
+  - `clean-architecture:feature-interviewer` (namespaced `subagent_type`) with the task description, acceptance criteria, and roadmap context. It reads `.clean-architecture/prd.md` and the design docs the task touches, explores the codebase, researches the topic, and returns a **Discovery Brief** with **open decisions**, each with options and a recommendation.
   - `clean-architecture:implementation-planner` (opus) in **scout-only** mode — see Stage 1. **Keep its id.**
 - **When the brief comes back**, settle it with the user while the scout runs or is parked:
   - **Put the decisions to the user yourself** with `AskUserQuestion` — a subagent cannot ask. Batch them (up to 4 per call), lead each with the interviewer's recommended option (labelled "(Recommended)"), and surface the brief's assumptions for confirmation. One call, not one per decision — every round trip is human latency on the critical path.
