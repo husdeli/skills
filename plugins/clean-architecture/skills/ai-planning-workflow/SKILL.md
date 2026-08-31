@@ -31,7 +31,7 @@ A structured, feedback-driven methodology for implementing tickets and features 
 
 Don't plan on unchallenged assumptions. For any non-trivial feature, run a discovery pass **before** writing the plan:
 
-1. Read `.clean-architecture/prd.md` if it exists, and the design docs this ticket touches — `.clean-architecture/*.design.md`, or a single `.clean-architecture/design.md` on the older shape — for product intent and the intended design. Note where the ticket diverges. Fall back to the project root when the folder is absent.
+1. Read `.clean-architecture/prd.md` if it exists, and the design docs this ticket touches — `.clean-architecture/designs/*.design.md`, or, on an older shape, `.clean-architecture/*.design.md` or a single `.clean-architecture/design.md` — for product intent and the intended design. Note where the ticket diverges. Fall back to the project root when the folder is absent.
 2. Research the feature topic — established approaches, common pitfalls, relevant libraries, UX/security conventions.
 3. Explore the codebase for what already exists and can be reused.
 4. Turn the fuzzy parts into **explicit high-level decisions** and put them to the user with concrete options and a recommended default:

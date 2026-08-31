@@ -7,8 +7,8 @@ description: "Create or update a product requirements document at .clean-archite
 
 Write or update a product requirements document following the structure and style below.
 
-**Where it lives.** The PRD is `.clean-architecture/prd.md`, alongside the design doc, the
-roadmap, and the tickets. Create the folder if it is missing. When the project already keeps
+**Where it lives.** The PRD is `.clean-architecture/prd.md`, alongside `roadmap.md`, the
+`designs/` folder, and the `tickets/` folder. Create the folder if it is missing. When the project already keeps
 a PRD at the root (`prd.md`/`PRD.md`), update that file in place instead — one PRD per
 project, never two.
 

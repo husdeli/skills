@@ -1,5 +1,5 @@
 ---
-description: Create the .clean-architecture/ folder that holds the PRD, the design doc, the roadmap, and the tickets.
+description: Create the .clean-architecture/ folder that holds the PRD, the design docs, the roadmap, and the tickets.
 argument-hint: [product name]
 ---
 
@@ -12,27 +12,31 @@ Product name (if provided): $ARGUMENTS
 
 ```
 .clean-architecture/
-  prd.md              product requirements — what the product does and why
-  overview.design.md  design doc — how the solution works, end to end. One file per
-                      subject, named <subject>.design.md; this is the entry point
-  roadmap.md          the ordered task list /orchestrate picks from
+  prd.md                product requirements — what the product does and why
+  roadmap.md            the ordered task list /orchestrate picks from
+  designs/
+    overview.design.md  design docs — how the solution works, end to end. One file per
+                        subject, named <subject>.design.md; overview is the entry point
   tickets/
-    TEMPLATE.md       copy this per task, named <ID>-<slug>.md
-    todo/             a ticket waits here until an orchestrator starts it
-    in-progress/      the ticket being built — in progress, blocked, or in review
-    done/             a completed ticket
+    TEMPLATE.md         copy this per task, named <ID>-<slug>.md
+    todo/               a ticket waits here until an orchestrator starts it
+    in-progress/        the ticket being built — in progress, blocked, or in review
+    done/               a completed ticket
 ```
 
-A ticket moves between the three folders as its status changes. The `ai-planning-workflow`
-skill holds the mapping and the move rules.
+Each kind of document has its own folder once there can be more than one of it. A design doc
+covers one subject and stays in `designs/` for the life of the project. A ticket moves between
+the three status folders as its status changes — the `ai-planning-workflow` skill holds the
+mapping and the move rules.
 
 ## Rules
 
 - **Never overwrite.** Create a file only when it does not exist. Report each existing file
   as kept, and leave its contents alone.
-- **One design stub, at most.** Write `overview.design.md` only when the project has no design
-  doc at all — no `*.design.md` file, and no single `design.md` in the folder or at the root.
-  Report the one it already has as kept.
+- **One design stub, at most.** Write `designs/overview.design.md` only when the project has no
+  design doc at all — no `*.design.md` file in `designs/`, in `.clean-architecture/` itself, or
+  at the root, and no single `design.md` in any of those places. Report the one it already has
+  as kept.
 - **Write stubs, not content.** Each stub carries only the headings and the placeholder
   lines below. Do not invent product requirements, surfaces, or tasks — the person fills
   them in, or `/prd` and `/design` do.
@@ -40,8 +44,9 @@ skill holds the mapping and the move rules.
   gave one. Otherwise leave `TBD`.
 - **Create the folder at the project root** — the directory holding `.git`, `package.json`,
   `AGENTS.md`, or `CLAUDE.md`. Not the current working directory when that sits deeper.
-- **Create all three status folders**, even though they start empty. Write a `.gitkeep` file
-  into each one, because git does not track an empty directory.
+- **Create `designs/` and all three ticket status folders**, even though they start empty.
+  Write a `.gitkeep` file into every one that ends up with no file in it, because git does not
+  track an empty directory.
 
 ## 1. Check what is already there
 
@@ -50,7 +55,8 @@ Look for documents this plugin would otherwise create twice:
 - `.clean-architecture/` itself — if it exists, you are filling gaps, not scaffolding.
 - Root-level `prd.md`, `PRD.md`, `design.md`, `DESIGN.md`, `roadmap.md`, `ROADMAP.md`.
 - A root-level `tickets/` directory.
-- A design doc under either name: `*.design.md` files, or a single `design.md`.
+- A design doc in any shape: `*.design.md` files in `.clean-architecture/designs/`, in
+  `.clean-architecture/` itself, or at the root; or a single `design.md` in any of those.
 
 If any of these exist outside `.clean-architecture/`, **ask before touching them**: offer to
 move each into the folder with `git mv` (preserving history), or to leave it where it is.
@@ -58,12 +64,18 @@ Moving a file is the user's call — never move one without an explicit yes. A f
 place still works: every agent falls back to the project root when the folder has no such
 document.
 
-A **single `design.md`** needs the same explicit yes. Design docs are one file per subject,
-named `<subject>.design.md`, so a lone `design.md` is the older shape. Offer to `git mv` it to
-`.clean-architecture/overview.design.md` and say the rename is only a rename — no content
-moves, and splitting it by subject is a later job for `/design`. When the user says no, leave
-it: every agent reads a single `design.md` as a fallback. Skip the offer when the project
-already has `*.design.md` files.
+**Design docs outside `designs/`** need the same explicit yes. Design docs live in
+`.clean-architecture/designs/`, one file per subject, named `<subject>.design.md`, so anything
+else is an older shape:
+
+- `*.design.md` files in `.clean-architecture/` itself or at the root → offer to `git mv` each
+  one into `.clean-architecture/designs/` under the same name, and report the count moved.
+- A single `design.md`, in the folder or at the root → offer to `git mv` it to
+  `.clean-architecture/designs/overview.design.md`. Say the rename is only a rename: no
+  content moves, and splitting it by subject is a later job for `/design`.
+
+When the user says no, leave every file where it is: every agent reads the older shapes as a
+fallback. Skip the offer when `.clean-architecture/designs/` already holds the docs.
 
 A **flat tickets folder** needs the same explicit yes. That is a `tickets/` directory holding
 ticket files directly, with no `todo/`, `in-progress/`, or `done/` inside it. Offer to create
@@ -130,15 +142,15 @@ One stable uppercase anchor code per area, in the heading.>
 - <A concrete product decision that blocks design or implementation.>
 ```
 
-**`.clean-architecture/overview.design.md`** — the entry-point design doc. Every later
-subject gets its own `<subject>.design.md` beside it, written by `/design`.
+**`.clean-architecture/designs/overview.design.md`** — the entry-point design doc. Every
+later subject gets its own `<subject>.design.md` beside it, written by `/design`.
 
 ```markdown
 # <product> — design
 
 **Status**: Living document
 **Last updated**: <today, YYYY-MM-DD>
-**Related**: `prd.md` (product requirements)
+**Related**: `../prd.md` (product requirements)
 
 <What this doc covers and what it does not. The PRD says what the product does; this doc
 says how the solution works, and points at each `<subject>.design.md` for the detail.>
@@ -234,7 +246,7 @@ its old and new path. Then offer the next step, in this order:
 
 1. `/prd <product>` — fill the PRD first. Every later document takes its vocabulary from it.
 2. `/design <target>` — specify how each system, flow, or surface works once the PRD names
-   it. Each run writes or updates one `<subject>.design.md`.
+   it. Each run writes or updates one `designs/<subject>.design.md`.
 3. `/plan <request>` — turn a request into roadmap tasks and tickets. The roadmap stub holds a
    placeholder row, not a task.
 4. `/orchestrate .clean-architecture/roadmap.md` — start building once the roadmap has a task.

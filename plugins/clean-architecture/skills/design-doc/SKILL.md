@@ -1,14 +1,14 @@
 ---
 name: design-doc
-description: "Create a design doc at .clean-architecture/<subject>.design.md that specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when: asked to write a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen. A design doc defines the target state — not how to build it"
+description: "Create a design doc at .clean-architecture/designs/<subject>.design.md that specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when: asked to write a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen. A design doc defines the target state — not how to build it"
 ---
 
 # Design-doc skill
 
 Create a design doc following the structure and style below.
 
-**Where they live.** Design docs sit in `.clean-architecture/`, **one file per subject**, named
-`<subject>.design.md` — `checkout.design.md`, `event-ingestion.design.md`,
+**Where they live.** Design docs sit in `.clean-architecture/designs/`, **one file per
+subject**, named `<subject>.design.md` — `checkout.design.md`, `event-ingestion.design.md`,
 `app-shell.design.md`. Create the folder if it is missing. There is no single `design.md`: a
 design doc covers one subject, and the file name is that subject.
 
@@ -21,12 +21,14 @@ design doc covers one subject, and the file name is that subject.
   project has more than a handful of them.
 - **Cross-reference by relative filename** — "see `app-shell.design.md`" — never by copying
   the content across.
-- **Find the docs by listing** `.clean-architecture/*.design.md`, then read the ones the task
-  touches.
+- **Find the docs by listing** `.clean-architecture/designs/*.design.md`, then read the ones
+  the task touches.
 
-**A project that already keeps a single design doc** — `.clean-architecture/design.md`, or
-`design.md` at the root — keeps working. Read it, and update that file in place. Split it into
-`<subject>.design.md` files only when the user asks for the split.
+**A project on an older shape keeps working.** Design docs used to sit directly in
+`.clean-architecture/`, and before that in a single `design.md` there or at the project root.
+Read whichever shape the project has, and update the file in place where it already sits.
+Move the docs into `designs/`, or split a single `design.md` by subject, only when the user
+asks — `/scaffold` offers the move.
 
 A design doc is a **specification of the intended end state of one solution**: the **parts** it
 is built from, how those parts fit together, how work flows through it **end to end**, and how
@@ -75,8 +77,8 @@ term from `.clean-architecture/prd.md` rather than coining a new one for the sam
    ingestion pipeline, an onboarding flow. When the design needs a second subject, write a
    second `<subject>.design.md` and reference it, rather than inlining and duplicating it.
    Cross-reference by named section (`§3.5`) within a doc and by relative filename between
-   design docs. **Reference
-   only other design docs and the PRD** — and the PRD only when `prd.md` (or an equivalent)
+   design docs, which are siblings in `designs/`. **Reference
+   only other design docs and the PRD** — and the PRD only when `../prd.md` (or an equivalent)
    actually exists in the project; otherwise omit it. Never link to build or operations docs
    (deployment runbooks, setup guides, generated API references).
 5. **No tickets, no code references.** The doc stands on its own and stays true as the work
@@ -97,7 +99,7 @@ The file is `<subject>.design.md`, and the title names the same subject.
 
 **Status**: Living document
 **Last updated**: <YYYY-MM-DD>
-**Related**: `prd.md` (product requirements) — only if a PRD exists; plus each
+**Related**: `../prd.md` (product requirements) — only if a PRD exists; plus each
 `<other-subject>.design.md` this design touches
 
 <Opening paragraph: what this doc covers and what it does not — the WHAT, not the HOW.
@@ -220,7 +222,7 @@ Check the draft against the core rules, then confirm with the user:
    library, a query, a hex color, a font, an exact size? Raise the altitude, or drop it.
 4. Does any line cite a ticket/issue/PR or point at the code (a path, class name, route,
    prop)? Remove it, or restate it as an observable property.
-5. Is any part self-contained enough to be its own `<subject>.design.md`, cross-referenced
-   from here?
+5. Is any part self-contained enough to be its own `<subject>.design.md` beside this one,
+   cross-referenced from here?
 6. Are the states complete, including the failures — invalid input, a missing permission, an
    unavailable dependency, a duplicate?

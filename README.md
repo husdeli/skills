@@ -27,22 +27,29 @@ Every document the plugin reads or writes sits in one folder at your project roo
 
 ```
 .clean-architecture/
-  prd.md              product requirements — what the product does and why
-  overview.design.md  design docs — how the solution works, end to end. One file per
-                      subject: checkout.design.md, event-ingestion.design.md, …
-  roadmap.md          the ordered task list the orchestrator picks from
+  prd.md                product requirements — what the product does and why
+  roadmap.md            the ordered task list the orchestrator picks from
+  designs/
+    overview.design.md  design docs — how the solution works, end to end. One file
+    checkout.design.md  per subject, named <subject>.design.md
+    …
   tickets/
-    TEMPLATE.md       copy per task, named <ID>-<slug>.md
-    todo/             SW-001-user-login.md
-    in-progress/      SW-002-session-timeout.md
-    done/             SW-003-password-reset.md
+    TEMPLATE.md         copy per task, named <ID>-<slug>.md
+    todo/               SW-001-user-login.md
+    in-progress/        SW-002-session-timeout.md
+    done/               SW-003-password-reset.md
 ```
+
+Each kind of document gets its own folder once there can be more than one of it. A design doc
+covers one subject — a system, a service, a flow, an integration, a rule, or a screen — and
+stays in `designs/` for the life of the project. `overview.design.md` is the entry point that
+names the parts of the whole solution and points at the rest.
 
 A ticket moves between the three status folders as the work progresses, and its `Status` field
 always names the folder it sits in. The commands move it for you: into `in-progress/` when an
 orchestrator starts the task, into `done/` when verification passes. A project that already
-keeps its tickets in one flat folder keeps working — `/scaffold` offers the migration, and
-never forces it.
+keeps its design docs or its tickets in one flat folder keeps working — `/scaffold` offers the
+migration, and never forces it.
 
 Run **`/scaffold`** in Claude Code or **`$clean-architecture:scaffold`** in Codex to create it.
 Every agent falls back to the project root when a project already keeps these documents there.
@@ -89,8 +96,8 @@ Every agent falls back to the project root when a project already keeps these do
 - **design-doc** — Create or update a design doc specifying how a solution works: the parts
   it is built from, how work flows through it end to end, the states it reaches, and the
   limits it holds within. The subject is a system, a service, a flow, an integration, a rule,
-  or a screen — a user interface is one case, not the default. One file per subject, named
-  `<subject>.design.md`, so the file name says what it specifies. The doc states the intended
+  or a screen — a user interface is one case, not the default. One file per subject in
+  `designs/`, named `<subject>.design.md`, so the file name says what it specifies. The doc states the intended
   end state, not how to build it.
 - **prd** — Create or update a product requirements document: product-only content,
   cohesive per-area descriptions with stable anchor codes, and positive framing.
@@ -110,13 +117,14 @@ Every agent falls back to the project root when a project already keeps these do
 
 ### Commands and Codex skills
 - **/scaffold** — creates `.clean-architecture/` with stub files for the PRD, the design doc,
-  the roadmap, a ticket template, and the `todo/`, `in-progress/`, and `done/` ticket folders.
-  Never overwrites an existing file, and offers to move a root-level `prd.md`, `design.md`, or
-  `tickets/` into the folder with `git mv` — including sorting a flat tickets folder into the
-  three status folders and renaming a lone `design.md` to `overview.design.md`.
+  the roadmap, a ticket template, the `designs/` folder, and the `todo/`, `in-progress/`, and
+  `done/` ticket folders. Never overwrites an existing file, and offers to move a root-level
+  `prd.md`, `design.md`, or `tickets/` into the folder with `git mv` — including sorting a flat
+  tickets folder into the three status folders, moving loose `*.design.md` files into
+  `designs/`, and renaming a lone `design.md` to `designs/overview.design.md`.
 - **/plan** — turns a request into the documents the rest of the plugin reads: it interviews
   with the **feature-interviewer** agent, settles the open decisions with you, then updates the
-  PRD and the design doc, appends the roadmap tasks, and writes one ticket per task into
+  PRD and the design docs, appends the roadmap tasks, and writes one ticket per task into
   `tickets/todo/`. It writes no code and sets no status past pending — `/orchestrate` takes it
   from there.
 - **/orchestrate** — picks the next actionable roadmap task and drives it through
@@ -129,8 +137,8 @@ Every agent falls back to the project root when a project already keeps these do
   change, runs a targeted self-check, and the command reports what it did and what nobody ran.
   Use it for a fix or a small feature you already understand; it hands off to
   `/orchestrate-quick` or `/orchestrate` when the request turns out to need a plan.
-- **/design** — loads the `design-doc` skill to create or update `<subject>.design.md` for a
-  given system, service, flow, integration, or screen.
+- **/design** — loads the `design-doc` skill to create or update
+  `designs/<subject>.design.md` for a given system, service, flow, integration, or screen.
 - **/prd** — loads the `prd` skill to create or update a product requirements document for
   a given product or feature.
 - **/explain** — explains what is happening in plain language: the work you just did, a

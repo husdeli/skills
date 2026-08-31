@@ -10,7 +10,7 @@ You are a workflow orchestrator. Pick the **next actionable item** from a roadma
 Roadmap file (if provided): $ARGUMENTS
 
 **Where the documents live.** This plugin keeps them in `.clean-architecture/`: `prd.md`,
-one `<subject>.design.md` per design subject, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`,
+`designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`,
 `in-progress`, or `done`. **Find a ticket by its ID, never by a stored path** — it moves as its
 status changes. Glob `.clean-architecture/tickets/*/<ID>-*.md` first, then
 `.clean-architecture/tickets/<ID>-*.md` for a project that still keeps its tickets flat. When a

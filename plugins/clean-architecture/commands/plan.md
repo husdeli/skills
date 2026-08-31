@@ -11,7 +11,7 @@ Request: $ARGUMENTS
 
 This is the intake path. `/prd` writes the PRD, `/design` writes the design doc, and `/orchestrate` builds a task that is already on the roadmap — but nothing turned a request into those tasks, so the roadmap had to be filled by hand before any pipeline had something to pick. `/plan` is that missing step, and it stops exactly where `/orchestrate` starts.
 
-**Where the documents live.** This plugin keeps them in `.clean-architecture/`: `prd.md`, one `<subject>.design.md` per design subject, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`, where `<status>` is `todo`, `in-progress`, or `done`. Every ticket this command writes starts in `todo/`, because no work has started on it. When a project has no such folder, fall back to whatever it already uses at the root, and when its tickets folder is flat, write the ticket straight into it.
+**Where the documents live.** This plugin keeps them in `.clean-architecture/`: `prd.md`, `designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`, where `<status>` is `todo`, `in-progress`, or `done`. Every ticket this command writes starts in `todo/`, because no work has started on it. When a project has no such folder, fall back to whatever it already uses at the root. When its design docs sit directly in `.clean-architecture/`, or its tickets folder is flat, write into the shape the project already has.
 
 ## Architecture: you write, one agent researches
 
@@ -60,7 +60,7 @@ Agent(subagent_type: "clean-architecture:feature-interviewer",
                  because the document update follows your brief.")
 ```
 
-...and read `prd.md`, the `*.design.md` docs this request touches, and `roadmap.md` yourself. You need four things the interviewer will not hand you: the product's vocabulary, the parts and surfaces this request touches, the roadmap's ID scheme and numbering, and the existing tasks the request duplicates or depends on.
+...and read `prd.md`, the `designs/*.design.md` docs this request touches, and `roadmap.md` yourself. You need four things the interviewer will not hand you: the product's vocabulary, the parts and surfaces this request touches, the roadmap's ID scheme and numbering, and the existing tasks the request duplicates or depends on.
 
 The brief comes back as *Understanding*, *What already exists*, *Research findings*, *Open decisions*, *Assumptions*, and *Out of scope*. Nothing returned, or no brief after one retry → report that and stop before writing any file.
 
@@ -76,7 +76,7 @@ One gate, before you write any file:
 ## Plan: [feature]
 
 **PRD** — [section] — [what changes]  (or: no change)
-**Design docs** — [`<subject>.design.md`] — [what changes]  (or: no change)
+**Design docs** — [`designs/<subject>.design.md`] — [what changes]  (or: no change)
 
 **Roadmap**
 
@@ -108,7 +108,7 @@ and follow it. Do not restate its rules from memory.
 
 **PRD** — load the **`prd`** skill and follow it. Fold the request into the existing sections in place, as the current truth, and keep the document whole. It stays product-only: no ticket ID, no roadmap reference, no library name, no file path. The decisions from the interview live in the tickets, not here. Bump `Last updated`.
 
-**Design docs** — only when the request changes how a part, a flow, or a surface works. Load the **`design-doc`** skill and follow it: one file per subject at `.clean-architecture/<subject>.design.md`, the per-subject pattern (structure → behavior → states → variation and limits), the structural altitude, no tickets and no code references. Update the doc whose subject the request touches, and start a new one only for a subject that has none. Bump `Last updated` on each file you touch.
+**Design docs** — only when the request changes how a part, a flow, or a surface works. Load the **`design-doc`** skill and follow it: one file per subject at `.clean-architecture/designs/<subject>.design.md`, the per-subject pattern (structure → behavior → states → variation and limits), the structural altitude, no tickets and no code references. Update the doc whose subject the request touches, and start a new one only for a subject that has none. Bump `Last updated` on each file you touch.
 
 **Roadmap** — append the approved rows to the table with status `⬜ **Pending**`, matching the file's existing style, and add one detail section per row: what the task delivers in two or three sentences, its acceptance criteria as checkboxes, and its ticket file name. Cite the ticket by name (`SW-001-<slug>.md`), never by path — the file moves between the status folders as the work progresses. Bump `Last updated`. Never write any status other than pending — in-progress and completed belong to whoever builds the task.
 

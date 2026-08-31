@@ -19,7 +19,7 @@ You will receive:
 - **Context** — relevant details from the roadmap and previously completed tasks
 - **Discovery Brief + Decisions** — the interview stage's research and the decisions the user settled; treat these as fixed constraints, not open questions
 - **Review feedback** (revisions only) — issues from a prior review to address
-- **PRD / Design** — `.clean-architecture/prd.md` and the design docs, `.clean-architecture/*.design.md`, if the project has them
+- **PRD / Design** — `.clean-architecture/prd.md` and the design docs, `.clean-architecture/designs/*.design.md`, if the project has them
 
 ## Two-turn mode (scout, then plan)
 
@@ -33,7 +33,7 @@ When the first message contains the task *and* the Decisions, ignore this sectio
 ## Process
 
 1. **Honor the settled decisions** — if you received a Discovery Brief + Decisions, build the plan around those choices; do not reopen them.
-2. **Check the product docs** — read `.clean-architecture/prd.md` for product context. Then list `.clean-architecture/*.design.md` and read the design docs whose subject this task touches, for how the solution is supposed to work — its parts, flows, and behavior. A project on the older shape keeps one `.clean-architecture/design.md`; read that instead. When that folder does not exist, fall back to the project root (`prd.md`/`PRD.md`, `*.design.md`, `design.md`).
+2. **Check the product docs** — read `.clean-architecture/prd.md` for product context. Then list `.clean-architecture/designs/*.design.md` and read the design docs whose subject this task touches, for how the solution is supposed to work — its parts, flows, and behavior. A project on an older shape keeps its design docs directly in `.clean-architecture/`, or in one `design.md`; read those instead. When that folder does not exist, fall back to the project root (`prd.md`/`PRD.md`, `*.design.md`, `design.md`).
 3. **Read project conventions** — check applicable `AGENTS.md` and `CLAUDE.md` files for rules you must follow.
 4. **Explore the codebase** — find related files, existing patterns, conventions, libraries, and naming styles.
 5. **Research the best practice for how this is built** — use `WebSearch`/`WebFetch` to confirm the approach is the current recommended one, not the one idiomatic three versions ago. The interview brief stops at the product/architecture altitude; cover what it could not settle:

@@ -5,6 +5,41 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.0] - 2026-08-31
+
+### Changed
+
+- **Design docs live in their own folder: `.clean-architecture/designs/`.** One file per
+  subject was the right shape, but every one of those files sat beside `prd.md` and
+  `roadmap.md` in the top folder. A project with a dozen subjects buried the two documents a
+  reader opens first, and nothing said where a new design doc belonged.
+
+  Each kind of document now gets its own folder once there can be more than one of it.
+  `prd.md` and `roadmap.md` stay at the top, because there is exactly one of each. The design
+  docs move into `designs/`, the way tickets already sit in `tickets/`:
+
+  ```
+  .clean-architecture/
+    prd.md
+    roadmap.md
+    designs/overview.design.md, checkout.design.md, event-ingestion.design.md, …
+    tickets/todo/, in-progress/, done/
+  ```
+
+  The file names do not change: `<subject>.design.md`, the subject and nothing else. The docs
+  are siblings in one folder, so they still cross-reference each other by file name alone. A
+  doc that names the PRD in its `Related` header now writes `../prd.md`.
+
+  `/scaffold` writes `designs/overview.design.md`, creates `designs/` even when it stays
+  empty, and offers to `git mv` loose `*.design.md` files into it — alongside the existing
+  offer to rename a lone `design.md`, which now lands on `designs/overview.design.md`.
+  `/design` and `/plan` list `designs/*.design.md` before writing. The interviewer, the
+  planner, and the plan reviewer read the docs there.
+
+  **A project on an older shape keeps working.** Every reader falls back to `*.design.md`
+  files directly in `.clean-architecture/`, then to a single `design.md` in the folder or at
+  the project root. Nothing moves without an explicit yes.
+
 ## [0.35.0] - 2026-08-31
 
 ### Changed
