@@ -9,7 +9,7 @@ Hand the request below to the **`coding` agent** and report what it did. You do 
 
 Request: $ARGUMENTS
 
-This is the direct path. `/orchestrate` runs interview → plan → review → implement → verify with five agents. `/orchestrate-quick` runs plan → review → implement → verify with four. `/code` runs one: the coding agent, with no plan in front of it. Use it when the change is one the user already understands — a fix, a small feature, an addition that follows a pattern the codebase already has.
+This is the direct path. `/orchestrate` runs interview → plan → review → implement → verify and code review with six agents. `/orchestrate-quick` runs plan → review → implement → verify and code review with five. `/code` runs one: the coding agent, with no plan in front of it. Use it when the change is one the user already understands — a fix, a small feature, an addition that follows a pattern the codebase already has.
 
 The coding agent takes a request with no plan as one of its two input shapes, so this command needs no planner. It is also the right worker because it already loads the plugin's coding skills itself — `clean-fullstack-architecture` for any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for a component or a hook, `clean-tanstack-start` for TanStack Start server code. Do not restate those rules in the prompt. Its own definition holds them, and a spawn prompt is re-paid on every spawn.
 
@@ -68,7 +68,7 @@ The user did not see the agent's turn, so give them the outcome, not a transcrip
 - [what blocked the agent, or what it assumed]
 ```
 
-There is **no verify stage behind this command.** The coding agent runs a targeted self-check only. Name every gating command that nobody ran, and never present an unrun suite as green. Offer `/orchestrate-quick` in the last line when the user wants the full gate.
+There is **no verify stage and no code review behind this command.** The coding agent runs a targeted self-check only, and nobody reads the change back. Name every gating command that nobody ran, and never present an unrun suite as green. Offer `/review` in the last line for a read of the change on its own, and `/orchestrate-quick` when the user wants the full gate.
 
 ## Rules
 

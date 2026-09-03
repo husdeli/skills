@@ -1,0 +1,4 @@
+interface:
+  display_name: "Review Code"
+  short_description: "Review written code with the code-reviewer subagent"
+  default_prompt: "Use $review to review the current changes against the clean architecture rules."

@@ -5,6 +5,68 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.37.0] - 2026-09-03
+
+### Added
+
+- **A code reviewer, and a `/review` command that runs it.** The plugin reviewed the plan and
+  then never looked at the code. `plan-reviewer` judged a proposal, `verify` ran the commands,
+  and a task reached `Completed` on a green suite alone. A suite says nothing about a missed
+  acceptance criterion, a service that returns a DTO, or an opportunistic refactor nobody asked
+  for.
+
+  The new **`code-reviewer`** agent reads the change itself — it runs `git diff` and reads every
+  changed file whole, not only the hunks — and returns `APPROVED` or `CHANGES_REQUESTED` with an
+  issue per defect, each carrying its file and line. Its checklist covers the acceptance
+  criteria, correctness, scope, plan adherence, the four coding skills, the codebase's
+  conventions, the PRD and the design docs, error handling, tests, secrets, and dead weight. It
+  writes no code, and it never runs the test suite.
+
+  It also has to confirm what it reports. A false finding sends the coding agent to change
+  working code, so an issue is only written down after the file is open and the thing claimed
+  missing has been grepped for. A finding that cannot be confirmed is **minor** and says what
+  went unchecked. Taste is not a finding: only a **critical** or **major** issue blocks, and a
+  change with minor issues alone is `APPROVED` with recommendations.
+
+  **`/review`** runs it on its own — the uncommitted changes by default, or a path, a branch, a
+  commit range, or a ticket you name. It reports the verdict first and the defects after. Add
+  `fix` and it hands the blocking issues to the coding agent and re-reviews the result once;
+  without that word it reads and stops, because fixing code somebody asked you to read is not
+  yours to decide. `$clean-architecture:review` is the Codex entry point.
+
+### Changed
+
+- **Both orchestrators review the code at their verify stage.** The stage now spawns `verify`
+  and `code-reviewer` **in one tool block**. They answer different questions about the same
+  finished change — "does it pass?" and "is it the right code, and all of it?" — and neither
+  needs the other's answer, so the review runs inside the e2e suite's wall-clock and costs
+  nothing. The reviewer is not started earlier, during implementation: the files are mid-flight
+  then, and a review of half-written code is noise.
+
+  The gate is now both halves. A task is marked `Completed` only when the commands pass **and**
+  the verdict is `APPROVED`. Failures and blocking issues go to the coding agent in **one**
+  message, and the existing single fix cycle covers them together. Verification always re-runs
+  after a fix — the fix changed code, so a suite that was green before proves nothing now — and
+  the review re-runs only when it was the half that blocked.
+
+  Unlike the plan review, the code review has **no skip gate**: it is the last thing between a
+  change and a task marked complete. `/orchestrate` scales its model by the same high-risk test
+  it already uses for the plan review — opus for a new public API, a new dependency, or more
+  than five files touched, sonnet otherwise. `/orchestrate-quick` keeps one sonnet reviewer,
+  the way it keeps one sonnet plan reviewer.
+
+  The code reviewer is **persistent**, like the planner, the plan reviewer, and the coding
+  agent: spawned once, resumed with `SendMessage` for the re-review. `verify` stays the one
+  role spawned fresh every run.
+
+- **`verify` says what it is not.** Its definition now states that a `code-reviewer` runs beside
+  it on the same change, that its answer is "does it pass?" and nothing else, and that it must
+  never widen a run to compensate for what a review would catch.
+
+- **`/code` names what nobody ran.** Its report already listed the gating commands that went
+  unrun; it now says that nobody read the change back either, and offers `/review` for a read of
+  the change on its own beside the existing `/orchestrate-quick` offer for the full gate.
+
 ## [0.36.0] - 2026-08-31
 
 ### Changed
