@@ -13,12 +13,12 @@ Product name (if provided): $ARGUMENTS
 ```
 .clean-architecture/
   prd.md                product requirements — what the product does and why
-  roadmap.md            the ordered task list /orchestrate picks from
+  roadmap.md            the ordered task list /orchestrate picks from, grouped by epic
   designs/
     overview.design.md  design docs — how the solution works, end to end. One file per
                         subject, named <subject>.design.md; overview is the entry point
   tickets/
-    TEMPLATE.md         copy this per task, named <ID>-<slug>.md
+    TEMPLATE.md         copy this per task, named <EPIC>-<NNN>-<slug>.md
     todo/               a ticket waits here until an orchestrator starts it
     in-progress/        the ticket being built — in progress, blocked, or in review
     done/               a completed ticket
@@ -82,6 +82,32 @@ ticket files directly, with no `todo/`, `in-progress/`, or `done/` inside it. Of
 the three folders and to `git mv` each ticket into the one its status field names, and report
 the count per folder afterwards. When the user says no, leave every file where it is: a flat
 folder still works, because every agent reads the status field inside the ticket.
+
+**Ticket IDs with no epic** need the same explicit yes. Every ticket ID starts with the code of
+the epic that holds it, and the numbering restarts at 001 in each epic — the
+`ai-planning-workflow` skill holds the rule, and the roadmap holds the list of epics. A project
+whose tickets all share one project-wide prefix (`SW-001`, `SW-002`, …), or whose roadmap has no
+`## <CODE> — <epic name>` sections, is on the older shape. Say what the rename costs before you
+offer it: a branch, a review, or a note that cites an old ID stops finding the file, so this
+belongs in a quiet moment and not in the middle of a task. Then offer the migration in three
+steps, and stop at any step the user does not approve:
+
+1. **Propose the epics.** Group the existing tasks by the feature each one delivers, name each
+   group, and give it a code. Number the tasks inside each group from 001, following the
+   roadmap's existing order. Show the whole mapping as one table — epic, old ID, new ID, task
+   title — and ask the user to accept it, rename an epic, or move a task to another epic.
+2. **Rename the tickets** with `git mv`, one file per row of the approved table. A ticket keeps
+   its slug and its status folder; only the ID in the file name changes. Rewrite the `#` title
+   line inside each file, and add the `**Epic**` field under it.
+3. **Rewrite every reference.** Group the roadmap rows into one `##` section per epic, and
+   rename each ID in the tables, in the detail headings, in the `Depends on` cells, and in the
+   `**Ticket**` file names. Then search the whole project for each old ID and fix what that
+   finds — a ticket's `Related` links, a design doc, a note. Report the count renamed and the
+   files touched.
+
+When the user says no, leave every ID alone, and say that new tickets keep continuing the
+project's own scheme. Never rename part of the set: a half-migrated project cites two schemes
+and matches neither. Skip the offer when the roadmap already has epic sections.
 
 ## 2. Write the stubs
 
@@ -199,15 +225,21 @@ never filled — and leave out any part that is not designed yet.
 
 Status values: ⬜ **Pending** · 🚧 **In Progress** · ✅ **Completed** · 🚫 **Blocked**
 
-Tickets sit in `tickets/todo/`, `tickets/in-progress/`, or `tickets/done/`. Find one by name.
-
-| ID | Task | Status | Depends on |
-| --- | --- | --- | --- |
-| SW-001 | <task title> | ⬜ **Pending** | — |
+Every task belongs to an epic. The epic's code prefixes every ticket ID under it, and the
+numbering restarts at 001 in each epic. Tickets sit in `tickets/todo/`, `tickets/in-progress/`,
+or `tickets/done/`. Find one by name.
 
 ---
 
-## SW-001 — <task title>
+## AREA — <epic name>
+
+<One sentence: what this epic delivers.>
+
+| ID | Task | Status | Depends on |
+| --- | --- | --- | --- |
+| AREA-001 | <task title> | ⬜ **Pending** | — |
+
+### AREA-001 — <task title>
 
 <What the task delivers, in 2-3 sentences.>
 
@@ -215,8 +247,13 @@ Tickets sit in `tickets/todo/`, `tickets/in-progress/`, or `tickets/done/`. Find
 
 - [ ] <An observable outcome someone can check.>
 
-**Ticket**: `SW-001-<slug>.md`
+**Ticket**: `AREA-001-<slug>.md`
 ```
+
+One `##` section per epic, holding that epic's own table and one `###` detail section per task.
+A new epic appends a section, so two branches that plan separate features touch separate parts
+of the file. A dependency may name a task in another epic: every ID is unique across the
+project, because every epic code is.
 
 **`.clean-architecture/tickets/TEMPLATE.md`**
 

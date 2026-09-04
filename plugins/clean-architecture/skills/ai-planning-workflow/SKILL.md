@@ -155,17 +155,42 @@ into the ticket and move the file into `done/` in the same step — see
 
 ## Ticket Creation Guidelines
 
+### Every ticket belongs to an epic
+
+An **epic** is a named group of tasks that deliver one feature. It carries a short uppercase
+code — two to eight letters, taken from the product's own vocabulary — and that code prefixes
+every ticket ID under it: `AUTH-001`, `AUTH-002`, `BILLING-001`.
+
+**The numbering restarts at 001 in each epic.** That is what the prefix buys. Two branches that
+plan separate features write into separate number spaces, so each can add a first ticket and
+neither overwrites the other when the branches merge. One project-wide sequence cannot do that:
+both branches take the same next free number, and both name the file the same thing.
+
+**`roadmap.md` is the list of epics.** It holds one `## <CODE> — <epic name>` section per epic,
+and that section holds the epic's task table. An epic exists in the roadmap before any ticket
+carries its code, and each code is unique in the project. A code may repeat a PRD area anchor
+code when the epic covers that whole area. A code never means two different things.
+
+**Read the next number out of the files.** Glob every status folder for `<CODE>-*.md`, take the
+highest number in the epic, and add one. `done/` is part of that search, because a completed
+ticket keeps its number. Never reuse a number, and never renumber a ticket that exists — the ID
+is how the roadmap, the branches, and the reviews cite it.
+
+**A project on a project-wide scheme keeps the IDs it has.** Never rewrite `SW-001` into an
+epic ID on your own. Keep continuing that project's scheme, and name the platform's scaffold
+entry point as the way to migrate.
+
 ### Where tickets live
 
 **Tickets live in `.clean-architecture/tickets/`, in one folder per status**, one file per
-ticket, named `<ID>-<slug>.md` (e.g. `SW-001-user-login.md`):
+ticket, named `<ID>-<slug>.md` (e.g. `AUTH-001-user-login.md`):
 
 ```
 .clean-architecture/tickets/
   TEMPLATE.md          copy this per ticket — the template itself never moves
-  todo/                SW-001-user-login.md
-  in-progress/         SW-002-session-timeout.md
-  done/                SW-003-password-reset.md
+  todo/                AUTH-001-user-login.md
+  in-progress/         AUTH-002-session-timeout.md
+  done/                BILLING-001-invoice-export.md
 ```
 
 The folder is the board. The `**Status**` field inside the file is the record. The two never
