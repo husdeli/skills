@@ -48,11 +48,25 @@ term from `.clean-architecture/prd.md` rather than coining a new one for the sam
 
 ## Core rules
 
-1. **Define the target state — never a procedure.** A design doc says how the solution *is
+1. **Write the minimum that makes the solution understood.** A design doc is judged by what a
+   reader understands per line. Every sentence must carry a fact about *this* solution that no
+   other sentence carries. Cut, in this order:
+
+   - **Prose about the document.** No "this doc covers…", no "what is out of scope", no "as
+     described above", no first sentence that repeats its own heading.
+   - **Sentences that would stay true for another product.** "Errors are handled gracefully",
+     "the layout is responsive", "the code is maintainable" — these tell a reader nothing.
+     Either say what *this* design does differently, or delete the line.
+   - **A fact stated twice.** State it once, at the highest section it holds for, and
+     cross-reference it (§ style rules).
+   - **A section with nothing specific to say.** **Delete the heading — never fill it.**
+   - **A part you have not designed yet.** It is absent from the doc, not a stub in it.
+
+2. **Define the target state — never a procedure.** A design doc says how the solution *is
    supposed to work*, in the present tense, as settled fact. It never explains *how to build
    it*: no steps, no "first do X then Y", no migration order, no build tasks. If a sentence
    tells someone what to *do*, rewrite it as a statement of what *is*.
-2. **Stay at the structural altitude — not the implementation detail.** Specify the parts and
+3. **Stay at the structural altitude — not the implementation detail.** Specify the parts and
    what each one is responsible for, the boundaries between them, what crosses each boundary,
    the path work takes through them, and the behavior at every step. Do **not** make
    fine-grained decisions that a part can change on its own without anyone outside it
@@ -67,12 +81,12 @@ term from `.clean-architecture/prd.md` rather than coining a new one for the sam
    ordering, a retry budget of three attempts, a page size of 50. Where a quality matters but
    the value does not, state it **qualitatively** ("a small, consistent palette", "retried
    until it succeeds or the deadline passes").
-3. **No changelog. Ever.** The doc describes the current intended design, not its history.
+4. **No changelog. Ever.** The doc describes the current intended design, not its history.
    No "Changelog", "History", or "Revisions" section, and no annotations for when or why a
    section changed. Version history lives in git. When you revise a design doc, edit the
    affected sections in place and update the `Last updated` date — leave no trace of the
    prior state in the prose.
-4. **One subject per document; cross-reference to isolate logic.** Every design doc covers
+5. **One subject per document; cross-reference to isolate logic.** Every design doc covers
    one subject and carries its name — a shared app shell, an authentication model, an
    ingestion pipeline, an onboarding flow. When the design needs a second subject, write a
    second `<subject>.design.md` and reference it, rather than inlining and duplicating it.
@@ -81,7 +95,7 @@ term from `.clean-architecture/prd.md` rather than coining a new one for the sam
    only other design docs and the PRD** — and the PRD only when `../prd.md` (or an equivalent)
    actually exists in the project; otherwise omit it. Never link to build or operations docs
    (deployment runbooks, setup guides, generated API references).
-5. **No tickets, no code references.** The doc stands on its own and stays true as the work
+6. **No tickets, no code references.** The doc stands on its own and stays true as the work
    and the codebase move. Never cite a ticket, issue, PR, roadmap item, or milestone
    (`JIRA-1234`, "per the linked issue", "shipping in phase 2"), and never point at the
    implementation — file paths, directories, class or function names, routes, props, CSS
@@ -97,30 +111,27 @@ The file is `<subject>.design.md`, and the title names the same subject.
 ```
 # <Subject> — design
 
-**Status**: Living document
 **Last updated**: <YYYY-MM-DD>
-**Related**: `../prd.md` (product requirements) — only if a PRD exists; plus each
-`<other-subject>.design.md` this design touches
+**Related**: `../prd.md` — only if a PRD exists; plus each `<other-subject>.design.md`
+this design touches
 
-<Opening paragraph: what this doc covers and what it does not — the WHAT, not the HOW.
-If a PRD exists, state how this doc relates to it (PRD says what the product does;
-design says how the solution works).>
+<One or two sentences: what the subject is, and what it is for. Never what the document
+covers, leaves out, or how it relates to the PRD — the Related line carries that.>
 
 ---
 
 ## 1. Foundations
 
-Cross-cutting design intent applying to every part unless a later section overrides it: the
-principles the design holds to, the constraints it works within, the vocabulary it uses, and
-the qualities every part shares (consistency, failure handling, security posture, and — for
-a user interface — the character of the layout, type hierarchy, spacing, and motion). State
-each as a short declarative bullet, **qualitatively**, per rule 2.
+Only the rules that hold across **every** part below and that a later section relies on
+instead of restating. Three to seven short declarative bullets, stated **qualitatively**
+per rule 3. A bullet that names no constraint on the design is filler — cut it. When the
+subject has no such shared rule, omit the whole section.
 
 ---
 
 ## 2. <First part, surface, or flow>
 
-<One or two sentences naming it and its role in the solution.>
+<One sentence naming it and its role. The heading already says what it is; do not repeat it.>
 
 ### 2.1 Structure
 ### 2.2 Behavior
@@ -129,18 +140,16 @@ each as a short declarative bullet, **qualitatively**, per rule 2.
 
 ## 3. <Next part>
 …
-
-## N. Other parts (planned)
-
-A stub list of parts of this subject not yet specified, to be filled in following the same
-structure → behavior → states → variation pattern. A part that turns out to be a subject of
-its own leaves this list and becomes `<subject>.design.md`.
 ```
+
+**Size.** A part is about 40 lines. A whole doc is under 300. Passing that means the subject
+is really two subjects (split it), or the prose is padded (cut it).
 
 ### The per-subject pattern
 
-Specify each part, surface, or flow in this order (§2.x above). Not every subject needs all
-four, but keep the order:
+Specify each part, surface, or flow in this order (§2.x above). **Keep the order, and write
+only the sections that have something specific to say about this part** — a part with one
+state and no variation is three headings shorter, not three headings of filler.
 
 - **Structure** — what the subject is built from and how it is arranged: the components and
   the boundaries between them, the stages of a flow, or the regions of a screen. Use an
@@ -149,15 +158,16 @@ four, but keep the order:
   enters to where it leaves: what triggers it, what each part decides, what it hands on, and
   what the caller gets back. Name what each boundary carries. A reader must be able to trace
   a complete path through the subject from this section alone.
-- **States** — a **table** of the meaningful states or outcomes and what each one means.
-  Columns: `State | What happens`. Cover the normal case plus the ones that are easy to
-  forget: empty, not yet authorized, invalid input, a dependency that is slow or unavailable,
-  a retry or a duplicate, a conflict, and — for a screen — loading, empty, gated, populated,
-  and error.
+- **States** — a **table** of the outcomes that differ from each other, and what each one
+  means here. Columns: `State | What happens`. Check the easy-to-forget ones — empty, not yet
+  authorized, invalid input, a slow or unavailable dependency, a retry or a duplicate, a
+  conflict, and, for a screen, loading, empty, gated, populated, error — and keep the rows
+  where this design does something worth knowing. Drop a row whose answer is the generic one
+  ("shows an error"); it costs a line and teaches nothing.
 - **Variation and limits** — how the subject changes under different conditions (role or
   permission, configuration, tenant, region, volume, or screen width for a user interface),
   and the boundaries it holds within (capacity, timeouts, retry budgets, ordering and
-  consistency guarantees). State a number only when it is a design decision, per rule 2.
+  consistency guarantees). State a number only when it is a design decision, per rule 3.
 
 ### Common subjects
 
@@ -184,11 +194,14 @@ The pattern is the same for every subject; only what fills each section changes.
   everything with nuance.
 - **Cross-reference generously** with `§` section numbers so a rule stated once is pointed
   to, never restated. Between docs, link by relative filename.
-- **Concrete examples in parentheses or quotes** — a sample value, a sample message, a sample
-  label ("Start free") — to make intent concrete without prescribing the final form.
+- **One concrete example** where the intent is otherwise ambiguous — a sample value, message,
+  or label ("Start free"). One is enough; a list of examples restates the rule.
 - **Name behavior, not mechanism.** "A second submission of the same order changes nothing" —
   not which lock, index, or state hook enforces it.
-- Keep prose tight. Every sentence adds a fact about the design.
+- **No filler openers or closers.** No "In summary", no "It is important to note that", no
+  paragraph that introduces the paragraph after it. Start with the fact.
+- Every sentence adds a fact about the design. A sentence that only connects two other
+  sentences is a sentence to delete.
 
 ## Choosing the subject of a doc
 
@@ -214,7 +227,10 @@ repeating it. Never spin off (or link to) a build or operations doc.
 
 ## After drafting
 
-Check the draft against the core rules, then confirm with the user:
+Read the draft once with only one question in mind: **what can go?** Delete every sentence
+whose removal costs the reader no understanding — meta-prose, generic truths, restatements,
+empty headings, examples that repeat the rule. Then check the rest against the core rules,
+and confirm with the user:
 1. Does any sentence describe *how to build* rather than *how it works*? Rewrite it.
 2. Can a reader trace one complete path through the solution, from what starts it to what
    comes out? If not, the Behavior section is incomplete.
@@ -226,3 +242,4 @@ Check the draft against the core rules, then confirm with the user:
    cross-referenced from here?
 6. Are the states complete, including the failures — invalid input, a missing permission, an
    unavailable dependency, a duplicate?
+7. Would the doc lose anything if it were half as long? If not, cut it in half.

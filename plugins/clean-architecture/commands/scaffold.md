@@ -148,25 +148,24 @@ later subject gets its own `<subject>.design.md` beside it, written by `/design`
 ```markdown
 # <product> — design
 
-**Status**: Living document
 **Last updated**: <today, YYYY-MM-DD>
-**Related**: `../prd.md` (product requirements)
+**Related**: `../prd.md`
 
-<What this doc covers and what it does not. The PRD says what the product does; this doc
-says how the solution works, and points at each `<subject>.design.md` for the detail.>
+<One or two sentences: what the product is built from, and where the detail lives. Never
+what this document covers or leaves out.>
 
 ---
 
 ## 1. Foundations
 
-<Cross-cutting design intent applying to every part: the principles the design holds to, the
-constraints it works within, and the qualities every part shares. Qualitative only.>
+<Only the rules holding across every part below, that a later section relies on instead of
+restating. Three to seven bullets, qualitative. Omit the section when there are none.>
 
 ---
 
 ## 2. <First part, flow, or surface>
 
-<One or two sentences naming it and its role in the solution.>
+<One sentence naming its role. Do not repeat the heading.>
 
 ### 2.1 Structure
 
@@ -180,23 +179,16 @@ constraints it works within, and the qualities every part shares. Qualitative on
 
 | State | What happens |
 | --- | --- |
-| Normal | <the expected outcome> |
-| Empty | <no work to do, or nothing to show> |
-| Not authorized | <what the caller gets> |
-| Failure | <invalid input, or an unavailable dependency> |
+| <state> | <what this design does that a reader would not assume> |
 
 ### 2.4 Variation and limits
 
 <How the behavior changes by role, configuration, volume, or screen width, and the limits
 it holds within.>
-
----
-
-## N. Other parts (planned)
-
-- <Part not yet specified. A part large enough to stand alone becomes its own
-  `<subject>.design.md`.>
 ```
+
+Keep only the sections that have something specific to say — an empty heading is deleted,
+never filled — and leave out any part that is not designed yet.
 
 **`.clean-architecture/roadmap.md`**
 
