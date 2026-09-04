@@ -1,0 +1,20 @@
+{
+  "name": "sdlc",
+  "version": "0.39.0",
+  "description": "Clean fullstack architecture skill, AI planning workflow, and the interview/planning/coding/review agents that drive it.",
+  "author": {
+    "name": "husdeli",
+    "url": "https://github.com/husdeli"
+  },
+  "homepage": "https://github.com/husdeli/skills",
+  "keywords": [
+    "architecture",
+    "clean-code",
+    "hexagonal",
+    "typescript",
+    "react",
+    "tanstack-start",
+    "planning",
+    "workflow"
+  ]
+}

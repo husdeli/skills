@@ -1,0 +1,20 @@
+---
+description: Create or update a product requirements document that describes what the product does and why.
+argument-hint: [product or feature to write or update a PRD for]
+---
+
+# PRD
+
+Create or update a **product requirements document** for the target below.
+
+Target: $ARGUMENTS
+
+Invoke the **`prd`** skill and follow it to produce the PRD:
+
+- If the skill is namespaced here (e.g. `sdlc:prd`), invoke that.
+- Load the skill **before** writing anything, and follow its product-only rules, cohesive-and-positive framing, document shape, and style rules exactly.
+- Load the **`clean-writing`** skill alongside it and follow it for every sentence of the document — a PRD is read end to end by people who were not in the room.
+- The PRD lives at **`.sdlc/prd.md`**. Create the folder if it is missing, or run `/scaffold` first when the project has no structure at all. If the project already keeps a PRD at the root (`prd.md`/`PRD.md`), update that file in place rather than starting a second one.
+- If a PRD for this target already exists, update it in place — fold changes into the existing sections and keep the document whole.
+
+If no target was given above, ask which product or feature to write the PRD for before starting.

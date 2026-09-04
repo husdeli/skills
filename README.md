@@ -9,14 +9,14 @@ In Claude Code:
 
 ```
 /plugin marketplace add husdeli/skills
-/plugin install clean-architecture@husdeli-skills
+/plugin install sdlc@husdeli-skills
 ```
 
 In Codex:
 
 ```shell
 codex plugin marketplace add husdeli/skills
-codex plugin add clean-architecture@husdeli-skills
+codex plugin add sdlc@husdeli-skills
 ```
 
 Start a new session after installation so the skills become available.
@@ -26,7 +26,7 @@ Start a new session after installation so the skills become available.
 Every document the plugin reads or writes sits in one folder at your project root:
 
 ```
-.clean-architecture/
+.sdlc/
   prd.md                product requirements — what the product does and why
   roadmap.md            the ordered task list the orchestrator picks from, grouped by epic
   designs/
@@ -56,10 +56,10 @@ roadmap holds one section per epic, the epic's code prefixes every ticket ID und
 numbering restarts at 001 in each epic. That is what keeps two branches apart: each plans into
 its own epic, so both can add a first ticket and neither overwrites the other on merge.
 
-Run **`/scaffold`** in Claude Code or **`$clean-architecture:scaffold`** in Codex to create it.
+Run **`/scaffold`** in Claude Code or **`$sdlc:scaffold`** in Codex to create it.
 Every agent falls back to the project root when a project already keeps these documents there.
 
-## What's in the `clean-architecture` plugin
+## What's in the `sdlc` plugin
 
 ### Skills
 - **clean-fullstack-architecture** — Clean Code + Hexagonal Architecture with strict
@@ -126,7 +126,7 @@ Every agent falls back to the project root when a project already keeps these do
   one) concurrently and reports pass/fail per command. Writes no code, and reviews none either.
 
 ### Commands and Codex skills
-- **/scaffold** — creates `.clean-architecture/` with stub files for the PRD, the design doc,
+- **/scaffold** — creates `.sdlc/` with stub files for the PRD, the design doc,
   the roadmap, a ticket template, the `designs/` folder, and the `todo/`, `in-progress/`, and
   `done/` ticket folders. Never overwrites an existing file, and offers to move a root-level
   `prd.md`, `design.md`, or `tickets/` into the folder with `git mv` — including sorting a flat
@@ -169,15 +169,15 @@ Use these equivalents in a Codex prompt:
 
 | Claude Code | Codex |
 | --- | --- |
-| `/scaffold [product]` | `$clean-architecture:scaffold [product]` |
-| `/orchestrate [roadmap]` | `$clean-architecture:orchestrate [roadmap]` |
-| `/orchestrate-quick [task]` | `$clean-architecture:orchestrate-quick [task]` |
-| `/code [request]` | `$clean-architecture:code [request]` |
-| `/review [target]` | `$clean-architecture:review [target]` |
-| `/plan [request]` | `$clean-architecture:plan [request]` |
-| `/design [target]` | `$clean-architecture:design-doc [target]` |
-| `/prd [target]` | `$clean-architecture:prd [target]` |
-| `/explain [target]` | `$clean-architecture:explain [target]` |
+| `/scaffold [product]` | `$sdlc:scaffold [product]` |
+| `/orchestrate [roadmap]` | `$sdlc:orchestrate [roadmap]` |
+| `/orchestrate-quick [task]` | `$sdlc:orchestrate-quick [task]` |
+| `/code [request]` | `$sdlc:code [request]` |
+| `/review [target]` | `$sdlc:review [target]` |
+| `/plan [request]` | `$sdlc:plan [request]` |
+| `/design [target]` | `$sdlc:design-doc [target]` |
+| `/prd [target]` | `$sdlc:prd [target]` |
+| `/explain [target]` | `$sdlc:explain [target]` |
 
 Each Codex entry point lives in `codex-skills/`, and each one reads the shared source in
 `commands/` or `skills/`. Claude Code scans `skills/` only, so no Codex instruction reaches a
@@ -189,7 +189,7 @@ Claude session.
 .claude-plugin/marketplace.json     # marketplace manifest (lists plugins)
 .agents/plugins/marketplace.json    # Codex marketplace manifest
 plugins/
-  clean-architecture/
+  sdlc/
     .claude-plugin/plugin.json       # Claude Code plugin manifest
     .codex-plugin/plugin.json        # Codex plugin manifest
     skills/                          # shared rules and document skills, read by both runtimes
@@ -204,16 +204,16 @@ To test changes in Claude Code without publishing:
 
 ```
 /plugin marketplace add /path/to/this/repo
-/plugin install clean-architecture@husdeli-skills
+/plugin install sdlc@husdeli-skills
 ```
 
 To test changes in Codex without publishing:
 
 ```shell
 codex plugin marketplace add /path/to/this/repo
-codex plugin add clean-architecture@husdeli-skills
+codex plugin add sdlc@husdeli-skills
 ```
 
 After a Claude Code edit, run `/plugin marketplace update husdeli-skills`.
-After a Codex edit, run `codex plugin add clean-architecture@husdeli-skills` and start a new session.
+After a Codex edit, run `codex plugin add sdlc@husdeli-skills` and start a new session.
 Keep both plugin manifest versions equal when publishing a release.

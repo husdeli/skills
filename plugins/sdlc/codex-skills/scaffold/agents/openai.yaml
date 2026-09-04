@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scaffold SDLC Documents"
+  short_description: "Create the project document structure"
+  default_prompt: "Use $scaffold to create the SDLC project documents."

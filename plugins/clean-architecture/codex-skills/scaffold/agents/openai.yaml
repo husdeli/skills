@@ -1,4 +1,0 @@
-interface:
-  display_name: "Scaffold Clean Architecture"
-  short_description: "Create the project document structure"
-  default_prompt: "Use $scaffold to create the clean architecture project documents."
