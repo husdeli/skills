@@ -1,6 +1,6 @@
 # Codex Subagent Protocol
 
-Use this protocol with `commands/orchestrate.md`, `commands/orchestrate-quick.md`, `commands/code.md`, and `commands/plan.md`.
+Use this protocol with `commands/orchestrate.md`, `commands/orchestrate-quick.md`, `commands/code.md`, `commands/review.md`, and `commands/plan.md`.
 The command file defines workflow behavior. This protocol replaces only Claude-specific tools and runtime terms.
 
 ## Contents
@@ -43,7 +43,7 @@ Apply these replacements while executing the shared command:
 | `WebSearch`, `WebFetch` | Use Codex web tools and cite the sources that the role requires. |
 | `opus`, `sonnet`, or another Claude model | Omit the model override and inherit the current Codex model. |
 | `CLAUDE.md` | Read applicable `AGENTS.md` files first. Also read `CLAUDE.md` when present. |
-| `/scaffold`, `/orchestrate`, `/orchestrate-quick`, `/code`, `/plan` | Use `$scaffold`, `$orchestrate`, `$orchestrate-quick`, `$code`, `$plan`. |
+| `/scaffold`, `/orchestrate`, `/orchestrate-quick`, `/code`, `/review`, `/plan` | Use `$scaffold`, `$orchestrate`, `$orchestrate-quick`, `$code`, `$review`, `$plan`. |
 | `/design`, `/prd`, `/explain` | Use `$design-doc`, `$prd`, `$explain`. |
 | `$ARGUMENTS` | Use the text that follows the Codex skill invocation. |
 
@@ -108,6 +108,7 @@ Use `collaboration.followup_task` for every later turn of these roles:
 - implementation planner
 - plan reviewer
 - coding agent
+- code reviewer
 
 Use the canonical task name returned by the first `spawn_agent` call.
 Send only the new input that the shared command specifies.
@@ -193,6 +194,7 @@ Do not request a JSON block after a scout or pre-read turn when its role contrac
 | Correctness reviewer | `plan-reviewer.md` | `plan_reviewer_correctness` |
 | Codebase-fit reviewer | `plan-reviewer.md` | `plan_reviewer_codebase_fit` |
 | Coding agent | `coding.md` | `coding` |
+| Code reviewer | `code-reviewer.md` | `code_reviewer` |
 | First verification run | `verify.md` | `verify_1` |
 | Second verification run | `verify.md` | `verify_2` |
 
@@ -201,11 +203,12 @@ Do not change the shared plan-reviewer contract.
 
 ## 11. Handle missing collaboration tools
 
-The full workflow, the quick workflow, `$code`, and `$plan` require Codex collaboration tools.
+The full workflow, the quick workflow, `$code`, `$review`, and `$plan` require Codex collaboration tools.
 If `spawn_agent`, `followup_task`, or `wait_agent` is unavailable, stop before changing task status.
 
 Tell the user that this Codex session does not provide subagents.
 Suggest starting the workflow in a Codex session with collaboration enabled.
 Do not silently replace the reviewed workflow with one main-agent pass.
 For `$code`, the coding subagent is the whole workflow, so the same rule applies.
+For `$review`, the code-reviewer subagent is the whole workflow, so the same rule applies.
 For `$plan`, the interview is the research the documents rest on, so stop rather than plan from memory.

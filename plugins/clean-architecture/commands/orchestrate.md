@@ -1,5 +1,5 @@
 ---
-description: Pick the next actionable roadmap task and drive it through plan → review → implement using persistent subagents.
+description: Pick the next actionable roadmap task and drive it through plan → review → implement → verify + code review using persistent subagents.
 argument-hint: [roadmap-file-path]
 ---
 
@@ -19,7 +19,7 @@ project has no such folder, fall back to whatever it already uses at the root, a
 
 ## Architecture: interactive shell + persistent-agent core
 
-This command runs entirely **in the main loop, with you**. The human-facing stages — picking the task, getting approval, settling open decisions, marking status — need you because only you can talk to the user. The mechanical core — plan → review → revise → implement → verify — you drive with **persistent subagents**: spawn the planner, reviewer, and coding agent **once each** with `Agent`, then **resume them with `SendMessage`** across revision and fix cycles, so their context (the plan, the files they read, the prior reasoning) stays alive instead of being re-sent every cycle.
+This command runs entirely **in the main loop, with you**. The human-facing stages — picking the task, getting approval, settling open decisions, marking status — need you because only you can talk to the user. The mechanical core — plan → review → revise → implement → verify and review the code — you drive with **persistent subagents**: spawn the planner, the plan reviewer, the coding agent, and the code reviewer **once each** with `Agent`, then **resume them with `SendMessage`** across revision and fix cycles, so their context (the plan, the files they read, the prior reasoning) stays alive instead of being re-sent every cycle.
 
 ```
   YOU (main loop)
@@ -34,17 +34,18 @@ This command runs entirely **in the main loop, with you**. The human-facing stag
               [review gate] ─► SendMessage(reviewer, plan) ◄─┘
         ▲                                             │ CHANGES_REQUESTED
         └── SendMessage(planner, reviewer) ◄──────────┘  (revise ×1, re-review)
-  Agent(coding) ─► Agent(verify) ─┐
-        ▲                         │ FAILED
-        └── SendMessage(coding) ◄─┘  (fix ×1, re-verify failed commands first)
+  Agent(coding) ─► ┌ Agent(verify) ──────────────┐  concurrent
+                   └ Agent(code-reviewer) ───────┤
+        ▲                                        │ FAILED or CHANGES_REQUESTED
+        └── SendMessage(coding) ◄────────────────┘  (fix ×1, re-verify + re-review)
   mark Completed / escalate ─► report
 ```
 
 ### Why persistent agents
-Planner, reviewer, and coding each run inside a loop (revise, re-review, fix). Re-spawning them fresh forces a re-read of the plan, the files, and their own reasoning — the dominant token cost.
+Planner, plan reviewer, coding, and code reviewer each run inside a loop (revise, re-review, fix). Re-spawning them fresh forces a re-read of the plan, the files, and their own reasoning — the dominant token cost.
 
-- **Spawn once, keep the handle.** Every `Agent` call returns an id/name. Record the planner's, the reviewer's (two, for high-risk parallel lenses), and the coding agent's.
-- **Resume, don't respawn.** Send the *same* planner only the review issues; the *same* reviewer only "re-review the revised plan"; the *same* coding agent only the failures.
+- **Spawn once, keep the handle.** Every `Agent` call returns an id/name. Record the planner's, the plan reviewer's (two, for high-risk parallel lenses), the coding agent's, and the code reviewer's.
+- **Resume, don't respawn.** Send the *same* planner only the review issues; the *same* plan reviewer only "re-review the revised plan"; the *same* coding agent only the failures; the *same* code reviewer only "re-review the fix".
 - **Verify is the exception — it stays fresh.** Spawn a new `clean-architecture:verify` for each run: it is cheap (Sonnet), and a clean re-run with no memory of the prior attempt is what you want.
 
 ### Overlap the stages that don't depend on each other
@@ -53,13 +54,14 @@ Two spawns go out **early and concurrent**, so they run inside otherwise dead ai
 - **Planner scouts during the interview.** The interviewer and the user answering `AskUserQuestion` are minutes of waiting, and the planner would otherwise start cold on the same product docs, project instructions, and feature-adjacent files. In **scout-only** mode it surveys the codebase, researches the best practice, emits the context pack, then waits — its web round-trips cost no wall-clock here. When the decisions land, `SendMessage` them and it plans warm.
 - **Reviewer pre-reads during planning.** A reviewer must read the referenced files rather than review from the plan text, so start that read while the plan is still being written — **pre-read only** mode, spawned as soon as the scout's context pack exists.
 - **Coding self-checks, verify gates.** Coding runs a cheap targeted check on what it touched; the full concurrent gating run belongs to `verify` alone. Never ask coding to run the whole suite — that duplicates the slowest block on the path, sequentially.
+- **Verify and the code review run side by side.** They answer different questions about the same finished change — "does it pass?" and "is it the right code, and all of it?" — and neither needs the other's answer. The e2e suite is usually the longest block in the task, so the review costs no wall-clock at all. Do not start the code reviewer earlier, during implementation: the files are mid-flight then, and a review of half-written code is noise.
 
 A scouted plan or pre-read review is occasionally discarded (the gate skips review, or the decisions redirect the task). That is a token cost, not a wall-clock one — take it.
 
 There is no background workflow, and no schema enforcement: **each core agent ends its reply with a single fenced ` ```json ` block** in the contract its agent definition specifies, and you parse it to drive control flow. If a block is missing or malformed, `SendMessage` the agent once asking it to re-emit *only* the JSON block; a second failure is an `aborted` result.
 
 ### Context Pack (built once, forwarded automatically)
-The planner emits a **context pack** — relevant files, key symbols, conventions, the exact verification commands, and the project's e2e command — in its JSON block on the **scout turn**, before the plan exists. Paste it into the reviewer's and coding agent's *first* message and into every `verify` spawn, so none of them cold-explores the codebase (later `SendMessage` turns already have it). The interview's **Decisions** arrive later, as the planner's second message.
+The planner emits a **context pack** — relevant files, key symbols, conventions, the exact verification commands, and the project's e2e command — in its JSON block on the **scout turn**, before the plan exists. Paste it into the plan reviewer's, the coding agent's, and the code reviewer's *first* message and into every `verify` spawn, so none of them cold-explores the codebase (later `SendMessage` turns already have it). The interview's **Decisions** arrive later, as the planner's second message.
 
 ## Everything you show the user goes through `clean-writing`
 
@@ -188,31 +190,41 @@ Its skill obligations and JSON contract live in the agent definition — do not 
 
 It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, and `blockers`. Nothing returned → `aborted` (stage `implement`). Non-empty `blockers` → `escalate` (stage `implement`) with them.
 
-**Stage 4 — Verify (fresh agent) + fix (persistent coding, at most ONE fix cycle).** Spawn a **new** `clean-architecture:verify` (sonnet) each run:
+**Stage 4 — Verify and review the code (concurrent) + fix (persistent coding, at most ONE fix cycle).** Issue **both `Agent` calls in one tool block**. Verify is spawned **fresh every run**; the code reviewer is spawned **once** and resumed.
 
 ```
 Agent(subagent_type: "clean-architecture:verify", model: "sonnet",
       prompt: "Run these verification commands CONCURRENTLY (one parallel Bash batch). Report pass/fail per command."
               + verificationCommands and e2eCommand from the context pack + the Decisions
               + (re-runs only) "Previously failing commands: <failures> — run these first and fail fast.")
-```
-Pass `e2eCommand` **every time**, including the literal `"none"` — that is what lets the agent skip its e2e discovery sweep instead of globbing for `playwright.config.*`/`cypress/`/`e2e/` on each spawn. The judging rules, the fail-fast re-run behaviour, and the JSON contract live in the agent definition — do not restate them.
 
-It ends with a `json` block carrying `passed`, per-command `results` (`passed`, `skipped`, `output`), and `failures`.
-- Nothing returned → `aborted` (stage `verify`).
-- `passed == true` → success, go to **Mark Completed**. If any result is `skipped`, still succeed, but name the skipped command and its reason in the report — never present a skipped e2e run as green.
-- `passed == false`, **not yet fixed**: `SendMessage(codingId, "Verification failed. Fix ONLY what's needed to make the checks pass — stay within the approved plan, then stop; verification will re-run." + failures)` — the coding agent holds the plan/pack, so **send only the failures**. Then spawn a **fresh** verify agent, passing it the **previously failing commands** so it runs those first and bails early if the fix did not land.
-- `passed == false`, **already fixed once** → **`escalate`** (stage `verify`) with the failures, leave status `In Progress`, stop.
+Agent(subagent_type: "clean-architecture:code-reviewer", model: <opus on high risk, else sonnet>,
+      prompt: "Review the change the coding agent just made, against the approved plan and the
+               acceptance criteria. Verification is running in parallel — do not run the suite."
+              + approved plan + acceptance criteria + Decisions + context pack
+              + the coding agent's filesChanged + the review target ("the uncommitted changes
+                against HEAD, untracked files included"))
+```
+Pass `e2eCommand` **every time**, including the literal `"none"` — that is what lets the verify agent skip its e2e discovery sweep instead of globbing for `playwright.config.*`/`cypress/`/`e2e/` on each spawn. The judging rules, the fail-fast re-run behaviour, the review checklist, the severity rules, and both JSON contracts live in the agent definitions — do not restate them.
+
+**Model tier for the reviewer:** the same high-risk test as Stage 2 — **opus** when `addsPublicApi == true` **or** `addsDependency == true` **or** `filesTouched > 5`, **sonnet** otherwise. Unlike the plan review, the code review has **no skip gate**. It is the last thing between a change and a task marked complete, and a passing suite says nothing about a missed acceptance criterion or a broken layer boundary.
+
+Verify ends with a `json` block carrying `passed`, per-command `results` (`passed`, `skipped`, `output`), and `failures`. The reviewer ends with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues`. **Combine them into one gate:**
+
+- Either agent returned nothing → `aborted` (stage `verify` or `code-review`).
+- `passed == true` **and** `verdict == APPROVED` → success, go to **Mark Completed**. If any result is `skipped`, still succeed, but name the skipped command and its reason in the report — never present a skipped e2e run as green. Carry any minor review issues into the report as recommendations; they do not block.
+- Anything else, **not yet fixed**: send **one** message carrying both sets of defects — `SendMessage(codingId, "Verification and code review found the following. Fix ONLY what is needed to clear them — stay within the approved plan, then stop; both will re-run." + failures + blocking review issues)`. The coding agent holds the plan and the pack, so **send only the defects**. Then re-run: **always** a **fresh** verify agent — the fix changed code, so a suite that was green before proves nothing now — carrying the **previously failing commands** so it runs those first and bails early. Re-review **only when the review blocked**, with `SendMessage(codeReviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary)`; a fix confined to the failures the reviewer already approved around does not re-open the review. When both run, issue them **in one tool block**.
+- Anything else, **already fixed once** → **`escalate`** with the remaining failures and issues, leave status `In Progress`, stop. Name the stage `verify` when commands still fail, `code-review` when only the review still blocks.
 
 **Act on the result.** You have assembled one of:
-- **`completed`** → mark Completed (below). Keep `reviewRan`, `interviewRan`, the reviewer summary, and the implementation/verification details for the report.
+- **`completed`** → mark Completed (below). Keep `reviewRan`, `interviewRan`, both reviewer summaries, and the implementation/verification details for the report.
 - **`escalate`** → **do not mark complete.** Surface the `stage`, `reason`, and any `issues`/`failures`/`blockers`; leave the ticket and the roadmap `In Progress`, and the ticket file in `in-progress/`; stop.
 - **`aborted`** → an agent returned nothing. Report it; leave the status `In Progress` and the ticket file in `in-progress/`; stop.
 
 **Mark Completed (only on success).** Record it in **both** places yourself, with file edits:
 - In the **ticket file**, set the status field to `Completed`, matching its existing vocabulary/format, then **move it to `.clean-architecture/tickets/done/`** with `git mv`. Move any brief you wrote with it. Skip the move in a project whose tickets folder is flat.
 - In the **roadmap file**, update the task's status cell/marker (e.g. `✅ **Completed**`), matching the roadmap's style.
-- Never mark either place complete unless verification passed — otherwise leave the status `In Progress`, leave the file in `in-progress/`, and escalate.
+- Never mark either place complete unless verification passed **and** the code review returned `APPROVED` — otherwise leave the status `In Progress`, leave the file in `in-progress/`, and escalate.
 
 Report only after both are updated.
 
@@ -224,6 +236,7 @@ Report only after both are updated.
 - [x] Planning — approved
 - [x] Review — approved (or: skipped by complexity gate — trivial task)
 - [x] Implementation — verified (tests, lint, typecheck run concurrently)
+- [x] Code review — approved ([N] revisions)
 - [x] Status — ticket + roadmap marked Completed
 
 [Summary of what was accomplished]
@@ -231,15 +244,16 @@ Report only after both are updated.
 
 ## Failure Handling
 A fixed retry/escalation policy — apply it mechanically, do not improvise extra cycles:
-- **`escalate`** → a stage hit its limit (plan still rejected after 1 revision, coding blocker, verification still failing after 1 fix cycle). Surface `stage` + `reason` + details. Leave the status `In Progress` and the ticket file in `in-progress/`.
+- **`escalate`** → a stage hit its limit (plan still rejected after 1 revision, coding blocker, verification or code review still failing after 1 fix cycle). Surface `stage` + `reason` + details. Leave the status `In Progress` and the ticket file in `in-progress/`.
 - **`aborted`** → an agent returned no usable result (died, or no valid JSON block after one retry). Report and stop; leave the status `In Progress` and the ticket file in `in-progress/`.
-- Never mark a task complete unless verification passed.
+- Never mark a task complete unless verification passed and the code review approved.
 
 ## Rules
 - **One task at a time.** Do not execute the whole roadmap.
-- **Spawn once, resume with `SendMessage`** — planner, reviewer(s), coding. Only `verify` is spawned fresh each run.
+- **Spawn once, resume with `SendMessage`** — planner, plan reviewer(s), coding, code reviewer. Only `verify` is spawned fresh each run.
 - **Concurrent calls go in one tool block**, or they are not concurrent.
-- **Never duplicate the gating run.** Coding self-checks; `verify` runs the full suite once per cycle, with the previously failing commands on a re-verify.
+- **Never duplicate the gating run.** Coding self-checks; `verify` runs the full suite once per cycle, with the previously failing commands on a re-verify; the code reviewer never runs the suite at all.
+- **The code review always runs.** Verify and the code reviewer go out in one tool block, and the task passes only when the commands pass *and* the verdict is `APPROVED`. Only the plan review has a skip gate.
 - **Keep prompts thin.** Durable agent behavior belongs in the agent definition — the spawn prompt is re-paid every time.
 - **Mark status yourself at both boundaries**, ticket and roadmap in sync — and the ticket file moves into the folder its new status names, in the same stage that writes the status.
 - **Interview before planning** for any non-trivial feature; skip only via the complexity gate.
