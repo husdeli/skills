@@ -1,5 +1,6 @@
-# [PROJECT-XXX] Ticket Title
+# [EPIC-XXX] Ticket Title
 
+**Epic**: EPIC — <epic name, as the roadmap section names it>  
 **Status**: Not Started | In Progress | Blocked | Review | Completed  
 **Priority**: Critical | High | Medium | Low  
 **Effort**: XS | S | M | L | XL  
