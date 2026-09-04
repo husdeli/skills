@@ -76,11 +76,11 @@ Drive one task through the entire pipeline. Do not batch tasks. When it is done,
 ### 1. Read the Roadmap
 - If no roadmap path was given, use **`.clean-architecture/roadmap.md`**. When that file does not exist, look for a roadmap at the project root, and ask for the path only when neither is there — naming `/scaffold` as the way to create one.
 - Read the file (Markdown, JSON, or plain text).
-- Identify all tasks with IDs, titles, descriptions, dependencies, and acceptance criteria.
+- Identify all tasks with IDs, titles, descriptions, dependencies, and acceptance criteria. Tasks are grouped into one `## <CODE> — <epic name>` section per epic, each with its own table — read every section, because a dependency may name a task in another epic.
 - Determine which are completed and which are pending.
 
 ### 2. Pick the Next Task
-Select a task that is **pending** and whose **dependencies are all satisfied**. If several qualify, pick the lowest ID or ask which to prioritize. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task. Present it:
+Select a task that is **pending** and whose **dependencies are all satisfied**. If several qualify, pick the first in roadmap order — top to bottom, epic by epic — or ask which to prioritize. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task. Present it:
 
 ```markdown
 ## Next Task

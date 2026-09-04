@@ -11,7 +11,7 @@ Request: $ARGUMENTS
 
 This is the intake path. `/prd` writes the PRD, `/design` writes the design doc, and `/orchestrate` builds a task that is already on the roadmap — but nothing turned a request into those tasks, so the roadmap had to be filled by hand before any pipeline had something to pick. `/plan` is that missing step, and it stops exactly where `/orchestrate` starts.
 
-**Where the documents live.** This plugin keeps them in `.clean-architecture/`: `prd.md`, `designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`, where `<status>` is `todo`, `in-progress`, or `done`. Every ticket this command writes starts in `todo/`, because no work has started on it. When a project has no such folder, fall back to whatever it already uses at the root. When its design docs sit directly in `.clean-architecture/`, or its tickets folder is flat, write into the shape the project already has.
+**Where the documents live.** This plugin keeps them in `.clean-architecture/`: `prd.md`, `designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`, where `<status>` is `todo`, `in-progress`, or `done`, and `<ID>` is `<EPIC>-<NNN>`. Every ticket this command writes starts in `todo/`, because no work has started on it. When a project has no such folder, fall back to whatever it already uses at the root. When its design docs sit directly in `.clean-architecture/`, or its tickets folder is flat, write into the shape the project already has.
 
 ## Architecture: you write, one agent researches
 
@@ -60,7 +60,7 @@ Agent(subagent_type: "clean-architecture:feature-interviewer",
                  because the document update follows your brief.")
 ```
 
-...and read `prd.md`, the `designs/*.design.md` docs this request touches, and `roadmap.md` yourself. You need four things the interviewer will not hand you: the product's vocabulary, the parts and surfaces this request touches, the roadmap's ID scheme and numbering, and the existing tasks the request duplicates or depends on.
+...and read `prd.md`, the `designs/*.design.md` docs this request touches, and `roadmap.md` yourself. You need four things the interviewer will not hand you: the product's vocabulary, the parts and surfaces this request touches, the roadmap's epics and the numbering inside each of them, and the existing tasks the request duplicates or depends on.
 
 The brief comes back as *Understanding*, *What already exists*, *Research findings*, *Open decisions*, *Assumptions*, and *Out of scope*. Nothing returned, or no brief after one retry → report that and stop before writing any file.
 
@@ -78,11 +78,13 @@ One gate, before you write any file:
 **PRD** — [section] — [what changes]  (or: no change)
 **Design docs** — [`designs/<subject>.design.md`] — [what changes]  (or: no change)
 
+**Epic** — [CODE] — [epic name] — [existing, or new]
+
 **Roadmap**
 
 | ID | Task | Depends on | Delivers |
 | --- | --- | --- | --- |
-| [ID] | [title] | [IDs or —] | [one line] |
+| [CODE-NNN] | [title] | [IDs or —] | [one line] |
 
 Tickets: one per row, in `.clean-architecture/tickets/todo/`.
 
@@ -94,7 +96,9 @@ How to break the work down:
 - **One task per shippable outcome** — something a person can check when it lands. Not a layer, not a file, not "the backend part".
 - **Size each task for a single `/orchestrate` run.** A task you cannot state in a few lines is two tasks.
 - **Order by dependency.** A task's dependencies sit above it, and name only other roadmap tasks.
-- **Continue the roadmap's existing ID scheme and numbering.** Never renumber, reuse, or reorder an existing ID.
+- **Put every task in one epic**, and name the epic before you number anything. An epic is a named group of tasks that deliver one feature. Use the epic the request already belongs to when the roadmap has one; declare a new epic when it does not, with a code of two to eight uppercase letters taken from the product's vocabulary. A code may repeat a PRD area anchor code when the epic covers that area, and it is unique against every other code in the roadmap.
+- **Number inside the epic, from 001.** Glob every ticket status folder for `<CODE>-*.md`, including `done/`, take the highest number, and continue from it. The restart per epic is what keeps two branches apart: each plans into its own epic, so both write a first ticket and neither overwrites the other on merge.
+- **Never renumber, reuse, or reorder an existing ID**, and never rewrite an ID a project already uses. A project still on a project-wide scheme (`SW-001`, `SW-002`, …) keeps it — continue that scheme and name `/scaffold` in your report as the way to migrate.
 - **A pending task the request changes is updated in place**, not duplicated. When the task it changes is already completed, add a new one.
 
 Wait for approval. Adjust and re-present as many times as the user asks.
@@ -110,16 +114,16 @@ and follow it. Do not restate its rules from memory.
 
 **Design docs** — only when the request changes how a part, a flow, or a surface works. Load the **`design-doc`** skill and follow it: one file per subject at `.clean-architecture/designs/<subject>.design.md`, the per-subject pattern (structure → behavior → states → variation and limits), the structural altitude, no tickets and no code references. Update the doc whose subject the request touches, and start a new one only for a subject that has none. Bump `Last updated` on each file you touch.
 
-**Roadmap** — append the approved rows to the table with status `⬜ **Pending**`, matching the file's existing style, and add one detail section per row: what the task delivers in two or three sentences, its acceptance criteria as checkboxes, and its ticket file name. Cite the ticket by name (`SW-001-<slug>.md`), never by path — the file moves between the status folders as the work progresses. Bump `Last updated`. Never write any status other than pending — in-progress and completed belong to whoever builds the task.
+**Roadmap** — append the approved rows under their epic, with status `⬜ **Pending**`, matching the file's existing style. An existing epic already has its `## <CODE> — <epic name>` section, its table, and its detail sections: add to those. A new epic gets a new section at the end of the file — one sentence on what it delivers, then its own table. Add one detail section per row: what the task delivers in two or three sentences, its acceptance criteria as checkboxes, and its ticket file name. Cite the ticket by name (`AUTH-001-<slug>.md`), never by path — the file moves between the status folders as the work progresses. Touch no other epic's section, so a branch planning a different feature changes different lines of the file. Bump `Last updated`. Never write any status other than pending — in-progress and completed belong to whoever builds the task.
 
 **Tickets** — copy `.clean-architecture/tickets/TEMPLATE.md` once per row into `.clean-architecture/tickets/todo/`, named `<ID>-<slug>.md`. When there is no template, use the ticket shape from the **`ai-planning-workflow`** skill. Load that skill's ticket guidelines and follow them, including where a ticket lives and when it moves:
 
 - **What, not how.** No file paths, no component or module names, no library names, no schema detail — those are the planner's job inside `/orchestrate`.
 - **The `Decisions` section is the one exception**, and the reason this command runs an interview: record each settled choice as a fixed constraint, one line with its rationale. A library chosen in the interview is named here, and nowhere else.
 - **Acceptance criteria are observable outcomes**, and they match the roadmap row.
-- **Status is `Not Started`**, so the file goes in `todo/`. `Created` is today.
+- **Status is `Not Started`**, so the file goes in `todo/`. `Created` is today. The `Epic` field names the epic exactly as its roadmap section does.
 - Under `Related`, cite the PRD's area anchor code (e.g. `CONTENT`) and any sibling ticket. The link runs ticket → PRD, never back.
-- **Never overwrite an existing ticket file.** Check every status folder for the ID before you write, because a completed ticket sits in `done/`. A name collision means the ID is wrong — fix the ID.
+- **Never overwrite an existing ticket file.** Check every status folder for the ID before you write, because a completed ticket sits in `done/`. A name collision means the number is wrong — take the next free one in that epic.
 
 ### 6. Report
 
@@ -133,6 +137,7 @@ and follow it. Do not restate its rules from memory.
 - Created: [paths]
 
 ### Tasks added
+Epic: [CODE] — [epic name] ([new], or the section it joined)
 - [ID] — [title] (depends on: [IDs or none])
 
 ### Decisions recorded

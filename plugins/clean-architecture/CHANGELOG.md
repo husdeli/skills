@@ -5,6 +5,49 @@ All notable changes to the **clean-architecture** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.37.0] - 2026-09-04
+
+### Changed
+
+- **Every ticket belongs to an epic, and the epic's code prefixes its ID.** Ticket numbers ran
+  in one project-wide sequence (`SW-001`, `SW-002`, …). Two branches planning two unrelated
+  features both took the next free number, both wrote `SW-004-<slug>.md`, and the merge kept one
+  ticket and lost the other. Nothing in the numbering said which feature a ticket belonged to
+  either.
+
+  An **epic** is now a named group of tasks that deliver one feature. It carries a short
+  uppercase code, that code prefixes every ticket ID under it, and **the numbering restarts at
+  001 in each epic**:
+
+  ```
+  tickets/todo/         AUTH-001-user-login.md
+  tickets/in-progress/  AUTH-002-session-timeout.md
+  tickets/done/         BILLING-001-invoice-export.md
+  ```
+
+  Two branches planning separate features write into separate number spaces, so each adds a
+  first ticket and neither overwrites the other.
+
+  **`roadmap.md` is the list of epics.** It holds one `## <CODE> — <epic name>` section per
+  epic, and each section holds its own task table and its `###` detail sections. A new epic
+  appends a section, so two branches change different parts of the file. A dependency may still
+  name a task in another epic: every ID is unique across the project, because every epic code
+  is.
+
+  `/plan` names the epic in its approval gate before it writes anything — the existing one the
+  request belongs to, or a new code it proposes — then appends its rows under that epic's
+  section and touches no other. It reads the next number out of the files, globbing every status
+  folder for `<CODE>-*.md`, `done/` included. The ticket template gains an `**Epic**` field.
+  `/orchestrate` and `/orchestrate-quick` read every epic section, and break a tie between
+  ready tasks by roadmap order instead of by lowest ID, which no longer compares across epics.
+
+  **A project on the old scheme keeps its IDs.** Nothing renumbers a ticket on its own, and
+  `/plan` continues whatever scheme it finds. `/scaffold` now offers the migration: it proposes
+  an epic grouping for the existing tasks, shows the full old-ID-to-new-ID table, and only after
+  an explicit yes renames the tickets with `git mv`, regroups the roadmap, and fixes every
+  inbound reference. It says first what the rename costs, because a branch citing an old ID
+  stops finding the file.
+
 ## [0.36.0] - 2026-08-31
 
 ### Changed

@@ -28,16 +28,16 @@ Every document the plugin reads or writes sits in one folder at your project roo
 ```
 .clean-architecture/
   prd.md                product requirements — what the product does and why
-  roadmap.md            the ordered task list the orchestrator picks from
+  roadmap.md            the ordered task list the orchestrator picks from, grouped by epic
   designs/
     overview.design.md  design docs — how the solution works, end to end. One file
     checkout.design.md  per subject, named <subject>.design.md
     …
   tickets/
-    TEMPLATE.md         copy per task, named <ID>-<slug>.md
-    todo/               SW-001-user-login.md
-    in-progress/        SW-002-session-timeout.md
-    done/               SW-003-password-reset.md
+    TEMPLATE.md         copy per task, named <EPIC>-<NNN>-<slug>.md
+    todo/               AUTH-001-user-login.md
+    in-progress/        AUTH-002-session-timeout.md
+    done/               BILLING-001-invoice-export.md
 ```
 
 Each kind of document gets its own folder once there can be more than one of it. A design doc
@@ -50,6 +50,11 @@ always names the folder it sits in. The commands move it for you: into `in-progr
 orchestrator starts the task, into `done/` when verification passes. A project that already
 keeps its design docs or its tickets in one flat folder keeps working — `/scaffold` offers the
 migration, and never forces it.
+
+Every ticket belongs to an **epic** — a named group of tasks that deliver one feature. The
+roadmap holds one section per epic, the epic's code prefixes every ticket ID under it, and the
+numbering restarts at 001 in each epic. That is what keeps two branches apart: each plans into
+its own epic, so both can add a first ticket and neither overwrites the other on merge.
 
 Run **`/scaffold`** in Claude Code or **`$clean-architecture:scaffold`** in Codex to create it.
 Every agent falls back to the project root when a project already keeps these documents there.
@@ -121,11 +126,13 @@ Every agent falls back to the project root when a project already keeps these do
   `done/` ticket folders. Never overwrites an existing file, and offers to move a root-level
   `prd.md`, `design.md`, or `tickets/` into the folder with `git mv` — including sorting a flat
   tickets folder into the three status folders, moving loose `*.design.md` files into
-  `designs/`, and renaming a lone `design.md` to `designs/overview.design.md`.
+  `designs/`, and renaming a lone `design.md` to `designs/overview.design.md`. It also offers to
+  migrate a project-wide ticket scheme (`SW-001`, `SW-002`, …) onto epic-prefixed IDs, after it
+  shows you the epic grouping and you approve it.
 - **/plan** — turns a request into the documents the rest of the plugin reads: it interviews
   with the **feature-interviewer** agent, settles the open decisions with you, then updates the
-  PRD and the design docs, appends the roadmap tasks, and writes one ticket per task into
-  `tickets/todo/`. It writes no code and sets no status past pending — `/orchestrate` takes it
+  PRD and the design docs, appends the roadmap tasks under their epic, and writes one ticket per
+  task into `tickets/todo/`. It writes no code and sets no status past pending — `/orchestrate` takes it
   from there.
 - **/orchestrate** — picks the next actionable roadmap task and drives it through
   interview → plan → review → implement → verify using the five agents above.

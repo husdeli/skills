@@ -43,7 +43,7 @@ You are the only stage that talks to the person. **Load the `clean-writing` skil
 `$ARGUMENTS` is either a **task description** or a **path** to a roadmap or ticket file.
 
 - **Task description** → use it as-is. Do not ask for approval; the user just gave it to you. Derive acceptance criteria from the description; if it names none and none are inferable, state the criteria you are assuming in one line and continue.
-- **Roadmap file** → read it, pick a task that is **pending** with all **dependencies satisfied** (lowest ID if several qualify), and present it in three lines — ID, title, acceptance criteria — then **wait for approval**. Picking the wrong task is the one mistake this pipeline cannot verify its way out of.
+- **Roadmap file** → read it, pick a task that is **pending** with all **dependencies satisfied** (the first in roadmap order if several qualify, reading the epic sections top to bottom), and present it in three lines — ID, title, acceptance criteria — then **wait for approval**. Picking the wrong task is the one mistake this pipeline cannot verify its way out of.
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 

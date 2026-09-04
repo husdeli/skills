@@ -6,6 +6,8 @@ Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable 
 
 ## ✅ Include
 
+- **Epic**: The epic this ticket belongs to, written as the roadmap section names it. The epic's
+  code prefixes the ticket ID, and the numbering restarts at 001 inside each epic.
 - **Requirements**: What features/functionality to deliver
 - **Acceptance Criteria**: Observable outcomes and behaviours
 - **User Experience**: How users interact with the feature
