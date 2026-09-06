@@ -104,6 +104,11 @@ Every agent falls back to the project root when a project already keeps these do
   or a screen — a user interface is one case, not the default. One file per subject in
   `designs/`, named `<subject>.design.md`, so the file name says what it specifies. The doc states the intended
   end state, not how to build it.
+- **frontend-design** — Agree what a screen looks like before it is built. Reads the PRD, the
+  design doc, and the design system the codebase already has, publishes a static mockup as an
+  Artifact — every state, the small screen, placeholder data, nothing wired up — and iterates
+  until the user agrees. Then it records the decisions, so the code is written from an agreement
+  and not from a picture nobody wrote down. It writes no production code.
 - **prd** — Create or update a product requirements document: product-only content,
   cohesive per-area descriptions with stable anchor codes, and positive framing.
 
@@ -150,7 +155,9 @@ Every agent falls back to the project root when a project already keeps these do
   itself. One agent, no planner, no reviewer, no verify agent: it finds the files, writes the
   change, runs a targeted self-check, and the command reports what it did and what nobody ran.
   Use it for a fix or a small feature you already understand; it hands off to
-  `/orchestrate-quick` or `/orchestrate` when the request turns out to need a plan.
+  `/orchestrate-quick` or `/orchestrate` when the request turns out to need a plan. When the
+  request changes what a user sees, it runs the `frontend-design` skill first and waits for you
+  to agree the mockup before the coding agent starts.
 - **/review** — reviews code that already exists with the **code-reviewer** agent: the
   uncommitted changes by default, or a path, a branch, a commit range, or a ticket you name.
   Reports the verdict and the defects, each with its file and line. Add `fix` to hand the
@@ -159,6 +166,9 @@ Every agent falls back to the project root when a project already keeps these do
   before a pull request.
 - **/design** — loads the `design-doc` skill to create or update
   `designs/<subject>.design.md` for a given system, service, flow, integration, or screen.
+- **/frontend-design** — loads the `frontend-design` skill to agree the look of a screen, a
+  component, or a flow before it is built: it publishes a static mockup as an Artifact, iterates
+  with you, and records what you agreed. It writes no production code — `/code` builds it after.
 - **/prd** — loads the `prd` skill to create or update a product requirements document for
   a given product or feature.
 - **/explain** — explains what is happening in plain language: the work you just did, a
@@ -176,6 +186,7 @@ Use these equivalents in a Codex prompt:
 | `/review [target]` | `$sdlc:review [target]` |
 | `/plan [request]` | `$sdlc:plan [request]` |
 | `/design [target]` | `$sdlc:design-doc [target]` |
+| `/frontend-design [target]` | `$sdlc:frontend-design [target]` |
 | `/prd [target]` | `$sdlc:prd [target]` |
 | `/explain [target]` | `$sdlc:explain [target]` |
 

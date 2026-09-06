@@ -5,6 +5,30 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.0] - 2026-09-06
+
+### Added
+
+- **`frontend-design` skill and `/frontend-design` command.** A change the user will see is now
+  agreed before it is built. The skill reads the product documents and the codebase's existing
+  design system, publishes a static mockup as an Artifact — every state, the small screen, and
+  placeholder data — and iterates with the user until they agree. It then records what was
+  agreed, so the person or agent who writes the code has the decisions and not only the picture.
+  It writes no production code.
+
+  In Codex, `$sdlc:frontend-design` runs the same skill and saves the mockup as a local HTML
+  file, because a Codex session has no Artifact tool.
+
+### Changed
+
+- **`/code` agrees the design before it codes a visible change.** A new stage runs the
+  `frontend-design` skill in the main session when the request adds or changes a screen, a
+  component, a layout, or a flow, and only spawns the coding agent once the user agrees. The
+  stage runs in the main loop because the coding agent can neither publish an Artifact nor talk
+  to the user. It is skipped, in one stated line, for an invisible change, a copy or
+  one-property style fix, a screen the existing components already decide, a design the user has
+  already agreed, or when the user says to skip it.
+
 ## [0.39.0] - 2026-09-04
 
 ### Changed
