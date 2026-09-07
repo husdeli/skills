@@ -1,0 +1,900 @@
+<title>Recipe Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Karla:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper: #eef2e6;
+    --card: #fbfcf8;
+    --card-2: #f5f8ee;
+    --ink: #171c10;
+    --muted: #5d6b4f;
+    --line: #dbe2ce;
+    --line-strong: #c3cdb1;
+    --accent: #3d6b2c;
+    --accent-ink: #ffffff;
+    --accent-soft: #e3ecd6;
+    --amber: #8a6410;
+    --danger: #9c3a26;
+    --shadow: 0 1px 2px rgba(23, 28, 16, .06), 0 8px 24px -12px rgba(23, 28, 16, .28);
+    --radius: 10px;
+    --step--1: .8125rem;
+    --step-0: .9375rem;
+    --step-1: 1.0625rem;
+    --step-2: 1.375rem;
+    --step-3: 1.875rem;
+    --sans: "Karla", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --display: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #10130d;
+      --card: #191d14;
+      --card-2: #1f241a;
+      --ink: #e9eee1;
+      --muted: #9aa88f;
+      --line: #2b3223;
+      --line-strong: #3d4633;
+      --accent: #9bc97a;
+      --accent-ink: #12160e;
+      --accent-soft: #23301a;
+      --amber: #d3a742;
+      --danger: #e0836c;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 10px 30px -14px rgba(0, 0, 0, .8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #10130d;
+    --card: #191d14;
+    --card-2: #1f241a;
+    --ink: #e9eee1;
+    --muted: #9aa88f;
+    --line: #2b3223;
+    --line-strong: #3d4633;
+    --accent: #9bc97a;
+    --accent-ink: #12160e;
+    --accent-soft: #23301a;
+    --amber: #d3a742;
+    --danger: #e0836c;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 10px 30px -14px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: var(--step-0);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { margin: 0; font-family: var(--display); font-weight: 700; text-wrap: balance; letter-spacing: -.01em; }
+  button { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .bar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    padding: 12px 20px;
+    background: color-mix(in srgb, var(--paper) 88%, transparent);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .wordmark { font-family: var(--display); font-size: var(--step-2); font-weight: 700; margin-right: auto; }
+  .wordmark span { color: var(--accent); }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    border: 1px solid var(--line-strong); background: var(--card); color: var(--ink);
+    font-weight: 500; white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn:disabled { opacity: .5; cursor: not-allowed; border-color: var(--line); }
+  .btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-quiet { background: transparent; border-color: transparent; color: var(--muted); padding: 6px 8px; }
+  .btn-quiet:hover { color: var(--ink); border-color: var(--line); }
+  .btn-danger:hover { color: var(--danger); border-color: var(--danger); }
+  .btn-sm { padding: 5px 10px; font-size: var(--step--1); }
+
+  .servings { display: inline-flex; align-items: center; gap: 6px; font-size: var(--step--1); color: var(--muted); }
+  .servings select, .field input, .field textarea, .field select {
+    font: inherit; color: var(--ink); background: var(--card);
+    border: 1px solid var(--line-strong); border-radius: 8px; padding: 7px 9px;
+  }
+  .servings select { padding: 5px 8px; font-family: var(--mono); }
+
+  .notice {
+    padding: 10px 20px; font-size: var(--step--1); color: var(--muted);
+    background: var(--card-2); border-bottom: 1px solid var(--line);
+  }
+  .notice strong { color: var(--ink); }
+
+  .layout {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: 28px; align-items: start;
+    max-width: 1180px; margin: 0 auto; padding: 24px 20px 64px;
+  }
+  @media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); gap: 20px; } }
+
+  .eyebrow {
+    font-family: var(--mono); font-size: .6875rem; text-transform: uppercase;
+    letter-spacing: .1em; color: var(--muted);
+  }
+  .col-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; min-height: 26px; }
+  .col-head .eyebrow { margin-right: auto; }
+
+  /* Library — an index of ruled rows, not a deck of cards. */
+  .index { border-top: 1px solid var(--line); }
+  .row {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center; border-bottom: 1px solid var(--line);
+  }
+  .row:hover { background: var(--card-2); }
+  .row.on { background: var(--accent-soft); }
+  .row-main {
+    display: grid; grid-template-columns: 44px minmax(0, 1fr);
+    gap: 12px; align-items: center; width: 100%; text-align: left;
+    padding: 11px 4px; background: none; border: 0; cursor: pointer;
+  }
+  .row-days {
+    font-family: var(--mono); font-variant-numeric: tabular-nums;
+    font-size: var(--step-1); text-align: right; color: var(--ink); line-height: 1.1;
+  }
+  .row-days small { display: block; font-size: .625rem; color: var(--muted); letter-spacing: .06em; }
+  .row-days.never { color: var(--accent); }
+  .row-name { display: block; font-weight: 500; overflow-wrap: anywhere; }
+  .row-meta { display: block; font-family: var(--mono); font-size: var(--step--1); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .row-pick { display: flex; align-items: center; padding-right: 6px; }
+  .row-pick input { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+  .stars { color: var(--amber); font-size: var(--step--1); letter-spacing: .06em; }
+
+  .empty { padding: 40px 24px; text-align: center; border-bottom: 1px solid var(--line); }
+  .empty p { color: var(--muted); max-width: 34ch; margin: 8px auto 18px; }
+
+  /* The one lifted object on the page. */
+  .panel {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px;
+  }
+  .panel-head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 4px; }
+  .panel-head h2 { font-size: var(--step-3); flex: 1; }
+  .facts {
+    display: flex; gap: 14px; flex-wrap: wrap; margin: 12px 0 18px;
+    font-family: var(--mono); font-size: var(--step--1); color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+  .facts b { color: var(--ink); font-weight: 500; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
+  .tag {
+    font-family: var(--mono); font-size: .6875rem; padding: 2px 8px; border-radius: 999px;
+    background: var(--accent-soft); color: var(--accent); border: 1px solid transparent;
+  }
+  .tag.example { background: transparent; border-color: var(--line-strong); color: var(--muted); }
+
+  .sub { font-family: var(--mono); font-size: .6875rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin: 20px 0 8px; }
+  .ing { list-style: none; margin: 0; padding: 0; }
+  .ing li { display: flex; gap: 12px; padding: 5px 0; border-bottom: 1px dotted var(--line); }
+  .qty { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); min-width: 78px; text-align: right; }
+  .steps { margin: 0; padding-left: 1.15em; }
+  .steps li { padding: 4px 0; max-width: 62ch; }
+  .steps li::marker { font-family: var(--mono); color: var(--accent); font-size: var(--step--1); }
+  .notes { margin-top: 14px; color: var(--muted); font-size: var(--step--1); }
+
+  .panel-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--line); }
+  .rate { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+  .rate button { background: none; border: 0; cursor: pointer; padding: 2px; color: var(--line-strong); font-size: var(--step-1); }
+  .rate button.on { color: var(--amber); }
+
+  /* Groceries */
+  .aisle + .aisle { margin-top: 18px; }
+  .buy { list-style: none; margin: 0; padding: 0; }
+  .buy li { display: flex; align-items: baseline; gap: 10px; padding: 6px 0; border-bottom: 1px dotted var(--line); }
+  .buy input { width: 17px; height: 17px; accent-color: var(--accent); flex: none; position: relative; top: 2px; }
+  .buy label { display: flex; gap: 12px; flex: 1; cursor: pointer; }
+  .buy .got { text-decoration: line-through; color: var(--muted); }
+  .staples { margin-top: 20px; padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted); font-size: var(--step--1); font-style: italic; }
+  .from { color: var(--muted); font-size: var(--step--1); margin-top: 6px; }
+
+  /* Suggestion */
+  .thinking { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .dot { animation: none; opacity: .7; } }
+  .stream { font-family: var(--mono); font-size: var(--step--1); color: var(--muted); white-space: pre-wrap; max-height: 8lh; overflow: hidden; margin-top: 12px; }
+  .error { color: var(--danger); }
+
+  /* Add by hand */
+  .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+  .field label { font-size: var(--step--1); color: var(--muted); }
+  .field textarea { min-height: 92px; resize: vertical; font-family: var(--mono); font-size: var(--step--1); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  dialog {
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--card); color: var(--ink);
+    max-width: 560px; width: calc(100% - 32px); padding: 22px; box-shadow: var(--shadow);
+  }
+  dialog::backdrop { background: rgba(10, 14, 8, .5); }
+  .hint { font-size: var(--step--1); color: var(--muted); margin: -4px 0 12px; }
+</style>
+
+<header class="bar">
+  <div class="wordmark">The <span>Recipe</span> Library</div>
+  <label class="servings">Cooking for
+    <select id="servings" aria-label="Servings">
+      <option>1</option><option selected>2</option><option>3</option><option>4</option><option>6</option>
+    </select>
+  </label>
+  <button class="btn" id="add-btn">Add by hand</button>
+  <button class="btn" id="export-btn" hidden>Export</button>
+  <button class="btn btn-primary" id="suggest-btn" hidden>Suggest a dinner</button>
+</header>
+
+<div class="notice" id="notice" hidden></div>
+
+<main class="layout">
+  <section>
+    <div class="col-head">
+      <span class="eyebrow" id="library-count">The library</span>
+      <button class="btn btn-quiet btn-sm" id="clear-pick" hidden>Clear selection</button>
+    </div>
+    <div class="index" id="index"></div>
+  </section>
+
+  <section>
+    <div class="col-head"><span class="eyebrow" id="panel-label">Tonight</span></div>
+    <div class="panel" id="panel"></div>
+  </section>
+</main>
+
+<dialog id="add-dialog">
+  <h2 style="font-size: var(--step-2); margin-bottom: 14px;">Add a recipe you already cook</h2>
+  <form method="dialog" id="add-form">
+    <div class="field"><label for="f-name">Name</label><input id="f-name" required maxlength="80"></div>
+    <div class="two">
+      <div class="field"><label for="f-servings">Servings</label><input id="f-servings" type="number" min="1" max="12" value="2"></div>
+      <div class="field"><label for="f-minutes">Minutes</label><input id="f-minutes" type="number" min="5" max="240" value="30"></div>
+    </div>
+    <div class="field">
+      <label for="f-ing">Ingredients, one per line</label>
+      <textarea id="f-ing" required placeholder="500 g chicken thighs&#10;2 cloves garlic&#10;1 bunch parsley"></textarea>
+    </div>
+    <p class="hint">Quantity, unit, then the item. Units: g, kg, ml, l, tbsp, tsp, piece, clove, bunch, can, pinch.</p>
+    <div class="field">
+      <label for="f-steps">Steps, one per line</label>
+      <textarea id="f-steps" required placeholder="Heat the oven to 220 C.&#10;Roast 30 minutes."></textarea>
+    </div>
+    <div class="panel-actions" style="border: 0; padding: 0; margin-top: 6px;">
+      <button class="btn btn-primary" value="save">Save to the library</button>
+      <button class="btn" value="cancel" formnovalidate>Cancel</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  "use strict";
+
+  var AISLES = ["produce", "meat", "fish", "dairy", "bakery", "frozen", "pantry", "spices", "drinks", "other"];
+  var UNITS = ["g", "kg", "ml", "l", "tbsp", "tsp", "piece", "clove", "bunch", "can", "pinch"];
+  var AISLE_HINTS = {
+    produce: ["onion", "garlic", "tomato", "potato", "lemon", "lime", "carrot", "pepper", "parsley", "spinach", "mushroom", "courgette", "cucumber", "salad", "herb", "ginger", "apple", "broccoli", "leek", "cabbage"],
+    meat: ["chicken", "beef", "pork", "lamb", "bacon", "sausage", "mince", "ham"],
+    fish: ["salmon", "cod", "tuna", "prawn", "shrimp", "fish"],
+    dairy: ["milk", "butter", "cheese", "yoghurt", "yogurt", "cream", "egg", "feta", "parmesan", "mozzarella"],
+    bakery: ["bread", "bun", "tortilla", "pita", "baguette"],
+    frozen: ["frozen", "peas"],
+    spices: ["salt", "pepper", "paprika", "cumin", "oregano", "thyme", "chilli", "chili", "cinnamon", "curry", "spice"],
+    drinks: ["wine", "stock", "broth", "juice"],
+    pantry: ["oil", "vinegar", "rice", "pasta", "noodle", "flour", "sugar", "lentil", "bean", "chickpea", "tin", "can", "soy", "honey", "mustard", "couscous", "tomatoes"]
+  };
+  var STAPLE_HINTS = ["olive oil", "oil", "salt", "pepper", "sugar", "flour", "vinegar", "soy sauce", "honey", "mustard", "butter"];
+
+  var EXAMPLES = [
+    {
+      id: "example-lemon-chicken", name: "Sheet-pan lemon chicken with potatoes", servings: 2, minutes: 35,
+      tags: ["chicken", "oven", "one-pan"], example: true,
+      ingredients: [
+        { item: "chicken thighs", quantity: 500, unit: "g", aisle: "meat" },
+        { item: "new potatoes", quantity: 600, unit: "g", aisle: "produce" },
+        { item: "lemon", quantity: 1, unit: "piece", aisle: "produce" },
+        { item: "olive oil", quantity: 2, unit: "tbsp", aisle: "pantry", staple: true }
+      ],
+      steps: ["Heat the oven to 220 C.", "Halve the potatoes and toss everything on a tray.", "Roast 30 minutes, until the skin crisps."],
+      notes: "", createdAt: "2026-09-07", lastCooked: null, timesCooked: 0, rating: null
+    },
+    {
+      id: "example-white-bean-greens", name: "White beans with greens and garlic", servings: 2, minutes: 20,
+      tags: ["vegetarian", "one-pan", "store-cupboard"], example: true,
+      ingredients: [
+        { item: "white beans", quantity: 1, unit: "can", aisle: "pantry" },
+        { item: "spinach", quantity: 200, unit: "g", aisle: "produce" },
+        { item: "garlic", quantity: 3, unit: "clove", aisle: "produce" },
+        { item: "olive oil", quantity: 2, unit: "tbsp", aisle: "pantry", staple: true }
+      ],
+      steps: ["Slice the garlic and soften it in the oil, 2 minutes.", "Add the drained beans and warm through.", "Wilt the spinach in, season, and finish with lemon."],
+      notes: "", createdAt: "2026-09-07", lastCooked: null, timesCooked: 0, rating: null
+    }
+  ];
+
+  var db = null, sample = null, downloads = null;
+  var recipes = [];
+  var demo = false;
+  var selected = new Set();
+  var currentId = null;
+  var suggestion = null;
+  var sampleState = { busy: false, text: "", error: null, controller: null };
+  var pendingDelete = null;
+
+  var el = {
+    index: document.getElementById("index"),
+    panel: document.getElementById("panel"),
+    panelLabel: document.getElementById("panel-label"),
+    count: document.getElementById("library-count"),
+    notice: document.getElementById("notice"),
+    suggest: document.getElementById("suggest-btn"),
+    exportBtn: document.getElementById("export-btn"),
+    addBtn: document.getElementById("add-btn"),
+    clearPick: document.getElementById("clear-pick"),
+    servings: document.getElementById("servings"),
+    dialog: document.getElementById("add-dialog"),
+    form: document.getElementById("add-form")
+  };
+
+  /* ---------- helpers ---------- */
+
+  function today() { return new Date().toISOString().slice(0, 10); }
+
+  function daysSince(iso) {
+    if (!iso) return null;
+    var then = Date.parse(iso + "T00:00:00");
+    if (isNaN(then)) return null;
+    return Math.max(0, Math.floor((Date.now() - then) / 86400000));
+  }
+
+  function slug(name) {
+    return String(name).toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "").slice(0, 60) || "recipe-" + Date.now();
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function guessAisle(item) {
+    var t = String(item).toLowerCase();
+    for (var a in AISLE_HINTS) {
+      for (var i = 0; i < AISLE_HINTS[a].length; i++) if (t.indexOf(AISLE_HINTS[a][i]) !== -1) return a;
+    }
+    return "other";
+  }
+
+  function guessStaple(item) {
+    var t = String(item).toLowerCase();
+    return STAPLE_HINTS.some(function (s) { return t === s || t.indexOf(s) !== -1 && t.length < s.length + 8; });
+  }
+
+  function fmtQty(q, unit) {
+    var n = Math.round(q * 100) / 100;
+    var text = Number.isInteger(n) ? String(n) : String(n).replace(/0+$/, "");
+    if (unit === "piece") return text;
+    return text + " " + unit;
+  }
+
+  function roundQty(q, unit) {
+    if (unit === "g" || unit === "ml") return q < 20 ? Math.round(q) : Math.round(q / 10) * 10;
+    if (unit === "kg" || unit === "l") return Math.round(q * 100) / 100;
+    if (unit === "piece" || unit === "clove" || unit === "bunch" || unit === "can") return Math.max(1, Math.ceil(q - 0.15));
+    if (unit === "tbsp" || unit === "tsp") return Math.max(0.5, Math.round(q * 2) / 2);
+    return Math.round(q * 10) / 10;
+  }
+
+  function targetServings() { return parseInt(el.servings.value, 10) || 2; }
+
+  function sortRecipes(list) {
+    return list.slice().sort(function (a, b) {
+      var da = daysSince(a.lastCooked), dbb = daysSince(b.lastCooked);
+      if (da === null && dbb === null) return String(b.createdAt || "").localeCompare(String(a.createdAt || ""));
+      if (da === null) return -1;
+      if (dbb === null) return 1;
+      return dbb - da;
+    });
+  }
+
+  function stars(n) {
+    if (!n) return "";
+    return "★".repeat(n) + "☆".repeat(5 - n);
+  }
+
+  /* ---------- normalising a recipe from any source ---------- */
+
+  function normalise(raw) {
+    if (!raw || typeof raw !== "object" || !raw.name) return null;
+    var ing = Array.isArray(raw.ingredients) ? raw.ingredients : [];
+    var ingredients = ing.map(function (x) {
+      if (!x || !x.item) return null;
+      var unit = UNITS.indexOf(x.unit) !== -1 ? x.unit : "piece";
+      var qty = Number(x.quantity);
+      var out = {
+        item: String(x.item).slice(0, 60),
+        quantity: isFinite(qty) && qty > 0 ? qty : 1,
+        unit: unit,
+        aisle: AISLES.indexOf(x.aisle) !== -1 ? x.aisle : guessAisle(x.item)
+      };
+      if (x.staple === true || (x.staple === undefined && guessStaple(x.item))) out.staple = true;
+      return out;
+    }).filter(Boolean);
+    if (!ingredients.length) return null;
+    var steps = (Array.isArray(raw.steps) ? raw.steps : []).map(function (s) { return String(s).slice(0, 300); }).filter(Boolean);
+    if (!steps.length) return null;
+    return {
+      id: raw.id ? slug(raw.id) : slug(raw.name),
+      name: String(raw.name).slice(0, 90),
+      servings: Number(raw.servings) > 0 ? Number(raw.servings) : 2,
+      minutes: Number(raw.minutes) > 0 ? Math.round(Number(raw.minutes)) : 30,
+      tags: (Array.isArray(raw.tags) ? raw.tags : []).slice(0, 5).map(function (t) { return String(t).slice(0, 24); }),
+      ingredients: ingredients,
+      steps: steps.slice(0, 8),
+      notes: raw.notes ? String(raw.notes).slice(0, 300) : "",
+      createdAt: raw.createdAt || today(),
+      lastCooked: raw.lastCooked || null,
+      timesCooked: Number(raw.timesCooked) || 0,
+      rating: Number(raw.rating) > 0 ? Number(raw.rating) : null
+    };
+  }
+
+  /* ---------- the store ---------- */
+
+  function setNotice(html) {
+    if (!html) { el.notice.hidden = true; el.notice.innerHTML = ""; return; }
+    el.notice.hidden = false;
+    el.notice.innerHTML = html;
+  }
+
+  function connect() {
+    claude.use("db").then(function (store) {
+      if (!store) {
+        demo = true;
+        recipes = EXAMPLES.slice();
+        setNotice("<strong>The library is not reachable from this view.</strong> These two recipes are examples, so you can see what the page does. Open the page in Claude to reach your own library.");
+        render();
+        return;
+      }
+      db = store;
+      db.collection("recipes").onSnapshot(function (snap) {
+        demo = false;
+        recipes = snap.docs.map(function (d) {
+          var data = d.data() || {};
+          data.id = d.id;
+          return normalise(data) || null;
+        }).filter(Boolean);
+        if (currentId && !recipes.some(function (r) { return r.id === currentId; })) currentId = null;
+        setNotice("");
+        render();
+      }, function (e) {
+        setNotice("<strong>The library stopped updating.</strong> Reload the page to reconnect. (" + esc(e.code) + ")");
+      });
+    });
+
+    claude.use("sample").then(function (fn) {
+      sample = fn;
+      el.suggest.hidden = !fn;
+    });
+
+    claude.use("downloads").then(function (d) {
+      downloads = d;
+      el.exportBtn.hidden = !d;
+    });
+  }
+
+  function saveRecipe(recipe) {
+    if (!db) return Promise.reject({ code: "unavailable" });
+    var body = Object.assign({}, recipe);
+    delete body.id;
+    return db.doc("recipes/" + recipe.id).set(body);
+  }
+
+  /* ---------- rendering: the library index ---------- */
+
+  function render() {
+    renderIndex();
+    renderPanel();
+    el.clearPick.hidden = selected.size === 0;
+    el.addBtn.disabled = demo;
+  }
+
+  function renderIndex() {
+    var list = sortRecipes(recipes);
+    el.count.textContent = list.length ? "The library · " + list.length : "The library";
+
+    if (!list.length) {
+      el.index.innerHTML =
+        '<div class="empty"><h2 style="font-size: var(--step-2)">Nothing in the library yet</h2>' +
+        '<p>Ask for a dinner and keep the ones you like, or type in a meal you already cook. ' +
+        'What is here is what stops the same four dinners coming round again.</p></div>';
+      return;
+    }
+
+    el.index.innerHTML = list.map(function (r) {
+      var d = daysSince(r.lastCooked);
+      var days = d === null
+        ? '<div class="row-days never">new<small>NOT COOKED</small></div>'
+        : '<div class="row-days">' + d + '<small>DAYS AGO</small></div>';
+      return '<div class="row' + (r.id === currentId ? ' on' : '') + '">' +
+        '<button class="row-main" data-id="' + esc(r.id) + '" aria-current="' + (r.id === currentId) + '">' +
+        days +
+        '<span><span class="row-name">' + esc(r.name) + '</span>' +
+        '<span class="row-meta">' + r.minutes + ' min · serves ' + r.servings +
+        (r.rating ? ' · <span class="stars">' + stars(r.rating) + '</span>' : '') + '</span></span>' +
+        '</button>' +
+        '<div class="row-pick"><input type="checkbox" data-pick="' + esc(r.id) + '" ' +
+        (selected.has(r.id) ? "checked" : "") + ' aria-label="Add ' + esc(r.name) + ' to the grocery list"></div>' +
+        '</div>';
+    }).join("");
+  }
+
+  el.index.addEventListener("click", function (e) {
+    var pick = e.target.closest("input[data-pick]");
+    if (pick) {
+      e.stopPropagation();
+      var pid = pick.getAttribute("data-pick");
+      if (pick.checked) selected.add(pid); else selected.delete(pid);
+      suggestion = null;
+      render();
+      return;
+    }
+    var row = e.target.closest(".row-main");
+    if (!row) return;
+    currentId = row.getAttribute("data-id");
+    pendingDelete = null;
+    suggestion = null;
+    selected.clear();
+    render();
+  });
+
+  el.clearPick.addEventListener("click", function () { selected.clear(); render(); });
+  el.servings.addEventListener("change", render);
+
+  /* ---------- rendering: the panel ---------- */
+
+  function renderPanel() {
+    if (sampleState.busy || sampleState.error) return renderThinking();
+    if (suggestion) return renderRecipe(suggestion, "suggestion");
+    if (selected.size) return renderGroceries();
+    var current = recipes.filter(function (r) { return r.id === currentId; })[0];
+    if (current) return renderRecipe(current, "saved");
+    return renderRest();
+  }
+
+  function renderRest() {
+    el.panelLabel.textContent = "Tonight";
+    var next = sortRecipes(recipes)[0];
+    el.panel.innerHTML =
+      '<h2 style="font-size: var(--step-2)">What are we eating?</h2>' +
+      '<p style="color: var(--muted); max-width: 46ch">' +
+      (sample
+        ? "Ask for a dinner and you get one recipe, the list of what to buy, and the option to keep it. Nothing you already have in the library comes back."
+        : "Pick a recipe from the library to see it, or tick a few to build one grocery list.") +
+      '</p>' +
+      (next ? '<p class="from">Longest since you cooked it: <b>' + esc(next.name) + '</b>.</p>' : "") +
+      '<div class="panel-actions">' +
+      (sample ? '<button class="btn btn-primary" data-act="suggest">Suggest a dinner</button>' : "") +
+      '<button class="btn" data-act="add">Add by hand</button>' +
+      '</div>';
+  }
+
+  function renderThinking() {
+    el.panelLabel.textContent = "Suggestion";
+    if (sampleState.error) {
+      el.panel.innerHTML =
+        '<h2 style="font-size: var(--step-2)">That did not work</h2>' +
+        '<p class="error">' + esc(sampleState.error) + '</p>' +
+        '<div class="panel-actions">' +
+        (sample ? '<button class="btn btn-primary" data-act="suggest">Try again</button>' : "") +
+        '<button class="btn" data-act="dismiss">Back to the library</button></div>';
+      return;
+    }
+    el.panel.innerHTML =
+      '<div class="thinking"><span class="dot"></span> Working out a dinner you have not had…</div>' +
+      (sampleState.text ? '<div class="stream">' + esc(sampleState.text.slice(-600)) + '</div>' : "") +
+      '<div class="panel-actions"><button class="btn" data-act="stop">Stop</button></div>';
+  }
+
+  function renderRecipe(r, mode) {
+    var saved = mode === "saved";
+    el.panelLabel.textContent = saved ? "From the library" : "Suggested · not saved yet";
+    var scale = targetServings() / r.servings;
+    var d = daysSince(r.lastCooked);
+
+    var lines = r.ingredients.map(function (x) {
+      return '<li><span class="qty">' + esc(fmtQty(roundQty(x.quantity * scale, x.unit), x.unit)) + '</span>' +
+        '<span>' + esc(x.item) + '</span></li>';
+    }).join("");
+
+    var actions = saved
+      ? '<button class="btn btn-primary" data-act="cooked">I cooked it</button>' +
+        '<button class="btn" data-act="groceries">Grocery list</button>' +
+        '<button class="btn btn-danger" data-act="delete">' + (pendingDelete === r.id ? "Really remove it?" : "Remove") + '</button>' +
+        '<div class="rate" role="group" aria-label="Rating">' +
+          [1, 2, 3, 4, 5].map(function (n) {
+            return '<button data-rate="' + n + '" class="' + (r.rating >= n ? "on" : "") + '" aria-label="' + n + ' out of 5">★</button>';
+          }).join("") +
+        '</div>'
+      : '<button class="btn btn-primary" data-act="keep">Keep it</button>' +
+        (sample ? '<button class="btn" data-act="suggest">Suggest another</button>' : "") +
+        '<button class="btn" data-act="dismiss">No thanks</button>';
+
+    el.panel.innerHTML =
+      '<div class="panel-head"><h2>' + esc(r.name) + '</h2></div>' +
+      '<div class="facts">' +
+        '<span><b>' + r.minutes + '</b> min</span>' +
+        '<span>serves <b>' + targetServings() + '</b></span>' +
+        '<span><b>' + r.ingredients.length + '</b> ingredients</span>' +
+        (saved ? '<span>' + (d === null ? "not cooked yet" : "cooked <b>" + r.timesCooked + "</b>×, last " + d + " days ago") + '</span>' : "") +
+      '</div>' +
+      (r.tags.length || r.example
+        ? '<div class="tags">' + (r.example ? '<span class="tag example">example</span>' : "") +
+          r.tags.map(function (t) { return '<span class="tag">' + esc(t) + '</span>'; }).join("") + '</div>'
+        : "") +
+      '<div class="sub">Ingredients · for ' + targetServings() + '</div><ul class="ing">' + lines + '</ul>' +
+      '<div class="sub">Method</div><ol class="steps">' +
+        r.steps.map(function (s) { return "<li>" + esc(s) + "</li>"; }).join("") + '</ol>' +
+      (r.notes ? '<p class="notes">' + esc(r.notes) + '</p>' : "") +
+      '<div class="panel-actions">' + actions + '</div>';
+  }
+
+  function renderGroceries() {
+    el.panelLabel.textContent = "Grocery list";
+    var chosen = recipes.filter(function (r) { return selected.has(r.id); });
+    var buy = {}, staples = {};
+
+    chosen.forEach(function (r) {
+      var scale = targetServings() / r.servings;
+      r.ingredients.forEach(function (x) {
+        var bucket = x.staple ? staples : buy;
+        var key = x.item.toLowerCase() + "|" + x.unit;
+        if (!bucket[key]) bucket[key] = { item: x.item, unit: x.unit, aisle: x.aisle, quantity: 0 };
+        bucket[key].quantity += x.quantity * scale;
+      });
+    });
+
+    var byAisle = {};
+    Object.keys(buy).forEach(function (k) {
+      var line = buy[k];
+      (byAisle[line.aisle] = byAisle[line.aisle] || []).push(line);
+    });
+
+    var html = AISLES.filter(function (a) { return byAisle[a]; }).map(function (a) {
+      return '<div class="aisle"><div class="sub" style="margin-top:0">' + a + '</div><ul class="buy">' +
+        byAisle[a].map(function (line) {
+          var id = "buy-" + slug(line.item + "-" + line.unit);
+          var got = readChecked(id);
+          return '<li><input type="checkbox" id="' + id + '" data-buy="' + id + '"' + (got ? " checked" : "") + '>' +
+            '<label for="' + id + '" class="' + (got ? "got" : "") + '">' +
+            '<span class="qty">' + esc(fmtQty(roundQty(line.quantity, line.unit), line.unit)) + '</span>' +
+            '<span>' + esc(line.item) + '</span></label></li>';
+        }).join("") + '</ul></div>';
+    }).join("");
+
+    var stapleNames = Object.keys(staples).map(function (k) { return staples[k].item; });
+
+    el.panel.innerHTML =
+      '<div class="panel-head"><h2 style="font-size: var(--step-2)">' +
+        chosen.length + (chosen.length === 1 ? " meal" : " meals") + ", for " + targetServings() + '</h2></div>' +
+      '<p class="from">' + chosen.map(function (r) { return esc(r.name); }).join(" · ") + '</p>' +
+      '<div style="margin-top:18px">' + (html || '<p style="color:var(--muted)">Everything needed is already a kitchen staple.</p>') + '</div>' +
+      (stapleNames.length ? '<p class="staples">Already in most kitchens: ' + esc(stapleNames.join(", ")) + '.</p>' : "") +
+      '<div class="panel-actions"><button class="btn" data-act="clear-pick">Clear the list</button></div>';
+  }
+
+  function readChecked(id) {
+    try { return localStorage.getItem(id) === "1"; } catch (e) { return false; }
+  }
+
+  el.panel.addEventListener("change", function (e) {
+    var box = e.target.closest("input[data-buy]");
+    if (!box) return;
+    try { localStorage.setItem(box.getAttribute("data-buy"), box.checked ? "1" : "0"); } catch (err) { /* private mode */ }
+    var label = el.panel.querySelector('label[for="' + box.id + '"]');
+    if (label) label.classList.toggle("got", box.checked);
+  });
+
+  /* ---------- actions ---------- */
+
+  el.panel.addEventListener("click", function (e) {
+    var rate = e.target.closest("button[data-rate]");
+    if (rate) return setRating(parseInt(rate.getAttribute("data-rate"), 10));
+    var btn = e.target.closest("button[data-act]");
+    if (!btn) return;
+    var act = btn.getAttribute("data-act");
+    if (act === "suggest") askForDinner();
+    if (act === "stop") stopSuggestion();
+    if (act === "dismiss") { suggestion = null; sampleState.error = null; render(); }
+    if (act === "keep") keepSuggestion();
+    if (act === "cooked") markCooked();
+    if (act === "delete") removeCurrent();
+    if (act === "add") openAdd();
+    if (act === "clear-pick") { selected.clear(); render(); }
+    if (act === "groceries") { selected.clear(); selected.add(currentId); render(); }
+  });
+
+  el.suggest.addEventListener("click", askForDinner);
+  el.addBtn.addEventListener("click", openAdd);
+  el.exportBtn.addEventListener("click", exportLibrary);
+
+  function currentRecipe() {
+    return recipes.filter(function (r) { return r.id === currentId; })[0];
+  }
+
+  function markCooked() {
+    var r = currentRecipe();
+    if (!r || !db) return;
+    db.doc("recipes/" + r.id).update({ lastCooked: today(), timesCooked: (r.timesCooked || 0) + 1 })
+      .catch(function () { setNotice("<strong>That did not save.</strong> Check your connection and try again."); });
+  }
+
+  function setRating(n) {
+    var r = currentRecipe();
+    if (!r || !db) return;
+    db.doc("recipes/" + r.id).update({ rating: r.rating === n ? null : n })
+      .catch(function () { setNotice("<strong>That did not save.</strong> Check your connection and try again."); });
+  }
+
+  function removeCurrent() {
+    var r = currentRecipe();
+    if (!r || !db) return;
+    if (pendingDelete !== r.id) { pendingDelete = r.id; render(); return; }
+    pendingDelete = null;
+    db.doc("recipes/" + r.id).delete().then(function () { currentId = null; render(); })
+      .catch(function () { setNotice("<strong>That did not delete.</strong> Try again in a moment."); });
+  }
+
+  /* ---------- asking Claude ---------- */
+
+  function buildPrompt() {
+    var known = recipes.map(function (r) { return r.name; });
+    var recent = sortRecipes(recipes).filter(function (r) { return daysSince(r.lastCooked) !== null && daysSince(r.lastCooked) < 14; });
+    var proteins = recent.map(function (r) { return r.tags.join(" "); }).join(" ");
+    return [
+      "Suggest one simple dinner recipe for " + targetServings() + " people.",
+      "",
+      "Rules:",
+      "- 10 ingredients or fewer, counting kitchen staples.",
+      "- 40 minutes or less, start to plate.",
+      "- Every ingredient is sold in an ordinary supermarket.",
+      "- One or two pans. No equipment beyond an oven, a hob, a knife and a board.",
+      "- Six steps or fewer, one action each, with a temperature and a time whenever heat is involved.",
+      "- Every ingredient has a real quantity somebody can shop for.",
+      "",
+      known.length ? "Do not suggest any of these, or a close variation of them:\n" + known.map(function (n) { return "- " + n; }).join("\n") : "The library is empty, so anything is new.",
+      proteins ? "\nCooked in the last two weeks, so vary the main ingredient away from: " + proteins : "",
+      "",
+      "Reply with only a JSON object of this shape:",
+      '{"name": "Sheet-pan lemon chicken with potatoes", "servings": ' + targetServings() + ', "minutes": 35,',
+      ' "tags": ["chicken", "oven", "one-pan"],',
+      ' "ingredients": [{"item": "chicken thighs", "quantity": 500, "unit": "g", "aisle": "meat", "staple": false}],',
+      ' "steps": ["Heat the oven to 220 C."], "notes": ""}',
+      "",
+      'Units must be one of: ' + UNITS.join(", ") + ".",
+      'Aisles must be one of: ' + AISLES.join(", ") + ".",
+      'Set "staple" to true for oil, salt, pepper, common dried spices, flour and sugar.'
+    ].join("\n");
+  }
+
+  function askForDinner() {
+    if (!sample || sampleState.busy) return;
+    suggestion = null;
+    sampleState = { busy: true, text: "", error: null, controller: new AbortController() };
+    el.suggest.disabled = true;
+    render();
+
+    sample.json(buildPrompt(), {
+      cache: false,
+      signal: sampleState.controller.signal,
+      onText: function (u) { sampleState.text = u.text; if (sampleState.busy) renderThinking(); }
+    }).then(function (raw) {
+      var r = normalise(raw);
+      sampleState.busy = false;
+      el.suggest.disabled = false;
+      if (!r) { sampleState.error = "The answer came back in a shape this page could not read. Try again."; return render(); }
+      if (recipes.some(function (x) { return x.id === r.id; })) r.id = r.id + "-2";
+      suggestion = r;
+      currentId = null;
+      selected.clear();
+      render();
+    }).catch(function (e) {
+      sampleState.busy = false;
+      el.suggest.disabled = false;
+      var code = e && e.code;
+      if (code === "cancelled") { sampleState.error = null; return render(); }
+      if (code === "not_granted") { sample = null; el.suggest.hidden = true; sampleState.error = "Asking Claude is switched off for this page, so suggestions are unavailable. The library still works."; }
+      else if (code === "rate_limited") sampleState.error = "Too many requests just now. Wait a minute and ask again.";
+      else if (code === "invalid_json") sampleState.error = "The answer was not a recipe this page could read. Try again.";
+      else sampleState.error = "Claude could not be reached (" + (code || "unknown") + "). Try again in a moment.";
+      render();
+    });
+  }
+
+  function stopSuggestion() {
+    if (sampleState.controller) sampleState.controller.abort();
+  }
+
+  function keepSuggestion() {
+    if (!suggestion) return;
+    if (!db) { setNotice("<strong>The library is not reachable, so nothing can be saved.</strong>"); return; }
+    var r = suggestion;
+    saveRecipe(r).then(function () {
+      suggestion = null;
+      currentId = r.id;
+      render();
+    }).catch(function (e) {
+      setNotice("<strong>That did not save.</strong> " + (e && e.code === "quota_exceeded"
+        ? "The library is full. Remove a recipe you no longer cook."
+        : "Try again in a moment."));
+    });
+  }
+
+  /* ---------- add by hand ---------- */
+
+  function openAdd() {
+    if (demo) return;
+    el.dialog.showModal();
+  }
+
+  function parseIngredient(line) {
+    var m = String(line).trim().match(/^([\d]+(?:[.,]\d+)?)\s*([a-zA-Z]+)?\s+(.*)$/);
+    if (!m) return { item: String(line).trim(), quantity: 1, unit: "piece" };
+    var qty = parseFloat(m[1].replace(",", "."));
+    var unit = (m[2] || "").toLowerCase().replace(/s$/, "");
+    if (unit === "clove" || unit === "bunch" || unit === "can" || UNITS.indexOf(unit) !== -1) {
+      return { item: m[3].trim(), quantity: qty, unit: UNITS.indexOf(unit) !== -1 ? unit : "piece" };
+    }
+    return { item: ((m[2] ? m[2] + " " : "") + m[3]).trim(), quantity: qty, unit: "piece" };
+  }
+
+  el.form.addEventListener("submit", function (e) {
+    if (e.submitter && e.submitter.value === "cancel") return;
+    var raw = {
+      name: document.getElementById("f-name").value,
+      servings: parseInt(document.getElementById("f-servings").value, 10),
+      minutes: parseInt(document.getElementById("f-minutes").value, 10),
+      tags: [],
+      ingredients: document.getElementById("f-ing").value.split("\n").map(function (l) { return l.trim(); })
+        .filter(Boolean).map(parseIngredient),
+      steps: document.getElementById("f-steps").value.split("\n").map(function (l) { return l.trim(); }).filter(Boolean)
+    };
+    var r = normalise(raw);
+    if (!r) { setNotice("<strong>That recipe was missing something.</strong> It needs a name, at least one ingredient, and at least one step."); return; }
+    saveRecipe(r).then(function () {
+      el.form.reset();
+      currentId = r.id;
+      suggestion = null;
+      render();
+    }).catch(function () { setNotice("<strong>That did not save.</strong> Try again in a moment."); });
+  });
+
+  /* ---------- export ---------- */
+
+  function exportLibrary() {
+    if (!downloads) return;
+    var payload = JSON.stringify({ version: 1, recipes: sortRecipes(recipes) }, null, 2);
+    downloads.save({ filename: "recipes.json", data: payload }).catch(function (e) {
+      if (e && e.code === "declined") return;
+      setNotice("<strong>The export did not go through.</strong> Try again in a moment.");
+    });
+  }
+
+  /* ---------- go ---------- */
+
+  render();
+  if (window.claude && typeof window.claude.use === "function") connect();
+  else {
+    demo = true;
+    recipes = EXAMPLES.slice();
+    setNotice("<strong>This copy of the page cannot reach the library.</strong> The two recipes below are examples. Open the published page in Claude to use your own.");
+    render();
+  }
+</script>

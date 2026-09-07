@@ -9,6 +9,11 @@
       "name": "sdlc",
       "source": "./plugins/sdlc",
       "description": "Clean fullstack architecture skill, AI planning workflow, and the interview/planning/coding/review agents that drive it."
+    },
+    {
+      "name": "daily",
+      "source": "./plugins/daily",
+      "description": "Skills for everyday routines that have nothing to do with code. Starts with easy-meal: pick a simple recipe and turn it into a grocery list."
     }
   ]
 }
