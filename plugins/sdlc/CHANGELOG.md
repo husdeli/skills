@@ -5,6 +5,33 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.0] - 2026-09-09
+
+### Changed
+
+- **`/orchestrate` puts the task choice to the user, and asks about end-to-end tests.** Step 2
+  used to pick the first pending task in roadmap order and ask the user to confirm it. It now
+  lists every pending task whose dependencies are satisfied, then puts **one `AskUserQuestion`
+  call with two questions**: which of the candidates to build — roadmap order still leads, as
+  the recommended option — and whether the task gets end-to-end tests. Both answers arrive in
+  one round trip, because a round trip with a person is the slowest step in the pipeline.
+
+  The end-to-end answer is carried as the `e2eDecision`: it is written into the **Decisions**
+  block beside the ticket, and one line of it goes into the planner's scout prompt, so the
+  plan's test section follows the user's answer instead of the planner's guess. A **yes** on a
+  project with no suite means the plan stands one up. The interview may still be skipped; the
+  Decisions block is written either way.
+
+  `$orchestrate` in Codex asks the same two questions in prose, because a Codex session has no
+  `AskUserQuestion` tool.
+
+- **`/orchestrate-quick` states the end-to-end decision instead of guessing it.** The short
+  pipeline still asks the user nothing — that is what it is for — but it no longer leaves the
+  question open: `e2eDecision` defaults to **no e2e**, goes to the planner as a line in its
+  prompt, and is named in the report so the user knows what was not written. The task itself
+  overrides the default when it asks for an end-to-end test by name. When the call needs making
+  rather than assuming, `/orchestrate` is the command that asks.
+
 ## [0.40.0] - 2026-09-06
 
 ### Added

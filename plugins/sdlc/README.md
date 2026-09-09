@@ -158,13 +158,15 @@ Every agent falls back to the project root when a project already keeps these do
   PRD and the design docs, appends the roadmap tasks under their epic, and writes one ticket per
   task into `tickets/todo/`. It writes no code and sets no status past pending — `/orchestrate` takes it
   from there.
-- **/orchestrate** — picks the next actionable roadmap task and drives it through
+- **/orchestrate** — offers you every roadmap task whose dependencies are satisfied, asks which
+  one to build and whether it gets end-to-end tests, then drives it through
   interview → plan → review → implement → verify and code review using the six agents above.
   The verify stage runs the gating commands and the code review side by side, and the task is
   marked complete only when the commands pass and the review returns `APPROVED`.
 - **/orchestrate-quick** — the short pipeline for a task that is already well understood:
   plan → one review → implement → verify and code review, with no interview and no review
-  gating. Takes a task description or a roadmap/ticket path.
+  gating. Takes a task description or a roadmap/ticket path. It asks nothing: end-to-end tests
+  default to no, and it reports that default.
 - **/code** — hands your request straight to the **coding** agent, which loads the coding skills
   itself. One agent, no planner, no reviewer, no verify agent: it finds the files, writes the
   change, runs a targeted self-check, and the command reports what it did and what nobody ran.

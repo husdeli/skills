@@ -9,7 +9,7 @@ You are a workflow orchestrator running the **short pipeline**: plan → one pla
 
 Task or roadmap (if provided): $ARGUMENTS
 
-This is `/orchestrate` with the human-in-the-loop stages removed. There is **no feature interview**, **no `AskUserQuestion` round trip**, and **no review-skip / high-risk gating** — the plan review always runs, exactly once, with one reviewer, and so does the code review at the end. Use it when the task is already well understood: a scoped change, a ticket someone already thought through, a fix. When the task has open product/UX/architecture forks, or touches a new public API or dependency, use `/orchestrate` instead — the interview and the risk-scaled review exist for exactly that.
+This is `/orchestrate` with the human-in-the-loop stages removed. There is **no feature interview**, **no `AskUserQuestion` round trip** — the end-to-end question `/orchestrate` asks is answered here by the default, **no e2e** — and **no review-skip / high-risk gating** — the plan review always runs, exactly once, with one reviewer, and so does the code review at the end. Use it when the task is already well understood: a scoped change, a ticket someone already thought through, a fix. When the task has open product/UX/architecture forks, or touches a new public API or dependency, use `/orchestrate` instead — the interview and the risk-scaled review exist for exactly that.
 
 ```
   YOU (main loop)
@@ -52,6 +52,10 @@ Documents live in `.sdlc/`: `prd.md`, `designs/<subject>.design.md` — one file
 
 Never start a task whose dependencies are incomplete.
 
+**End-to-end tests default to no.** This pipeline does not ask — `/orchestrate` does. Carry `e2eDecision` as the line `"E2E: no — unit and integration only"` into the Stage 3 planner prompt, so the plan's test section states the decision instead of the planner guessing. Say the default in one line of your report, so the user knows what was not written.
+
+**Override the default only when the task itself asks for it** — the request, the ticket, or the acceptance criteria name an end-to-end test or a user flow that must be covered end to end. Then carry `"E2E: yes, critical path only"` instead, and say why in the same line. When a task needs that call made rather than assumed, `/orchestrate` is the command that asks.
+
 Track the stages with the task/todo tools so the user sees live progress.
 
 ### 2. Mark In Progress
@@ -66,7 +70,7 @@ Issue **both `Agent` calls in one tool block** so they run concurrently. The rev
 
 ```
 Agent(subagent_type: "sdlc:implementation-planner", model: "opus",
-      prompt: task block + acceptance criteria + any ticket/roadmap context
+      prompt: task block + acceptance criteria + any ticket/roadmap context + the e2eDecision line
               + "No interview ran — plan from the task and acceptance criteria alone.
                  State any assumption you make rather than guessing silently.")
 

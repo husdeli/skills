@@ -24,7 +24,7 @@ This command runs entirely **in the main loop, with you**. The human-facing stag
 ```
   YOU (main loop)
   ─────────────────────────
-  pick task ─► approve ─► mark In Progress ─►
+  list candidates ─► AskUserQuestion (which task + e2e?) ─► mark In Progress ─►
 
   ┌ Agent(feature-interviewer) ─► AskUserQuestion (settle Decisions) ─┐   concurrent
   └ Agent(planner) "SCOUT ONLY" ─► context pack ────────────────────┐ │
@@ -82,21 +82,32 @@ Drive one task through the entire pipeline. Do not batch tasks. When it is done,
 - Determine which are completed and which are pending.
 
 ### 2. Pick the Next Task
-Select a task that is **pending** and whose **dependencies are all satisfied**. If several qualify, pick the first in roadmap order — top to bottom, epic by epic — or ask which to prioritize. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task. Present it:
+Collect **every** task that is **pending** and whose **dependencies are all satisfied** — those are the candidates. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task.
+
+Show the candidates first, so the user reads the detail that an option label cannot hold. List them in roadmap order — top to bottom, epic by epic:
 
 ```markdown
-## Next Task
+## Candidate Tasks
 
-**[ID]: [Title]**
-[Description]
-
+**[ID]: [Title]** — [Description]
 Dependencies: [list or "none"]
 Acceptance criteria: [list]
 
-Proceed with this task? (yes / pick another / cancel)
+**[ID]: [Title]** — [Description]
+...
 ```
 
-**Wait for explicit approval before executing.**
+Then put **one `AskUserQuestion` call** with **two questions** — one round trip, not two, because every round trip is human latency on the critical path:
+
+1. **Which task to build.** One option per candidate, in roadmap order, labelled `<ID>: <Title>`; the option `description` carries the one-line task description and its dependencies. Mark the first in roadmap order **"(Recommended)"** — roadmap order is the default, and the user overrides it. Offer at most 4; with more candidates, offer the first 3 and say in the question text that the user can name any other by ID through "Other". With exactly **one** candidate, still ask — this question is the approval gate — with the task and **Cancel** as the two options.
+2. **Whether to add end-to-end tests.** Ask "Add end-to-end tests for this task?" with **Yes — critical path only** and **No — unit and integration cover it**. Recommend **Yes** when the task adds or changes a user-facing flow that no existing e2e spec crosses; recommend **No** otherwise, which is the common case — the test pyramid puts e2e at the top, on critical paths only, and omits it where API tests already cover the behaviour.
+
+**The answer to question 1 is the approval.** Do not start Stage 0 before it lands. "Cancel", or an "Other" answer that names no task on the roadmap, ends the run — say so and stop.
+
+**Carry the e2e answer forward as the `e2eDecision`.** It is settled here, before any agent is spawned, so it must reach the stages that act on it:
+- Write it into the **Decisions** block in Stage 0.5, next to the interview's decisions. When the interview is skipped, write the Decisions block anyway, holding this one decision.
+- Put one line in the **Stage 1 scout prompt** — `"E2E: yes, critical path only"` or `"E2E: no — unit and integration only"` — so the plan's test section matches the answer instead of the planner guessing.
+- A **yes** on a project with no e2e suite means the plan has to stand one up. Say that in the scout prompt too; `e2eCommand` comes back `"none"` from the context pack in exactly that case.
 
 ### 3. Drive the Task to Completion
 Track stages with the task/todo tools so the user sees live progress.
@@ -109,13 +120,13 @@ Track stages with the task/todo tools so the user sees live progress.
 - Do this yourself with file edits — do not delegate. Issue **the edits in a single tool block**. With no ticket file, update only the roadmap.
 
 **Stage 0.5 — Interview & Challenge (complexity-gated), with the planner scouting in parallel.**
-- **Skip the interview** when the task is trivially unambiguous — a small, well-specified change with no product/UX/architecture forks ("fix this off-by-one", "rename this field everywhere"). Note the skip in the report. Nothing to overlap: go to Stage 1 and spawn the planner in one-turn mode.
+- **Skip the interview** when the task is trivially unambiguous — a small, well-specified change with no product/UX/architecture forks ("fix this off-by-one", "rename this field everywhere"). Note the skip in the report. Nothing to overlap: go to Stage 1 and spawn the planner in one-turn mode. Still record the **Decisions** block holding the `e2eDecision` from Step 2.
 - **Otherwise interview — and spawn the scout in the same message.** Issue **both `Agent` calls in one tool block** so they run concurrently:
   - `sdlc:feature-interviewer` (namespaced `subagent_type`) with the task description, acceptance criteria, and roadmap context. It reads `.sdlc/prd.md` and the design docs the task touches, explores the codebase, researches the topic, and returns a **Discovery Brief** with **open decisions**, each with options and a recommendation.
   - `sdlc:implementation-planner` (opus) in **scout-only** mode — see Stage 1. **Keep its id.**
 - **When the brief comes back**, settle it with the user while the scout runs or is parked:
   - **Put the decisions to the user yourself** with `AskUserQuestion` — a subagent cannot ask. Batch them (up to 4 per call), lead each with the interviewer's recommended option (labelled "(Recommended)"), and surface the brief's assumptions for confirmation. One call, not one per decision — every round trip is human latency on the critical path.
-  - Record the answers as a **Decisions** block appended to the ticket file (or `.sdlc/tickets/in-progress/<slug>-brief.md` if there's no ticket), so the choices are durable. A brief lives beside the ticket it serves, and moves with it.
+  - Record the answers as a **Decisions** block appended to the ticket file (or `.sdlc/tickets/in-progress/<slug>-brief.md` if there's no ticket), so the choices are durable. A brief lives beside the ticket it serves, and moves with it. Record the Step 2 `e2eDecision` in the same block — it is a decision the user made, and the coding and verify stages read it there.
   - If the answers materially change scope, restate the revised task before planning.
 - Keep the Discovery Brief + Decisions handy for the already-running planner. If the interview was skipped, tell the planner to plan from the task description and acceptance criteria alone.
 
@@ -125,7 +136,7 @@ When in doubt whether a task is trivial enough to skip, do **not** skip — run 
 
 ```
 Agent(subagent_type: "sdlc:implementation-planner", model: "opus",
-      prompt: task block + acceptance criteria + roadmap context
+      prompt: task block + acceptance criteria + roadmap context + the e2eDecision line
               + "SCOUT ONLY. A feature interview is running in parallel; its Decisions
                  are not settled yet, so do NOT write the plan. Survey the codebase and
                  research the current best practice for this work now, reply with a few

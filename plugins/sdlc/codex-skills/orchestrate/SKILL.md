@@ -23,7 +23,8 @@ Invoking this skill with a roadmap authorizes task selection only. It does not a
 
 After selecting the next task:
 
-1. Present the task in the shared command's `Next Task` format.
-2. End the turn and wait for the user's explicit approval.
-3. Do not edit status, create subagents, or start work in that turn.
-4. Continue the workflow only after a later user message approves that task.
+1. Present the candidates in the shared command's `Candidate Tasks` format.
+2. Ask the shared command's two Step 2 questions in prose — which task to build, and whether to add end-to-end tests — because a Codex session has no `AskUserQuestion` tool. State your recommendation for each.
+3. End the turn and wait for the user's explicit answers.
+4. Do not edit status, create subagents, or start work in that turn.
+5. Continue the workflow only after a later user message picks a task, and carry the end-to-end answer forward as the `e2eDecision`.
