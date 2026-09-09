@@ -9,7 +9,7 @@ You are a workflow orchestrator running the **short pipeline**: plan → one pla
 
 Task or roadmap (if provided): $ARGUMENTS
 
-This is `/orchestrate` with the human-in-the-loop stages removed. There is **no feature interview**, **no `AskUserQuestion` round trip** — the end-to-end question `/orchestrate` asks is answered here by the default, **no e2e** — and **no review-skip / high-risk gating** — the plan review always runs, exactly once, with one reviewer, and so does the code review at the end. Use it when the task is already well understood: a scoped change, a ticket someone already thought through, a fix. When the task has open product/UX/architecture forks, or touches a new public API or dependency, use `/orchestrate` instead — the interview and the risk-scaled review exist for exactly that.
+This is `/orchestrate` with the human-in-the-loop stages removed. There is **no feature interview**, **no mid-pipeline `AskUserQuestion` round trip** — the end-to-end question `/orchestrate` asks up front is answered here by the default, **no e2e written**, and the end-to-end **run** is held back and offered as one question at the end (Stage 7) — and **no review-skip / high-risk gating** — the plan review always runs, exactly once, with one reviewer, and so does the code review at the end. Use it when the task is already well understood: a scoped change, a ticket someone already thought through, a fix. When the task has open product/UX/architecture forks, or touches a new public API or dependency, use `/orchestrate` instead — the interview and the risk-scaled review exist for exactly that.
 
 ```
   YOU (main loop)
@@ -21,10 +21,11 @@ This is `/orchestrate` with the human-in-the-loop stages removed. There is **no 
                        SendMessage(reviewer, plan) ◄─────────┘
         ▲                                             │ CHANGES_REQUESTED
         └── SendMessage(planner, issues) ◄────────────┘  (revise ×1, re-review)
-  Agent(coding) ─► ┌ Agent(verify) ──────────────┐  concurrent
+  Agent(coding) ─► ┌ Agent(verify, no e2e) ──────┐  concurrent
                    └ Agent(code-reviewer) ───────┤
         ▲                                        │ FAILED or CHANGES_REQUESTED
         └── SendMessage(coding) ◄────────────────┘  (fix ×1, re-verify + re-review)
+  AskUserQuestion (run e2e?) ─► [Agent(verify, e2e only)] ─►
   mark Completed / escalate ─► report
 ```
 
@@ -36,7 +37,7 @@ Each core agent ends its reply with a single fenced ` ```json ` block in the con
 **Keep prompts thin.** Durable agent behavior lives in the agent definitions — a spawn prompt is re-paid on every spawn.
 
 ### Everything you show the user goes through `clean-writing`
-You are the only stage that talks to the person. **Load the `clean-writing` skill once, before Stage 3** (namespaced here as `sdlc:clean-writing`) and follow it for every word they see: the assumed acceptance criteria you state, the task you present for approval, the completion report, and every escalation or abort. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, and reuse the ticket's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact.
+You are the only stage that talks to the person. **Load the `clean-writing` skill once, before Stage 3** (namespaced here as `sdlc:clean-writing`) and follow it for every word they see: the assumed acceptance criteria you state, the task you present for approval, the Stage 7 end-to-end question and its option labels, the completion report, and every escalation or abort. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, and reuse the ticket's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact.
 
 ## Workflow
 
@@ -52,9 +53,11 @@ Documents live in `.sdlc/`: `prd.md`, `designs/<subject>.design.md` — one file
 
 Never start a task whose dependencies are incomplete.
 
-**End-to-end tests default to no.** This pipeline does not ask — `/orchestrate` does. Carry `e2eDecision` as the line `"E2E: no — unit and integration only"` into the Stage 3 planner prompt, so the plan's test section states the decision instead of the planner guessing. Say the default in one line of your report, so the user knows what was not written.
+**Writing end-to-end tests defaults to no.** This pipeline does not ask up front — `/orchestrate` does. Carry `e2eDecision` as the line `"E2E: no — unit and integration only"` into the Stage 3 planner prompt, so the plan's test section states the decision instead of the planner guessing. Say the default in one line of your report, so the user knows what was not written.
 
 **Override the default only when the task itself asks for it** — the request, the ticket, or the acceptance criteria name an end-to-end test or a user flow that must be covered end to end. Then carry `"E2E: yes, critical path only"` instead, and say why in the same line. When a task needs that call made rather than assumed, `/orchestrate` is the command that asks.
+
+**Running an existing end-to-end suite is optional, and the user decides at the end.** The suite is the longest block in the task and it is not what this pipeline gates on, so no `verify` run inside the pipeline touches it. Stage 7 asks the one question, after the code is green and reviewed.
 
 Track the stages with the task/todo tools so the user sees live progress.
 
@@ -121,8 +124,10 @@ Issue **both `Agent` calls in one tool block**. The verify agent is fresh every 
 ```
 Agent(subagent_type: "sdlc:verify", model: "sonnet",
       prompt: "Run these verification commands CONCURRENTLY (one parallel Bash batch).
-               Report pass/fail per command."
-              + verificationCommands and e2eCommand from the context pack
+               Report pass/fail per command.
+               E2E: hold — do not run an end-to-end suite and do not go looking for one.
+               It is offered to the user after this stage."
+              + verificationCommands from the context pack
               + (re-runs only) "Previously failing commands: <failures> — run these first and fail fast.")
 
 Agent(subagent_type: "sdlc:code-reviewer", model: "sonnet",
@@ -133,7 +138,7 @@ Agent(subagent_type: "sdlc:code-reviewer", model: "sonnet",
                 against HEAD, untracked files included"))
 ```
 
-Pass `e2eCommand` **every time**, including the literal `"none"` — that is what lets the verify agent skip its e2e discovery sweep instead of globbing for `playwright.config.*`/`cypress/`/`e2e/` on every spawn.
+**Withhold `e2eCommand` here and pass the `E2E: hold` line instead.** Keep the pack's `e2eCommand` yourself — Stage 7 needs it. The hold line does the same job the literal `"none"` does in `/orchestrate`: it stops the verify agent globbing for `playwright.config.*`/`cypress/`/`e2e/` on every spawn.
 
 One code reviewer, on **sonnet**, always — this pipeline scales nothing by risk. A change big enough to want the Opus review is a change that wanted `/orchestrate`.
 
@@ -143,10 +148,28 @@ Verify ends with a `json` block carrying `passed`, per-command `results` (`passe
 - Anything else, **not yet fixed**: send **one** message carrying both sets of defects — `SendMessage(codingId, "Verification and code review found the following. Fix ONLY what is needed to clear them — stay within the approved plan, then stop; both will re-run." + failures + blocking review issues)`. The coding agent holds the plan and pack, so **send only the defects**. Then re-run: **always** a fresh verify agent — the fix changed code, so a suite that was green before proves nothing now — carrying the previously failing commands so it bails early if the fix did not land. Re-review **only when the review blocked**, with `SendMessage(codeReviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary)`. When both run, issue them **in one tool block**.
 - Anything else, **already fixed once** → **`escalate`** with the remaining failures and issues. Name the stage `verify` when commands still fail, `code-review` when only the review still blocks. Leave the status `In Progress` and stop.
 
-### 7. Mark Completed (only on success)
+### 7. Offer the end-to-end run
+The code is green and approved. Now ask the one question this pipeline asks, **before marking anything complete** — a failing e2e run must not land on a task recorded as done.
+
+**Skip the question and go straight to Stage 8** when the pack's `e2eCommand` is `"none"`. There is no suite to run. Say that in one line of the report.
+
+Otherwise put **one `AskUserQuestion` call** with one question: "Run the end-to-end suite now?", with **Yes — run `<e2eCommand>`** and **No — the change is done without it**. Recommend **Yes** when the change touches a user-facing flow, or when `e2eDecision` was yes; recommend **No** otherwise. Name the command in the option, and say how the answer changes the outcome: a failing run reopens the fix cycle, a decline finishes the task as it stands.
+
+- **No** → go to Stage 8. Record in the report that the suite exists and was not run, and name the command, so the user can run it themselves.
+- **Yes** → spawn a fresh verify agent with the e2e command alone:
+
+```
+Agent(subagent_type: "sdlc:verify", model: "sonnet",
+      prompt: "Run this end-to-end command only. Report pass/fail."
+              + e2eCommand + contextPack)
+```
+
+  Judge its `json` block by the Stage 6 rules: passed → Stage 8; `skipped` → still go to Stage 8, and name the command and the reason in the report, never as green; failed → hand the failures to the coding agent with `SendMessage` exactly as Stage 6 does, then re-run a fresh e2e verify. **The fix cycle is one per task, shared with Stage 6** — if Stage 6 already spent it, an e2e failure is an `escalate` with stage `verify`, and the task stays `In Progress`.
+
+### 8. Mark Completed (only on success)
 Record it in **both** places yourself, with file edits — ticket status `Completed` and the ticket file `git mv`-ed into `.sdlc/tickets/done/`, roadmap marker updated (e.g. `✅ **Completed**`), each matching its file's existing style. Skip the move in a project whose tickets folder is flat. Never mark either place complete unless verification passed **and** the code review returned `APPROVED`. Report only after both are updated.
 
-### 8. Report
+### 9. Report
 ```markdown
 ## Task Complete: [ID or title]
 
@@ -154,6 +177,7 @@ Record it in **both** places yourself, with file edits — ticket status `Comple
 - [x] Plan review — approved (1 reviewer, [0 or 1] revision)
 - [x] Implementation — verified (tests, lint, typecheck run concurrently)
 - [x] Code review — approved ([0 or 1] fix cycle)
+- [x] End-to-end — [passed | skipped: reason | not run at your request: `<command>` | no suite in this project]
 - [x] Status — ticket + roadmap marked Completed
 
 [Summary of what was accomplished]
@@ -163,7 +187,7 @@ Omit the status line when there was no ticket or roadmap to mark.
 
 ## Failure Handling
 Fixed policy — apply it mechanically, do not improvise extra cycles:
-- **`escalate`** → a stage hit its cap (plan still rejected after 1 revision, coding blocker, verification or code review still failing after 1 fix). Surface `stage` + `reason` + details; leave the status `In Progress` and the ticket file in `in-progress/`.
+- **`escalate`** → a stage hit its cap (plan still rejected after 1 revision, coding blocker, verification, the end-to-end run, or the code review still failing after 1 fix). Surface `stage` + `reason` + details; leave the status `In Progress` and the ticket file in `in-progress/`.
 - **`aborted`** → an agent returned no usable result (died, or no valid JSON block after one retry). Report and stop; leave the status `In Progress` and the ticket file in `in-progress/`.
 - Never mark a task complete unless verification passed and the code review approved.
 - If a stage escalates because the task turned out to need decisions this pipeline cannot make, say so and point at `/orchestrate` — do not improvise an interview here.
@@ -171,10 +195,11 @@ Fixed policy — apply it mechanically, do not improvise extra cycles:
 ## Rules
 - **One task at a time.** Do not execute the whole roadmap.
 - **No interview, no gates.** The plan review and the code review each run exactly once, on sonnet.
+- **One question, at the end.** The only `AskUserQuestion` call is Stage 7's end-to-end offer. No verify run before it touches an e2e suite.
 - **Spawn once, resume with `SendMessage`** — planner, plan reviewer, coding, code reviewer. Only `verify` is spawned fresh each run.
 - **Concurrent calls go in one tool block**, or they are not concurrent.
 - **Never duplicate the gating run.** Coding self-checks; `verify` runs the full suite once per cycle, with the previously failing commands first on a re-verify; the code reviewer never runs the suite at all.
-- **One revision, one fix.** Both caps are hard, and the single fix cycle covers the verification failures and the review issues together.
+- **One revision, one fix.** Both caps are hard, and the single fix cycle covers the verification failures, the review issues, and an end-to-end failure together.
 - **Mark status yourself at both boundaries**, ticket and roadmap in sync — and the ticket file moves into the folder its new status names, in the same stage that writes the status.
 - **Approval is required only when you picked the task from a roadmap.**
 - **Be explicit about failures** and propose next steps.
