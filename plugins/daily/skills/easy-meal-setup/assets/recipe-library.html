@@ -228,6 +228,8 @@
     </select>
   </label>
   <button class="btn" id="add-btn">Add by hand</button>
+  <button class="btn" id="import-btn" hidden>Import</button>
+  <input type="file" id="import-file" accept="application/json,.json" hidden>
   <button class="btn" id="export-btn" hidden>Export</button>
   <button class="btn btn-primary" id="suggest-btn" hidden>Suggest a dinner</button>
 </header>
@@ -335,6 +337,8 @@
     notice: document.getElementById("notice"),
     suggest: document.getElementById("suggest-btn"),
     exportBtn: document.getElementById("export-btn"),
+    importBtn: document.getElementById("import-btn"),
+    importFile: document.getElementById("import-file"),
     addBtn: document.getElementById("add-btn"),
     clearPick: document.getElementById("clear-pick"),
     servings: document.getElementById("servings"),
@@ -471,6 +475,7 @@
           data.id = d.id;
           return normalise(data) || null;
         }).filter(Boolean);
+        el.importBtn.hidden = false;
         if (currentId && !recipes.some(function (r) { return r.id === currentId; })) currentId = null;
         setNotice("");
         render();
@@ -724,6 +729,12 @@
   el.suggest.addEventListener("click", askForDinner);
   el.addBtn.addEventListener("click", openAdd);
   el.exportBtn.addEventListener("click", exportLibrary);
+  el.importBtn.addEventListener("click", function () { el.importFile.click(); });
+  el.importFile.addEventListener("change", function () {
+    var file = el.importFile.files && el.importFile.files[0];
+    el.importFile.value = "";
+    if (file) importLibrary(file);
+  });
 
   function currentRecipe() {
     return recipes.filter(function (r) { return r.id === currentId; })[0];
@@ -875,6 +886,27 @@
       render();
     }).catch(function () { setNotice("<strong>That did not save.</strong> Try again in a moment."); });
   });
+
+  /* ---------- import ---------- */
+
+  function importLibrary(file) {
+    if (!db) return;
+    file.text().then(function (text) {
+      var parsed = JSON.parse(text);
+      var list = Array.isArray(parsed) ? parsed : (parsed && parsed.recipes);
+      if (!Array.isArray(list)) throw new Error("shape");
+      var clean = list.map(normalise).filter(Boolean);
+      if (!clean.length) throw new Error("empty");
+      setNotice("<strong>Adding " + clean.length + " recipes.</strong>");
+      return clean.reduce(function (chain, r) {
+        return chain.then(function () { return saveRecipe(r); });
+      }, Promise.resolve()).then(function () {
+        setNotice("<strong>Added " + clean.length + " recipes from that file.</strong> A recipe already here was replaced by the one in the file.");
+      });
+    }).catch(function () {
+      setNotice("<strong>That file did not load.</strong> It has to be a recipes.json from this page or from the easy-meal skill.");
+    });
+  }
 
   /* ---------- export ---------- */
 

@@ -5,6 +5,19 @@ All notable changes to the **daily** plugin are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **`easy-meal` keeps its library in a file everywhere.** On a machine with a home folder that
+  is still `~/.easy-meal/recipes.json`. Where there is none — the Claude app, the phone — it is
+  a `recipes.json` in the Claude app file storage, read and written the same way. The published
+  page is no longer a backend for the library, because the Claude mobile app cannot open one.
+- **`easy-meal-setup` builds an optional extra, not the store.** The Recipe Library page is now
+  a browser view of the library for people who want a bookmark: it loads from the user's
+  `recipes.json` and hands it back with the export button. The shipped page gained an import
+  control to match.
+
 ## [0.1.0] - 2026-09-07
 
 ### Added

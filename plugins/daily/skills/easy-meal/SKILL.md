@@ -1,6 +1,6 @@
 ---
 name: easy-meal
-description: "Pick a simple recipe to cook and turn it into a grocery list, keeping every recipe in a persistent library so the same few meals do not come back every week. Use when: asked what to cook, for a dinner idea, for a meal plan for the week, for a shopping or groceries list, or to save, list, or rate a recipe. The library is a JSON file where one persists, and the Recipe Library page where none does."
+description: "Pick a simple recipe to cook and turn it into a grocery list, keeping every recipe in a persistent library so the same few meals do not come back every week. Use when: asked what to cook, for a dinner idea, for a meal plan for the week, for a shopping or groceries list, or to save, list, or rate a recipe. The library is one JSON file — under your home folder on your own machine, and in the Claude app file storage on the phone."
 ---
 
 # Easy-meal skill
@@ -16,9 +16,10 @@ is worse than no skill.
 
 The library is the only memory this skill has. **Read all of it before every answer.**
 
-It lives in one of two places, and the recipes have the same shape in both.
+It is one JSON file, `recipes.json`, and it has the same shape everywhere. Only its location
+changes.
 
-### A file, when you can write one
+### On a machine with a home folder
 
 ```
 $HOME/.easy-meal/recipes.json
@@ -26,26 +27,34 @@ $HOME/.easy-meal/recipes.json
 
 - Expand `~` yourself — use `$HOME`, and never write the literal `~` into a path.
 - Create the folder and the file on first use, with `{"version": 1, "recipes": []}`.
-- This is the default whenever the session has a filesystem that survives — Claude Code on the
+- This is the library whenever the session has a filesystem that survives — Claude Code on the
   user's own machine.
 
-### The Recipe Library page, when you cannot
+### In the Claude app file storage
 
-A chat session, a phone, or any sandbox whose disk is wiped between conversations keeps no file.
-The library is then a published page whose database holds one document per recipe.
+The Claude app — the phone included — has no home folder that survives the conversation, but it
+does have file storage the user keeps between chats. The library is a file there, read and
+written exactly like the one above.
 
-- Find its URL in `$HOME/.easy-meal/library.json`, or ask the user for it.
-- Read it with `Artifact` `action: "read_db"`, `db_op: "list"`, `collection: "recipes"`, and
-  write to it with `action: "write_db"` — `db_op: "set"` for a new recipe, `"update"` for a
-  field, `"batch"` for more than a couple of writes at once.
-- **No library and no filesystem** → run the **`easy-meal-setup`** skill, which builds the page
-  once. Do not improvise a store, and do not fall back to remembering recipes in the
-  conversation. A library that lives in the chat is gone by tomorrow.
-- The page works on its own, in a browser, with no session running. A person can suggest a
-  dinner and tick it off without asking anybody.
+- **Find the file, do not assume a path.** Look for `recipes.json` in the files the session can
+  reach: the user's attached files, and the app's file storage folders — the uploads area under
+  `/mnt/user-data` is the usual one. List the folder and read what is really there.
+- **No file yet** → create `recipes.json` with `{"version": 1, "recipes": []}`.
+- **Write the updated file back into the app's file storage** — the outputs area under
+  `/mnt/user-data` — every time you change it, so the user keeps the new version rather than
+  the copy they started the chat with. Say in one line that the updated `recipes.json` is
+  there.
+- **Nothing readable and nothing writable** → ask the user to attach their `recipes.json`, or
+  to let you start a new one. Never hold the library in the conversation alone. A library that
+  lives in the chat is gone by tomorrow.
 
-**Never keep two libraries.** When a file and a page both exist, the user says which one is
-theirs, and the other is left alone.
+Artifacts are not a backend for this skill. The Claude mobile app cannot open one, so the
+library never lives in a published page. The `easy-meal-setup` skill still builds a Recipe
+Library page for anyone who wants a standalone bookmark on the web or the desktop, but that
+page is an extra view over an exported copy — this file is the library.
+
+**Never keep two libraries.** When more than one `recipes.json` turns up, the user says which
+one is theirs, and the other is left alone.
 
 ### Shape
 
@@ -92,8 +101,7 @@ Field rules:
 
 The library is the person's own data, and losing it means losing every recipe they liked.
 
-Writing to the page's store is one call per recipe, and there is nothing to corrupt. Writing to
-the file takes care:
+Write it carefully, wherever it lives:
 
 1. Read the current file and parse it.
 2. Change the parsed object in memory — append a recipe, or update fields on one.
@@ -206,9 +214,9 @@ Always give the list with the recipe, unless the person asked only for an idea.
 
 - **Read the library before every suggestion.** Repeating a recipe by accident is the one
   failure this skill exists to prevent.
-- **Never lose the library.** For the file: read, change in memory, write through a temporary
-  file, move it over. For the page: write one document at a time, and never delete a collection
-  to rebuild it.
+- **Never lose the library.** Read it, change it in memory, write it through a temporary file,
+  and move that over the real one. In the Claude app, put the new copy in the app's file storage
+  and tell the user it is there.
 - **One recipe per answer**, unless the person asked for a plan.
 - **Real quantities, real units.** Every ingredient can be bought as written.
 - **Simple beats impressive.** If it needs a specialist ingredient or a third pan, pick
