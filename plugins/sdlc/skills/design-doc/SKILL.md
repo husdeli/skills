@@ -1,16 +1,22 @@
 ---
 name: design-doc
-description: "Create a design doc at .sdlc/designs/<subject>.design.md that specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when: asked to write a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen. A design doc defines the target state — not how to build it"
+description: "Create a design doc at <docs root>/designs/<subject>.design.md — .sdlc/designs/ by default, or the folder .sdlc.json points at, such as one in an Obsidian vault — that specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when: asked to write a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen. A design doc defines the target state — not how to build it"
 ---
 
 # Design-doc skill
 
 Create a design doc following the structure and style below.
 
-**Where they live.** Design docs sit in `.sdlc/designs/`, **one file per
+**Where they live.** Design docs sit in `<docs root>/designs/`, **one file per
 subject**, named `<subject>.design.md` — `checkout.design.md`, `event-ingestion.design.md`,
 `app-shell.design.md`. Create the folder if it is missing. There is no single `design.md`: a
 design doc covers one subject, and the file name is that subject.
+
+**Resolve the docs root first.** A `.sdlc.json` file at the project root names it in its `root`
+field, with the destination in `kind` — that is how a project keeps its documents in an Obsidian
+vault. With no pointer file, the docs root is `.sdlc/` at the project root. When `kind` is
+`vault`, load the **`product-docs`** skill as well: `Last updated` and `Related` become
+frontmatter properties there, and a cross-reference becomes a wikilink.
 
 - **Name the subject, not the document.** `billing.design.md` — never `design-billing.md`,
   `billing-design.md`, or `billing.design.doc.md`. Kebab-case, and singular where that reads
@@ -20,12 +26,13 @@ design doc covers one subject, and the file name is that subject.
   solution, says how they fit together, and points at the per-subject docs. Write it once a
   project has more than a handful of them.
 - **Cross-reference by relative filename** — "see `app-shell.design.md`" — never by copying
-  the content across.
-- **Find the docs by listing** `.sdlc/designs/*.design.md`, then read the ones
+  the content across. In a vault, cross-reference with a wikilink instead:
+  `[[app-shell.design]]`.
+- **Find the docs by listing** `<docs root>/designs/*.design.md`, then read the ones
   the task touches.
 
 **A project on an older shape keeps working.** Design docs used to sit directly in
-`.sdlc/`, and before that in a single `design.md` there or at the project root.
+the docs root, and before that in a single `design.md` there or at the project root.
 Read whichever shape the project has, and update the file in place where it already sits.
 Move the docs into `designs/`, or split a single `design.md` by subject, only when the user
 asks — `/scaffold` offers the move.
@@ -44,7 +51,7 @@ Engineers, designers, and product people all read this doc and must read it the 
 the **`clean-writing`** skill on top of this one and follow it for every sentence — it sets the
 sentence length, the active voice, and the one-term-per-concept rule. This skill governs *what
 belongs in a design doc*; `clean-writing` governs *how each sentence reads*. Take every domain
-term from `.sdlc/prd.md` rather than coining a new one for the same thing.
+term from the docs root's `prd.md` rather than coining a new one for the same thing.
 
 ## Core rules
 

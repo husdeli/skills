@@ -1,17 +1,21 @@
 ---
-description: Create the .sdlc/ folder that holds the PRD, the design docs, the roadmap, and the tickets.
-argument-hint: [product name]
+description: Create the folder that holds the PRD, the design docs, the roadmap, and the tickets — in the repository, or in an Obsidian vault.
+argument-hint: [product name] [destination path]
 ---
 
 # Scaffold
 
-Create the **`.sdlc/`** folder in the project root. It is the single home for
-every document this plugin reads and writes.
+Create the **docs root** — the single home for every document this plugin reads and writes. It
+sits in the repository as `.sdlc/` by default, and it can sit anywhere else the user keeps their
+writing, including a folder in an Obsidian vault.
 
-Product name (if provided): $ARGUMENTS
+Arguments (if provided): $ARGUMENTS
+
+Load the **`product-docs`** skill (namespaced `sdlc:product-docs`) before you create anything.
+It holds the resolution order, the pointer file, and the vault conventions this command writes.
 
 ```
-.sdlc/
+<docs root>/
   prd.md                product requirements — what the product does and why
   roadmap.md            the ordered task list /orchestrate picks from, grouped by epic
   designs/
@@ -34,52 +38,111 @@ mapping and the move rules.
 - **Never overwrite.** Create a file only when it does not exist. Report each existing file
   as kept, and leave its contents alone.
 - **One design stub, at most.** Write `designs/overview.design.md` only when the project has no
-  design doc at all — no `*.design.md` file in `designs/`, in `.sdlc/` itself, or
-  at the root, and no single `design.md` in any of those places. Report the one it already has
-  as kept.
+  design doc at all — no `*.design.md` file in `designs/`, in the docs root itself, or
+  at the project root, and no single `design.md` in any of those places. Report the one it
+  already has as kept.
 - **Write stubs, not content.** Each stub carries only the headings and the placeholder
   lines below. Do not invent product requirements, surfaces, or tasks — the person fills
   them in, or `/prd` and `/design` do.
-- **Substitute the product name** wherever the stubs show `<product>`, when `$ARGUMENTS`
+- **Substitute the product name** wherever the stubs show `<product>`, when the arguments
   gave one. Otherwise leave `TBD`.
-- **Create the folder at the project root** — the directory holding `.git`, `package.json`,
-  `AGENTS.md`, or `CLAUDE.md`. Not the current working directory when that sits deeper.
+- **Settle the destination before you create anything** — Step 1. The default docs root is
+  `.sdlc/` in the project root: the directory holding `.git`, `package.json`, `AGENTS.md`, or
+  `CLAUDE.md`. Not the current working directory when that sits deeper.
 - **Create `designs/` and all three ticket status folders**, even though they start empty.
-  Write a `.gitkeep` file into every one that ends up with no file in it, because git does not
-  track an empty directory.
+  Write a `.gitkeep` file into every one that ends up with no file in it **when the docs root
+  sits inside a git working tree**, because git does not track an empty directory. A docs root
+  outside git gets no `.gitkeep` — it is clutter in a vault.
 
-## 1. Check what is already there
+## 1. Settle the destination
+
+The docs root goes where the user keeps this kind of writing. Decide where, in this order, and
+stop at the first that applies:
+
+- **`.sdlc.json` already exists** at the project root → read it. The destination is settled.
+  Report where the documents live and fill the gaps there. Do not ask.
+- **`.sdlc/` already exists** → the destination is the repository. You are filling gaps, not
+  choosing. Do not ask.
+- **The arguments name a path** — an absolute path, a `~`-prefixed path, or anything holding a
+  path separator → that is the destination. The rest of the arguments is the product name.
+- **Otherwise, ask.** One question, two options:
+  - **In the repository (`.sdlc/`)** — recommended. The documents are versioned with the code,
+    they travel with a clone, and a review sees a document change beside the change it
+    describes.
+  - **In a folder outside the repository** — an Obsidian vault, or any shared writing folder.
+    The documents are readable and editable without the repository, and several projects can
+    live in one place. Ask for the path in the same turn, or take it from the user's "Other"
+    answer.
+
+  In Codex, ask the same question in prose: a Codex session has no `AskUserQuestion` tool.
+
+**Then classify the destination.** Walk up from the chosen path looking for a `.obsidian/`
+folder — in the path itself, or in any parent directory:
+
+- **Found** → the destination is a **vault**. Name the vault in your report. When the chosen
+  path *is* the vault root, create the docs root as a folder inside it, named after the product
+  (`<vault>/Acme/`), so `prd.md` does not land among the user's own notes. Never name a folder
+  in a vault with a leading dot: Obsidian hides it. If the user asked for `.sdlc` inside a
+  vault, say why it would be invisible and offer the product-named folder instead.
+- **Not found**, and the path is outside the repository → the destination is a **folder**.
+- **Inside the repository** → the destination is the **repository**, and the docs root is
+  `.sdlc/`.
+
+**Write the pointer file** at the project root when the docs root is anything other than
+`.sdlc/`, so every other command finds the documents:
+
+```json
+{
+  "root": "~/Vaults/Personal/Acme",
+  "kind": "vault"
+}
+```
+
+Use a path relative to the project root when the folder sits near the project. Otherwise write
+the absolute path, and say in your report that it only resolves on this machine — the user
+decides whether to commit the file.
+
+A **vault destination changes how the documents are written**, not what they say: frontmatter
+properties instead of the `**Field**: value` lines, wikilinks instead of file names and relative
+paths, and no `.gitkeep`. The `product-docs` skill holds the mapping. A **folder** destination
+changes nothing but the path.
+
+## 2. Check what is already there
 
 Look for documents this plugin would otherwise create twice:
 
-- `.sdlc/` itself — if it exists, you are filling gaps, not scaffolding.
+- The docs root itself — if it exists, you are filling gaps, not scaffolding.
 - Root-level `prd.md`, `PRD.md`, `design.md`, `DESIGN.md`, `roadmap.md`, `ROADMAP.md`.
 - A root-level `tickets/` directory.
-- A design doc in any shape: `*.design.md` files in `.sdlc/designs/`, in
-  `.sdlc/` itself, or at the root; or a single `design.md` in any of those.
+- A design doc in any shape: `*.design.md` files in `<docs root>/designs/`, in the docs root
+  itself, or at the project root; or a single `design.md` in any of those.
 
-If any of these exist outside `.sdlc/`, **ask before touching them**: offer to
+If any of these exist outside the docs root, **ask before touching them**: offer to
 move each into the folder with `git mv` (preserving history), or to leave it where it is.
 Moving a file is the user's call — never move one without an explicit yes. A file left in
 place still works: every agent falls back to the project root when the folder has no such
 document.
 
+**A move out of the repository loses the file's git history**, because `git mv` cannot cross
+into a folder git does not track. Say that plainly whenever the docs root is a vault or an
+outside folder, before you offer the move, and use a plain `mv` when the user says yes.
+
 **Design docs outside `designs/`** need the same explicit yes. Design docs live in
-`.sdlc/designs/`, one file per subject, named `<subject>.design.md`, so anything
+`<docs root>/designs/`, one file per subject, named `<subject>.design.md`, so anything
 else is an older shape:
 
-- `*.design.md` files in `.sdlc/` itself or at the root → offer to `git mv` each
-  one into `.sdlc/designs/` under the same name, and report the count moved.
-- A single `design.md`, in the folder or at the root → offer to `git mv` it to
-  `.sdlc/designs/overview.design.md`. Say the rename is only a rename: no
+- `*.design.md` files in the docs root itself or at the project root → offer to move each
+  one into `designs/` under the same name, and report the count moved.
+- A single `design.md`, in the docs root or at the project root → offer to move it to
+  `designs/overview.design.md`. Say the rename is only a rename: no
   content moves, and splitting it by subject is a later job for `/design`.
 
 When the user says no, leave every file where it is: every agent reads the older shapes as a
-fallback. Skip the offer when `.sdlc/designs/` already holds the docs.
+fallback. Skip the offer when `<docs root>/designs/` already holds the docs.
 
 A **flat tickets folder** needs the same explicit yes. That is a `tickets/` directory holding
 ticket files directly, with no `todo/`, `in-progress/`, or `done/` inside it. Offer to create
-the three folders and to `git mv` each ticket into the one its status field names, and report
+the three folders and to move each ticket into the one its status field names, and report
 the count per folder afterwards. When the user says no, leave every file where it is: a flat
 folder still works, because every agent reads the status field inside the ticket.
 
@@ -98,7 +161,8 @@ steps, and stop at any step the user does not approve:
    title — and ask the user to accept it, rename an epic, or move a task to another epic.
 2. **Rename the tickets** with `git mv`, one file per row of the approved table. A ticket keeps
    its slug and its status folder; only the ID in the file name changes. Rewrite the `#` title
-   line inside each file, and add the `**Epic**` field under it.
+   line inside each file, and add the `**Epic**` field under it — the `epic` property, in a
+   vault.
 3. **Rewrite every reference.** Group the roadmap rows into one `##` section per epic, and
    rename each ID in the tables, in the detail headings, in the `Depends on` cells, and in the
    `**Ticket**` file names. Then search the whole project for each old ID and fix what that
@@ -109,9 +173,14 @@ When the user says no, leave every ID alone, and say that new tickets keep conti
 project's own scheme. Never rename part of the set: a half-migrated project cites two schemes
 and matches neither. Skip the offer when the roadmap already has epic sections.
 
-## 2. Write the stubs
+## 3. Write the stubs
 
-**`.sdlc/prd.md`**
+The stubs below are the repository shape. **In a vault, write the same stub with its fields as
+frontmatter properties** — the `product-docs` skill holds the field-to-property mapping and the
+`type` and `tags` properties every document carries. Everything under the frontmatter is
+unchanged, except that a reference to another document in the docs root becomes a wikilink.
+
+**`<docs root>/prd.md`**
 
 ```markdown
 # Product Requirements Document
@@ -168,7 +237,25 @@ One stable uppercase anchor code per area, in the heading.>
 - <A concrete product decision that blocks design or implementation.>
 ```
 
-**`.sdlc/designs/overview.design.md`** — the entry-point design doc. Every
+In a vault, the three fields lead the file as properties instead:
+
+```markdown
+---
+type: prd
+product: <product>
+status: Draft
+updated: <today, YYYY-MM-DD>
+tags:
+  - sdlc/prd
+---
+
+# Product Requirements Document
+
+## 1. Overview
+…
+```
+
+**`<docs root>/designs/overview.design.md`** — the entry-point design doc. Every
 later subject gets its own `<subject>.design.md` beside it, written by `/design`.
 
 ```markdown
@@ -213,10 +300,27 @@ restating. Three to seven bullets, qualitative. Omit the section when there are 
 it holds within.>
 ```
 
+In a vault, the fields and the reference become properties, and `../prd.md` becomes `[[prd]]`:
+
+```markdown
+---
+type: design
+subject: overview
+updated: <today, YYYY-MM-DD>
+related:
+  - "[[prd]]"
+tags:
+  - sdlc/design
+---
+
+# <product> — design
+…
+```
+
 Keep only the sections that have something specific to say — an empty heading is deleted,
 never filled — and leave out any part that is not designed yet.
 
-**`.sdlc/roadmap.md`**
+**`<docs root>/roadmap.md`**
 
 ```markdown
 # <product> — roadmap
@@ -255,21 +359,29 @@ A new epic appends a section, so two branches that plan separate features touch 
 of the file. A dependency may name a task in another epic: every ID is unique across the
 project, because every epic code is.
 
-**`.sdlc/tickets/TEMPLATE.md`**
+In a vault, `**Last updated**` becomes the `updated` property under a `type: roadmap`
+frontmatter block, and the ticket citation becomes a wikilink — `**Ticket**:
+[[AREA-001-<slug>]]`.
+
+**`<docs root>/tickets/TEMPLATE.md`**
 
 Copy the `ai-planning-workflow` skill's ticket template verbatim from
 `skills/ai-planning-workflow/assets/ticket-template.md` in the plugin directory
 (`${CLAUDE_PLUGIN_ROOT}/skills/ai-planning-workflow/assets/ticket-template.md`). If that
 file is unreadable, write the template from the skill's documented ticket shape instead.
 
+In a vault, convert the template's leading `**Field**: value` lines into frontmatter properties
+once, here, so every ticket copied from it starts in the right shape.
+
 The template stays at the top of `tickets/`, outside the three status folders. It is a
 template, not a ticket, so it never moves.
 
-## 3. Report and hand off
+## 4. Report and hand off
 
 Everything the user reads here follows the **`clean-writing`** skill (namespaced
 `sdlc:clean-writing`) — load it before you report.
 
+Say **where the docs root is** and, when you wrote one, that `.sdlc.json` now points at it.
 Report the tree you created, marking each file `created` or `kept`, and each moved file with
 its old and new path. Then offer the next step, in this order:
 
@@ -278,6 +390,6 @@ its old and new path. Then offer the next step, in this order:
    it. Each run writes or updates one `designs/<subject>.design.md`.
 3. `/plan <request>` — turn a request into roadmap tasks and tickets. The roadmap stub holds a
    placeholder row, not a task.
-4. `/orchestrate .sdlc/roadmap.md` — start building once the roadmap has a task.
+4. `/orchestrate` — start building once the roadmap has a task.
 
 Do not run these yourself. Name them and stop.

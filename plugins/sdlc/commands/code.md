@@ -42,7 +42,7 @@ invisible change, a copy or one-property style fix, and one more row, field, or 
 components that already exist. Say in one line that you skipped the design step and why.
 
 Two more reasons to skip: the user already agreed a design for this work — in this session, or
-recorded in `.sdlc/designs/` — or the user tells you to skip it. Their call, not yours.
+recorded in the project's design docs — or the user tells you to skip it. Their call, not yours.
 
 The stage ends with the user's explicit agreement. Carry what they agreed into the Stage 3
 prompt: the artifact URL, the states the design covers, and the layout and component decisions.

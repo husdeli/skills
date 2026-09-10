@@ -9,13 +9,24 @@ You are a workflow orchestrator. Pick the **next actionable item** from a roadma
 
 Roadmap file (if provided): $ARGUMENTS
 
-**Where the documents live.** This plugin keeps them in `.sdlc/`: `prd.md`,
-`designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`,
-`in-progress`, or `done`. **Find a ticket by its ID, never by a stored path** — it moves as its
-status changes. Glob `.sdlc/tickets/*/<ID>-*.md` first, then
-`.sdlc/tickets/<ID>-*.md` for a project that still keeps its tickets flat. When a
-project has no such folder, fall back to whatever it already uses at the root, and name
-`/scaffold` in your report as the way to create the structure.
+**Where the documents live.** They sit in the **docs root**: `prd.md`,
+`designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and
+`tickets/<status>/<ID>-*.md`, where `<status>` is `todo`, `in-progress`, or `done`.
+
+**Resolve the docs root before you read anything.** A `.sdlc.json` file at the project root
+names it in its `root` field, with the destination in `kind` — that is how a project keeps its
+documents in an Obsidian vault. With no pointer file, the docs root is `.sdlc/` at the project
+root. Every path below is relative to it, and `.sdlc/…` means `<docs root>/…`. When neither
+exists, fall back to whatever the project already uses at the root, and name `/scaffold` in your
+report as the way to create the structure.
+
+**A vault holds the same documents in a different shape** — fields as frontmatter properties,
+references as wikilinks, and no `git mv`. When `kind` is `vault`, load the **`product-docs`**
+skill (namespaced `sdlc:product-docs`) before you edit any document, and follow it.
+
+**Find a ticket by its ID, never by a stored path** — it moves as its status changes. Glob
+`.sdlc/tickets/*/<ID>-*.md` first, then `.sdlc/tickets/<ID>-*.md` for a project that still keeps
+its tickets flat.
 
 ## Architecture: interactive shell + persistent-agent core
 
@@ -76,7 +87,7 @@ Drive one task through the entire pipeline. Do not batch tasks. When it is done,
 ## Workflow
 
 ### 1. Read the Roadmap
-- If no roadmap path was given, use **`.sdlc/roadmap.md`**. When that file does not exist, look for a roadmap at the project root, and ask for the path only when neither is there — naming `/scaffold` as the way to create one.
+- If no roadmap path was given, use the docs root's **`roadmap.md`**. When that file does not exist, look for a roadmap at the project root, and ask for the path only when neither is there — naming `/scaffold` as the way to create one.
 - Read the file (Markdown, JSON, or plain text).
 - Identify all tasks with IDs, titles, descriptions, dependencies, and acceptance criteria. Tasks are grouped into one `## <CODE> — <epic name>` section per epic, each with its own table — read every section, because a dependency may name a task in another epic.
 - Determine which are completed and which are pending.
@@ -114,8 +125,8 @@ Track stages with the task/todo tools so the user sees live progress.
 
 **Stage 0 — Mark In Progress (before spawning any agent).** As soon as the task is approved and *before* launching `feature-interviewer`:
 - Find the **ticket file** by its ID — glob `.sdlc/tickets/*/<ID>-*.md`, then `.sdlc/tickets/<ID>-*.md`, then the project's own tickets directory.
-- Set its status field to `In Progress`, matching the file's existing vocabulary/format (e.g. `**Status**: In Progress`).
-- **Move the ticket to `.sdlc/tickets/in-progress/`** with `git mv`, in this same stage. Skip the move when that folder does not exist: the project keeps its tickets flat, and the status field alone carries the state there.
+- Set its status field to `In Progress`, matching the file's existing vocabulary/format (e.g. `**Status**: In Progress`, or the frontmatter `status:` property in a vault).
+- **Move the ticket to `.sdlc/tickets/in-progress/`**, in this same stage — `git mv` when the file sits inside a git working tree, a plain `mv` when it does not, as a vault usually does not. Skip the move when that folder does not exist: the project keeps its tickets flat, and the status field alone carries the state there.
 - In the **roadmap file**, update the task's status cell/marker to the in-progress state (e.g. `🚧 **In Progress**`), matching the roadmap's style.
 - Do this yourself with file edits — do not delegate. Issue **the edits in a single tool block**. With no ticket file, update only the roadmap.
 
@@ -233,7 +244,7 @@ Verify ends with a `json` block carrying `passed`, per-command `results` (`passe
 - **`aborted`** → an agent returned nothing. Report it; leave the status `In Progress` and the ticket file in `in-progress/`; stop.
 
 **Mark Completed (only on success).** Record it in **both** places yourself, with file edits:
-- In the **ticket file**, set the status field to `Completed`, matching its existing vocabulary/format, then **move it to `.sdlc/tickets/done/`** with `git mv`. Move any brief you wrote with it. Skip the move in a project whose tickets folder is flat.
+- In the **ticket file**, set the status field to `Completed`, matching its existing vocabulary/format — the frontmatter `status:` property in a vault — then **move it to `.sdlc/tickets/done/`**, with `git mv` inside a git working tree and a plain `mv` outside one. Move any brief you wrote with it. Skip the move in a project whose tickets folder is flat.
 - In the **roadmap file**, update the task's status cell/marker (e.g. `✅ **Completed**`), matching the roadmap's style.
 - Never mark either place complete unless verification passed **and** the code review returned `APPROVED` — otherwise leave the status `In Progress`, leave the file in `in-progress/`, and escalate.
 

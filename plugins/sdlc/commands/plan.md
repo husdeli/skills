@@ -11,7 +11,11 @@ Request: $ARGUMENTS
 
 This is the intake path. `/prd` writes the PRD, `/design` writes the design doc, and `/orchestrate` builds a task that is already on the roadmap — but nothing turned a request into those tasks, so the roadmap had to be filled by hand before any pipeline had something to pick. `/plan` is that missing step, and it stops exactly where `/orchestrate` starts.
 
-**Where the documents live.** This plugin keeps them in `.sdlc/`: `prd.md`, `designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`, where `<status>` is `todo`, `in-progress`, or `done`, and `<ID>` is `<EPIC>-<NNN>`. Every ticket this command writes starts in `todo/`, because no work has started on it. When a project has no such folder, fall back to whatever it already uses at the root. When its design docs sit directly in `.sdlc/`, or its tickets folder is flat, write into the shape the project already has.
+**Where the documents live.** They sit in the **docs root**: `prd.md`, `designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`, where `<status>` is `todo`, `in-progress`, or `done`, and `<ID>` is `<EPIC>-<NNN>`. Every ticket this command writes starts in `todo/`, because no work has started on it.
+
+**Resolve the docs root before you read anything.** A `.sdlc.json` file at the project root names it in its `root` field, with the destination in `kind` — that is how a project keeps its documents in an Obsidian vault. With no pointer file, the docs root is `.sdlc/` at the project root. Every `.sdlc/…` path below means `<docs root>/…`. When neither exists, fall back to whatever the project already uses at the root. When its design docs sit directly in the docs root, or its tickets folder is flat, write into the shape the project already has.
+
+**A vault holds the same documents in a different shape.** When `kind` is `vault`, load the **`product-docs`** skill (namespaced `sdlc:product-docs`) before you write anything: every field this command would print under a title becomes a frontmatter property, and every reference to another document becomes a wikilink.
 
 ## Architecture: you write, one agent researches
 
@@ -44,8 +48,8 @@ Plan **one request per run.** When the request is really several unrelated featu
 
 ### 2. Check the documents exist
 
-- **No `.sdlc/` folder and no product docs at the root** → name `/scaffold` and stop. Planning into a project with no PRD invents the product instead of extending it.
-- **The folder exists but one document is missing** → create that one file with the stub headings `/scaffold` writes, then continue.
+- **No docs root and no product docs at the root** → name `/scaffold` and stop. Planning into a project with no PRD invents the product instead of extending it.
+- **The docs root exists but one document is missing** → create that one file with the stub headings `/scaffold` writes, then continue.
 - **The PRD is still a stub**, with the placeholder lines unfilled → fill only the sections this request touches, and name `/prd` in your report as the way to write the rest. Do not invent a whole product around one request.
 
 ### 3. Interview, and read the documents while it runs
@@ -114,14 +118,14 @@ and follow it. Do not restate its rules from memory.
 
 **Design docs** — only when the request changes how a part, a flow, or a surface works. Load the **`design-doc`** skill and follow it: one file per subject at `.sdlc/designs/<subject>.design.md`, the per-subject pattern (structure → behavior → states → variation and limits), the structural altitude, no tickets and no code references. Update the doc whose subject the request touches, and start a new one only for a subject that has none. Bump `Last updated` on each file you touch.
 
-**Roadmap** — append the approved rows under their epic, with status `⬜ **Pending**`, matching the file's existing style. An existing epic already has its `## <CODE> — <epic name>` section, its table, and its detail sections: add to those. A new epic gets a new section at the end of the file — one sentence on what it delivers, then its own table. Add one detail section per row: what the task delivers in two or three sentences, its acceptance criteria as checkboxes, and its ticket file name. Cite the ticket by name (`AUTH-001-<slug>.md`), never by path — the file moves between the status folders as the work progresses. Touch no other epic's section, so a branch planning a different feature changes different lines of the file. Bump `Last updated`. Never write any status other than pending — in-progress and completed belong to whoever builds the task.
+**Roadmap** — append the approved rows under their epic, with status `⬜ **Pending**`, matching the file's existing style. An existing epic already has its `## <CODE> — <epic name>` section, its table, and its detail sections: add to those. A new epic gets a new section at the end of the file — one sentence on what it delivers, then its own table. Add one detail section per row: what the task delivers in two or three sentences, its acceptance criteria as checkboxes, and its ticket file name. Cite the ticket by name (`AUTH-001-<slug>.md`), never by path — the file moves between the status folders as the work progresses. In a vault, cite it as the wikilink `[[AUTH-001-<slug>]]`, which follows the file when it moves. Touch no other epic's section, so a branch planning a different feature changes different lines of the file. Bump `Last updated`. Never write any status other than pending — in-progress and completed belong to whoever builds the task.
 
 **Tickets** — copy `.sdlc/tickets/TEMPLATE.md` once per row into `.sdlc/tickets/todo/`, named `<ID>-<slug>.md`. When there is no template, use the ticket shape from the **`ai-planning-workflow`** skill. Load that skill's ticket guidelines and follow them, including where a ticket lives and when it moves:
 
 - **What, not how.** No file paths, no component or module names, no library names, no schema detail — those are the planner's job inside `/orchestrate`.
 - **The `Decisions` section is the one exception**, and the reason this command runs an interview: record each settled choice as a fixed constraint, one line with its rationale. A library chosen in the interview is named here, and nowhere else.
 - **Acceptance criteria are observable outcomes**, and they match the roadmap row.
-- **Status is `Not Started`**, so the file goes in `todo/`. `Created` is today. The `Epic` field names the epic exactly as its roadmap section does.
+- **Status is `Not Started`**, so the file goes in `todo/`. `Created` is today. The `Epic` field names the epic exactly as its roadmap section does. In a vault these three are frontmatter properties — `status`, `created`, `epic` — beside `type`, `id`, and `tags`.
 - Under `Related`, cite the PRD's area anchor code (e.g. `CONTENT`) and any sibling ticket. The link runs ticket → PRD, never back.
 - **Never overwrite an existing ticket file.** Check every status folder for the ID before you write, because a completed ticket sits in `done/`. A name collision means the number is wrong — take the next free one in that epic.
 

@@ -1,6 +1,6 @@
 ---
 name: prd
-description: Create or update the product requirements document at `.sdlc/prd.md`. Use when asked to write a PRD, revise product requirements, or maintain a living product spec.
+description: Create or update the product requirements document at `<docs root>/prd.md`. Use when asked to write a PRD, revise product requirements, or maintain a living product spec.
 ---
 
 # prd

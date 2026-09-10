@@ -1,7 +1,7 @@
 # sdlc
 
 Plan, review, implement, and verify a change, with clean architecture rules for TypeScript,
-React, and TanStack Start. Ten commands drive six agents, and nine skills hold the rules they
+React, and TanStack Start. Ten commands drive six agents, and ten skills hold the rules they
 all follow.
 
 Part of the [husdeli skills](../../README.md) marketplace.
@@ -37,7 +37,8 @@ commands/                        # Claude commands and shared workflow sources
 
 ## Where your product docs live
 
-Every document the plugin reads or writes sits in one folder at your project root:
+Every document the plugin reads or writes sits in one folder — the **docs root**. By default it
+is `.sdlc/` at your project root:
 
 ```
 .sdlc/
@@ -72,6 +73,39 @@ its own epic, so both can add a first ticket and neither overwrites the other on
 
 Run **`/scaffold`** in Claude Code or **`$sdlc:scaffold`** in Codex to create it.
 Every agent falls back to the project root when a project already keeps these documents there.
+
+### Or keep them in an Obsidian vault
+
+`/scaffold` asks where the docs root goes: in the repository as `.sdlc/`, or in a folder outside
+it. Point it at an Obsidian vault and it writes the structure there, then writes a pointer file
+at your project root so every command still finds it:
+
+```json
+{
+  "root": "~/Vaults/Personal/Acme",
+  "kind": "vault"
+}
+```
+
+Every command and agent resolves `.sdlc.json` before it reads anything, so `/plan`,
+`/orchestrate`, `/prd`, `/design`, and `/review` work against the vault exactly as they work
+against `.sdlc/`. A ticket still moves from `todo/` to `in-progress/` to `done/` as the
+orchestrator builds it.
+
+Inside a vault the documents are written the way Obsidian reads them, and nothing else changes:
+
+- **No folder starts with a dot**, because Obsidian hides those. The docs root is named after
+  the product, and it is always a folder inside the vault, never the vault root.
+- **Fields become properties.** `**Status**: In Progress` under the title becomes
+  `status: In Progress` in the frontmatter, so a ticket is queryable in Bases or Dataview. The
+  property is the record the commands rewrite.
+- **References become wikilinks.** The roadmap cites `[[AUTH-001-user-login]]`, and a design doc
+  cites `[[prd]]`. Obsidian resolves them by name, so backlinks and the graph work, and a link
+  survives the ticket moving between status folders.
+- **No `.gitkeep`, and no `git mv`** where git does not track the folder.
+
+The `product-docs` skill holds these rules, and the plugin loads it whenever the destination is a
+vault. Pick **In the repository** at the prompt and none of it applies.
 
 ## What's in it
 
@@ -125,6 +159,11 @@ Every agent falls back to the project root when a project already keeps these do
   and not from a picture nobody wrote down. It writes no production code.
 - **prd** — Create or update a product requirements document: product-only content,
   cohesive per-area descriptions with stable anchor codes, and positive framing.
+- **product-docs** — Where the documents live and how each destination writes them: the docs
+  root, the `.sdlc.json` pointer file, and the Obsidian-vault conventions — folder naming,
+  frontmatter properties, wikilinks, and when a move uses `git mv`. Every command and agent
+  resolves the docs root through it, so one project can keep its documents in the repository and
+  the next can keep them in a vault.
 
 ### Agents
 - **feature-interviewer** — reads the PRD and design doc, researches the feature on the web,
@@ -145,9 +184,12 @@ Every agent falls back to the project root when a project already keeps these do
   one) concurrently and reports pass/fail per command. Writes no code, and reviews none either.
 
 ### Commands and Codex skills
-- **/scaffold** — creates `.sdlc/` with stub files for the PRD, the design doc,
-  the roadmap, a ticket template, the `designs/` folder, and the `todo/`, `in-progress/`, and
-  `done/` ticket folders. Never overwrites an existing file, and offers to move a root-level
+- **/scaffold** — asks where the docs root goes — in the repository as `.sdlc/`, or in a folder
+  outside it such as an Obsidian vault — then creates it with stub files for the PRD, the design
+  doc, the roadmap, a ticket template, the `designs/` folder, and the `todo/`, `in-progress/`,
+  and `done/` ticket folders. An outside folder gets a `.sdlc.json` pointer file at the project
+  root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no
+  dot-folders. Never overwrites an existing file, and offers to move a root-level
   `prd.md`, `design.md`, or `tickets/` into the folder with `git mv` — including sorting a flat
   tickets folder into the three status folders, moving loose `*.design.md` files into
   `designs/`, and renaming a lone `design.md` to `designs/overview.design.md`. It also offers to

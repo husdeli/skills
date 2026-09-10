@@ -5,6 +5,58 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.42.0] - 2026-09-10
+
+### Added
+
+- **The product documents can live in an Obsidian vault.** `/scaffold` now asks where the
+  **docs root** goes: in the repository as `.sdlc/`, which stays the default and the
+  recommendation, or in a folder outside it. Point it at a vault and it writes the structure
+  there, then writes a `.sdlc.json` pointer file at the project root:
+
+  ```json
+  {
+    "root": "~/Vaults/Personal/Acme",
+    "kind": "vault"
+  }
+  ```
+
+  Every command and agent resolves that pointer file before it reads anything, so `/plan`,
+  `/orchestrate`, `/orchestrate-quick`, `/prd`, `/design`, and `/review` work against the vault
+  exactly as they work against `.sdlc/`. A ticket still moves from `todo/` to `in-progress/` to
+  `done/` as the orchestrator builds it. `kind` is `repo`, `folder`, or `vault`; only `vault`
+  changes how a document is written.
+
+- **`product-docs` skill** — the one place that says where the documents live and how each
+  destination writes them. It holds the resolution order (pointer file, then `.sdlc/`, then the
+  project root), the pointer-file fields, and the Obsidian conventions:
+  - **No folder in the docs root starts with a dot**, because Obsidian hides those. The docs
+    root is named after the product, and it is always a folder inside the vault, never the
+    vault root.
+  - **Every field a document prints under its title becomes a frontmatter property** —
+    `**Status**: In Progress` becomes `status: In Progress` — beside a `type` and a `tags`
+    property the plugin adds. The property is the record the commands rewrite; the status
+    values are unchanged.
+  - **A reference to another document becomes a wikilink** — `[[AUTH-001-user-login]]`,
+    `[[prd]]` — which Obsidian resolves by name, so a link survives the ticket moving between
+    status folders. A code path, a command, and a URL are left alone.
+  - **`git mv` and `.gitkeep` apply only inside a git working tree.** A vault usually is not
+    one, so a ticket moves with a plain `mv` and no `.gitkeep` is written.
+
+### Changed
+
+- **Every command, agent, and skill resolves the docs root instead of hardcoding `.sdlc/`.**
+  `/scaffold`, `/plan`, `/prd`, `/design`, `/review`, `/code`, `/orchestrate`,
+  `/orchestrate-quick`, the `feature-interviewer`, `implementation-planner`, `plan-reviewer`,
+  and `code-reviewer` agents, and the `ai-planning-workflow`, `design-doc`, `prd`,
+  `frontend-design`, and `clean-writing` skills all read `.sdlc.json` first and fall back to
+  `.sdlc/`. A project with no pointer file behaves exactly as before.
+
+- **`/scaffold` warns before a move that leaves the repository.** `git mv` cannot move a file
+  into a folder git does not track, so migrating a root-level `prd.md` into a vault loses its
+  history. The command says so before it offers the move, and uses a plain `mv` when the user
+  agrees.
+
 ## [0.41.0] - 2026-09-09
 
 ### Changed

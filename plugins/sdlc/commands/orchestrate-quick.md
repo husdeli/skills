@@ -49,7 +49,7 @@ You are the only stage that talks to the person. **Load the `clean-writing` skil
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
-Documents live in `.sdlc/`: `prd.md`, `designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`, `in-progress`, or `done`. A bare path resolves against that folder first, then the project root. **Find a ticket by its ID, never by a stored path** — glob `.sdlc/tickets/*/<ID>-*.md` first, then `.sdlc/tickets/<ID>-*.md` for a project that still keeps its tickets flat.
+Documents live in the **docs root**: `prd.md`, `designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`, `in-progress`, or `done`. **Resolve the docs root first**: a `.sdlc.json` file at the project root names it in its `root` field, with the destination in `kind` — that is how a project keeps its documents in an Obsidian vault — and otherwise it is `.sdlc/` at the project root. Every `.sdlc/…` path below means `<docs root>/…`, and a bare path resolves against the docs root first, then the project root. When `kind` is `vault`, load the **`product-docs`** skill before you edit any document: fields are frontmatter properties there, and references are wikilinks. **Find a ticket by its ID, never by a stored path** — glob `.sdlc/tickets/*/<ID>-*.md` first, then `.sdlc/tickets/<ID>-*.md` for a project that still keeps its tickets flat.
 
 Never start a task whose dependencies are incomplete.
 
@@ -63,7 +63,7 @@ Track the stages with the task/todo tools so the user sees live progress.
 
 ### 2. Mark In Progress
 Before spawning anything, set the status yourself with file edits — **the edits in one tool block**:
-- **Ticket file** (found by ID, or the project's own tickets directory) → status `In Progress`, matching the file's existing vocabulary/format, and **`git mv` it into `.sdlc/tickets/in-progress/`**. Skip the move when that folder does not exist: the project keeps its tickets flat, and the status field alone carries the state there.
+- **Ticket file** (found by ID, or the project's own tickets directory) → status `In Progress`, matching the file's existing vocabulary/format — the frontmatter `status:` property in a vault — and **move it into `.sdlc/tickets/in-progress/`**, with `git mv` inside a git working tree and a plain `mv` outside one. Skip the move when that folder does not exist: the project keeps its tickets flat, and the status field alone carries the state there.
 - **Roadmap file** → the task's status cell/marker to the in-progress state (e.g. `🚧 **In Progress**`), matching the roadmap's style.
 
 Whichever of the two exists. With a bare task description and no files, skip this stage.
@@ -167,7 +167,7 @@ Agent(subagent_type: "sdlc:verify", model: "sonnet",
   Judge its `json` block by the Stage 6 rules: passed → Stage 8; `skipped` → still go to Stage 8, and name the command and the reason in the report, never as green; failed → hand the failures to the coding agent with `SendMessage` exactly as Stage 6 does, then re-run a fresh e2e verify. **The fix cycle is one per task, shared with Stage 6** — if Stage 6 already spent it, an e2e failure is an `escalate` with stage `verify`, and the task stays `In Progress`.
 
 ### 8. Mark Completed (only on success)
-Record it in **both** places yourself, with file edits — ticket status `Completed` and the ticket file `git mv`-ed into `.sdlc/tickets/done/`, roadmap marker updated (e.g. `✅ **Completed**`), each matching its file's existing style. Skip the move in a project whose tickets folder is flat. Never mark either place complete unless verification passed **and** the code review returned `APPROVED`. Report only after both are updated.
+Record it in **both** places yourself, with file edits — ticket status `Completed` and the ticket file moved into `.sdlc/tickets/done/` (`git mv` inside a git working tree, a plain `mv` outside one), roadmap marker updated (e.g. `✅ **Completed**`), each matching its file's existing style. Skip the move in a project whose tickets folder is flat. Never mark either place complete unless verification passed **and** the code review returned `APPROVED`. Report only after both are updated.
 
 ### 9. Report
 ```markdown

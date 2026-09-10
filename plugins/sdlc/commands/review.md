@@ -22,7 +22,7 @@ The reviewer reads the code itself and loads the plugin's skills itself — `cle
 - **Nothing given** → review the uncommitted changes. Run `git status --porcelain` yourself: when the tree is dirty, the target is the working tree against `HEAD`, untracked files included. When it is clean, the target is this branch against the default branch, and say in one line which comparison you chose.
 - **A path** (a file or a directory) → review those files as they stand.
 - **A branch, a commit, or a range** → review that diff.
-- **A ticket ID or ticket path** → find the ticket by ID (glob `.sdlc/tickets/*/<ID>-*.md`, then `.sdlc/tickets/<ID>-*.md`), read it, and review the current change with the ticket's acceptance criteria as the standard.
+- **A ticket ID or ticket path** → find the ticket by ID under the docs root (glob `<docs root>/tickets/*/<ID>-*.md`, then `<docs root>/tickets/<ID>-*.md`). The docs root is the `root` field of `.sdlc.json` at the project root when that file exists — a project may keep its documents in an Obsidian vault — and `.sdlc/` otherwise. Read the ticket, and review the current change with the ticket's acceptance criteria as the standard.
 
 Derive acceptance criteria from the ticket when there is one. Otherwise take them from the change itself — the commit messages and the code — and state in one line what you took them to be.
 

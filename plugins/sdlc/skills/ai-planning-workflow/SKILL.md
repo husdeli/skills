@@ -31,7 +31,7 @@ A structured, feedback-driven methodology for implementing tickets and features 
 
 Don't plan on unchallenged assumptions. For any non-trivial feature, run a discovery pass **before** writing the plan:
 
-1. Read `.sdlc/prd.md` if it exists, and the design docs this ticket touches — `.sdlc/designs/*.design.md`, or, on an older shape, `.sdlc/*.design.md` or a single `.sdlc/design.md` — for product intent and the intended design. Note where the ticket diverges. Fall back to the project root when the folder is absent.
+1. Read the docs root's `prd.md` if it exists, and the design docs this ticket touches — `<docs root>/designs/*.design.md`, or, on an older shape, `<docs root>/*.design.md` or a single `<docs root>/design.md` — for product intent and the intended design. Note where the ticket diverges. Fall back to the project root when the docs root is absent. See [Where tickets live](#where-tickets-live) for how the docs root is resolved.
 2. Research the feature topic — established approaches, common pitfalls, relevant libraries, UX/security conventions.
 3. Explore the codebase for what already exists and can be reused.
 4. Turn the fuzzy parts into **explicit high-level decisions** and put them to the user with concrete options and a recommended default:
@@ -182,6 +182,14 @@ entry point as the way to migrate.
 
 ### Where tickets live
 
+**The docs root holds every document this workflow reads and writes.** Resolve it before you
+read anything: a `.sdlc.json` file at the project root names it in its `root` field, with the
+destination in `kind` — that is how a project keeps its documents in an Obsidian vault. With no
+pointer file, the docs root is `.sdlc/` at the project root. Every `.sdlc/…` path below means
+`<docs root>/…`. When `kind` is `vault`, load the **`product-docs`** skill before you write a
+ticket: a ticket's fields are frontmatter properties there, and its `Related` links are
+wikilinks.
+
 **Tickets live in `.sdlc/tickets/`, in one folder per status**, one file per
 ticket, named `<ID>-<slug>.md` (e.g. `AUTH-001-user-login.md`):
 
@@ -193,9 +201,9 @@ ticket, named `<ID>-<slug>.md` (e.g. `AUTH-001-user-login.md`):
   done/                BILLING-001-invoice-export.md
 ```
 
-The folder is the board. The `**Status**` field inside the file is the record. The two never
-disagree, because the file moves in the same step that rewrites its status field. Five status
-values map onto three folders:
+The folder is the board. The `**Status**` field inside the file is the record — the frontmatter
+`status` property, in a vault. The two never disagree, because the file moves in the same step
+that rewrites its status field. Five status values map onto three folders:
 
 | Status field | Folder |
 | --- | --- |
@@ -203,8 +211,9 @@ values map onto three folders:
 | `In Progress`, `Blocked`, `Review` | `in-progress/` |
 | `Completed` | `done/` |
 
-**Move a ticket with `git mv`**, so the file keeps its history. Move it plainly in a project
-without git.
+**Move a ticket with `git mv`** when the file sits inside a git working tree, so it keeps its
+history. Move it with a plain `mv` when it does not — a vault usually is not a git working tree,
+and neither is a project without git.
 
 **Find a ticket by its ID, never by a stored path** — the path changes as the work progresses.
 Glob `.sdlc/tickets/*/<ID>-*.md` first, then `.sdlc/tickets/<ID>-*.md`
@@ -214,7 +223,7 @@ move invalidates the reference.
 **A flat `tickets/` folder stays flat.** Never build the status folders around tickets that are
 already in flight. Keep writing the status field in place, and name the platform's scaffold
 entry point as the way to migrate. Run that entry point when the tickets folder does not exist
-at all. The roadmap that orders the tickets is `.sdlc/roadmap.md`. A project that
+at all. The roadmap that orders the tickets is the docs root's `roadmap.md`. A project that
 already keeps tickets elsewhere keeps them there — do not start a second home.
 
 **Tickets describe WHAT, not HOW:**

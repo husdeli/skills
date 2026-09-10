@@ -1,6 +1,6 @@
 ---
 name: scaffold
-description: Create the `.sdlc/` product-document structure without overwriting existing files. Use when a user asks to scaffold or initialize the plugin documents, migrate existing root documents, or invokes `$scaffold` as the Codex equivalent of `/scaffold`.
+description: Create the product-document structure — in the repository as `.sdlc/`, or in a folder outside it such as an Obsidian vault — without overwriting existing files. Use when a user asks to scaffold or initialize the plugin documents, choose where the documents live, migrate existing root documents, or invokes `$scaffold` as the Codex equivalent of `/scaffold`.
 ---
 
 # Scaffold
@@ -17,6 +17,9 @@ Create the project document structure with the shared scaffold command.
 6. Use Codex file and user-input tools to perform the command.
 
 Do not invoke a nested `/scaffold` command. Execute the shared instructions directly.
+
+Codex has no `AskUserQuestion` tool. Ask the destination question from Step 1 in prose, and wait
+for the answer before you create anything.
 
 In the final handoff, use these Codex skill names:
 
