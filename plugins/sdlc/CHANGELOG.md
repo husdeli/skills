@@ -5,6 +5,54 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.44.0] - 2026-09-14
+
+### Changed
+
+- **The roadmap holds the work that is left, and a finished task is deleted from it.** The file
+  used to keep every task forever: a completed row kept its `✅ **Completed**` marker, and each
+  task also carried a `###` detail section repeating the description and the acceptance criteria
+  its ticket already held. A roadmap after a few months of work was mostly history, and the
+  tasks that were left were hard to find in it. The shape is now one table row per task and
+  nothing else:
+
+  | ID | Task | Status | Depends on | Ticket |
+  | --- | --- | --- | --- | --- |
+  | AUTH-002 | Session timeout | ⬜ **Pending** | — | `AUTH-002-session-timeout.md` |
+
+  - **Three statuses**, not four — pending, in progress, blocked. There is no completed status,
+    because a completed task leaves the file.
+  - **No `###` detail section, no description, no acceptance criteria.** Those live in the
+    ticket, which every command opens anyway, so they are written once instead of twice.
+  - **A finished task is deleted**, in the same step that marks its ticket `Completed` and moves
+    it into `tickets/done/`: the row goes, the task's ID goes out of every other row's
+    `Depends on` cell, and the epic's whole section goes once its last row does. The ticket in
+    `done/` is the record of what was built, so nothing is lost.
+  - **A `Depends on` cell lists outstanding blockers only**, so `—` now means ready to start —
+    no cross-checking a list of completed IDs to find out.
+  - **Corrections go forward, never backward.** When finished work changes what a *remaining*
+    task has to do, the orchestrators rewrite that task's row and its ticket. A constraint that
+    governs a whole epic becomes one `**Note**:` line under it, deleted once it no longer
+    applies. Nothing is ever added to report on work that has already landed.
+
+  `/plan` writes the new shape, `/orchestrate` and `/orchestrate-quick` delete the row instead
+  of marking it completed, `/whats-next` sorts every row into in flight, ready, or waiting with
+  no done bucket, and `/scaffold` writes the new stub. The `ai-planning-workflow` skill holds
+  the rules.
+
+- **`/scaffold` offers to clean a roadmap that still holds finished work.** Like the other
+  migrations, it needs an explicit yes, and it says first that the roadmap keeps no history
+  afterwards. It deletes the completed rows and their detail sections, drops those IDs from the
+  `Depends on` cells, folds each remaining detail section into the ticket that should hold it —
+  never deleting the only copy of a pending task's criteria — and adds the `Ticket` column. A
+  row marked completed whose ticket is not in `done/` stays, and the disagreement is reported
+  rather than resolved.
+
+- **Every reader tolerates the older shape.** `/orchestrate`, `/orchestrate-quick`, and
+  `/whats-next` still read a roadmap with completed rows and detail sections, take a description
+  from the detail section when a task has no ticket, and name `/scaffold` as the way to clean
+  the file up.
+
 ## [0.43.0] - 2026-09-14
 
 ### Added

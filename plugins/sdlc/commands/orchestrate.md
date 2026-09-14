@@ -89,20 +89,22 @@ Drive one task through the entire pipeline. Do not batch tasks. When it is done,
 ### 1. Read the Roadmap
 - If no roadmap path was given, use the docs root's **`roadmap.md`**. When that file does not exist, look for a roadmap at the project root, and ask for the path only when neither is there — naming `/scaffold` as the way to create one.
 - Read the file (Markdown, JSON, or plain text).
-- Identify all tasks with IDs, titles, descriptions, dependencies, and acceptance criteria. Tasks are grouped into one `## <CODE> — <epic name>` section per epic, each with its own table — read every section, because a dependency may name a task in another epic.
-- Determine which are completed and which are pending.
+- Identify every task from its table row — ID, title, status, dependencies, and ticket. Tasks are grouped into one `## <CODE> — <epic name>` section per epic, each with its own table — read every section, because a dependency may name a task in another epic.
+- **The roadmap holds the work that is left.** A finished task is deleted from it, so every row is pending, in progress, or blocked. Read an epic's `**Note**:` line when it has one: that is a constraint on every remaining task in the epic, and it reaches the planner as context.
+- **The row does not say what the task delivers — its ticket does.** Open the ticket of every task you are about to offer, and take the description and the acceptance criteria from there.
+- An **older roadmap** may still carry rows marked completed and a `###` detail section per task. Read it as it is, use the detail sections when a task has no ticket, and name `/scaffold` in your report as the way to clean the file up.
 
 ### 2. Pick the Next Task
-Collect **every** task that is **pending** and whose **dependencies are all satisfied** — those are the candidates. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task.
+Collect **every** task that is **pending** and whose **dependencies are all satisfied** — those are the candidates. A `Depends on` cell of `—` is satisfied, because the cell lists outstanding blockers only. An ID still in that cell is satisfied only when its work is finished — its ticket sits in `tickets/done/`, or it is no longer a row in the roadmap at all. In progress never satisfies a dependency. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task.
 
 Show the candidates first, so the user reads the detail that an option label cannot hold. List them in roadmap order — top to bottom, epic by epic:
 
 ```markdown
 ## Candidate Tasks
 
-**[ID]: [Title]** — [Description]
+**[ID]: [Title]** — [Description, from the ticket]
 Dependencies: [list or "none"]
-Acceptance criteria: [list]
+Acceptance criteria: [the ticket's list]
 
 **[ID]: [Title]** — [Description]
 ...
@@ -245,8 +247,9 @@ Verify ends with a `json` block carrying `passed`, per-command `results` (`passe
 
 **Mark Completed (only on success).** Record it in **both** places yourself, with file edits:
 - In the **ticket file**, set the status field to `Completed`, matching its existing vocabulary/format — the frontmatter `status:` property in a vault — then **move it to `.sdlc/tickets/done/`**, with `git mv` inside a git working tree and a plain `mv` outside one. Move any brief you wrote with it. Skip the move in a project whose tickets folder is flat.
-- In the **roadmap file**, update the task's status cell/marker (e.g. `✅ **Completed**`), matching the roadmap's style.
-- Never mark either place complete unless verification passed **and** the code review returned `APPROVED` — otherwise leave the status `In Progress`, leave the file in `in-progress/`, and escalate.
+- In the **roadmap file**, **delete the task**. The roadmap holds the work that is left, and the ticket in `done/` is now the record of what was built. In one edit: delete the task's row, delete its ID from every other row's `Depends on` cell — writing `—` in a cell that has nothing left — delete the epic's whole section when that row was its last, and bump `**Last updated**`. On an older roadmap, delete the task's `###` detail section too. Never mark the row completed, and never leave a done list, a struck-through row, or a note about the finished task behind.
+- **Carry a correction forward, never a report backward.** When this run changed what a *remaining* task has to do — a decision the interview settled, a constraint the code review found, a dependency that turned out to be wrong — rewrite that task's row and its ticket in the same edit. When the constraint governs every remaining task in the epic, put it in one `**Note**:` line under the epic's sentence. Write nothing about the task you just finished: its ticket, its plan, and its commit already hold that.
+- Never mark the ticket complete or delete the row unless verification passed **and** the code review returned `APPROVED` — otherwise leave the status `In Progress`, leave the file in `in-progress/`, and escalate.
 
 Report only after both are updated.
 
@@ -259,7 +262,7 @@ Report only after both are updated.
 - [x] Review — approved (or: skipped by complexity gate — trivial task)
 - [x] Implementation — verified (tests, lint, typecheck run concurrently)
 - [x] Code review — approved ([N] revisions)
-- [x] Status — ticket + roadmap marked Completed
+- [x] Status — ticket marked Completed and moved to `done/`, roadmap row deleted
 
 [Summary of what was accomplished]
 ```
@@ -277,7 +280,8 @@ A fixed retry/escalation policy — apply it mechanically, do not improvise extr
 - **Never duplicate the gating run.** Coding self-checks; `verify` runs the full suite once per cycle, with the previously failing commands on a re-verify; the code reviewer never runs the suite at all.
 - **The code review always runs.** Verify and the code reviewer go out in one tool block, and the task passes only when the commands pass *and* the verdict is `APPROVED`. Only the plan review has a skip gate.
 - **Keep prompts thin.** Durable agent behavior belongs in the agent definition — the spawn prompt is re-paid every time.
-- **Mark status yourself at both boundaries**, ticket and roadmap in sync — and the ticket file moves into the folder its new status names, in the same stage that writes the status.
+- **Mark status yourself at both boundaries**, ticket and roadmap in sync — the ticket file moves into the folder its new status names in the same stage that writes the status, and the roadmap row is deleted rather than marked completed.
+- **The roadmap only ever shrinks or gets corrected.** Delete what is done, rewrite what changed for the tasks that are left, and add nothing that reports on finished work.
 - **Interview before planning** for any non-trivial feature; skip only via the complexity gate.
 - **Apply the gates mechanically.** The review-skip gate (≤2 files, no dep, no API, criteria auto-checkable), the high-risk test (new API/dep or >5 files), the single revision cap, and the single fix cap are fixed thresholds.
 - **Never proceed without approval** on the selected task, and never start a task whose dependencies are incomplete.

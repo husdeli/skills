@@ -17,7 +17,7 @@ It holds the resolution order, the pointer file, and the vault conventions this 
 ```
 <docs root>/
   prd.md                product requirements — what the product does and why
-  roadmap.md            the ordered task list /orchestrate picks from, grouped by epic
+  roadmap.md            the work that is left, in order, grouped by epic
   designs/
     overview.design.md  design docs — how the solution works, end to end. One file per
                         subject, named <subject>.design.md; overview is the entry point
@@ -164,14 +164,35 @@ steps, and stop at any step the user does not approve:
    line inside each file, and add the `**Epic**` field under it — the `epic` property, in a
    vault.
 3. **Rewrite every reference.** Group the roadmap rows into one `##` section per epic, and
-   rename each ID in the tables, in the detail headings, in the `Depends on` cells, and in the
-   `**Ticket**` file names. Then search the whole project for each old ID and fix what that
-   finds — a ticket's `Related` links, a design doc, a note. Report the count renamed and the
-   files touched.
+   rename each ID in the tables, in the `Depends on` cells, and in the `Ticket` cells. Then
+   search the whole project for each old ID and fix what that finds — a ticket's `Related`
+   links, a design doc, a note. Report the count renamed and the files touched.
 
 When the user says no, leave every ID alone, and say that new tickets keep continuing the
 project's own scheme. Never rename part of the set: a half-migrated project cites two schemes
 and matches neither. Skip the offer when the roadmap already has epic sections.
+
+**A roadmap that still holds finished work** needs the same explicit yes. The roadmap lists the
+work that is left, so a completed row, a `✅ **Completed**` status, a done section, or a `###`
+detail section per task is the older shape. Say what the cleanup removes before you offer it:
+the roadmap keeps no history, and the ticket in `tickets/done/` becomes the only record of a
+finished task. Then offer it as one edit, and show the user what it does:
+
+- **Delete every completed task** — its row, and its `###` detail section. Confirm each one
+  against the tickets first: a row marked completed whose ticket is not in `done/` stays, and
+  you report the disagreement instead of resolving it.
+- **Delete its ID from every `Depends on` cell**, writing `—` in a cell that has nothing left.
+- **Delete every remaining `###` detail section.** What it holds belongs to the ticket, so
+  before you delete one, copy anything the ticket is missing into that ticket — the description
+  into `Description`, the criteria into `Acceptance Criteria`. Never delete the only copy of a
+  pending task's criteria.
+- **Add a `Ticket` column** to each table, carrying the file name the deleted detail section
+  cited — the wikilink, in a vault.
+- **Delete an epic section** whose last row is gone, and bump `**Last updated**`.
+
+Report the counts: tasks removed, detail sections folded into tickets, epics closed. When the
+user says no, leave the roadmap exactly as it is — every command reads the older shape as a
+fallback. Skip the offer when the roadmap already holds pending work only.
 
 ## 3. Write the stubs
 
@@ -327,7 +348,10 @@ never filled — and leave out any part that is not designed yet.
 
 **Last updated**: <today, YYYY-MM-DD>
 
-Status values: ⬜ **Pending** · 🚧 **In Progress** · ✅ **Completed** · 🚫 **Blocked**
+This file holds the work that is left. A task is deleted from it when the task is done — the
+ticket in `tickets/done/` is the record of what was built.
+
+Status values: ⬜ **Pending** · 🚧 **In Progress** · 🚫 **Blocked**
 
 Every task belongs to an epic. The epic's code prefixes every ticket ID under it, and the
 numbering restarts at 001 in each epic. Tickets sit in `tickets/todo/`, `tickets/in-progress/`,
@@ -339,29 +363,21 @@ or `tickets/done/`. Find one by name.
 
 <One sentence: what this epic delivers.>
 
-| ID | Task | Status | Depends on |
-| --- | --- | --- | --- |
-| AREA-001 | <task title> | ⬜ **Pending** | — |
-
-### AREA-001 — <task title>
-
-<What the task delivers, in 2-3 sentences.>
-
-**Acceptance criteria**
-
-- [ ] <An observable outcome someone can check.>
-
-**Ticket**: `AREA-001-<slug>.md`
+| ID | Task | Status | Depends on | Ticket |
+| --- | --- | --- | --- | --- |
+| AREA-001 | <task title> | ⬜ **Pending** | — | `AREA-001-<slug>.md` |
 ```
 
-One `##` section per epic, holding that epic's own table and one `###` detail section per task.
-A new epic appends a section, so two branches that plan separate features touch separate parts
-of the file. A dependency may name a task in another epic: every ID is unique across the
-project, because every epic code is.
+One `##` section per epic, holding that epic's sentence and its own table — and nothing else.
+The row is the whole task here; what the task delivers and what it has to satisfy live in its
+ticket. A new epic appends a section, so two branches that plan separate features touch
+separate parts of the file. A `Depends on` cell lists outstanding blockers only, so `—` means
+the task is ready to start, and a cell may name a task in another epic because every ID is
+unique across the project. The **`ai-planning-workflow`** skill holds the rest of the rules,
+including what to delete when a task is done.
 
 In a vault, `**Last updated**` becomes the `updated` property under a `type: roadmap`
-frontmatter block, and the ticket citation becomes a wikilink — `**Ticket**:
-[[AREA-001-<slug>]]`.
+frontmatter block, and the ticket citation becomes a wikilink — `[[AREA-001-<slug>]]`.
 
 **`<docs root>/tickets/TEMPLATE.md`**
 

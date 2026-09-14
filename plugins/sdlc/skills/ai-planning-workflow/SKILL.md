@@ -147,9 +147,10 @@ Tests: [summary] | Files: [list]
 Mark as Completed?
 ```
 
-**Never mark a ticket Complete without explicit user approval.** On approval, write the status
-into the ticket and move the file into `done/` in the same step — see
-[Where tickets live](#where-tickets-live).
+**Never mark a ticket Complete without explicit user approval.** On approval, and in the same
+step: write the status into the ticket, move the file into `done/`, and delete the task from the
+roadmap — see [Where tickets live](#where-tickets-live) and
+[The roadmap holds the work that is left](#the-roadmap-holds-the-work-that-is-left).
 
 ---
 
@@ -166,19 +167,60 @@ plan separate features write into separate number spaces, so each can add a firs
 neither overwrites the other when the branches merge. One project-wide sequence cannot do that:
 both branches take the same next free number, and both name the file the same thing.
 
-**`roadmap.md` is the list of epics.** It holds one `## <CODE> — <epic name>` section per epic,
-and that section holds the epic's task table. An epic exists in the roadmap before any ticket
+**`roadmap.md` is the list of epics that still have work in them.** It holds one
+`## <CODE> — <epic name>` section per epic, and that section holds the epic's task table. An epic exists in the roadmap before any ticket
 carries its code, and each code is unique in the project. A code may repeat a PRD area anchor
 code when the epic covers that whole area. A code never means two different things.
 
 **Read the next number out of the files.** Glob every status folder for `<CODE>-*.md`, take the
 highest number in the epic, and add one. `done/` is part of that search, because a completed
-ticket keeps its number. Never reuse a number, and never renumber a ticket that exists — the ID
-is how the roadmap, the branches, and the reviews cite it.
+ticket keeps its number. **Never take the next number from the roadmap** — it lists only the
+tasks that are left, so the highest number in it is not the highest number used. Never reuse a
+number, and never renumber a ticket that exists — the ID is how the roadmap, the branches, and
+the reviews cite it.
 
 **A project on a project-wide scheme keeps the IDs it has.** Never rewrite `SW-001` into an
 epic ID on your own. Keep continuing that project's scheme, and name the platform's scaffold
 entry point as the way to migrate.
+
+### The roadmap holds the work that is left
+
+`roadmap.md` lists the tasks that are **not done yet**, and nothing else. One
+`## <CODE> — <epic name>` section per epic, one sentence on what the epic delivers, and one
+table row per task:
+
+| ID | Task | Status | Depends on | Ticket |
+| --- | --- | --- | --- | --- |
+| AUTH-002 | Session timeout | ⬜ **Pending** | — | `AUTH-002-session-timeout.md` |
+
+A row carries one of three statuses — `⬜ **Pending**`, `🚧 **In Progress**`, `🚫 **Blocked**`.
+There is no completed status, because a completed task leaves the file. In a vault, the `Ticket`
+cell is the wikilink `[[AUTH-002-session-timeout]]`, so it follows the file between the status
+folders.
+
+**The row is the whole task in this file.** What the task delivers, and what it has to satisfy,
+live in its ticket — the file every command opens anyway. Never add a per-task `###` section, a
+description paragraph, or an acceptance-criteria list to the roadmap.
+
+**Delete the task when it is done**, in the same step that marks its ticket `Completed`:
+
+1. Delete the task's row.
+2. Delete the task's ID from every other row's `Depends on` cell, and write `—` in a cell that
+   has nothing left. A cell lists **outstanding** blockers only, so `—` means ready to start.
+3. Delete the epic's whole section once its last row is gone.
+4. Bump `**Last updated**`.
+
+The ticket in `done/` is the record of what was built, so the roadmap loses nothing. **The
+roadmap is not a history.** It never grows a completed list, a done section, a changelog, or a
+note about work that has already landed.
+
+**Carry a correction forward, never a report backward.** When finished work changes what a
+remaining task has to do, rewrite that task — its row here, and its ticket. When it constrains
+every remaining task in the epic, add one `**Note**:` line under the epic's sentence, and delete
+that line as soon as it no longer applies:
+
+> **Note**: sessions are stored server-side. Every remaining task in this epic reads the session
+> from the store, not from the cookie.
 
 ### Where tickets live
 

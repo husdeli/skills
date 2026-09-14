@@ -45,7 +45,7 @@ You are the only stage that talks to the person. **Load the `clean-writing` skil
 `$ARGUMENTS` is either a **task description** or a **path** to a roadmap or ticket file.
 
 - **Task description** → use it as-is. Do not ask for approval; the user just gave it to you. Derive acceptance criteria from the description; if it names none and none are inferable, state the criteria you are assuming in one line and continue.
-- **Roadmap file** → read it, pick a task that is **pending** with all **dependencies satisfied** (the first in roadmap order if several qualify, reading the epic sections top to bottom), and present it in three lines — ID, title, acceptance criteria — then **wait for approval**. Picking the wrong task is the one mistake this pipeline cannot verify its way out of.
+- **Roadmap file** → read it, pick a task that is **pending** with all **dependencies satisfied** (the first in roadmap order if several qualify, reading the epic sections top to bottom), and present it in three lines — ID, title, acceptance criteria — then **wait for approval**. Picking the wrong task is the one mistake this pipeline cannot verify its way out of. The roadmap holds only the work that is left, so every row is pending, in progress, or blocked, and a `Depends on` cell of `—` is satisfied. **The row does not say what the task delivers — its ticket does**, so open the ticket the `Ticket` cell names for the description and the criteria. Read an epic's `**Note**:` line as a constraint on the task, and carry it into the planner prompt.
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
@@ -64,7 +64,7 @@ Track the stages with the task/todo tools so the user sees live progress.
 ### 2. Mark In Progress
 Before spawning anything, set the status yourself with file edits — **the edits in one tool block**:
 - **Ticket file** (found by ID, or the project's own tickets directory) → status `In Progress`, matching the file's existing vocabulary/format — the frontmatter `status:` property in a vault — and **move it into `.sdlc/tickets/in-progress/`**, with `git mv` inside a git working tree and a plain `mv` outside one. Skip the move when that folder does not exist: the project keeps its tickets flat, and the status field alone carries the state there.
-- **Roadmap file** → the task's status cell/marker to the in-progress state (e.g. `🚧 **In Progress**`), matching the roadmap's style.
+- **Roadmap file** → the task's status cell to the in-progress state (e.g. `🚧 **In Progress**`), matching the roadmap's style.
 
 Whichever of the two exists. With a bare task description and no files, skip this stage.
 
@@ -167,7 +167,13 @@ Agent(subagent_type: "sdlc:verify", model: "sonnet",
   Judge its `json` block by the Stage 6 rules: passed → Stage 8; `skipped` → still go to Stage 8, and name the command and the reason in the report, never as green; failed → hand the failures to the coding agent with `SendMessage` exactly as Stage 6 does, then re-run a fresh e2e verify. **The fix cycle is one per task, shared with Stage 6** — if Stage 6 already spent it, an e2e failure is an `escalate` with stage `verify`, and the task stays `In Progress`.
 
 ### 8. Mark Completed (only on success)
-Record it in **both** places yourself, with file edits — ticket status `Completed` and the ticket file moved into `.sdlc/tickets/done/` (`git mv` inside a git working tree, a plain `mv` outside one), roadmap marker updated (e.g. `✅ **Completed**`), each matching its file's existing style. Skip the move in a project whose tickets folder is flat. Never mark either place complete unless verification passed **and** the code review returned `APPROVED`. Report only after both are updated.
+Record it in **both** places yourself, with file edits.
+
+- **Ticket** → status `Completed`, matching the file's existing vocabulary/format, and the file moved into `.sdlc/tickets/done/` (`git mv` inside a git working tree, a plain `mv` outside one). Skip the move in a project whose tickets folder is flat.
+- **Roadmap** → **delete the task**, because the roadmap holds the work that is left and the ticket in `done/` is now the record. In one edit: delete the task's row, delete its ID from every other row's `Depends on` cell — writing `—` in a cell that has nothing left — delete the epic's whole section when that row was its last, and bump `**Last updated**`. On an older roadmap, delete the task's `###` detail section too. Never mark the row completed, and leave no done list, struck-through row, or note about the finished task.
+- **Carry a correction forward, never a report backward.** When this run changed what a *remaining* task has to do, rewrite that task's row and its ticket in the same edit — and put a constraint that governs the whole epic in one `**Note**:` line under the epic's sentence. Write nothing about the task you just finished.
+
+Never mark the ticket complete or delete the row unless verification passed **and** the code review returned `APPROVED`. Report only after both files are updated.
 
 ### 9. Report
 ```markdown
@@ -178,7 +184,7 @@ Record it in **both** places yourself, with file edits — ticket status `Comple
 - [x] Implementation — verified (tests, lint, typecheck run concurrently)
 - [x] Code review — approved ([0 or 1] fix cycle)
 - [x] End-to-end — [passed | skipped: reason | not run at your request: `<command>` | no suite in this project]
-- [x] Status — ticket + roadmap marked Completed
+- [x] Status — ticket marked Completed and moved to `done/`, roadmap row deleted
 
 [Summary of what was accomplished]
 ```
@@ -200,7 +206,8 @@ Fixed policy — apply it mechanically, do not improvise extra cycles:
 - **Concurrent calls go in one tool block**, or they are not concurrent.
 - **Never duplicate the gating run.** Coding self-checks; `verify` runs the full suite once per cycle, with the previously failing commands first on a re-verify; the code reviewer never runs the suite at all.
 - **One revision, one fix.** Both caps are hard, and the single fix cycle covers the verification failures, the review issues, and an end-to-end failure together.
-- **Mark status yourself at both boundaries**, ticket and roadmap in sync — and the ticket file moves into the folder its new status names, in the same stage that writes the status.
+- **Mark status yourself at both boundaries**, ticket and roadmap in sync — the ticket file moves into the folder its new status names in the same stage that writes the status, and the roadmap row is deleted rather than marked completed.
+- **The roadmap only ever shrinks or gets corrected.** Delete what is done, rewrite what changed for the tasks that are left, and add nothing that reports on finished work.
 - **Approval is required only when you picked the task from a roadmap.**
 - **Be explicit about failures** and propose next steps.
 - **Everything the user reads follows `clean-writing`** — approval prompts, assumed criteria, reports, escalations.

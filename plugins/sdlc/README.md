@@ -43,7 +43,7 @@ is `.sdlc/` at your project root:
 ```
 .sdlc/
   prd.md                product requirements — what the product does and why
-  roadmap.md            the ordered task list the orchestrator picks from, grouped by epic
+  roadmap.md            the work that is left, in order, grouped by epic
   designs/
     overview.design.md  design docs — how the solution works, end to end. One file
     checkout.design.md  per subject, named <subject>.design.md
@@ -70,6 +70,16 @@ Every ticket belongs to an **epic** — a named group of tasks that deliver one 
 roadmap holds one section per epic, the epic's code prefixes every ticket ID under it, and the
 numbering restarts at 001 in each epic. That is what keeps two branches apart: each plans into
 its own epic, so both can add a first ticket and neither overwrites the other on merge.
+
+**The roadmap holds the work that is left, and nothing else.** One table row per task — ID,
+title, status, the blockers it is still waiting on, and its ticket. No description, no
+acceptance criteria: those live in the ticket, so the roadmap stays a page you can read in one
+pass. When a task is finished, the orchestrator **deletes its row** instead of marking it
+completed, drops its ID from the `Depends on` cells that named it, and closes the epic once its
+last row goes. The ticket in `tickets/done/` is the record of what was built, so nothing is
+lost. What does get written back is a correction: when finished work changes what a remaining
+task has to do, that task's row and ticket are rewritten, and a constraint that governs a whole
+epic becomes one `**Note**:` line under it.
 
 Run **`/scaffold`** in Claude Code or **`$sdlc:scaffold`** in Codex to create it.
 Every agent falls back to the project root when a project already keeps these documents there.
@@ -194,12 +204,14 @@ vault. Pick **In the repository** at the prompt and none of it applies.
   tickets folder into the three status folders, moving loose `*.design.md` files into
   `designs/`, and renaming a lone `design.md` to `designs/overview.design.md`. It also offers to
   migrate a project-wide ticket scheme (`SW-001`, `SW-002`, …) onto epic-prefixed IDs, after it
-  shows you the epic grouping and you approve it.
+  shows you the epic grouping and you approve it, and to clean a roadmap that still holds
+  finished work — deleting the completed rows and folding each per-task detail section into the
+  ticket that should hold it.
 - **/plan** — turns a request into the documents the rest of the plugin reads: it interviews
   with the **feature-interviewer** agent, settles the open decisions with you, then updates the
-  PRD and the design docs, appends the roadmap tasks under their epic, and writes one ticket per
-  task into `tickets/todo/`. It writes no code and sets no status past pending — `/orchestrate` takes it
-  from there.
+  PRD and the design docs, appends one roadmap row per task under its epic, and writes one
+  ticket per task into `tickets/todo/`. The detail goes in the ticket, never in the roadmap. It
+  writes no code and sets no status past pending — `/orchestrate` takes it from there.
 - **/whats-next** — answers what can be worked on right now. It reads the roadmap and the ticket
   folders, sorts every task into in flight, ready to start, and waiting on a dependency, and
   names the one to start next. It writes nothing and moves no ticket: it reports the state and
@@ -209,7 +221,8 @@ vault. Pick **In the repository** at the prompt and none of it applies.
   one to build and whether it gets end-to-end tests, then drives it through
   interview → plan → review → implement → verify and code review using the six agents above.
   The verify stage runs the gating commands and the code review side by side, and the task is
-  marked complete only when the commands pass and the review returns `APPROVED`.
+  finished only when the commands pass and the review returns `APPROVED` — then the ticket moves
+  to `done/` and the roadmap row is deleted.
 - **/orchestrate-quick** — the short pipeline for a task that is already well understood:
   plan → one review → implement → verify and code review, with no interview and no review
   gating. Takes a task description or a roadmap/ticket path. It asks nothing: end-to-end tests

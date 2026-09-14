@@ -31,10 +31,18 @@ mistake this command can make, so read the files rather than answering from memo
   `/scaffold` as the way to create the structure, then stop.
 - Read **every** `## <CODE> — <epic name>` section, not just the first. A dependency may name a
   task in another epic.
+- **The roadmap holds the work that is left.** A finished task is deleted from it, so every row
+  is pending, in progress, or blocked, and the file is the backlog rather than a history. Read
+  an epic's `**Note**:` line when it has one: it constrains every task in that epic.
 - **List the ticket folders** — `.sdlc/tickets/todo/`, `in-progress/`, and `done/` — in one pass.
-  The folder a ticket sits in is the board, and it tells you what is really in flight.
-- Read the ticket file only for the tasks you are about to report as **in flight** or **ready**.
-  A task that is blocked or done needs its roadmap row and nothing more.
+  The folder a ticket sits in is the board, and it tells you what is really in flight. `done/` is
+  where the finished work is: count it, and read no file in it.
+- **A row does not say what its task delivers — its ticket does.** Read the ticket of every task
+  you are about to report as **in flight** or **ready**, and take the one-line description and
+  the acceptance criteria from there. A waiting task needs its row and nothing more.
+- An **older roadmap** may still carry rows marked completed and a `###` detail section per
+  task. Read it as it is, take a description from the detail section when a task has no ticket,
+  and say in one line that `/scaffold` cleans the file up.
 
 **When `$ARGUMENTS` names an epic code** (`AUTH`, `BILLING`), narrow every list below to that
 epic, and say in one line that you narrowed it.
@@ -46,16 +54,23 @@ Put each task in exactly one bucket:
 | Bucket | Test |
 | --- | --- |
 | **In flight** | Its status is in-progress, blocked, or in review, or its ticket sits in `in-progress/` |
-| **Ready** | It is pending, and **every** ID in its `Depends on` cell is completed |
-| **Waiting** | It is pending, and at least one dependency is not completed |
-| **Done** | It is completed |
+| **Ready** | It is pending, and every ID in its `Depends on` cell is finished |
+| **Waiting** | It is pending, and at least one ID in its `Depends on` cell is not finished |
+
+Every row lands in one of the three. There is no done bucket, because a finished task is not in
+the file.
 
 Judging the buckets:
 
-- **A dependency is satisfied only when it is completed.** In-progress does not satisfy it.
-- **The ticket folder wins over the roadmap marker** when the two disagree, because the folder is
+- **A `Depends on` cell of `—` is satisfied.** The cell lists outstanding blockers only.
+- **An ID still in the cell is finished** when it is no longer a row in the roadmap, or when its
+  ticket sits in `done/`. Nothing else counts: in progress does not satisfy a dependency.
+- **The ticket folder wins over the roadmap row** when the two disagree, because the folder is
   the board. Report the disagreement in one line — `AUTH-002 sits in in-progress/, the roadmap
   says pending` — and change neither. Fixing it is the orchestrator's job, or the user's.
+- **A row whose ticket sits in `done/` should not be there.** Report it in one line — `AUTH-001
+  is done, but the roadmap still lists it` — leave it out of every bucket, and say that the
+  command that finished it was meant to delete the row.
 - **A blocked task is in flight, not waiting.** Somebody started it and hit something. Say what
   the ticket gives as the blocker, in its own words.
 - A task with no ticket file is still a task. Report it from its roadmap row.
@@ -86,7 +101,8 @@ disagreement between the roadmap and the ticket folders.]
 - **[ID] — [Title]** — waits on [blocking IDs and their status]
 
 ### Progress
-[N] of [M] tasks completed, across [K] epics. [Per-epic counts when there is more than one epic.]
+[N] tasks left across [K] epics; [M] tickets in `done/`. [Per-epic counts of what is left, when
+there is more than one epic.]
 ```
 
 Rules for the report:
@@ -112,6 +128,7 @@ End with one line, matching what you found:
 - **Nothing is ready and nothing is in flight** → every pending task waits on something that is
   not done. Name the one dependency that unblocks the most tasks, and say `/plan <request>` adds
   new work.
-- **The roadmap has no pending task at all** → the roadmap is finished. Name `/plan <request>`.
+- **The roadmap has no task at all** → every task that was on it is done, and it holds nothing
+  left to build. Name `/plan <request>`.
 
 Offer nothing else, and run nothing yourself.
