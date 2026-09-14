@@ -1,7 +1,7 @@
 # sdlc
 
 Plan, review, implement, and verify a change, with clean architecture rules for TypeScript,
-React, and TanStack Start. Ten commands drive six agents, and ten skills hold the rules they
+React, and TanStack Start. Eleven commands drive six agents, and ten skills hold the rules they
 all follow.
 
 Part of the [husdeli skills](../../README.md) marketplace.
@@ -200,6 +200,11 @@ vault. Pick **In the repository** at the prompt and none of it applies.
   PRD and the design docs, appends the roadmap tasks under their epic, and writes one ticket per
   task into `tickets/todo/`. It writes no code and sets no status past pending — `/orchestrate` takes it
   from there.
+- **/whats-next** — answers what can be worked on right now. It reads the roadmap and the ticket
+  folders, sorts every task into in flight, ready to start, and waiting on a dependency, and
+  names the one to start next. It writes nothing and moves no ticket: it reports the state and
+  hands off to `/orchestrate`. When the ticket folder and the roadmap marker disagree, it says so
+  rather than fixing it.
 - **/orchestrate** — offers you every roadmap task whose dependencies are satisfied, asks which
   one to build and whether it gets end-to-end tests, then drives it through
   interview → plan → review → implement → verify and code review using the six agents above.

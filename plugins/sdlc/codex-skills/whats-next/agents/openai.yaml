@@ -1,0 +1,4 @@
+interface:
+  display_name: "What's Next"
+  short_description: "Show what is actionable on the roadmap"
+  default_prompt: "Use $whats-next to show what is ready to start on the roadmap."

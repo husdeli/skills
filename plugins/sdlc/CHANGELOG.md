@@ -5,6 +5,31 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.43.0] - 2026-09-14
+
+### Added
+
+- **`/whats-next` — what can be worked on right now.** The roadmap already held the answer, but
+  reading it meant opening the file, following every `Depends on` cell, and checking which
+  tickets sit in `in-progress/`. The command does that and reports it:
+
+  - **In flight** — a task whose status is in-progress, blocked, or in review, or whose ticket
+    sits in `in-progress/`. A blocked task carries its blocker in the ticket's own words.
+  - **Ready to start** — pending, with every dependency completed. The first in roadmap order is
+    marked `← start here`, and each ready task shows its acceptance criteria.
+  - **Waiting** — pending, with at least one dependency not completed, and the IDs it waits on.
+
+  It is **read-only**: it writes no file, moves no ticket, changes no status, and starts nothing.
+  It ends by naming the next command — `/orchestrate` when something is ready, `/plan` when the
+  roadmap has nothing left to build.
+
+  Two judgment rules it states out loud: a dependency counts as satisfied only when it is
+  **completed**, not when it is in progress; and the ticket folder wins over the roadmap marker
+  when the two disagree, which it reports in one line instead of fixing. `$whats-next` is the
+  Codex entry point.
+
+  `/whats-next AUTH` narrows the report to one epic.
+
 ## [0.42.0] - 2026-09-10
 
 ### Added
