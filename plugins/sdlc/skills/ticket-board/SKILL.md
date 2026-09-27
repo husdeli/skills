@@ -246,6 +246,10 @@ Never mark a ticket `Completed`, and never delete its roadmap row, on this path.
 Implementation decisions belong in the plan, written after the codebase is explored. The full
 rules are in [the ticket guidelines](./references/ticket-guidelines.md).
 
+**A ticket writes the product's terms, and links them.** Load the **`glossary`** skill: it holds
+the term, its definition, and the link a ticket writes at the term's first use. Never restate a
+definition in a ticket.
+
 ## Templates
 
 - [Ticket template](./assets/ticket-template.md) — the shape `tickets/TEMPLATE.md` is copied from

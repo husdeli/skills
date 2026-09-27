@@ -1,6 +1,6 @@
 ---
 name: clean-writing
-description: Rules for every piece of prose a person reads — a discovery brief, an implementation plan, a review verdict, a verification report, a question put to the user, a PRD, a design doc, a ticket, a commit message, a pull-request body, or a chat reply. INVOKE THIS SKILL before writing any output directed at a human, and before asking the user a question. Enforces context first (the reader was never in your context window), ASD-STE100 Simplified Technical English (one idea per sentence, active voice, short sentences, one word for one meaning, no jargon or metaphor), the project's ubiquitous language taken from the docs root's prd.md and designs docs, AGENTS.md, CLAUDE.md, and the code, and the answer before the reasoning. Invoke it directly on a message that did not land, to re-pitch that message.
+description: Rules for every piece of prose a person reads — a discovery brief, an implementation plan, a review verdict, a verification report, a question put to the user, a PRD, a design doc, a ticket, a commit message, a pull-request body, or a chat reply. INVOKE THIS SKILL before writing any output directed at a human, and before asking the user a question. Enforces context first (the reader was never in your context window), ASD-STE100 Simplified Technical English (one idea per sentence, active voice, short sentences, one word for one meaning, no jargon or metaphor), the project's ubiquitous language through the `glossary` skill, and the answer before the reasoning. Invoke it directly on a message that did not land, to re-pitch that message.
 ---
 
 # Clean Writing
@@ -79,17 +79,11 @@ and follow the dictionary's principle: the plain common word, in one meaning.
 
 The reader knows this product by the names the product uses. Use those names.
 
-- **Take the vocabulary from the project**, in this order: `<docs root>/prd.md`,
-  `<docs root>/designs/*.design.md` (or, on an older shape, `<docs root>/*.design.md` or a single `design.md`), `AGENTS.md`, `CLAUDE.md`, the ticket or roadmap, then the code. The `product-docs` skill resolves the docs root. Read these before you write about a domain you have
-  not written about in this session.
-- **One term per concept, everywhere.** If the PRD says "workspace", never write "project",
-  "board", or "space" for the same thing.
-- **When the domain word and the code symbol differ, lead with the domain word.** Write "the
-  workspace owner (`OrgMember` in the code)" once, then keep using "workspace owner".
-- **Never invent a synonym for a term the project already has.** If the project has no term
-  for the thing, say so and propose one plainly: "there is no name for this yet — I am calling
-  it the export queue."
-- **Expand an acronym on first use** unless the project's own docs use it bare.
+**The `glossary` skill holds every rule about a term** — where the project's vocabulary comes from,
+one term per concept, how a term is defined under its own heading in `<docs root>/glossary.md`, and
+how a document links that definition instead of writing it again. **Load it** (namespaced
+`sdlc:glossary`) before you write about a domain you have not written about in this session, and
+follow it for every name you use here.
 
 ## Rule 4 — Give the answer before the reasoning
 
@@ -110,7 +104,7 @@ Check the text against this list. It takes seconds and it catches most of the da
 - [ ] The outcome comes before the evidence.
 - [ ] No sentence is longer than 25 words.
 - [ ] Every sentence names its actor, in the active voice.
-- [ ] Each concept uses one term, and that term is the project's term.
+- [ ] Each concept uses one term, and that term is the glossary's term.
 - [ ] No jargon, idiom, metaphor, or hedge survived.
 - [ ] Every quantity, name, and path is specific.
 - [ ] Code, identifiers, paths, quoted output, and any `json` contract block are untouched.

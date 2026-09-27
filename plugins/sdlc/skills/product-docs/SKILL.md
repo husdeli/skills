@@ -1,14 +1,17 @@
 ---
 name: product-docs
-description: "Rules for where this plugin's product documents live and how each destination writes them — the docs root, the `.sdlc.json` pointer file, and the Obsidian-vault conventions (folder naming, frontmatter properties, wikilinks). INVOKE THIS SKILL before you read, create, move, or update a PRD, a design doc, a roadmap, a ticket, or a ticket's worklog, and before you resolve any path under the docs root. Enforces one resolution order for every command and agent, one pointer file per project, and one document shape per destination."
+description: "Rules for where this plugin's product documents live and how each destination writes them — the docs root, the `.sdlc.json` pointer file, and the Obsidian-vault conventions (folder naming, frontmatter properties, wikilinks). INVOKE THIS SKILL before you read, create, move, or update a PRD, a glossary, a design doc, a roadmap, a ticket, or a ticket's worklog, and before you resolve any path under the docs root. Enforces one resolution order for every command and agent, one pointer file per project, and one document shape per destination."
 ---
 
 # product-docs skill
 
 Every document this plugin reads or writes sits in one folder: the **docs root**. The docs root
-holds `prd.md`, `roadmap.md`, `designs/`, and `tickets/` — and inside `tickets/`, a worklog
-beside each ticket that work has started on. This skill says where that folder is
+holds `prd.md`, `glossary.md`, `roadmap.md`, `designs/`, and `tickets/` — and inside `tickets/`, a
+worklog beside each ticket that work has started on. This skill says where that folder is
 and how the documents inside it are written.
+
+Two skills hold what goes *inside* a document: the **`glossary`** skill for the product's terms and
+the links that point at their definitions, and the **`ticket-board`** skill for the board.
 
 ## Resolve the docs root before you read anything
 
@@ -18,8 +21,9 @@ In this order, and stop at the first hit:
    root, and its `kind` field names the destination. Use them.
 2. **`.sdlc/` at the project root** — the default. The destination is `repo`.
 3. **Neither** — the project has no docs root. Read whatever it already keeps at the project
-   root (`prd.md`/`PRD.md`, `*.design.md`, `design.md`, `roadmap.md`, `tickets/`), and name the
-   platform's scaffold entry point as the way to create the structure.
+   root (`prd.md`/`PRD.md`, `glossary.md`/`GLOSSARY.md`, `*.design.md`, `design.md`,
+   `roadmap.md`, `tickets/`), and name the platform's scaffold entry point as the way to create
+   the structure.
 
 The **project root** is the directory holding `.git`, `package.json`, `AGENTS.md`, or
 `CLAUDE.md` — not the working directory when that sits deeper.
@@ -72,7 +76,7 @@ the headings, and the words of every document stay the same.
   (`Acme/`), and `designs/`, `tickets/`, `todo/`, `in-progress/`, and `done/` keep their names.
 - **Never scaffold into the vault root.** The docs root is always a folder inside the vault, so
   `prd.md` does not land among the user's own notes.
-- File names are unchanged: `prd.md`, `roadmap.md`, `checkout.design.md`,
+- File names are unchanged: `prd.md`, `glossary.md`, `roadmap.md`, `checkout.design.md`,
   `AUTH-001-user-login.md`.
 
 ### Frontmatter properties
@@ -98,7 +102,7 @@ The key is the field name in lower case, with `Last updated` as the one exceptio
 
 Every document also carries two properties the plugin adds:
 
-- **`type`** — `prd`, `design`, `roadmap`, `ticket`, or `worklog`.
+- **`type`** — `prd`, `glossary`, `design`, `roadmap`, `ticket`, or `worklog`.
 - **`tags`** — one entry, `sdlc/<type>`, so the whole structure is one search.
 
 A ticket adds `id` (`AUTH-001`), a design doc adds `subject` (`checkout`), and a worklog adds

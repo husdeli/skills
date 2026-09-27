@@ -47,9 +47,12 @@ subject first, then apply the same pattern to it.
 
 Engineers, designers, and product people all read this doc and must read it the same way. Load
 the **`clean-writing`** skill on top of this one and follow it for every sentence — it sets the
-sentence length, the active voice, and the one-term-per-concept rule. This skill governs *what
-belongs in a design doc*; `clean-writing` governs *how each sentence reads*. Take every domain
-term from the docs root's `prd.md` rather than coining a new one for the same thing.
+sentence length and the active voice. This skill governs *what
+belongs in a design doc*; `clean-writing` governs *how each sentence reads*.
+
+**Load the `glossary` skill for every domain term.** It says where a term comes from, that
+`<docs root>/glossary.md` defines it under its own heading, how this doc links that definition, and
+that a term this design coins gets its entry in the same step.
 
 ## Core rules
 
@@ -62,8 +65,8 @@ term from the docs root's `prd.md` rather than coining a new one for the same th
    - **Sentences that would stay true for another product.** "Errors are handled gracefully",
      "the layout is responsive", "the code is maintainable" — these tell a reader nothing.
      Either say what *this* design does differently, or delete the line.
-   - **A fact stated twice.** State it once, at the highest section it holds for, and
-     cross-reference it (§ style rules).
+   - **A fact stated twice.** State it once, at the highest section it holds for, and point at
+     it from everywhere else by its numbered heading (see *Style rules*).
    - **A section with nothing specific to say.** **Delete the heading — never fill it.**
    - **A part you have not designed yet.** It is absent from the doc, not a stub in it.
 
@@ -95,9 +98,10 @@ term from the docs root's `prd.md` rather than coining a new one for the same th
    one subject and carries its name — a shared app shell, an authentication model, an
    ingestion pipeline, an onboarding flow. When the design needs a second subject, write a
    second `<subject>.design.md` and reference it, rather than inlining and duplicating it.
-   Cross-reference by named section (`§3.5`) within a doc and by relative filename between
-   design docs, which are siblings in `designs/`. **Reference
-   only other design docs and the PRD** — and the PRD only when `../prd.md` (or an equivalent)
+   Cross-reference by numbered heading ("see 3.5 Behavior") within a doc and by relative filename
+   between design docs, which are siblings in `designs/`. **Reference
+   only other design docs, the glossary, and the PRD** — the glossary for a term's definition, and
+   the PRD only when `../prd.md` (or an equivalent)
    actually exists in the project; otherwise omit it. Never link to build or operations docs
    (deployment runbooks, setup guides, generated API references).
 6. **No tickets, no code references.** The doc stands on its own and stays true as the work
@@ -152,8 +156,8 @@ is really two subjects (split it), or the prose is padded (cut it).
 
 ### The per-subject pattern
 
-Specify each part, surface, or flow in this order (§2.x above). **Keep the order, and write
-only the sections that have something specific to say about this part** — a part with one
+Specify each part, surface, or flow in this order (the `2.x` headings above). **Keep the order,
+and write only the sections that have something specific to say about this part** — a part with one
 state and no variation is three headings shorter, not three headings of filler.
 
 - **Structure** — what the subject is built from and how it is arranged: the components and
@@ -190,15 +194,15 @@ The pattern is the same for every subject; only what fills each section changes.
 
 - **Present tense, declarative.** "Each upload enters the queue once." Not "we will build",
   not "you should add", not "to create the queue…".
-- **Bold a term where it is defined**, then reuse it plainly. Bold the load-bearing nouns
-  (**event queue**, **default project**, **sidebar**) so the structure is scannable.
+- **Bold a load-bearing noun where this doc first names it** (**event queue**, **default
+  project**, **sidebar**) so the structure is scannable, and link its glossary entry there.
 - **ASCII diagrams** for anything with shape — boxes and arrows for parts and flows, labeled
   regions for a screen layout — with a one-line caption underneath explaining any non-obvious
   relationship.
 - **Tables for states and for matrices** (e.g. permission-dependent behavior). Prose for
   everything with nuance.
-- **Cross-reference generously** with `§` section numbers so a rule stated once is pointed
-  to, never restated. Between docs, link by relative filename.
+- **Cross-reference generously** by numbered heading — "see 3.5 Behavior" — so a rule stated once
+  is pointed to, never restated. Between docs, link by relative filename.
 - **One concrete example** where the intent is otherwise ambiguous — a sample value, message,
   or label ("Start free"). One is enough; a list of examples restates the rule.
 - **Name behavior, not mechanism.** "A second submission of the same order changes nothing" —

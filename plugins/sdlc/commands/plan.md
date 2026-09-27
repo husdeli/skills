@@ -17,9 +17,10 @@ This is the intake path. `/prd` writes the PRD, `/design` writes the design doc,
 | --- | --- |
 | **`product-docs`** | Where the docs root is, and how each destination writes a document |
 | **`ticket-board`** | The epic that numbers a ticket, the roadmap's shape, and the ticket's own shape |
+| **`glossary`** | The product's terms — where each one is defined, and how a document links it |
 | **`clean-writing`** | Every sentence you write, in a document or to the user |
 
-The documents sit in the **docs root**: `prd.md`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `product-docs` resolves the root; every `.sdlc/…` path below means `<docs root>/…`. **Every ticket this command writes starts in `todo/`**, because no work has started on it. When the project keeps its design docs directly in the docs root, or its tickets folder is flat, write into the shape it already has.
+The documents sit in the **docs root**: `prd.md`, `glossary.md`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `product-docs` resolves the root; every `.sdlc/…` path below means `<docs root>/…`. **Every ticket this command writes starts in `todo/`**, because no work has started on it. When the project keeps its design docs directly in the docs root, or its tickets folder is flat, write into the shape it already has.
 
 ## Architecture: you write, one agent researches
 
@@ -68,7 +69,7 @@ Agent(subagent_type: "sdlc:feature-interviewer",
                  because the document update follows your brief.")
 ```
 
-...and read `prd.md`, the `designs/*.design.md` docs this request touches, and `roadmap.md` yourself. You need four things the interviewer will not hand you: the product's vocabulary, the parts and surfaces this request touches, the roadmap's epics and the numbering inside each of them, and the existing tasks the request duplicates or depends on.
+...and read `glossary.md`, `prd.md`, the `designs/*.design.md` docs this request touches, and `roadmap.md` yourself. You need four things the interviewer will not hand you: the product's vocabulary, the parts and surfaces this request touches, the roadmap's epics and the numbering inside each of them, and the existing tasks the request duplicates or depends on.
 
 The brief comes back as *Understanding*, *What already exists*, *Research findings*, *Open decisions*, *Assumptions*, and *Out of scope*. Nothing returned, or no brief after one retry → report that and stop before writing any file.
 

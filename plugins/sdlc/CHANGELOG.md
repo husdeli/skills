@@ -5,6 +5,53 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.47.0] - 2026-09-27
+
+### Added
+
+- **`glossary` is the new skill, and the one place every rule about a term lives.** A term is
+  defined once, in `<docs root>/glossary.md`, under a `##` heading that holds the term and nothing
+  else, with two or three sentences under it and the entries in alphabetical order. The skill holds
+  all of it: where the project's vocabulary comes from, one term per concept, the domain word ahead
+  of the code symbol, what to do when the product has no name for something yet, only load-bearing
+  terms, and what an added, renamed, or dropped term costs.
+
+- **Every other document links a term instead of defining it again** — the PRD, the design docs, the
+  roadmap, and the tickets link the glossary heading at a term's first use in that document, then use
+  the term plainly:
+
+  | Destination | The link |
+  | --- | --- |
+  | repository or folder | `[workspace owner](glossary.md#workspace-owner)` — `../glossary.md#…` from `designs/`, `../../glossary.md#…` from a ticket folder |
+  | vault | `[[glossary#Workspace owner]]`, with display text where the sentence needs another form |
+
+  A repository anchor is the heading in lower case with each space as a hyphen, which is why the
+  heading carries the term alone. Prose outside the docs root — a chat reply, a commit message, a
+  review verdict, an agent's report — uses the term with no link, because there is nothing there to
+  click.
+
+- **`glossary.md` is a document of the docs root**, beside `prd.md`. `product-docs` lists it, gives
+  it the `type: glossary` frontmatter and the `sdlc/glossary` tag in a vault, and reads it as a
+  project-root fallback. `/scaffold` writes its stub in both shapes and offers to move a root-level
+  `glossary.md` or `GLOSSARY.md` into the docs root like the other documents.
+
+### Changed
+
+- **Nothing restates the term rules.** `clean-writing`, `prd`, `design-doc`, `ticket-board`,
+  `product-docs`, `/prd`, `/design`, `/plan`, the `feature-interviewer`, and the `code-reviewer` each
+  name the `glossary` skill in one line and load it. `clean-writing` Rule 3 — *Use the project's
+  ubiquitous language* — is now that pointer: the vocabulary source order and the
+  one-term-per-concept rule moved into the new skill, whole.
+
+- **The PRD chooses the terms; the glossary defines them.** The `prd` skill no longer says the PRD is
+  where the ubiquitous language is defined. The PRD states the requirement, links the definition, and
+  keeps the glossary in step when an update renames or drops a term.
+
+- **No paragraph sign anywhere in the plugin.** `design-doc` used the section symbol for four
+  cross-references. A design doc now cross-references by numbered heading — "see 3.5 Behavior" —
+  inside a doc, and by relative filename between docs. The glossary joined the short list of
+  documents a design doc may reference.
+
 ## [0.46.0] - 2026-09-27
 
 ### Changed
@@ -984,7 +1031,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   could be read as an unparseable block. The underscore form is now the only one, in the
   frontmatter description, the markdown heading, and the rules.
 - **`/orchestrate` referred to a stage that does not exist.** The verify-passed branch sent the
-  orchestrator to "Stage 3-of-§3 (mark Completed)" while Stage 3 is Implement; it now points at
+  orchestrator to a "Stage 3 of 3 (mark Completed)" that does not exist, while Stage 3 is
+  Implement; it now points at
   the **Mark Completed** step by name.
 - **The verify spawn asked for an effort level the `Agent` tool cannot set.** "sonnet, low
   effort" is now just "sonnet" — the model is settable, the effort is not.

@@ -23,8 +23,9 @@ Each name may be namespaced here — `sdlc:product-docs`, `sdlc:ticket-board`,
 skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
 spawn prompt: the agents load their own.
 
-**The documents sit in the docs root** — `prd.md`, `designs/<subject>.design.md`, `roadmap.md`, and
-`tickets/<status>/<ID>-*.md`, with a worklog beside a ticket in flight. `product-docs` resolves the
+**The documents sit in the docs root** — `prd.md`, `glossary.md`,
+`designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, with a worklog
+beside a ticket in flight. `product-docs` resolves the
 root, and every `.sdlc/…` path below means `<docs root>/…`. When the project has no structure at
 all, work from whatever it keeps at its root and name `/scaffold` in your report.
 

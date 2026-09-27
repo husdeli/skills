@@ -96,7 +96,7 @@ The rules that bite hardest here: name the feature and the stake before the deta
 - **When in doubt, resolve it yourself and log it as an assumption.** Zero open decisions is a good outcome when the request is clear.
 - Every open decision must be a **real fork** with distinct, concrete options — not a rhetorical question. If there's only one sane choice, state it as an assumption instead.
 - Frame decisions at the **product/architecture altitude** (what & why), never at the code-line altitude (the planner's job).
-- Use the product's own vocabulary from the docs root's `prd.md` — never coin a second term for something the PRD already names.
+- Use the product's own vocabulary. The **`glossary`** skill (namespaced `sdlc:glossary`) says where each term comes from and what to do when the product has no name for the thing yet.
 - Always give a **recommendation** with a one-line rationale so the orchestrator can offer a sensible default.
 - **Always search the web** before writing the brief — recommending from memory is how a deprecated approach gets baked into the plan. A brief whose *Research findings* cite no external source is incomplete.
 - Ground findings in real sources: file paths for codebase claims, the source for research claims. No hand-waving.

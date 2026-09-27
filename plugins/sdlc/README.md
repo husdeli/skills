@@ -43,6 +43,8 @@ is `.sdlc/` at your project root:
 ```
 .sdlc/
   prd.md                product requirements — what the product does and why
+  glossary.md           the product's terms — one ## heading per term, defined once
+                        here and linked from every other document
   roadmap.md            the work that is left, in order, grouped by epic
   designs/
     overview.design.md  design docs — how the solution works, end to end. One file
@@ -56,6 +58,11 @@ is `.sdlc/` at your project root:
     done/               BILLING-001-invoice-export.md
                         BILLING-001-invoice-export.worklog.md
 ```
+
+**A term is defined once, in `glossary.md`.** Each term is a `##` heading, and every other document
+links that heading at the term's first use instead of writing the definition a second time. Whoever
+coins a term writes its entry, so `/prd`, `/design`, and `/plan` each keep the file current. The
+`glossary` skill holds the rules.
 
 Each kind of document gets its own folder once there can be more than one of it. A design doc
 covers one subject — a system, a service, a flow, an integration, a rule, or a screen — and
@@ -122,9 +129,10 @@ Inside a vault the documents are written the way Obsidian reads them, and nothin
 - **Fields become properties.** `**Status**: In Progress` under the title becomes
   `status: In Progress` in the frontmatter, so a ticket is queryable in Bases or Dataview. The
   property is the record the commands rewrite.
-- **References become wikilinks.** The roadmap cites `[[AUTH-001-user-login]]`, and a design doc
-  cites `[[prd]]`. Obsidian resolves them by name, so backlinks and the graph work, and a link
-  survives the ticket moving between status folders.
+- **References become wikilinks.** The roadmap cites `[[AUTH-001-user-login]]`, a design doc cites
+  `[[prd]]`, and a glossary term is cited as `[[glossary#Workspace owner]]`. Obsidian resolves them
+  by name, so backlinks and the graph work, and a link survives the ticket moving between status
+  folders.
 - **No `.gitkeep`, and no `git mv`** where git does not track the folder.
 
 The `product-docs` skill holds these rules, and the plugin loads it whenever the destination is a
@@ -178,7 +186,7 @@ vault. Pick **In the repository** at the prompt and none of it applies.
   verdict, a report, a question, a PRD, a ticket, a chat reply. Context before the point,
   ASD-STE100 Simplified Technical English (one idea per sentence, active voice with a named
   actor, one word for one meaning, no jargon or metaphor), the project's ubiquitous language
-  from the PRD, the design doc, `AGENTS.md`, and `CLAUDE.md`, and the answer before the reasoning.
+  through the `glossary` skill, and the answer before the reasoning.
   Governs prose only — code, identifiers, paths, quoted output, and the agents' `json` blocks stay exact.
   Invoked directly, it re-pitches a message that didn't land. Every agent, command, and
   document skill in this plugin routes its human-facing output through it.
@@ -193,8 +201,16 @@ vault. Pick **In the repository** at the prompt and none of it applies.
   Artifact — every state, the small screen, placeholder data, nothing wired up — and iterates
   until the user agrees. Then it records the decisions, so the code is written from an agreement
   and not from a picture nobody wrote down. It writes no production code.
+- **glossary** — The product's terms, and the one place each is defined: `glossary.md` in the docs
+  root, one `##` heading per term, in alphabetical order, with two or three sentences under it.
+  It holds where a term comes from, one term per concept, the domain word ahead of the code symbol,
+  what to do when the product has no name for something yet, and the link every other document
+  writes at a term's first use — a relative anchor in the repository,
+  `[[glossary#Workspace owner]]` in a vault. Prose outside the docs root uses the term with no
+  link. Every document skill and every agent reaches the terms through this one skill.
 - **prd** — Create or update a product requirements document: product-only content,
-  cohesive per-area descriptions with stable anchor codes, and positive framing.
+  cohesive per-area descriptions with stable anchor codes, and positive framing. The terms it
+  chooses are defined in `glossary.md`, never in the PRD.
 - **product-docs** — Where the documents live and how each destination writes them: the docs
   root, the `.sdlc.json` pointer file, and the Obsidian-vault conventions — folder naming,
   frontmatter properties, wikilinks, and when a move uses `git mv`. Every command and agent
@@ -226,13 +242,13 @@ what a ticket is, and why changing how a status transition works is one edit rat
 
 ### Commands and Codex skills
 - **/scaffold** — asks where the docs root goes — in the repository as `.sdlc/`, or in a folder
-  outside it such as an Obsidian vault — then creates it with stub files for the PRD, the design
-  doc, the roadmap, a ticket template, the `designs/` folder, and the `todo/`, `in-progress/`,
-  and `done/` ticket folders. An outside folder gets a `.sdlc.json` pointer file at the project
-  root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no
+  outside it such as an Obsidian vault — then creates it with stub files for the PRD, the glossary,
+  the design doc, the roadmap, a ticket template, the `designs/` folder, and the `todo/`,
+  `in-progress/`, and `done/` ticket folders. An outside folder gets a `.sdlc.json` pointer file at
+  the project root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no
   dot-folders. Never overwrites an existing file, and offers to move a root-level
-  `prd.md`, `design.md`, or `tickets/` into the folder with `git mv` — including sorting a flat
-  tickets folder into the three status folders, moving loose `*.design.md` files into
+  `prd.md`, `glossary.md`, `design.md`, or `tickets/` into the folder with `git mv` — including
+  sorting a flat tickets folder into the three status folders, moving loose `*.design.md` files into
   `designs/`, and renaming a lone `design.md` to `designs/overview.design.md`. It also offers to
   migrate a project-wide ticket scheme (`SW-001`, `SW-002`, …) onto epic-prefixed IDs, after it
   shows you the epic grouping and you approve it, and to clean a roadmap that still holds
@@ -280,7 +296,7 @@ what a ticket is, and why changing how a status transition works is one edit rat
   component, or a flow before it is built: it publishes a static mockup as an Artifact, iterates
   with you, and records what you agreed. It writes no production code — `/code` builds it after.
 - **/prd** — loads the `prd` skill to create or update a product requirements document for
-  a given product or feature.
+  a given product or feature, and the `glossary` skill for the terms it introduces.
 - **/explain** — explains what is happening in plain language: the work you just did, a
   file, an error, a diff, or a concept. Reads the code before explaining, defines every
   term of art on first use, and treats code as an anchor rather than the explanation.

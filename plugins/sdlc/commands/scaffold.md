@@ -1,5 +1,5 @@
 ---
-description: Create the folder that holds the PRD, the design docs, the roadmap, and the tickets — in the repository, or in an Obsidian vault.
+description: Create the folder that holds the PRD, the glossary, the design docs, the roadmap, and the tickets — in the repository, or in an Obsidian vault.
 argument-hint: [product name] [destination path]
 ---
 
@@ -19,6 +19,8 @@ migrates.
 ```
 <docs root>/
   prd.md                product requirements — what the product does and why
+  glossary.md           the product's terms — one ## heading per term, defined once
+                        here and linked from every other document
   roadmap.md            the work that is left, in order, grouped by epic
   designs/
     overview.design.md  design docs — how the solution works, end to end. One file per
@@ -117,7 +119,8 @@ changes nothing but the path.
 Look for documents this plugin would otherwise create twice:
 
 - The docs root itself — if it exists, you are filling gaps, not scaffolding.
-- Root-level `prd.md`, `PRD.md`, `design.md`, `DESIGN.md`, `roadmap.md`, `ROADMAP.md`.
+- Root-level `prd.md`, `PRD.md`, `glossary.md`, `GLOSSARY.md`, `design.md`, `DESIGN.md`,
+  `roadmap.md`, `ROADMAP.md`.
 - A root-level `tickets/` directory.
 - A design doc in any shape: `*.design.md` files in `<docs root>/designs/`, in the docs root
   itself, or at the project root; or a single `design.md` in any of those.
@@ -281,6 +284,40 @@ tags:
 …
 ```
 
+**`<docs root>/glossary.md`**
+
+```markdown
+# <product> — glossary
+
+**Last updated**: <today, YYYY-MM-DD>
+
+One entry per term this product uses, in alphabetical order. Every other document links the term's
+heading here instead of writing the definition again.
+
+## <Term>
+
+<Two or three sentences: what the thing is, and the one fact that separates it from the term
+nearest to it.>
+```
+
+In a vault, the field becomes a property and the term headings are unchanged:
+
+```markdown
+---
+type: glossary
+product: <product>
+updated: <today, YYYY-MM-DD>
+tags:
+  - sdlc/glossary
+---
+
+# <product> — glossary
+…
+```
+
+Write the placeholder term only — never invent terms. `/prd`, `/design`, and `/plan` fill the
+entries as the product gains them, and the **`glossary`** skill holds the rules they follow.
+
 **`<docs root>/designs/overview.design.md`** — the entry-point design doc. Every
 later subject gets its own `<subject>.design.md` beside it, written by `/design`.
 
@@ -406,7 +443,8 @@ Say **where the docs root is** and, when you wrote one, that `.sdlc.json` now po
 Report the tree you created, marking each file `created` or `kept`, and each moved file with
 its old and new path. Then offer the next step, in this order:
 
-1. `/prd <product>` — fill the PRD first. Every later document takes its vocabulary from it.
+1. `/prd <product>` — fill the PRD first. It chooses the product's terms and writes each one's
+   entry in `glossary.md`. Every later document takes its vocabulary from there.
 2. `/design <target>` — specify how each system, flow, or surface works once the PRD names
    it. Each run writes or updates one `designs/<subject>.design.md`.
 3. `/plan <request>` — turn a request into roadmap tasks and tickets. The roadmap stub holds a

@@ -84,7 +84,7 @@ as Stage 2 does.
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
-The documents sit in the **docs root** — `prd.md`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md` with a worklog beside a ticket in flight. `product-docs` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`; a bare path resolves against the docs root first, then the project root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
+The documents sit in the **docs root** — `prd.md`, `glossary.md`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md` with a worklog beside a ticket in flight. `product-docs` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`; a bare path resolves against the docs root first, then the project root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
 
 Never start a task whose dependencies are incomplete.
 

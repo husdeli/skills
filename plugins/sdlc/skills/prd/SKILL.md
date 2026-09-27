@@ -7,7 +7,7 @@ description: "Create or update a product requirements document at <docs root>/pr
 
 Write or update a product requirements document following the structure and style below.
 
-**Where it lives.** The PRD is `<docs root>/prd.md`, alongside `roadmap.md`, the
+**Where it lives.** The PRD is `<docs root>/prd.md`, alongside `glossary.md`, `roadmap.md`, the
 `designs/` folder, and the `tickets/` folder. **Load the `product-docs` skill and resolve the docs
 root as it says**, before you read or write anything. Create the folder if it is missing. When the project already keeps
 a PRD at the root (`prd.md`/`PRD.md`), update that file in place instead — one PRD per
@@ -18,7 +18,9 @@ When `kind` is `vault`, load the **`product-docs`** skill as well: the PRD's `St
 
 A PRD describes **what the product does and why** — the requirements, from the user's point of view. It is not an implementation plan, a project tracker, or a technical design. Keep it durable: it stays accurate as tickets come and go and as the implementation is rewritten underneath it.
 
-A PRD is read end to end by people who were not in the room. Load the **`clean-writing`** skill on top of this one and follow it for every sentence you write here — it sets the sentence length, the active voice, and the one-term-per-concept rule. This skill governs *what belongs in a PRD*; `clean-writing` governs *how each sentence reads*. The PRD is also where the product's ubiquitous language is defined, so the terms you choose here are the terms every ticket, plan, and report must reuse.
+A PRD is read end to end by people who were not in the room. Load the **`clean-writing`** skill on top of this one and follow it for every sentence you write here — it sets the sentence length and the active voice. This skill governs *what belongs in a PRD*; `clean-writing` governs *how each sentence reads*. The PRD is where the product's ubiquitous language is **chosen**, so the terms you pick here are the terms every design doc, ticket, plan, and report must reuse.
+
+**Each term is defined in the glossary, not in the PRD.** Load the **`glossary`** skill and follow it: it holds the entry shape, the link form, and the rule that whoever coins a term writes its entry in the same step. The PRD states the requirement and never repeats a definition.
 
 ## Product-only: no tickets, no code
 
@@ -112,6 +114,7 @@ Bullet list. Concrete unresolved product decisions that block design or implemen
 - **State the new requirement as the current truth.** Rewrite the affected passage so it reads as if it were always the target. Do not narrate the change ("previously X, now Y", "supersedes …", "revised") — that history lives in version control.
 - **Keep area names and anchors stable.** When an area's behavior evolves, revise the prose in place under its existing heading so inbound references stay valid. Add a new subsection only for a genuinely new product area. If a behavior is dropped, remove it and reconcile anything that referenced it.
 - **Keep the whole document consistent.** Reflect the change everywhere it lands — overview, goals, personas, related areas, success metrics, open questions — so no two sections disagree.
+- **Keep the glossary in step.** The `glossary` skill says what an added, renamed, or dropped term costs — do that in the same run.
 - **Bump `Last updated`** and revisit `Status`.
 - **Retire resolved open questions.** Delete them from section 8 rather than marking them resolved in place.
 - **Fix drift while you're there.** Strip any ticket, code, technology, or migration references you encounter, and rewrite atomic-checklist or negatively-framed passages into cohesive, positive prose.
@@ -123,3 +126,4 @@ Ask the user:
 2. Are any non-goals actually in scope?
 3. Which open questions are already decided and can be removed?
 4. Did any passage drift into implementation/ticket detail, an atomic-feature checklist, or negative "what it doesn't do" framing?
+5. Does every term this PRD introduces have a glossary entry, linked at its first use here?
