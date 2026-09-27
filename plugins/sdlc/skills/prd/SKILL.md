@@ -20,6 +20,8 @@ A PRD describes **what the product does and why** — the requirements, from the
 
 A PRD is read end to end by people who were not in the room. Load the **`clean-writing`** skill on top of this one and follow it for every sentence you write here — it sets the sentence length and the active voice. This skill governs *what belongs in a PRD*; `clean-writing` governs *how each sentence reads*. The PRD is where the product's ubiquitous language is **chosen**, so the terms you pick here are the terms every design doc, ticket, plan, and report must reuse.
 
+**A diagram goes in `diagrams/`, never inline.** When a product area or a user flow needs a picture, load the **`diagrams`** skill and follow it. The PRD's product-only rules still hold inside the picture: no mechanism, no implementation name.
+
 **Each term is defined in the glossary, not in the PRD.** Load the **`glossary`** skill and follow it: it holds the entry shape, the link form, and the rule that whoever coins a term writes its entry in the same step. The PRD states the requirement and never repeats a definition.
 
 ## Product-only: no tickets, no code

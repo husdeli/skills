@@ -50,6 +50,8 @@ is `.sdlc/` at your project root:
     overview.design.md  design docs — how the solution works, end to end. One file
     checkout.design.md  per subject, named <subject>.design.md
     …
+  diagrams/
+    checkout.excalidraw.md   one file per diagram, referenced by any document
   tickets/
     TEMPLATE.md         copy per task, named <EPIC>-<NNN>-<slug>.md
     todo/               AUTH-001-user-login.md
@@ -201,6 +203,15 @@ vault. Pick **In the repository** at the prompt and none of it applies.
   Artifact — every state, the small screen, placeholder data, nothing wired up — and iterates
   until the user agrees. Then it records the decisions, so the code is written from an agreement
   and not from a picture nobody wrote down. It writes no production code.
+- **diagrams** — A picture of a shape, in one place: `diagrams/` in the docs root, one
+  `<name>.excalidraw.md` file per diagram — the Obsidian Excalidraw format, so a vault renders and
+  indexes it. The skill ships its own builder: write a small JSON spec of nodes, edges, regions and
+  notes, run `scripts/excalidraw_md.py`, and get a valid drawing with bound labels and bound arrows,
+  plus a `validate` command that catches a file Obsidian would not open. It holds five layouts, one
+  meaning per color, how each of the nine kinds of diagram is shaped, and the budget — under 20
+  elements. A document references the file with a one-line caption, and the prose stays complete
+  without the picture, because every agent here reads a document as text. Where `python3` is
+  missing, the document carries an ASCII diagram instead — one shape never gets both.
 - **glossary** — The product's terms, and the one place each is defined: `glossary.md` in the docs
   root, one `##` heading per term, in alphabetical order, with two or three sentences under it.
   It holds where a term comes from, one term per concept, the domain word ahead of the code symbol,
@@ -243,8 +254,8 @@ what a ticket is, and why changing how a status transition works is one edit rat
 ### Commands and Codex skills
 - **/scaffold** — asks where the docs root goes — in the repository as `.sdlc/`, or in a folder
   outside it such as an Obsidian vault — then creates it with stub files for the PRD, the glossary,
-  the design doc, the roadmap, a ticket template, the `designs/` folder, and the `todo/`,
-  `in-progress/`, and `done/` ticket folders. An outside folder gets a `.sdlc.json` pointer file at
+  the design doc, the roadmap, a ticket template, the `designs/` and `diagrams/` folders, and the
+  `todo/`, `in-progress/`, and `done/` ticket folders. An outside folder gets a `.sdlc.json` pointer file at
   the project root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no
   dot-folders. Never overwrites an existing file, and offers to move a root-level
   `prd.md`, `glossary.md`, `design.md`, or `tickets/` into the folder with `git mv` — including

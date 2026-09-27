@@ -30,10 +30,10 @@ Start a new session after installation so the skills become available.
 ### [`sdlc`](plugins/sdlc/README.md) — plan, review, implement, verify
 
 Ten commands drive six agents through interview → plan → review → implement → verify and code
-review, and thirteen skills hold the rules they follow: Clean Code and Hexagonal Architecture, the
+review, and fourteen skills hold the rules they follow: Clean Code and Hexagonal Architecture, the
 TypeScript, React, and TanStack Start layers, the writing standard every human-facing output
-goes through, the glossary that defines the product's terms, and the PRD, design-doc, and
-frontend-design document skills. Every document it
+goes through, the glossary that defines the product's terms, the diagrams that show a shape, and
+the PRD, design-doc, and frontend-design document skills. Every document it
 reads or writes lives in one `.sdlc/` folder at your project root.
 
 Claude Code and Codex. See the [plugin README](plugins/sdlc/README.md) for the commands, the

@@ -6,12 +6,13 @@ description: "Rules for where this plugin's product documents live and how each 
 # product-docs skill
 
 Every document this plugin reads or writes sits in one folder: the **docs root**. The docs root
-holds `prd.md`, `glossary.md`, `roadmap.md`, `designs/`, and `tickets/` — and inside `tickets/`, a
-worklog beside each ticket that work has started on. This skill says where that folder is
-and how the documents inside it are written.
+holds `prd.md`, `glossary.md`, `roadmap.md`, `designs/`, `diagrams/`, and `tickets/` — and inside
+`tickets/`, a worklog beside each ticket that work has started on. This skill says where that folder
+is and how the documents inside it are written.
 
-Two skills hold what goes *inside* a document: the **`glossary`** skill for the product's terms and
-the links that point at their definitions, and the **`ticket-board`** skill for the board.
+Three skills hold what goes *inside* a document: the **`glossary`** skill for the product's terms
+and the links that point at their definitions, the **`diagrams`** skill for a picture of a shape,
+and the **`ticket-board`** skill for the board.
 
 ## Resolve the docs root before you read anything
 
@@ -22,8 +23,8 @@ In this order, and stop at the first hit:
 2. **`.sdlc/` at the project root** — the default. The destination is `repo`.
 3. **Neither** — the project has no docs root. Read whatever it already keeps at the project
    root (`prd.md`/`PRD.md`, `glossary.md`/`GLOSSARY.md`, `*.design.md`, `design.md`,
-   `roadmap.md`, `tickets/`), and name the platform's scaffold entry point as the way to create
-   the structure.
+   `roadmap.md`, `diagrams/`, `tickets/`), and name the platform's scaffold entry point as the way
+   to create the structure.
 
 The **project root** is the directory holding `.git`, `package.json`, `AGENTS.md`, or
 `CLAUDE.md` — not the working directory when that sits deeper.
@@ -73,7 +74,8 @@ the headings, and the words of every document stay the same.
 
 - **No name in the docs root starts with a dot.** Obsidian hides dot-folders and dot-files, so a
   `.sdlc/` folder inside a vault is invisible. The docs root is named after the product
-  (`Acme/`), and `designs/`, `tickets/`, `todo/`, `in-progress/`, and `done/` keep their names.
+  (`Acme/`), and `designs/`, `diagrams/`, `tickets/`, `todo/`, `in-progress/`, and `done/` keep
+  their names.
 - **Never scaffold into the vault root.** The docs root is always a folder inside the vault, so
   `prd.md` does not land among the user's own notes.
 - File names are unchanged: `prd.md`, `glossary.md`, `roadmap.md`, `checkout.design.md`,

@@ -161,8 +161,9 @@ and write only the sections that have something specific to say about this part*
 state and no variation is three headings shorter, not three headings of filler.
 
 - **Structure** — what the subject is built from and how it is arranged: the components and
-  the boundaries between them, the stages of a flow, or the regions of a screen. Use an
-  **ASCII diagram** for any non-trivial arrangement.
+  the boundaries between them, the stages of a flow, or the regions of a screen. Any non-trivial
+  arrangement gets a **diagram** — load the **`diagrams`** skill, which holds how one is drawn and
+  where it lives.
 - **Behavior** — how it actually works, end to end. Follow one unit of work from where it
   enters to where it leaves: what triggers it, what each part decides, what it hands on, and
   what the caller gets back. Name what each boundary carries. A reader must be able to trace
@@ -196,9 +197,9 @@ The pattern is the same for every subject; only what fills each section changes.
   not "you should add", not "to create the queue…".
 - **Bold a load-bearing noun where this doc first names it** (**event queue**, **default
   project**, **sidebar**) so the structure is scannable, and link its glossary entry there.
-- **ASCII diagrams** for anything with shape — boxes and arrows for parts and flows, labeled
-  regions for a screen layout — with a one-line caption underneath explaining any non-obvious
-  relationship.
+- **A diagram for anything with shape** — the parts and what connects them, the stages of a flow,
+  the regions of a screen — referenced with a one-line caption under it. The **`diagrams`** skill
+  holds the rest, and the prose stays complete without the picture.
 - **Tables for states and for matrices** (e.g. permission-dependent behavior). Prose for
   everything with nuance.
 - **Cross-reference generously** by numbered heading — "see 3.5 Behavior" — so a rule stated once

@@ -1,5 +1,5 @@
 ---
-description: Create the folder that holds the PRD, the glossary, the design docs, the roadmap, and the tickets — in the repository, or in an Obsidian vault.
+description: Create the folder that holds the PRD, the glossary, the design docs, the diagrams, the roadmap, and the tickets — in the repository, or in an Obsidian vault.
 argument-hint: [product name] [destination path]
 ---
 
@@ -25,6 +25,7 @@ migrates.
   designs/
     overview.design.md  design docs — how the solution works, end to end. One file per
                         subject, named <subject>.design.md; overview is the entry point
+  diagrams/             one .excalidraw.md file per diagram, referenced by any document
   tickets/
     TEMPLATE.md         copy this per task, named <EPIC>-<NNN>-<slug>.md
     todo/               a ticket waits here until an orchestrator starts it
@@ -56,7 +57,8 @@ there is no ticket yet to put one beside.
 - **Settle the destination before you create anything** — Step 1. The default docs root is
   `.sdlc/` in the project root: the directory holding `.git`, `package.json`, `AGENTS.md`, or
   `CLAUDE.md`. Not the current working directory when that sits deeper.
-- **Create `designs/` and all three ticket status folders**, even though they start empty.
+- **Create `designs/`, `diagrams/`, and all three ticket status folders**, even though they start
+  empty.
   Write a `.gitkeep` file into every one that ends up with no file in it **when the docs root
   sits inside a git working tree**, because git does not track an empty directory. A docs root
   outside git gets no `.gitkeep` — it is clutter in a vault.
@@ -345,7 +347,8 @@ restating. Three to seven bullets, qualitative. Omit the section when there are 
 
 ### 2.1 Structure
 
-<An ASCII diagram of the parts and what connects them, with a one-line caption.>
+<A reference to the diagram of the parts and what connects them, with a one-line caption. The
+`diagrams` skill says how one is drawn and where it lives.>
 
 ### 2.2 Behavior
 

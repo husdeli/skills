@@ -5,6 +5,61 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.48.0] - 2026-09-27
+
+### Added
+
+- **`diagrams` is the new skill, and the one place every rule about a picture lives.** A document
+  earns a diagram when its **shape** is the fact — the parts and what connects them, the stages of a
+  flow, the regions of a screen. Every diagram is one file in `<docs root>/diagrams/`, and the skill
+  holds when to draw one, how, where it lives, how a document points at it, and when to delete it.
+
+- **The skill ships its own builder, and the files are Obsidian `.excalidraw.md` drawings.** You
+  write a small JSON spec — nodes, edges, regions, notes — and
+  `scripts/excalidraw_md.py build spec.json <name>.excalidraw.md` writes the drawing. No agent
+  hand-writes Excalidraw JSON:
+
+  | Command | What it does |
+  | --- | --- |
+  | `build <spec> <file>` | A spec becomes a drawing, laid out, with labels and arrows bound to their shapes |
+  | `wrap <scene> <file>` | An Excalidraw scene becomes a drawing |
+  | `unwrap <file> <scene>` | A drawing becomes its scene again, to edit and wrap back |
+  | `validate <file>` | Reports anything Obsidian would refuse: a missing section, a scene that does not parse, duplicate ids, an index out of order, a text element that is not mirrored, a binding that names nothing |
+
+  The format is the one the Obsidian Excalidraw plugin writes — `excalidraw-plugin: parsed` in the
+  frontmatter, `# Excalidraw Data`, a `## Text Elements` section mirroring each text element as
+  `<text> ^<id>` so a vault indexes the drawing's words, and the scene as JSON in a `## Drawing`
+  section commented out with `%%`. The builder gets the three things that are easy to get wrong
+  right: a label is its own text element bound to its shape, an arrow binds to both ends so it
+  follows what a person moves, and the fractional `index` values ascend.
+
+- **The spec holds five layouts and one meaning per color.** `down`, `right`, `grid`, `layered`, and
+  `none` for a shape placed by hand; blue for the normal part, green where work leaves, yellow for
+  something holding state, red for a failure, violet for an outside party, grey for context. The
+  reference pages map each of the nine kinds of diagram — flow, architecture, data flow,
+  relationship, swimlane, sequence, entity relationship, class, mind map — onto that spec, and set
+  the budget: under 20 elements, under 12 nodes, one shape per file.
+
+- **A document references a drawing with a one-line caption** — `[Checkout parts](../diagrams/checkout.excalidraw.md)`
+  in the repository, `![[checkout.excalidraw]]` in a vault, where the wikilink drops the final `.md`.
+  **The prose stays complete without the picture**, because every agent in this plugin reads a
+  document as text.
+
+- **An ASCII diagram is the fallback, not the format.** Where `python3` is missing, the document
+  carries an ASCII diagram instead. One shape never gets both, and a document never links a file that
+  was not created.
+
+### Changed
+
+- **`design-doc` no longer mandates ASCII diagrams.** Its *Structure* section and its style rules
+  now point at the `diagrams` skill, and the `/design` command loads that skill before it draws
+  anything. `prd` and `ticket-board` each gained one line: a diagram goes in `diagrams/`, and the
+  document's own content rules still hold inside the picture.
+
+- **`diagrams/` is a folder of the docs root.** `product-docs` lists it beside `designs/`, keeps its
+  name undotted in a vault, and reads it as a project-root fallback. `/scaffold` creates it, and
+  `/plan` loads the skill with the rest.
+
 ## [0.47.0] - 2026-09-27
 
 ### Added
