@@ -8,10 +8,8 @@ description: "Create or update a product requirements document at <docs root>/pr
 Write or update a product requirements document following the structure and style below.
 
 **Where it lives.** The PRD is `<docs root>/prd.md`, alongside `roadmap.md`, the
-`designs/` folder, and the `tickets/` folder. Resolve the docs root first: a `.sdlc.json` file at
-the project root names it in its `root` field, with the destination in `kind` — that is how a
-project keeps its documents in an Obsidian vault — and otherwise the docs root is `.sdlc/` at the
-project root. Create the folder if it is missing. When the project already keeps
+`designs/` folder, and the `tickets/` folder. **Load the `product-docs` skill and resolve the docs
+root as it says**, before you read or write anything. Create the folder if it is missing. When the project already keeps
 a PRD at the root (`prd.md`/`PRD.md`), update that file in place instead — one PRD per
 project, never two.
 

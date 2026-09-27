@@ -12,7 +12,7 @@ Review the requested code with the shared review command.
 1. Resolve `../../commands/review.md` from this skill directory.
 2. Read the command file completely before you create a subagent.
 3. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
-4. Create the code-reviewer subagent with the subagent tool of the current runtime, and load the `clean-writing` skill for the report.
+4. Read the skills the command names from the plugin's `skills/<name>/SKILL.md` — `agent-pipeline` before you create the subagent, `clean-writing` for the report, and `product-docs` with `ticket-board` when the target is a ticket. Then create the code-reviewer subagent with the subagent tool of the current runtime.
 
 Treat the shared command as the source of truth for target selection, the spawn prompt, the fix cap, and the report.
 

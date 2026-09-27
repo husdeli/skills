@@ -1,6 +1,6 @@
 ---
 name: ai-planning-workflow
-description: "Feedback-driven development workflow for implementing tickets and planning features. Use when: starting work on a ticket, creating a ticket, creating an implementation plan, planning a feature, building UI that needs design agreement, requesting feedback after completing a step, marking a ticket complete. Covers ticket creation guidelines, phased implementation with feedback checkpoints, design agreement for UI work, and iteration logging."
+description: "Feedback-driven development workflow for implementing tickets and planning features. Use when: starting work on a ticket, creating a ticket, creating an implementation plan, planning a feature, building UI that needs design agreement, requesting feedback after completing a step, marking a ticket complete. Covers the phased implementation with feedback checkpoints, design agreement for UI work, and when to start, log, and complete a ticket. The ticket, roadmap, assignee, and worklog rules themselves live in the `ticket-board` skill."
 ---
 
 # AI Planning Workflow
@@ -13,7 +13,11 @@ A structured, feedback-driven methodology for implementing tickets and features 
 
 **Keep specs short and scannable.** Every sentence must add information. No filler, no restating the obvious. If a task is too complex to describe concisely, split it into multiple tickets or subtasks instead of writing a bloated spec.
 
-**Everything this workflow produces is read by a person.** Load the **`clean-writing`** skill before you write a ticket, a plan, a feedback request, a design-agreement proposal, or an iteration log, and follow it for every sentence — context first, one idea per sentence, the active voice, and the project's own term for each concept. This skill decides *what to write and when*; `clean-writing` decides *how it reads*.
+**The board has its own skill.** Load **`ticket-board`** before you touch a ticket, a roadmap row,
+or a worklog. It holds where each one lives, what its fields mean, and what every status transition
+has to write.
+
+**Everything this workflow produces is read by a person.** Load the **`clean-writing`** skill before you write a ticket, a plan, a feedback request, a design-agreement proposal, or a worklog entry, and follow it for every sentence — context first, one idea per sentence, the active voice, and the project's own term for each concept. This skill decides *what to write and when*; `clean-writing` decides *how it reads*.
 
 ---
 
@@ -22,8 +26,9 @@ A structured, feedback-driven methodology for implementing tickets and features 
 1. Read the ticket thoroughly — acceptance criteria, technical notes, related tickets
 2. Ask clarifying questions if anything is unclear — don't assume
 3. Confirm architectural decisions before starting
-4. Once the work starts, set the ticket's status to `In Progress` and move the file into
-   `in-progress/` — see [Where tickets live](#where-tickets-live)
+4. Once the work starts, run the `ticket-board` skill's **Starting a ticket** transition: the
+   status, the assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all
+   in one tool block
 
 ---
 
@@ -124,10 +129,15 @@ Proceed to Step [N+1]?
 
 3. **Wait for explicit approval before proceeding.**
 4. If changes requested: implement, then request feedback again.
-5. Update the ticket's Iteration Log after each checkpoint:
+5. Append a worklog entry after each checkpoint — what you decided, what the feedback changed,
+   and nothing the ticket already says. The worklog sits beside the ticket, and the
+   `ticket-board` skill holds its shape:
 
 ```markdown
-- **Iteration N (YYYY-MM-DD HH:MM)**: [What was done] → [Feedback] → [Changes] → [Status]
+## 2026-09-27 14:12 — coding · step 2 of 4
+
+- Reused the existing retry wrapper instead of adding one — every caller inherits the policy.
+- Feedback: the empty state needed a way out. Added the link; nothing else changed.
 ```
 
 ---
@@ -147,139 +157,36 @@ Tests: [summary] | Files: [list]
 Mark as Completed?
 ```
 
-**Never mark a ticket Complete without explicit user approval.** On approval, and in the same
-step: write the status into the ticket, move the file into `done/`, and delete the task from the
-roadmap — see [Where tickets live](#where-tickets-live) and
-[The roadmap holds the work that is left](#the-roadmap-holds-the-work-that-is-left).
+**Never mark a ticket Complete without explicit user approval.** On approval, run the
+`ticket-board` skill's **Finishing a ticket** transition in one step: the status, the assignee
+back to `—`, the closing worklog entry, the move into `done/` with the worklog, and the task
+deleted from the roadmap.
 
 ---
 
-## Ticket Creation Guidelines
+## The board is not this skill's job
 
-### Every ticket belongs to an epic
+Where a ticket lives, how it is named and numbered, what its status field and its folder mean, what
+the roadmap holds, who the `Assignee` names, and what the worklog records — all of that is the
+**`ticket-board`** skill. **Load it before you read, write, move, assign, or complete a ticket**,
+and follow it. This skill decides *when* in the workflow each of those happens; `ticket-board`
+decides *what gets written*.
 
-An **epic** is a named group of tasks that deliver one feature. It carries a short uppercase
-code — two to eight letters, taken from the product's own vocabulary — and that code prefixes
-every ticket ID under it: `AUTH-001`, `AUTH-002`, `BILLING-001`.
+Two of its rules carry every phase above, so they are worth naming here:
 
-**The numbering restarts at 001 in each epic.** That is what the prefix buys. Two branches that
-plan separate features write into separate number spaces, so each can add a first ticket and
-neither overwrites the other when the branches merge. One project-wide sequence cannot do that:
-both branches take the same next free number, and both name the file the same thing.
-
-**`roadmap.md` is the list of epics that still have work in them.** It holds one
-`## <CODE> — <epic name>` section per epic, and that section holds the epic's task table. An epic exists in the roadmap before any ticket
-carries its code, and each code is unique in the project. A code may repeat a PRD area anchor
-code when the epic covers that whole area. A code never means two different things.
-
-**Read the next number out of the files.** Glob every status folder for `<CODE>-*.md`, take the
-highest number in the epic, and add one. `done/` is part of that search, because a completed
-ticket keeps its number. **Never take the next number from the roadmap** — it lists only the
-tasks that are left, so the highest number in it is not the highest number used. Never reuse a
-number, and never renumber a ticket that exists — the ID is how the roadmap, the branches, and
-the reviews cite it.
-
-**A project on a project-wide scheme keeps the IDs it has.** Never rewrite `SW-001` into an
-epic ID on your own. Keep continuing that project's scheme, and name the platform's scaffold
-entry point as the way to migrate.
-
-### The roadmap holds the work that is left
-
-`roadmap.md` lists the tasks that are **not done yet**, and nothing else. One
-`## <CODE> — <epic name>` section per epic, one sentence on what the epic delivers, and one
-table row per task:
-
-| ID | Task | Status | Depends on | Ticket |
-| --- | --- | --- | --- | --- |
-| AUTH-002 | Session timeout | ⬜ **Pending** | — | `AUTH-002-session-timeout.md` |
-
-A row carries one of three statuses — `⬜ **Pending**`, `🚧 **In Progress**`, `🚫 **Blocked**`.
-There is no completed status, because a completed task leaves the file. In a vault, the `Ticket`
-cell is the wikilink `[[AUTH-002-session-timeout]]`, so it follows the file between the status
-folders.
-
-**The row is the whole task in this file.** What the task delivers, and what it has to satisfy,
-live in its ticket — the file every command opens anyway. Never add a per-task `###` section, a
-description paragraph, or an acceptance-criteria list to the roadmap.
-
-**Delete the task when it is done**, in the same step that marks its ticket `Completed`:
-
-1. Delete the task's row.
-2. Delete the task's ID from every other row's `Depends on` cell, and write `—` in a cell that
-   has nothing left. A cell lists **outstanding** blockers only, so `—` means ready to start.
-3. Delete the epic's whole section once its last row is gone.
-4. Bump `**Last updated**`.
-
-The ticket in `done/` is the record of what was built, so the roadmap loses nothing. **The
-roadmap is not a history.** It never grows a completed list, a done section, a changelog, or a
-note about work that has already landed.
-
-**Carry a correction forward, never a report backward.** When finished work changes what a
-remaining task has to do, rewrite that task — its row here, and its ticket. When it constrains
-every remaining task in the epic, add one `**Note**:` line under the epic's sentence, and delete
-that line as soon as it no longer applies:
-
-> **Note**: sessions are stored server-side. Every remaining task in this epic reads the session
-> from the store, not from the cookie.
-
-### Where tickets live
-
-**The docs root holds every document this workflow reads and writes.** Resolve it before you
-read anything: a `.sdlc.json` file at the project root names it in its `root` field, with the
-destination in `kind` — that is how a project keeps its documents in an Obsidian vault. With no
-pointer file, the docs root is `.sdlc/` at the project root. Every `.sdlc/…` path below means
-`<docs root>/…`. When `kind` is `vault`, load the **`product-docs`** skill before you write a
-ticket: a ticket's fields are frontmatter properties there, and its `Related` links are
-wikilinks.
-
-**Tickets live in `.sdlc/tickets/`, in one folder per status**, one file per
-ticket, named `<ID>-<slug>.md` (e.g. `AUTH-001-user-login.md`):
-
-```
-.sdlc/tickets/
-  TEMPLATE.md          copy this per ticket — the template itself never moves
-  todo/                AUTH-001-user-login.md
-  in-progress/         AUTH-002-session-timeout.md
-  done/                BILLING-001-invoice-export.md
-```
-
-The folder is the board. The `**Status**` field inside the file is the record — the frontmatter
-`status` property, in a vault. The two never disagree, because the file moves in the same step
-that rewrites its status field. Five status values map onto three folders:
-
-| Status field | Folder |
-| --- | --- |
-| `Not Started` | `todo/` |
-| `In Progress`, `Blocked`, `Review` | `in-progress/` |
-| `Completed` | `done/` |
-
-**Move a ticket with `git mv`** when the file sits inside a git working tree, so it keeps its
-history. Move it with a plain `mv` when it does not — a vault usually is not a git working tree,
-and neither is a project without git.
-
-**Find a ticket by its ID, never by a stored path** — the path changes as the work progresses.
-Glob `.sdlc/tickets/*/<ID>-*.md` first, then `.sdlc/tickets/<ID>-*.md`
-for a project that still keeps its tickets flat. Cite a ticket by file name, so that no later
-move invalidates the reference.
-
-**A flat `tickets/` folder stays flat.** Never build the status folders around tickets that are
-already in flight. Keep writing the status field in place, and name the platform's scaffold
-entry point as the way to migrate. Run that entry point when the tickets folder does not exist
-at all. The roadmap that orders the tickets is the docs root's `roadmap.md`. A project that
-already keeps tickets elsewhere keeps them there — do not start a second home.
-
-**Tickets describe WHAT, not HOW:**
-
-✅ Include: requirements, acceptance criteria, UX description, business logic, high-level architecture, data needs, testing expectations  
-❌ Exclude: specific file paths, implementation-level names, internal module structure, data layer details, code-level patterns
+- **A ticket describes WHAT, not HOW** — requirements, acceptance criteria, behaviour, and
+  constraints. Never a file path, a module name, or a code-level pattern: those belong to the plan
+  in Phase 2, written after the codebase is explored.
+- **A status transition writes the status field, the folder, and the roadmap row in one tool
+  block.** Phase 1 starts the ticket; Phase 4 finishes it.
 
 ---
 
 ## Templates
 
-- [Ticket template](./assets/ticket-template.md)
 - [Plan template](./assets/plan-template.md)
-- [Full ticket guidelines](./references/ticket-guidelines.md)
+- The ticket template, the worklog template, and the full ticket guidelines live with the
+  **`ticket-board`** skill, beside the rules that govern them.
 
 ---
 
@@ -287,10 +194,10 @@ already keeps tickets elsewhere keeps them there — do not start a second home.
 
 | User says                     | Your action                                                        |
 | ----------------------------- | ------------------------------------------------------------------ |
-| "Looks good, continue"        | Update iteration log → proceed to next step                        |
+| "Looks good, continue"        | Append a worklog entry → proceed to next step                       |
 | "Can you change X to Y?"      | Acknowledge → clarify if needed → implement → request feedback     |
 | "Why did you do it this way?" | Explain rationale → adjust if needed → request feedback            |
-| "This won't work because..."  | Mark Blocked → document issue → propose solutions → wait           |
+| "This won't work because..."  | Mark Blocked, assignee `user` → log the blocker → propose solutions → wait |
 | "Can we also add Z?"          | Assess scope → update ticket if needed → get approval for approach |
 
 ---

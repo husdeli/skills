@@ -8,6 +8,9 @@ Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable 
 
 - **Epic**: The epic this ticket belongs to, written as the roadmap section names it. The epic's
   code prefixes the ticket ID, and the numbering restarts at 001 inside each epic.
+- **Assignee**: Who holds the ticket right now. A new ticket is unassigned (`—`); the workflow
+  rewrites the field as the work moves, and the worklog beside the ticket records what each
+  holder decided.
 - **Requirements**: What features/functionality to deliver
 - **Acceptance Criteria**: Observable outcomes and behaviours
 - **User Experience**: How users interact with the feature

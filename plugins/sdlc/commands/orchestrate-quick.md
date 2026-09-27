@@ -11,10 +11,24 @@ Task or roadmap (if provided): $ARGUMENTS
 
 This is `/orchestrate` with the human-in-the-loop stages removed. There is **no feature interview**, **no mid-pipeline `AskUserQuestion` round trip** — the end-to-end question `/orchestrate` asks up front is answered here by the default, **no e2e written**, and the end-to-end **run** is held back and offered as one question at the end (Stage 7) — and **no review-skip / high-risk gating** — the plan review always runs, exactly once, with one reviewer, and so does the code review at the end. Use it when the task is already well understood: a scoped change, a ticket someone already thought through, a fix. When the task has open product/UX/architecture forks, or touches a new public API or dependency, use `/orchestrate` instead — the interview and the risk-scaled review exist for exactly that.
 
+## The rules live in four skills — load each one before the stage that needs it
+
+| Skill | What it holds | Load before |
+| --- | --- | --- |
+| **`product-docs`** | Where the docs root is, and how each destination writes a document | you read any document |
+| **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 2 |
+| **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 3 |
+| **`clean-writing`** | Every word the user reads | Stage 3 |
+
+Each name may be namespaced here — `sdlc:product-docs`, `sdlc:ticket-board`,
+`sdlc:agent-pipeline`, `sdlc:clean-writing`. Invoke the namespaced form when it is there, load each
+skill **once**, and follow it. Do not restate a skill's rules in a spawn prompt: the agents load
+their own.
+
 ```
   YOU (main loop)
   ─────────────────────────
-  resolve task ─► mark In Progress ─►
+  resolve task ─► start the ticket ─►
 
   ┌ Agent(planner) ─► plan + context pack ───────────────────┐  concurrent
   └ Agent(reviewer) "PRE-READ ONLY" ─────────────────────────┤
@@ -26,18 +40,39 @@ This is `/orchestrate` with the human-in-the-loop stages removed. There is **no 
         ▲                                        │ FAILED or CHANGES_REQUESTED
         └── SendMessage(coding) ◄────────────────┘  (fix ×1, re-verify + re-review)
   AskUserQuestion (run e2e?) ─► [Agent(verify, e2e only)] ─►
-  mark Completed / escalate ─► report
+  finish the ticket / escalate ─► report
 ```
 
-### Persistent agents, same as `/orchestrate`
-Spawn the planner, the plan reviewer, the coding agent, and the code reviewer **once each** with `Agent`, keep their ids, and resume them with `SendMessage` across the revision and fix cycles — their context (the plan, the files they read, their prior reasoning) is the dominant token cost, and re-spawning throws it away. **`verify` is the exception:** spawn a fresh one per run; it is cheap and a clean re-run with no memory of the last attempt is what you want.
-
-Each core agent ends its reply with a single fenced ` ```json ` block in the contract its agent definition specifies; you parse it to drive control flow. Missing or malformed → `SendMessage` once asking it to re-emit *only* the JSON block; a second failure is `aborted`.
-
-**Keep prompts thin.** Durable agent behavior lives in the agent definitions — a spawn prompt is re-paid on every spawn.
+### Which agents are persistent here
+The **`agent-pipeline`** skill holds the mechanics, the same as in `/orchestrate`. This command's four persistent roles are the **planner**, the **plan reviewer** (one, always), the **coding agent**, and the **code reviewer**; `verify` is spawned fresh every run. Keep all four ids.
 
 ### Everything you show the user goes through `clean-writing`
-You are the only stage that talks to the person. **Load the `clean-writing` skill once, before Stage 3** (namespaced here as `sdlc:clean-writing`) and follow it for every word they see: the assumed acceptance criteria you state, the task you present for approval, the Stage 7 end-to-end question and its option labels, the completion report, and every escalation or abort. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, and reuse the ticket's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact.
+You are the only stage that talks to the person, so `clean-writing` governs every word they see: the assumed acceptance criteria you state, the task you present for approval, the Stage 7 end-to-end question and its option labels, the completion report, and every escalation or abort. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, and reuse the ticket's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact.
+
+### The worklog and the assignee — you are the only writer
+
+The **`ticket-board`** skill holds the worklog's shape and the assignee values. What is specific to
+this pipeline:
+
+**You are the only writer.** The agents report their decisions to you and you write them down, so
+the file has one writer and the concurrent stage — verification beside the code review — cannot
+lose an entry. No agent writes either field.
+
+**The entry and the assignee go in one tool block**, at four boundaries:
+
+| Boundary | Entries to append | Assignee becomes |
+| --- | --- | --- |
+| Stage 2, starting the ticket | the worklog itself, with the `orchestrate-quick · start` entry | `implementation-planner, plan-reviewer` |
+| Stage 4, the plan is approved | `implementation-planner · plan`, then `plan-reviewer · plan review` | `coding` |
+| Stage 5, the implementation lands | `coding · implement` | `verify, code-reviewer` |
+| Stage 8 | `verify · verification`, `code-reviewer · code review`, the Stage 7 end-to-end result, then the outcome | `—` on completion, `user` on escalate or abort |
+
+**Every exit writes the outcome entry and the assignee** — an escalation or an abort at any stage
+runs `ticket-board`'s *Stopping without finishing* transition, so the next session can read the
+worklog and learn where the task stopped.
+
+**A bare task description with no ticket file** has nothing to sit beside: skip all of it, exactly
+as Stage 2 does.
 
 ## Workflow
 
@@ -45,11 +80,11 @@ You are the only stage that talks to the person. **Load the `clean-writing` skil
 `$ARGUMENTS` is either a **task description** or a **path** to a roadmap or ticket file.
 
 - **Task description** → use it as-is. Do not ask for approval; the user just gave it to you. Derive acceptance criteria from the description; if it names none and none are inferable, state the criteria you are assuming in one line and continue.
-- **Roadmap file** → read it, pick a task that is **pending** with all **dependencies satisfied** (the first in roadmap order if several qualify, reading the epic sections top to bottom), and present it in three lines — ID, title, acceptance criteria — then **wait for approval**. Picking the wrong task is the one mistake this pipeline cannot verify its way out of. The roadmap holds only the work that is left, so every row is pending, in progress, or blocked, and a `Depends on` cell of `—` is satisfied. **The row does not say what the task delivers — its ticket does**, so open the ticket the `Ticket` cell names for the description and the criteria. Read an epic's `**Note**:` line as a constraint on the task, and carry it into the planner prompt.
+- **Roadmap file** → read it, pick a task that is **pending** with all **dependencies satisfied** (the first in roadmap order if several qualify, reading the epic sections top to bottom), and present it in three lines — ID, title, acceptance criteria — then **wait for approval**. Picking the wrong task is the one mistake this pipeline cannot verify its way out of. **The row does not say what the task delivers — its ticket does**, so open the ticket the `Ticket` cell names for the description and the criteria. Carry an epic's `**Note**:` line into the planner prompt as a constraint on the task.
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
-Documents live in the **docs root**: `prd.md`, `designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, where `<status>` is `todo`, `in-progress`, or `done`. **Resolve the docs root first**: a `.sdlc.json` file at the project root names it in its `root` field, with the destination in `kind` — that is how a project keeps its documents in an Obsidian vault — and otherwise it is `.sdlc/` at the project root. Every `.sdlc/…` path below means `<docs root>/…`, and a bare path resolves against the docs root first, then the project root. When `kind` is `vault`, load the **`product-docs`** skill before you edit any document: fields are frontmatter properties there, and references are wikilinks. **Find a ticket by its ID, never by a stored path** — glob `.sdlc/tickets/*/<ID>-*.md` first, then `.sdlc/tickets/<ID>-*.md` for a project that still keeps its tickets flat.
+The documents sit in the **docs root** — `prd.md`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md` with a worklog beside a ticket in flight. `product-docs` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`; a bare path resolves against the docs root first, then the project root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
 
 Never start a task whose dependencies are incomplete.
 
@@ -61,12 +96,10 @@ Never start a task whose dependencies are incomplete.
 
 Track the stages with the task/todo tools so the user sees live progress.
 
-### 2. Mark In Progress
-Before spawning anything, set the status yourself with file edits — **the edits in one tool block**:
-- **Ticket file** (found by ID, or the project's own tickets directory) → status `In Progress`, matching the file's existing vocabulary/format — the frontmatter `status:` property in a vault — and **move it into `.sdlc/tickets/in-progress/`**, with `git mv` inside a git working tree and a plain `mv` outside one. Skip the move when that folder does not exist: the project keeps its tickets flat, and the status field alone carries the state there.
-- **Roadmap file** → the task's status cell to the in-progress state (e.g. `🚧 **In Progress**`), matching the roadmap's style.
+### 2. Start the ticket
+Before spawning anything, run the **`ticket-board`** skill's **Starting a ticket** transition yourself, with the edits in one tool block. Two values are this command's: the **assignee** is `implementation-planner, plan-reviewer`, and the **opening worklog entry** is `orchestrate-quick · start` — the task, what it delivers, and the end-to-end default below.
 
-Whichever of the two exists. With a bare task description and no files, skip this stage.
+Do whichever of the ticket and the roadmap exists. With a bare task description and no files, skip this stage.
 
 ### 3. Plan — and pre-read the review in parallel
 Issue **both `Agent` calls in one tool block** so they run concurrently. The review always runs in this pipeline, so the pre-read is never wasted:
@@ -101,9 +134,9 @@ One reviewer, on **sonnet**, always. Reviewing a plan against files it has alrea
 
 It ends its review turn with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues`. Nothing returned → `aborted` (stage `review`).
 
-- `APPROVED` → Stage 5.
+- `APPROVED` → append the plan and plan-review worklog entries and set the assignee to `coding`, in one tool block, then Stage 5. The plan entry carries the **direction** the plan settled on and the approach it turned down — the plan markdown is not persisted anywhere, so this is the only trace it leaves. The review entry carries the verdict and the issues that forced the revision.
 - `CHANGES_REQUESTED`, **not yet revised**: `SendMessage(plannerId, "Revise your plan to resolve every issue below. Note in the Context section how each was addressed. Re-emit the full plan markdown + the ```json block." + issues)` — the planner holds the plan, task, and pack, so **send only the issues**. Then `SendMessage(reviewerId, "Re-review the revised plan below; the files are unchanged." + revised plan)`.
-- `CHANGES_REQUESTED`, **already revised once** → **`escalate`** (stage `review`) with the summary and remaining issues. Leave the status `In Progress` and stop.
+- `CHANGES_REQUESTED`, **already revised once** → **`escalate`** (stage `review`) with the summary and remaining issues. Leave the status `In Progress`, write the outcome entry, set the assignee to `user`, and stop.
 
 ### 5. Implement
 Spawn **once** and keep the id:
@@ -116,7 +149,9 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
               + approved plan + contextPack + acceptance criteria)
 ```
 
-It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, and `blockers`. Nothing returned → `aborted` (stage `implement`). Non-empty `blockers` → `escalate` (stage `implement`) with them.
+It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, and `blockers`. Nothing returned → `aborted` (stage `implement`). Non-empty `blockers` → `escalate` (stage `implement`) with them.
+
+When it lands, append the `coding · implement` entry — its `decisions`, which are the code-level calls the plan left open — and set the assignee to `verify, code-reviewer`, in one tool block before you spawn them.
 
 ### 6. Verify and review the code — concurrent, at most one fix cycle
 Issue **both `Agent` calls in one tool block**. The verify agent is fresh every run; the code reviewer is spawned once and resumed:
@@ -146,7 +181,7 @@ Verify ends with a `json` block carrying `passed`, per-command `results` (`passe
 - Either agent returned nothing → `aborted` (stage `verify` or `code-review`).
 - `passed == true` **and** `verdict == APPROVED` → success. If any result is `skipped`, still succeed, but name the skipped command and its reason in the report — never present a skipped e2e run as green. Minor review issues go into the report as recommendations; they do not block.
 - Anything else, **not yet fixed**: send **one** message carrying both sets of defects — `SendMessage(codingId, "Verification and code review found the following. Fix ONLY what is needed to clear them — stay within the approved plan, then stop; both will re-run." + failures + blocking review issues)`. The coding agent holds the plan and pack, so **send only the defects**. Then re-run: **always** a fresh verify agent — the fix changed code, so a suite that was green before proves nothing now — carrying the previously failing commands so it bails early if the fix did not land. Re-review **only when the review blocked**, with `SendMessage(codeReviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary)`. When both run, issue them **in one tool block**.
-- Anything else, **already fixed once** → **`escalate`** with the remaining failures and issues. Name the stage `verify` when commands still fail, `code-review` when only the review still blocks. Leave the status `In Progress` and stop.
+- Anything else, **already fixed once** → **`escalate`** with the remaining failures and issues. Name the stage `verify` when commands still fail, `code-review` when only the review still blocks. Append the verification and code-review entries and the outcome entry, leave the status `In Progress`, set the assignee to `user`, and stop.
 
 ### 7. Offer the end-to-end run
 The code is green and approved. Now ask the one question this pipeline asks, **before marking anything complete** — a failing e2e run must not land on a task recorded as done.
@@ -166,14 +201,10 @@ Agent(subagent_type: "sdlc:verify", model: "sonnet",
 
   Judge its `json` block by the Stage 6 rules: passed → Stage 8; `skipped` → still go to Stage 8, and name the command and the reason in the report, never as green; failed → hand the failures to the coding agent with `SendMessage` exactly as Stage 6 does, then re-run a fresh e2e verify. **The fix cycle is one per task, shared with Stage 6** — if Stage 6 already spent it, an e2e failure is an `escalate` with stage `verify`, and the task stays `In Progress`.
 
-### 8. Mark Completed (only on success)
-Record it in **both** places yourself, with file edits.
+### 8. Finish the ticket (only on success)
+Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block. This command's closing entry is `orchestrate-quick · done`, and the worklog also takes the verification and code-review entries and the Stage 7 end-to-end result.
 
-- **Ticket** → status `Completed`, matching the file's existing vocabulary/format, and the file moved into `.sdlc/tickets/done/` (`git mv` inside a git working tree, a plain `mv` outside one). Skip the move in a project whose tickets folder is flat.
-- **Roadmap** → **delete the task**, because the roadmap holds the work that is left and the ticket in `done/` is now the record. In one edit: delete the task's row, delete its ID from every other row's `Depends on` cell — writing `—` in a cell that has nothing left — delete the epic's whole section when that row was its last, and bump `**Last updated**`. On an older roadmap, delete the task's `###` detail section too. Never mark the row completed, and leave no done list, struck-through row, or note about the finished task.
-- **Carry a correction forward, never a report backward.** When this run changed what a *remaining* task has to do, rewrite that task's row and its ticket in the same edit — and put a constraint that governs the whole epic in one `**Note**:` line under the epic's sentence. Write nothing about the task you just finished.
-
-Never mark the ticket complete or delete the row unless verification passed **and** the code review returned `APPROVED`. Report only after both files are updated.
+Never finish the ticket unless verification passed **and** the code review returned `APPROVED`. Report only after the files are updated.
 
 ### 9. Report
 ```markdown
@@ -184,7 +215,7 @@ Never mark the ticket complete or delete the row unless verification passed **an
 - [x] Implementation — verified (tests, lint, typecheck run concurrently)
 - [x] Code review — approved ([0 or 1] fix cycle)
 - [x] End-to-end — [passed | skipped: reason | not run at your request: `<command>` | no suite in this project]
-- [x] Status — ticket marked Completed and moved to `done/`, roadmap row deleted
+- [x] Status — ticket marked Completed, unassigned, and moved to `done/` with its worklog; roadmap row deleted
 
 [Summary of what was accomplished]
 ```
@@ -192,22 +223,19 @@ Never mark the ticket complete or delete the row unless verification passed **an
 Omit the status line when there was no ticket or roadmap to mark.
 
 ## Failure Handling
-Fixed policy — apply it mechanically, do not improvise extra cycles:
-- **`escalate`** → a stage hit its cap (plan still rejected after 1 revision, coding blocker, verification, the end-to-end run, or the code review still failing after 1 fix). Surface `stage` + `reason` + details; leave the status `In Progress` and the ticket file in `in-progress/`.
-- **`aborted`** → an agent returned no usable result (died, or no valid JSON block after one retry). Report and stop; leave the status `In Progress` and the ticket file in `in-progress/`.
-- Never mark a task complete unless verification passed and the code review approved.
+`agent-pipeline` holds the outcome vocabulary and `ticket-board` the **Stopping without finishing** transition. This command's caps, applied mechanically with no improvised extra cycle:
+- **`escalate`** when a stage hits its cap — the plan still rejected after 1 revision, a coding blocker, or verification, the end-to-end run, or the code review still failing after 1 fix.
+- **`aborted`** when an agent returns no usable result, at any stage.
+- Never mark a task complete unless verification passed **and** the code review approved.
 - If a stage escalates because the task turned out to need decisions this pipeline cannot make, say so and point at `/orchestrate` — do not improvise an interview here.
 
 ## Rules
+The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `product-docs` for the paths, `clean-writing` for the prose. What is this command's own:
 - **One task at a time.** Do not execute the whole roadmap.
+- **Load every skill in the table before the stage that needs it.** They are the rules; this file is the sequence.
 - **No interview, no gates.** The plan review and the code review each run exactly once, on sonnet.
 - **One question, at the end.** The only `AskUserQuestion` call is Stage 7's end-to-end offer. No verify run before it touches an e2e suite.
-- **Spawn once, resume with `SendMessage`** — planner, plan reviewer, coding, code reviewer. Only `verify` is spawned fresh each run.
-- **Concurrent calls go in one tool block**, or they are not concurrent.
-- **Never duplicate the gating run.** Coding self-checks; `verify` runs the full suite once per cycle, with the previously failing commands first on a re-verify; the code reviewer never runs the suite at all.
 - **One revision, one fix.** Both caps are hard, and the single fix cycle covers the verification failures, the review issues, and an end-to-end failure together.
-- **Mark status yourself at both boundaries**, ticket and roadmap in sync — the ticket file moves into the folder its new status names in the same stage that writes the status, and the roadmap row is deleted rather than marked completed.
-- **The roadmap only ever shrinks or gets corrected.** Delete what is done, rewrite what changed for the tasks that are left, and add nothing that reports on finished work.
+- **You write the status, the assignee, and the worklog** — at the four boundaries and at every exit. No agent writes any of them.
 - **Approval is required only when you picked the task from a roadmap.**
 - **Be explicit about failures** and propose next steps.
-- **Everything the user reads follows `clean-writing`** — approval prompts, assumed criteria, reports, escalations.

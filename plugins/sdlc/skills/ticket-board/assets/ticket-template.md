@@ -2,6 +2,7 @@
 
 **Epic**: EPIC — <epic name, as the roadmap section names it>  
 **Status**: Not Started | In Progress | Blocked | Review | Completed  
+**Assignee**: — | <agent or command name> | user  
 **Priority**: Critical | High | Medium | Low  
 **Effort**: XS | S | M | L | XL  
 **Category**: feature | bug | enhancement | tech-debt | docs  
@@ -53,9 +54,4 @@ Unit → Integration/API → Frontend E2E (critical paths only).
 
 - Related Tickets: [links]
 - PRs: [links when created]
-
----
-
-## Iteration Log
-
-- **Iteration 1 (YYYY-MM-DD HH:MM)**: [What was done] → [Feedback] → [Changes] → [Status]
+- Worklog: `[EPIC-XXX]-[slug].worklog.md` — written once the work starts

@@ -12,7 +12,7 @@ Implement the request with the shared code command.
 1. Resolve `../../commands/code.md` from this skill directory.
 2. Read the command file completely before you create a subagent.
 3. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
-4. Create the coding subagent with the subagent tool of the current runtime, and load the `clean-writing` skill for the report.
+4. Read the skills the command names from the plugin's `skills/<name>/SKILL.md` — `agent-pipeline` before you create the subagent, `clean-writing` for the report, and `ticket-board` when the request came from a ticket. Then create the coding subagent with the subagent tool of the current runtime.
 
 Treat the shared command as the source of truth for scope, the spawn prompt, the follow-up cap, and the report.
 

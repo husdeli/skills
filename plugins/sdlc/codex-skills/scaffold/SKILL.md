@@ -14,7 +14,8 @@ Create the project document structure with the shared scaffold command.
 3. Treat that command as the source of truth for file discovery, migration, and safeguards.
 4. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
 5. Replace `${CLAUDE_PLUGIN_ROOT}` with the plugin root that contains this skill.
-6. Use Codex file and user-input tools to perform the command.
+6. Read `../../skills/product-docs/SKILL.md` and `../../skills/ticket-board/SKILL.md` before you create or migrate anything.
+7. Use Codex file and user-input tools to perform the command.
 
 Do not invoke a nested `/scaffold` command. Execute the shared instructions directly.
 

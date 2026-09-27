@@ -9,33 +9,59 @@ You are a workflow orchestrator. Pick the **next actionable item** from a roadma
 
 Roadmap file (if provided): $ARGUMENTS
 
-**Where the documents live.** They sit in the **docs root**: `prd.md`,
-`designs/<subject>.design.md` — one file per design subject, `roadmap.md`, and
-`tickets/<status>/<ID>-*.md`, where `<status>` is `todo`, `in-progress`, or `done`.
+## The rules live in four skills — load each one before the stage that needs it
 
-**Resolve the docs root before you read anything.** A `.sdlc.json` file at the project root
-names it in its `root` field, with the destination in `kind` — that is how a project keeps its
-documents in an Obsidian vault. With no pointer file, the docs root is `.sdlc/` at the project
-root. Every path below is relative to it, and `.sdlc/…` means `<docs root>/…`. When neither
-exists, fall back to whatever the project already uses at the root, and name `/scaffold` in your
-report as the way to create the structure.
+| Skill | What it holds | Load before |
+| --- | --- | --- |
+| **`product-docs`** | Where the docs root is, and how each destination writes a document | you read any document |
+| **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 0 |
+| **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 0.5 |
+| **`clean-writing`** | Every word the user reads | Stage 1 |
 
-**A vault holds the same documents in a different shape** — fields as frontmatter properties,
-references as wikilinks, and no `git mv`. When `kind` is `vault`, load the **`product-docs`**
-skill (namespaced `sdlc:product-docs`) before you edit any document, and follow it.
+Each name may be namespaced here — `sdlc:product-docs`, `sdlc:ticket-board`,
+`sdlc:agent-pipeline`, `sdlc:clean-writing`. Invoke the namespaced form when it is there, load each
+skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
+spawn prompt: the agents load their own.
 
-**Find a ticket by its ID, never by a stored path** — it moves as its status changes. Glob
-`.sdlc/tickets/*/<ID>-*.md` first, then `.sdlc/tickets/<ID>-*.md` for a project that still keeps
-its tickets flat.
+**The documents sit in the docs root** — `prd.md`, `designs/<subject>.design.md`, `roadmap.md`, and
+`tickets/<status>/<ID>-*.md`, with a worklog beside a ticket in flight. `product-docs` resolves the
+root, and every `.sdlc/…` path below means `<docs root>/…`. When the project has no structure at
+all, work from whatever it keeps at its root and name `/scaffold` in your report.
+
+## The worklog and the assignee — you are the only writer
+
+The **`ticket-board`** skill holds the worklog's shape, what belongs in an entry, and what each
+assignee value means. What is specific to this pipeline:
+
+**You are the only writer.** Each agent reports its decisions to you and you write them down, so
+the file has one writer and the two concurrent stages — the interview beside the scout,
+verification beside the code review — cannot lose each other's entry. No agent writes either field.
+
+**The entry and the assignee go in one tool block**, at five boundaries:
+
+| Boundary | Entries to append | Assignee becomes |
+| --- | --- | --- |
+| Stage 0, starting the ticket | the worklog itself, with the `orchestrate · start` entry | `feature-interviewer, implementation-planner` — the agents you are about to spawn, or `implementation-planner` alone when the interview is skipped |
+| Stage 0.5, the decisions land | `feature-interviewer · interview` | `implementation-planner` |
+| Stage 2, the review gate closes | `implementation-planner · plan`, then `plan-reviewer … · plan review` | `coding` |
+| Stage 3, the implementation lands | `coding · implement` | `verify, code-reviewer` |
+| Stage 4, the gate closes | `verify · verification`, `code-reviewer · code review`, then the outcome | `—` on completion, `user` on escalate or abort |
+
+**With no ticket file**, the worklog is `.sdlc/tickets/in-progress/<slug>.worklog.md`, beside the
+brief; when there is neither, there is nothing to write and you say so in the report.
+
+**Every exit writes the outcome entry and the assignee** — an escalation or an abort at any stage
+runs `ticket-board`'s *Stopping without finishing* transition, so the next session can read the
+worklog and learn where the task stopped.
 
 ## Architecture: interactive shell + persistent-agent core
 
-This command runs entirely **in the main loop, with you**. The human-facing stages — picking the task, getting approval, settling open decisions, marking status — need you because only you can talk to the user. The mechanical core — plan → review → revise → implement → verify and review the code — you drive with **persistent subagents**: spawn the planner, the plan reviewer, the coding agent, and the code reviewer **once each** with `Agent`, then **resume them with `SendMessage`** across revision and fix cycles, so their context (the plan, the files they read, the prior reasoning) stays alive instead of being re-sent every cycle.
+This command runs entirely **in the main loop, with you**. The human-facing stages — picking the task, getting approval, settling open decisions, writing the status — need you because only you can talk to the user. The mechanical core — plan → review → revise → implement → verify and review the code — you drive with **persistent subagents**, on the mechanics `agent-pipeline` holds.
 
 ```
   YOU (main loop)
   ─────────────────────────
-  list candidates ─► AskUserQuestion (which task + e2e?) ─► mark In Progress ─►
+  list candidates ─► AskUserQuestion (which task + e2e?) ─► start the ticket ─►
 
   ┌ Agent(feature-interviewer) ─► AskUserQuestion (settle Decisions) ─┐   concurrent
   └ Agent(planner) "SCOUT ONLY" ─► context pack ────────────────────┐ │
@@ -49,15 +75,15 @@ This command runs entirely **in the main loop, with you**. The human-facing stag
                    └ Agent(code-reviewer) ───────┤
         ▲                                        │ FAILED or CHANGES_REQUESTED
         └── SendMessage(coding) ◄────────────────┘  (fix ×1, re-verify + re-review)
-  mark Completed / escalate ─► report
+  finish the ticket / escalate ─► report
 ```
 
-### Why persistent agents
-Planner, plan reviewer, coding, and code reviewer each run inside a loop (revise, re-review, fix). Re-spawning them fresh forces a re-read of the plan, the files, and their own reasoning — the dominant token cost.
-
-- **Spawn once, keep the handle.** Every `Agent` call returns an id/name. Record the planner's, the plan reviewer's (two, for high-risk parallel lenses), the coding agent's, and the code reviewer's.
-- **Resume, don't respawn.** Send the *same* planner only the review issues; the *same* plan reviewer only "re-review the revised plan"; the *same* coding agent only the failures; the *same* code reviewer only "re-review the fix".
-- **Verify is the exception — it stays fresh.** Spawn a new `sdlc:verify` for each run: it is cheap (Sonnet), and a clean re-run with no memory of the prior attempt is what you want.
+### Which agents are persistent here
+The **`agent-pipeline`** skill holds the mechanics — spawn once, resume with `SendMessage`, a fresh
+verify per run, concurrent calls in one tool block, the JSON block and its single retry, and the
+`completed` / `escalate` / `aborted` vocabulary. This command's four persistent roles are the
+**planner**, the **plan reviewer** (two ids on a high-risk plan, one per lens), the **coding
+agent**, and the **code reviewer**. Record every id the `Agent` call returns.
 
 ### Overlap the stages that don't depend on each other
 Two spawns go out **early and concurrent**, so they run inside otherwise dead air:
@@ -69,14 +95,12 @@ Two spawns go out **early and concurrent**, so they run inside otherwise dead ai
 
 A scouted plan or pre-read review is occasionally discarded (the gate skips review, or the decisions redirect the task). That is a token cost, not a wall-clock one — take it.
 
-There is no background workflow, and no schema enforcement: **each core agent ends its reply with a single fenced ` ```json ` block** in the contract its agent definition specifies, and you parse it to drive control flow. If a block is missing or malformed, `SendMessage` the agent once asking it to re-emit *only* the JSON block; a second failure is an `aborted` result.
-
 ### Context Pack (built once, forwarded automatically)
 The planner emits a **context pack** — relevant files, key symbols, conventions, the exact verification commands, and the project's e2e command — in its JSON block on the **scout turn**, before the plan exists. Paste it into the plan reviewer's, the coding agent's, and the code reviewer's *first* message and into every `verify` spawn, so none of them cold-explores the codebase (later `SendMessage` turns already have it). The interview's **Decisions** arrive later, as the planner's second message.
 
 ## Everything you show the user goes through `clean-writing`
 
-You are the only stage that talks to the person. **Load the `clean-writing` skill once, before Stage 1** (namespaced here as `sdlc:clean-writing`) and follow it for every word they see: the task you present for approval, every `AskUserQuestion` question and option label, the Decisions you record, the completion report, and every escalation or abort.
+You are the only stage that talks to the person, so `clean-writing` governs every word they see: the task you present for approval, every `AskUserQuestion` question and option label, the Decisions you record, the completion report, and every escalation or abort.
 
 The agents apply it to their own output, but you are what the user actually reads — a brief that landed cleanly still fails the user if you relay it badly. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, keep an option label to one short phrase, and reuse the roadmap's and the PRD's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact.
 
@@ -87,15 +111,14 @@ Drive one task through the entire pipeline. Do not batch tasks. When it is done,
 ## Workflow
 
 ### 1. Read the Roadmap
+The **`ticket-board`** skill holds the roadmap's shape: one `## <CODE> — <epic name>` section per epic, one row per task, three statuses, and what an epic's `**Note**:` line and a `Depends on` cell mean. Read it there rather than inferring it from the file.
 - If no roadmap path was given, use the docs root's **`roadmap.md`**. When that file does not exist, look for a roadmap at the project root, and ask for the path only when neither is there — naming `/scaffold` as the way to create one.
-- Read the file (Markdown, JSON, or plain text).
-- Identify every task from its table row — ID, title, status, dependencies, and ticket. Tasks are grouped into one `## <CODE> — <epic name>` section per epic, each with its own table — read every section, because a dependency may name a task in another epic.
-- **The roadmap holds the work that is left.** A finished task is deleted from it, so every row is pending, in progress, or blocked. Read an epic's `**Note**:` line when it has one: that is a constraint on every remaining task in the epic, and it reaches the planner as context.
+- **Read every epic section**, not just the first: a dependency may name a task in another epic.
 - **The row does not say what the task delivers — its ticket does.** Open the ticket of every task you are about to offer, and take the description and the acceptance criteria from there.
-- An **older roadmap** may still carry rows marked completed and a `###` detail section per task. Read it as it is, use the detail sections when a task has no ticket, and name `/scaffold` in your report as the way to clean the file up.
+- Carry an epic's `**Note**:` line into the planner prompt as a constraint on the task.
 
 ### 2. Pick the Next Task
-Collect **every** task that is **pending** and whose **dependencies are all satisfied** — those are the candidates. A `Depends on` cell of `—` is satisfied, because the cell lists outstanding blockers only. An ID still in that cell is satisfied only when its work is finished — its ticket sits in `tickets/done/`, or it is no longer a row in the roadmap at all. In progress never satisfies a dependency. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task.
+Collect **every** task that is **pending** and whose **dependencies are all satisfied** — those are the candidates. `ticket-board` says when a `Depends on` cell counts as satisfied. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task.
 
 Show the candidates first, so the user reads the detail that an option label cannot hold. List them in roadmap order — top to bottom, epic by epic:
 
@@ -125,12 +148,9 @@ Then put **one `AskUserQuestion` call** with **two questions** — one round tri
 ### 3. Drive the Task to Completion
 Track stages with the task/todo tools so the user sees live progress.
 
-**Stage 0 — Mark In Progress (before spawning any agent).** As soon as the task is approved and *before* launching `feature-interviewer`:
-- Find the **ticket file** by its ID — glob `.sdlc/tickets/*/<ID>-*.md`, then `.sdlc/tickets/<ID>-*.md`, then the project's own tickets directory.
-- Set its status field to `In Progress`, matching the file's existing vocabulary/format (e.g. `**Status**: In Progress`, or the frontmatter `status:` property in a vault).
-- **Move the ticket to `.sdlc/tickets/in-progress/`**, in this same stage — `git mv` when the file sits inside a git working tree, a plain `mv` when it does not, as a vault usually does not. Skip the move when that folder does not exist: the project keeps its tickets flat, and the status field alone carries the state there.
-- In the **roadmap file**, update the task's status cell/marker to the in-progress state (e.g. `🚧 **In Progress**`), matching the roadmap's style.
-- Do this yourself with file edits — do not delegate. Issue **the edits in a single tool block**. With no ticket file, update only the roadmap.
+**Stage 0 — Start the ticket (before spawning any agent).** As soon as the task is approved and *before* launching `feature-interviewer`, run the **`ticket-board`** skill's **Starting a ticket** transition — status, assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all in one tool block. Do it yourself with file edits; do not delegate it. Two values are this command's:
+- The **assignee** is the agents you are about to spawn: `feature-interviewer, implementation-planner`, or `implementation-planner` alone when the interview is skipped.
+- The **opening worklog entry** is `orchestrate · start`: the task you are building, what it delivers, and the `e2eDecision`.
 
 **Stage 0.5 — Interview & Challenge (complexity-gated), with the planner scouting in parallel.**
 - **Skip the interview** when the task is trivially unambiguous — a small, well-specified change with no product/UX/architecture forks ("fix this off-by-one", "rename this field everywhere"). Note the skip in the report. Nothing to overlap: go to Stage 1 and spawn the planner in one-turn mode. Still record the **Decisions** block holding the `e2eDecision` from Step 2.
@@ -140,6 +160,7 @@ Track stages with the task/todo tools so the user sees live progress.
 - **When the brief comes back**, settle it with the user while the scout runs or is parked:
   - **Put the decisions to the user yourself** with `AskUserQuestion` — a subagent cannot ask. Batch them (up to 4 per call), lead each with the interviewer's recommended option (labelled "(Recommended)"), and surface the brief's assumptions for confirmation. One call, not one per decision — every round trip is human latency on the critical path.
   - Record the answers as a **Decisions** block appended to the ticket file (or `.sdlc/tickets/in-progress/<slug>-brief.md` if there's no ticket), so the choices are durable. A brief lives beside the ticket it serves, and moves with it. Record the Step 2 `e2eDecision` in the same block — it is a decision the user made, and the coding and verify stages read it there.
+  - In the **same tool block**: append the `feature-interviewer · interview` worklog entry — what the brief challenged and where the Decisions now live, not a copy of them — and set the assignee to `implementation-planner`. When the interview was skipped, one line saying the complexity gate skipped it is the whole entry.
   - If the answers materially change scope, restate the revised task before planning.
 - Keep the Discovery Brief + Decisions handy for the already-running planner. If the interview was skipped, tell the planner to plan from the task description and acceptance criteria alone.
 
@@ -198,7 +219,7 @@ Skip the pre-warm only when the provisional profile clears the skip gate outrigh
 Every reviewer ends its review turn with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues` — shape in the agent definition, do not restate it. Merge multiple reviewers: `CHANGES_REQUESTED` if **any** reviewer requests changes; concat their issues. If every reviewer returned nothing → `aborted` (stage `review`).
 
 **Revision loop — at most ONE cycle:**
-- `APPROVED` → Stage 3.
+- `APPROVED` → append the plan and plan-review worklog entries and set the assignee to `coding`, in one tool block, then Stage 3. The plan entry carries the **direction** the plan settled on and the approach it turned down — the plan markdown itself is not persisted anywhere, so this is the only trace it leaves. The review entry carries the verdict, the issues that forced the revision, and how the revision answered them. A review the gate skipped is one line naming the gate.
 - `CHANGES_REQUESTED`, **not yet revised**: `SendMessage(plannerId, "Revise your plan to resolve every issue below. Note in the Context section how each was addressed. Re-emit the full plan markdown + the ```json block." + issues)` — the planner holds the plan/task/pack, so **send only the issues**. Then re-review via `SendMessage` to the same reviewer(s): `"Re-review the revised plan below; the files are unchanged. <revised plan>"` — both in **one tool block** when there are two. Loop back to the new verdict.
 - `CHANGES_REQUESTED`, **already revised once** → **`escalate`** (stage `review`): surface the reviewer summary + remaining issues, leave status `In Progress`, stop.
 
@@ -212,7 +233,9 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
 ```
 Its skill obligations and JSON contract live in the agent definition — do not restate them here; text in the agent file is free, text in this prompt is paid on every spawn.
 
-It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, and `blockers`. Nothing returned → `aborted` (stage `implement`). Non-empty `blockers` → `escalate` (stage `implement`) with them.
+It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, and `blockers`. Nothing returned → `aborted` (stage `implement`). Non-empty `blockers` → `escalate` (stage `implement`) with them.
+
+When it lands, append the `coding · implement` entry — its `decisions`, which are the code-level calls the plan left open — and set the assignee to `verify, code-reviewer`, in one tool block before you spawn them.
 
 **Stage 4 — Verify and review the code (concurrent) + fix (persistent coding, at most ONE fix cycle).** Issue **both `Agent` calls in one tool block**. Verify is spawned **fresh every run**; the code reviewer is spawned **once** and resumed.
 
@@ -236,22 +259,16 @@ Pass `e2eCommand` **every time**, including the literal `"none"` — that is wha
 Verify ends with a `json` block carrying `passed`, per-command `results` (`passed`, `skipped`, `output`), and `failures`. The reviewer ends with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues`. **Combine them into one gate:**
 
 - Either agent returned nothing → `aborted` (stage `verify` or `code-review`).
-- `passed == true` **and** `verdict == APPROVED` → success, go to **Mark Completed**. If any result is `skipped`, still succeed, but name the skipped command and its reason in the report — never present a skipped e2e run as green. Carry any minor review issues into the report as recommendations; they do not block.
+- `passed == true` **and** `verdict == APPROVED` → success, go to **Finishing a ticket**. If any result is `skipped`, still succeed, but name the skipped command and its reason in the report — never present a skipped e2e run as green. Carry any minor review issues into the report as recommendations; they do not block.
 - Anything else, **not yet fixed**: send **one** message carrying both sets of defects — `SendMessage(codingId, "Verification and code review found the following. Fix ONLY what is needed to clear them — stay within the approved plan, then stop; both will re-run." + failures + blocking review issues)`. The coding agent holds the plan and the pack, so **send only the defects**. Then re-run: **always** a **fresh** verify agent — the fix changed code, so a suite that was green before proves nothing now — carrying the **previously failing commands** so it runs those first and bails early. Re-review **only when the review blocked**, with `SendMessage(codeReviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary)`; a fix confined to the failures the reviewer already approved around does not re-open the review. When both run, issue them **in one tool block**.
 - Anything else, **already fixed once** → **`escalate`** with the remaining failures and issues, leave status `In Progress`, stop. Name the stage `verify` when commands still fail, `code-review` when only the review still blocks.
 
-**Act on the result.** You have assembled one of:
-- **`completed`** → mark Completed (below). Keep `reviewRan`, `interviewRan`, both reviewer summaries, and the implementation/verification details for the report.
-- **`escalate`** → **do not mark complete.** Surface the `stage`, `reason`, and any `issues`/`failures`/`blockers`; leave the ticket and the roadmap `In Progress`, and the ticket file in `in-progress/`; stop.
-- **`aborted`** → an agent returned nothing. Report it; leave the status `In Progress` and the ticket file in `in-progress/`; stop.
+**Act on the result.** Whichever it is, the verification and code-review entries go into the worklog — a run that failed is exactly the run whose record matters. `agent-pipeline` defines the three outcomes and `ticket-board` holds the transition each one writes:
+- **`completed`** → run **Finishing a ticket**. Keep `reviewRan`, `interviewRan`, both reviewer summaries, and the implementation/verification details for the report. The closing entry is `orchestrate · done`, and a correction this run forced on a *remaining* task — a decision the interview settled, a constraint the code review found, a dependency that turned out wrong — is rewritten in the same edit.
+- **`escalate`** → run **Stopping without finishing**. Surface the `stage`, `reason`, and any `issues`/`failures`/`blockers` for the user.
+- **`aborted`** → run **Stopping without finishing**, with the outcome entry naming the stage and the agent that went silent.
 
-**Mark Completed (only on success).** Record it in **both** places yourself, with file edits:
-- In the **ticket file**, set the status field to `Completed`, matching its existing vocabulary/format — the frontmatter `status:` property in a vault — then **move it to `.sdlc/tickets/done/`**, with `git mv` inside a git working tree and a plain `mv` outside one. Move any brief you wrote with it. Skip the move in a project whose tickets folder is flat.
-- In the **roadmap file**, **delete the task**. The roadmap holds the work that is left, and the ticket in `done/` is now the record of what was built. In one edit: delete the task's row, delete its ID from every other row's `Depends on` cell — writing `—` in a cell that has nothing left — delete the epic's whole section when that row was its last, and bump `**Last updated**`. On an older roadmap, delete the task's `###` detail section too. Never mark the row completed, and never leave a done list, a struck-through row, or a note about the finished task behind.
-- **Carry a correction forward, never a report backward.** When this run changed what a *remaining* task has to do — a decision the interview settled, a constraint the code review found, a dependency that turned out to be wrong — rewrite that task's row and its ticket in the same edit. When the constraint governs every remaining task in the epic, put it in one `**Note**:` line under the epic's sentence. Write nothing about the task you just finished: its ticket, its plan, and its commit already hold that.
-- Never mark the ticket complete or delete the row unless verification passed **and** the code review returned `APPROVED` — otherwise leave the status `In Progress`, leave the file in `in-progress/`, and escalate.
-
-Report only after both are updated.
+Report only after the files are updated.
 
 ### 4. Completion Report
 ```markdown
@@ -262,28 +279,24 @@ Report only after both are updated.
 - [x] Review — approved (or: skipped by complexity gate — trivial task)
 - [x] Implementation — verified (tests, lint, typecheck run concurrently)
 - [x] Code review — approved ([N] revisions)
-- [x] Status — ticket marked Completed and moved to `done/`, roadmap row deleted
+- [x] Status — ticket marked Completed, unassigned, and moved to `done/` with its worklog; roadmap row deleted
 
 [Summary of what was accomplished]
 ```
 
 ## Failure Handling
-A fixed retry/escalation policy — apply it mechanically, do not improvise extra cycles:
-- **`escalate`** → a stage hit its limit (plan still rejected after 1 revision, coding blocker, verification or code review still failing after 1 fix cycle). Surface `stage` + `reason` + details. Leave the status `In Progress` and the ticket file in `in-progress/`.
-- **`aborted`** → an agent returned no usable result (died, or no valid JSON block after one retry). Report and stop; leave the status `In Progress` and the ticket file in `in-progress/`.
-- Never mark a task complete unless verification passed and the code review approved.
+`agent-pipeline` holds the outcome vocabulary and `ticket-board` the **Stopping without finishing** transition. This command's caps are the ones to apply mechanically, with no improvised extra cycle:
+- **`escalate`** when a stage hits its limit — the plan still rejected after 1 revision, a coding blocker, or verification or the code review still failing after 1 fix cycle.
+- **`aborted`** when an agent returns no usable result, at any stage.
+- Never mark a task complete unless verification passed **and** the code review approved.
 
 ## Rules
+The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `product-docs` for the paths, `clean-writing` for the prose. What is this command's own:
 - **One task at a time.** Do not execute the whole roadmap.
-- **Spawn once, resume with `SendMessage`** — planner, plan reviewer(s), coding, code reviewer. Only `verify` is spawned fresh each run.
-- **Concurrent calls go in one tool block**, or they are not concurrent.
-- **Never duplicate the gating run.** Coding self-checks; `verify` runs the full suite once per cycle, with the previously failing commands on a re-verify; the code reviewer never runs the suite at all.
+- **Load every skill in the table before the stage that needs it.** They are the rules; this file is the sequence.
 - **The code review always runs.** Verify and the code reviewer go out in one tool block, and the task passes only when the commands pass *and* the verdict is `APPROVED`. Only the plan review has a skip gate.
-- **Keep prompts thin.** Durable agent behavior belongs in the agent definition — the spawn prompt is re-paid every time.
-- **Mark status yourself at both boundaries**, ticket and roadmap in sync — the ticket file moves into the folder its new status names in the same stage that writes the status, and the roadmap row is deleted rather than marked completed.
-- **The roadmap only ever shrinks or gets corrected.** Delete what is done, rewrite what changed for the tasks that are left, and add nothing that reports on finished work.
 - **Interview before planning** for any non-trivial feature; skip only via the complexity gate.
 - **Apply the gates mechanically.** The review-skip gate (≤2 files, no dep, no API, criteria auto-checkable), the high-risk test (new API/dep or >5 files), the single revision cap, and the single fix cap are fixed thresholds.
+- **You write the status, the assignee, and the worklog** — at the five boundaries and at every exit. No agent writes any of them.
 - **Never proceed without approval** on the selected task, and never start a task whose dependencies are incomplete.
 - **Be explicit about failures** and propose next steps.
-- **Everything the user reads follows `clean-writing`** — approval prompts, questions, decisions, reports, escalations.

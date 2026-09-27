@@ -12,11 +12,9 @@ subject**, named `<subject>.design.md` — `checkout.design.md`, `event-ingestio
 `app-shell.design.md`. Create the folder if it is missing. There is no single `design.md`: a
 design doc covers one subject, and the file name is that subject.
 
-**Resolve the docs root first.** A `.sdlc.json` file at the project root names it in its `root`
-field, with the destination in `kind` — that is how a project keeps its documents in an Obsidian
-vault. With no pointer file, the docs root is `.sdlc/` at the project root. When `kind` is
-`vault`, load the **`product-docs`** skill as well: `Last updated` and `Related` become
-frontmatter properties there, and a cross-reference becomes a wikilink.
+**Load the `product-docs` skill and resolve the docs root as it says**, before you read or write
+anything. It also holds what a vault changes: `Last updated` and `Related` become frontmatter
+properties there, and a cross-reference becomes a wikilink.
 
 - **Name the subject, not the document.** `billing.design.md` — never `design-billing.md`,
   `billing-design.md`, or `billing.design.doc.md`. Kebab-case, and singular where that reads

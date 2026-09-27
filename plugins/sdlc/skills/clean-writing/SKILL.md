@@ -80,7 +80,7 @@ and follow the dictionary's principle: the plain common word, in one meaning.
 The reader knows this product by the names the product uses. Use those names.
 
 - **Take the vocabulary from the project**, in this order: `<docs root>/prd.md`,
-  `<docs root>/designs/*.design.md` (or, on an older shape, `<docs root>/*.design.md` or a single `design.md`), `AGENTS.md`, `CLAUDE.md`, the ticket or roadmap, then the code. The docs root is the `root` field of `.sdlc.json` at the project root when that file exists, and `.sdlc/` otherwise. Read them before you write about a domain you have
+  `<docs root>/designs/*.design.md` (or, on an older shape, `<docs root>/*.design.md` or a single `design.md`), `AGENTS.md`, `CLAUDE.md`, the ticket or roadmap, then the code. The `product-docs` skill resolves the docs root. Read these before you write about a domain you have
   not written about in this session.
 - **One term per concept, everywhere.** If the PRD says "workspace", never write "project",
   "board", or "space" for the same thing.

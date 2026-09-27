@@ -52,7 +52,9 @@ is `.sdlc/` at your project root:
     TEMPLATE.md         copy per task, named <EPIC>-<NNN>-<slug>.md
     todo/               AUTH-001-user-login.md
     in-progress/        AUTH-002-session-timeout.md
+                        AUTH-002-session-timeout.worklog.md
     done/               BILLING-001-invoice-export.md
+                        BILLING-001-invoice-export.worklog.md
 ```
 
 Each kind of document gets its own folder once there can be more than one of it. A design doc
@@ -65,6 +67,17 @@ always names the folder it sits in. The commands move it for you: into `in-progr
 orchestrator starts the task, into `done/` when verification passes. A project that already
 keeps its design docs or its tickets in one flat folder keeps working — `/scaffold` offers the
 migration, and never forces it.
+
+**A ticket in flight says who holds it, and keeps a worklog of what was decided.** Its
+`Assignee` field names whoever is working on it right now — `implementation-planner` while the
+plan is written, `coding` while the change is made, `verify, code-reviewer` while the gate runs,
+`user` when a run escalates and a person has to act, `—` when nobody holds it. Beside it sits
+`<ID>-<slug>.worklog.md`, one entry per stage: the direction the plan settled on, the issues the
+review sent back, the code-level calls the plan left open, what the verification found. All of
+that used to live in one session's context and vanish with it, so a task picked up a week later
+started from the diff. The orchestrating command is the only writer of both — the agents report
+their decisions and it writes them down — and the worklog follows the ticket into `done/`, where
+the two together are the record of the task.
 
 Every ticket belongs to an **epic** — a named group of tasks that deliver one feature. The
 roadmap holds one section per epic, the epic's code prefixes every ticket ID under it, and the
@@ -124,8 +137,21 @@ vault. Pick **In the repository** at the prompt and none of it applies.
   dependency rules across all layers; domain-cohesive feature grouping. Services are classes
   of static methods that own the DTOs their API speaks and never return one; domain logic
   names only domain models; an `adapters/` layer is the single place the two shapes meet.
-- **ai-planning-workflow** — Feedback-driven ticket → plan → implement workflow with
-  design-agreement and iteration-logging checkpoints.
+- **ai-planning-workflow** — The hand-driven ticket → plan → implement workflow: phased
+  implementation with a feedback checkpoint after every step, design agreement before UI work,
+  and when to start, log, and complete a ticket. The artifacts it works on belong to
+  `ticket-board`.
+- **ticket-board** — The board itself, and the one place its rules are written: where a ticket
+  lives, the three status folders it moves through, the epic that numbers it, the roadmap that
+  holds only the work that is left, the `Assignee` field that names who holds it, and the worklog
+  that records what was decided. It also defines the three transitions — starting a ticket,
+  finishing one, and stopping without finishing — each of which writes the status field, the
+  folder, and the roadmap row in one tool block, so the three can never disagree.
+- **agent-pipeline** — How a command drives subagents: spawn each role once and resume it with
+  `SendMessage` rather than re-spawning, keep a fresh verification agent per run, put concurrent
+  calls in one tool block, parse the single JSON block every agent ends with and retry once before
+  calling the run aborted, keep the spawn prompt thin, never duplicate the gating run, and end in
+  exactly one of `completed`, `escalate`, or `aborted`.
 - **ts-clean** — Framework-agnostic rules for any `.ts`/`.tsx` file: one module per file
   named after its primary export, dot notation for the modules that carry an architecture
   role (`user.service.ts`, `user.repository.ts`, `user.dto.ts`) while plain modules keep
@@ -175,6 +201,11 @@ vault. Pick **In the repository** at the prompt and none of it applies.
   resolves the docs root through it, so one project can keep its documents in the repository and
   the next can keep them in a vault.
 
+**A rule is written in exactly one skill, and the commands load it.** A command file holds its own
+sequence — the stages, the gates, the questions it asks — and names the skills that hold everything
+else. That is why `/orchestrate` and `/orchestrate-quick` can differ in six ways and still agree on
+what a ticket is, and why changing how a status transition works is one edit rather than six.
+
 ### Agents
 - **feature-interviewer** — reads the PRD and design doc, researches the feature on the web,
   and returns a Discovery Brief that challenges the idea with open decisions and options.
@@ -214,15 +245,18 @@ vault. Pick **In the repository** at the prompt and none of it applies.
   writes no code and sets no status past pending — `/orchestrate` takes it from there.
 - **/whats-next** — answers what can be worked on right now. It reads the roadmap and the ticket
   folders, sorts every task into in flight, ready to start, and waiting on a dependency, and
-  names the one to start next. It writes nothing and moves no ticket: it reports the state and
-  hands off to `/orchestrate`. When the ticket folder and the roadmap marker disagree, it says so
-  rather than fixing it.
+  names the one to start next. For a task in flight it names who holds it and quotes the last
+  worklog entry, so a task that escalated says where it stopped. It writes nothing and moves no
+  ticket: it reports the state and hands off to `/orchestrate`. When the ticket folder and the
+  roadmap marker disagree, it says so rather than fixing it.
 - **/orchestrate** — offers you every roadmap task whose dependencies are satisfied, asks which
   one to build and whether it gets end-to-end tests, then drives it through
   interview → plan → review → implement → verify and code review using the six agents above.
   The verify stage runs the gating commands and the code review side by side, and the task is
   finished only when the commands pass and the review returns `APPROVED` — then the ticket moves
-  to `done/` and the roadmap row is deleted.
+  to `done/` with its worklog and the roadmap row is deleted. At each stage boundary it rewrites
+  the ticket's assignee and appends the stage's worklog entry, so an escalated task is left
+  assigned to you with the reason written down.
 - **/orchestrate-quick** — the short pipeline for a task that is already well understood:
   plan → one review → implement → verify and code review, with no interview and no review
   gating. Takes a task description or a roadmap/ticket path. It asks nothing: end-to-end tests

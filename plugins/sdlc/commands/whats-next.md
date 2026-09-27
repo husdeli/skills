@@ -1,5 +1,5 @@
 ---
-description: Show what is actionable on the roadmap right now — what is in flight, what is ready to start, and what is blocked and by what.
+description: Show what is actionable on the roadmap right now — what is in flight and who holds it, what is ready to start, and what is blocked and by what.
 argument-hint: [epic code to narrow to, or a roadmap path]
 ---
 
@@ -11,14 +11,16 @@ write nothing here.
 
 Filter (if provided): $ARGUMENTS
 
-Load the **`clean-writing`** skill (namespaced `sdlc:clean-writing`) before you report. This is a
-status answer a person reads in one pass.
+**Load three skills before you report**, each once — namespaced here as `sdlc:<name>`:
 
-**Where the documents live.** They sit in the **docs root**: `roadmap.md`, and
-`tickets/<status>/<ID>-<slug>.md`, where `<status>` is `todo`, `in-progress`, or `done`.
-**Resolve the docs root first**: a `.sdlc.json` file at the project root names it in its `root`
-field — that is how a project keeps its documents in an Obsidian vault — and otherwise it is
-`.sdlc/` at the project root. Every `.sdlc/…` path below means `<docs root>/…`.
+- **`product-docs`** — where the docs root is. Every `.sdlc/…` path below means `<docs root>/…`.
+- **`ticket-board`** — the roadmap's shape, what a `Depends on` cell means, the status-to-folder
+  map, the `Assignee` field, and the worklog. It is what you are reading; read it there rather
+  than inferring it from the files.
+- **`clean-writing`** — this is a status answer a person reads in one pass.
+
+The documents sit in the docs root: `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md` with a
+worklog beside a ticket that work has started on.
 
 **This command is read-only.** Do not write a file, do not move a ticket, do not change a status,
 and do not start a task. It reports what is there and stops. Reading the roadmap wrong is the one
@@ -30,19 +32,23 @@ mistake this command can make, so read the files rather than answering from memo
   exists, look for a roadmap at the project root. With no roadmap anywhere, say so and name
   `/scaffold` as the way to create the structure, then stop.
 - Read **every** `## <CODE> — <epic name>` section, not just the first. A dependency may name a
-  task in another epic.
-- **The roadmap holds the work that is left.** A finished task is deleted from it, so every row
-  is pending, in progress, or blocked, and the file is the backlog rather than a history. Read
-  an epic's `**Note**:` line when it has one: it constrains every task in that epic.
+  task in another epic. Read an epic's `**Note**:` line when it has one: it constrains every task
+  in that epic.
 - **List the ticket folders** — `.sdlc/tickets/todo/`, `in-progress/`, and `done/` — in one pass.
   The folder a ticket sits in is the board, and it tells you what is really in flight. `done/` is
   where the finished work is: count it, and read no file in it.
 - **A row does not say what its task delivers — its ticket does.** Read the ticket of every task
   you are about to report as **in flight** or **ready**, and take the one-line description and
   the acceptance criteria from there. A waiting task needs its row and nothing more.
-- An **older roadmap** may still carry rows marked completed and a `###` detail section per
-  task. Read it as it is, take a description from the detail section when a task has no ticket,
-  and say in one line that `/scaffold` cleans the file up.
+- **For an in-flight task, read two more things from its ticket's folder**: the ticket's
+  `Assignee` field — the `assignee` property in a vault — which names who holds the work right
+  now, and the **last entry of its worklog**, which says what happened most recently. In flight is
+  usually one or two tasks, so this costs two reads and it is the only way to answer "where did
+  this stop?". A ticket with no `Assignee` field is unassigned; a ticket with no worklog was
+  started before the worklog existed, or by hand.
+- On an **older roadmap** — rows marked completed, a `###` detail section per task — read what is
+  there, take a description from the detail section when a task has no ticket, and say in one line
+  that `/scaffold` cleans the file up.
 
 **When `$ARGUMENTS` names an epic code** (`AUTH`, `BILLING`), narrow every list below to that
 epic, and say in one line that you narrowed it.
@@ -60,11 +66,9 @@ Put each task in exactly one bucket:
 Every row lands in one of the three. There is no done bucket, because a finished task is not in
 the file.
 
-Judging the buckets:
+Judging the buckets — `ticket-board` says when a `Depends on` cell counts as satisfied, and the
+rest is this command's:
 
-- **A `Depends on` cell of `—` is satisfied.** The cell lists outstanding blockers only.
-- **An ID still in the cell is finished** when it is no longer a row in the roadmap, or when its
-  ticket sits in `done/`. Nothing else counts: in progress does not satisfy a dependency.
 - **The ticket folder wins over the roadmap row** when the two disagree, because the folder is
   the board. Report the disagreement in one line — `AUTH-002 sits in in-progress/, the roadmap
   says pending` — and change neither. Fixing it is the orchestrator's job, or the user's.
@@ -73,6 +77,11 @@ Judging the buckets:
   command that finished it was meant to delete the row.
 - **A blocked task is in flight, not waiting.** Somebody started it and hit something. Say what
   the ticket gives as the blocker, in its own words.
+- **An in-flight task assigned to `user` is waiting on a person** — an orchestrator escalated it
+  and stopped. Say so in the lead line: it is the one thing in this report that needs somebody to
+  act rather than to start something new. An in-flight task assigned to an agent stopped
+  mid-pipeline instead, so name the agent and the last worklog entry, and say `/orchestrate`
+  continues it.
 - A task with no ticket file is still a task. Report it from its roadmap row.
 
 ## 3. Report
@@ -87,8 +96,9 @@ Lead with the answer — how many tasks are ready, and which one to start. Then 
 disagreement between the roadmap and the ticket folders.]
 
 ### In flight (N)
-- **[ID] — [Title]** · [status] · ticket in `[folder]/`
+- **[ID] — [Title]** · [status] · with [assignee] · ticket in `[folder]/`
   [What it delivers, one line. For a blocked task, the blocker in the ticket's own words.]
+  Last worklog entry: [date] — [agent] · [stage] — [the one line that matters]
 
 ### Ready to start (N)
 - **[ID] — [Title]** · [epic name] ← start here
@@ -116,6 +126,8 @@ Rules for the report:
 - **Name every ID exactly** as the roadmap writes it. Cite a ticket by file name, never by path.
 - **Never invent a task, a dependency, or a status.** When a roadmap row is ambiguous, say what is
   ambiguous about it.
+- **Quote the worklog, never summarise it into something it does not say.** Drop the worklog line
+  for a task that has no worklog, and say `unassigned` where a ticket carries no assignee.
 
 ## 4. Offer the next step
 
@@ -123,6 +135,9 @@ End with one line, matching what you found:
 
 - **Something is ready** → `/orchestrate` to build it with the full pipeline, or
   `/orchestrate-quick <ID>` when the task is already well understood.
+- **Something in flight is assigned to `user`** → name it first, whatever else is ready: an
+  escalated task is waiting on a decision only a person can make. Say what its last worklog entry
+  gives as the reason, and that `/orchestrate` continues it once that is settled.
 - **Nothing is ready and something is in flight** → name the in-flight task and say that
   `/orchestrate` continues from where it stopped.
 - **Nothing is ready and nothing is in flight** → every pending task waits on something that is

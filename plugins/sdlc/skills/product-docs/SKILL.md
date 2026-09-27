@@ -1,12 +1,13 @@
 ---
 name: product-docs
-description: "Rules for where this plugin's product documents live and how each destination writes them — the docs root, the `.sdlc.json` pointer file, and the Obsidian-vault conventions (folder naming, frontmatter properties, wikilinks). INVOKE THIS SKILL before you read, create, move, or update a PRD, a design doc, a roadmap, or a ticket, and before you resolve any path under the docs root. Enforces one resolution order for every command and agent, one pointer file per project, and one document shape per destination."
+description: "Rules for where this plugin's product documents live and how each destination writes them — the docs root, the `.sdlc.json` pointer file, and the Obsidian-vault conventions (folder naming, frontmatter properties, wikilinks). INVOKE THIS SKILL before you read, create, move, or update a PRD, a design doc, a roadmap, a ticket, or a ticket's worklog, and before you resolve any path under the docs root. Enforces one resolution order for every command and agent, one pointer file per project, and one document shape per destination."
 ---
 
 # product-docs skill
 
 Every document this plugin reads or writes sits in one folder: the **docs root**. The docs root
-holds `prd.md`, `roadmap.md`, `designs/`, and `tickets/`. This skill says where that folder is
+holds `prd.md`, `roadmap.md`, `designs/`, and `tickets/` — and inside `tickets/`, a worklog
+beside each ticket that work has started on. This skill says where that folder is
 and how the documents inside it are written.
 
 ## Resolve the docs root before you read anything
@@ -85,6 +86,7 @@ The key is the field name in lower case, with `Last updated` as the one exceptio
 | Field in the body | Property |
 | --- | --- |
 | `**Status**: In Progress` | `status: In Progress` |
+| `**Assignee**: coding` | `assignee: coding` — left empty when the value is `—` |
 | `**Epic**: AUTH` | `epic: AUTH` |
 | `**Priority**: High` | `priority: High` |
 | `**Effort**: M` | `effort: M` |
@@ -96,10 +98,11 @@ The key is the field name in lower case, with `Last updated` as the one exceptio
 
 Every document also carries two properties the plugin adds:
 
-- **`type`** — `prd`, `design`, `roadmap`, or `ticket`.
+- **`type`** — `prd`, `design`, `roadmap`, `ticket`, or `worklog`.
 - **`tags`** — one entry, `sdlc/<type>`, so the whole structure is one search.
 
-A ticket adds `id` (`AUTH-001`), and a design doc adds `subject` (`checkout`).
+A ticket adds `id` (`AUTH-001`), a design doc adds `subject` (`checkout`), and a worklog adds
+`ticket` — the wikilink to the ticket it belongs to.
 
 **The property is the record.** When a command sets a ticket's status, it rewrites the
 frontmatter `status` property — there is no `**Status**` line in the body to keep in step with
@@ -130,6 +133,8 @@ library, and an external URL stay exactly as they are written elsewhere.
 
 - **Move a ticket with `git mv` only when the file sits inside a git working tree.** A vault is
   usually not one — use a plain `mv` there, and do not report history as preserved.
+- **Move a ticket's worklog with it.** `AUTH-001-user-login.worklog.md` sits in the same folder
+  as `AUTH-001-user-login.md` and follows it into `done/`, in the same step.
 - **Write a `.gitkeep` into an empty folder only when the docs root sits inside a git working
   tree.** Git does not track an empty directory; a vault does not need the file, and Obsidian
   shows it as clutter.
@@ -145,6 +150,7 @@ In the repository:
 
 **Epic**: AUTH — Authentication
 **Status**: In Progress
+**Assignee**: coding
 **Priority**: High
 **Effort**: M
 **Category**: feature
@@ -166,6 +172,7 @@ type: ticket
 id: AUTH-001
 epic: AUTH — Authentication
 status: In Progress
+assignee: coding
 priority: High
 effort: M
 category: feature
@@ -186,3 +193,34 @@ tags:
 
 Same ticket, same sections, same words. Only the fields and the links are shaped for the
 destination that holds them.
+
+## The worklog, in both destinations
+
+A ticket that work has started on has a worklog beside it — `AUTH-001-user-login.worklog.md`,
+in the ticket's folder, moving with it. The `ticket-board` skill holds what goes in it.
+Only its header changes by destination.
+
+In the repository:
+
+```markdown
+# [AUTH-001] User login — worklog
+
+**Ticket**: `AUTH-001-user-login.md`
+```
+
+In a vault:
+
+```markdown
+---
+type: worklog
+id: AUTH-001
+ticket: "[[AUTH-001-user-login]]"
+tags:
+  - sdlc/worklog
+---
+
+# [AUTH-001] User login — worklog
+```
+
+The entries under the header are the same in both. A worklog carries no `status` and no
+`assignee`: the ticket beside it holds those, and the worklog holds what happened.

@@ -42,8 +42,7 @@ The mockup must look like it belongs to the product, so learn the product first.
 
 - Read the docs root's `prd.md` for what the screen is for and who uses it. Read the matching
   `<docs root>/designs/<subject>.design.md` for the states and rules the screen must hold. The
-  docs root is the `root` field of `.sdlc.json` at the project root when that file exists — a
-  project may keep its documents in an Obsidian vault — and `.sdlc/` otherwise.
+  `product-docs` skill resolves the docs root — load it before you read one.
 - Find the design system the codebase already has: the styling approach (Tailwind, CSS
   modules, styled components), the token file or theme config, the font stack, the spacing
   scale, the color palette, the component library, and two or three existing screens.

@@ -11,7 +11,9 @@ Request: $ARGUMENTS
 
 This is the direct path. `/orchestrate` runs interview → plan → review → implement → verify and code review with six agents. `/orchestrate-quick` runs plan → review → implement → verify and code review with five. `/code` runs one: the coding agent, with no plan in front of it. When the change is one the user will see, you agree the design with them first, in this session, before the agent starts. Use it when the change is one the user already understands — a fix, a small feature, an addition that follows a pattern the codebase already has.
 
-The coding agent takes a request with no plan as one of its two input shapes, so this command needs no planner. It is also the right worker because it already loads the plugin's coding skills itself — `clean-fullstack-architecture` for any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for a component or a hook, `clean-tanstack-start` for TanStack Start server code. Do not restate those rules in the prompt. Its own definition holds them, and a spawn prompt is re-paid on every spawn.
+The coding agent takes a request with no plan as one of its two input shapes, so this command needs no planner. It is also the right worker because it already loads the plugin's coding skills itself — `clean-fullstack-architecture` for any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for a component or a hook, `clean-tanstack-start` for TanStack Start server code. Do not restate those rules in the prompt.
+
+**Load two skills before you spawn anything**, namespaced here as `sdlc:<name>`: **`agent-pipeline`** for how to spawn, resume, and read the agent's JSON block, and **`clean-writing`** for the report. Add **`ticket-board`** when the request came from a ticket.
 
 ## Workflow
 
@@ -60,18 +62,35 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
                  brief. Raise a blocker only for work you genuinely cannot complete.")
 ```
 
-It ends every turn with one fenced `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, and `blockers`. Parse it.
+It ends every turn with one fenced `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, and `blockers`. Parse it as `agent-pipeline` says.
 
-- Nothing returned, or no valid JSON block after one retry → report that the agent returned no usable result, and stop.
+- `aborted` — nothing returned, or no valid JSON block after the one retry → report that the agent returned no usable result, and stop.
 - Non-empty `blockers` → report them and stop. Do not fix the blocker yourself.
 
 ### 4. Follow up at most once
 
-The agent holds the request, the files it read, and its own reasoning. Resume it with `SendMessage(codingId, ...)` — never re-spawn it, and never finish its work in the main loop.
+Resume it with `SendMessage(codingId, ...)`, sending only what changed — the failing output, or the missed part.
 
-Send one follow-up when its self-check failed, or when its summary shows it missed part of the request. Send only what changed: the failing output, or the missed part. One follow-up is the cap. When the second turn still does not clear it, report what is left and stop.
+Send one follow-up when its self-check failed, or when its summary shows it missed part of the request. **One follow-up is the cap.** When the second turn still does not clear it, report what is left and stop.
 
-### 5. Report
+### 5. Record it on the ticket, when the request was one
+
+**When the request came from a ticket that already has a worklog beside it** — the
+**`ticket-board`** skill holds the file's shape — append one entry for what this run did:
+
+```markdown
+## 2026-09-27 14:12 — code · direct change
+
+- [each decision the coding agent reported, one line, with its reason]
+- Nobody verified it: [the gating commands that did not run]
+```
+
+Sign the entry `code`: it records this command's run, not a pipeline stage. **Create no worklog,
+write no status, and touch no assignee** — this command does not own the board, and the ticket is
+moved and assigned by the orchestrators. With no ticket, or no worklog beside it, there is nothing
+to write and nothing to say about it.
+
+### 6. Report
 
 Load the **`clean-writing`** skill (namespaced here as `sdlc:clean-writing`) before you write the report, and follow it for every sentence. It governs prose only — paths, identifiers, commands, and quoted output stay exact.
 
@@ -102,7 +121,8 @@ There is **no verify stage and no code review behind this command.** The coding 
 - **The agent writes the code.** You resolve the request, agree the design when the change is visible, spawn the agent, and report.
 - **Agree the design before the code when the user will see the change.** You run that stage; the agent cannot.
 - **Keep the prompt thin.** The skills, the conventions, and the comment rules live in the agent definition.
-- **Spawn once, resume with `SendMessage`.** One follow-up, then stop.
+- **Spawn once, resume with `SendMessage`** — `agent-pipeline` holds the mechanics. One follow-up, then stop.
+- **Log onto a ticket only when it already has a worklog.** Never create one, and never write a status or an assignee here.
 - **One request at a time.** Finish what was asked and stop.
 - **Report failure as failure.** A failing check or a blocker goes in the first line.
 - **Hand off when the request outgrows the command** — name `/orchestrate-quick` or `/orchestrate` and why.

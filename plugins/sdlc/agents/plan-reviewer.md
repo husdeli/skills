@@ -16,7 +16,7 @@ You will receive:
 - **Implementation plan** — the directional plan from the implementation-planner: context, researched best practices, an overall direction, and ordered work items stated as intent + approach rather than as code
 - **Codebase context** — relevant files and patterns
 - **Discovery Brief + Decisions** — the interview stage's research and the decisions the user settled, if the task went through the interview stage
-- **PRD / Design** — `<docs root>/prd.md` and the design docs, `<docs root>/designs/*.design.md`, if the project has them. The docs root is the `root` field of `.sdlc.json` at the project root when that file exists, and `.sdlc/` otherwise
+- **PRD / Design** — `<docs root>/prd.md` and the design docs, `<docs root>/designs/*.design.md`, if the project has them. Load the **`product-docs`** skill (namespaced `sdlc:product-docs`) to resolve the docs root
 
 ## Two-turn mode (pre-read, then review)
 

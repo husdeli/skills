@@ -5,6 +5,128 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.46.0] - 2026-09-27
+
+### Changed
+
+- **A rule is now written in exactly one skill, and the commands load it.** The same instructions
+  were restated across the command files, each copy in slightly different words — which is how they
+  drift apart. Two new skills take what had no owner, one existing skill is split, and every
+  restatement is gone:
+
+  | Rule | Was restated in | Now lives in |
+  | --- | --- | --- |
+  | Resolving the docs root (`.sdlc.json` → `root`/`kind`, else `.sdlc/`) | 18 files | `product-docs` |
+  | Finding a ticket by its ID | 4 files | `ticket-board` |
+  | `git mv` inside a working tree, plain `mv` outside one | 2 files | `ticket-board` |
+  | Deleting a finished task's roadmap row | 2 files | `ticket-board` |
+  | Spawn once, resume with `SendMessage` | 2 files | `agent-pipeline` |
+
+- **`ticket-board` is the new skill for the board** — where a ticket lives, the three status
+  folders, the epic that numbers it, the roadmap that holds only what is left, the `Assignee`
+  field, and the worklog. It also names the **three transitions** every command shares, each
+  writing the status field, the folder, and the roadmap row in one tool block: *Starting a
+  ticket*, *Finishing a ticket*, and *Stopping without finishing*. The last one was previously
+  spelled out twice in each orchestrator's failure handling; it is now one place, so an escalated
+  task is left assigned to `user` with its reason written down by whichever command stopped.
+
+- **`agent-pipeline` is the new skill for driving subagents** — spawn each role once and resume it
+  with `SendMessage`, a fresh verification agent per run, concurrent calls in one tool block, the
+  single JSON block and its one retry, thin spawn prompts, never duplicating the gating run, and
+  the `completed` / `escalate` / `aborted` vocabulary. `/orchestrate-quick` used to open this
+  section with "same as `/orchestrate`" and then restate it anyway.
+
+- **`ai-planning-workflow` keeps only the hand-driven workflow** — the phases, the feedback
+  checkpoint after each step, and the design agreement before UI work. It lost 165 lines of board
+  rules to `ticket-board` and now points at it. This is what lets the orchestrators load the board
+  rules at all: the phases they do *not* follow, such as waiting for approval after every step, no
+  longer come attached.
+
+- **The ticket template, the worklog template, and the ticket guidelines moved** to
+  `skills/ticket-board/`, beside the rules that govern them. `/scaffold` copies the template from
+  its new path.
+
+- **`product-docs` is loaded by every command, not only in a vault.** It was already the owner of
+  the docs-root rule, but each command resolved the root from its own summary and loaded the skill
+  only when the destination was a vault — so the rule was written 18 times and the skill was the
+  authority for none of them.
+
+- **Each command now opens with the table of skills it loads** and keeps only what is its own: the
+  stages, the gates, the questions it asks the user, its retry caps, and its own worklog-boundary
+  table. `/orchestrate` and `/orchestrate-quick` can differ in six ways and still agree on what a
+  ticket is.
+
+- **The read-only agents resolve paths through `product-docs` too.** The interviewer, the planner,
+  the plan reviewer, and the code reviewer each carried their own one-line copy of the docs-root
+  rule; all four now load the skill, which they already had the `Skill` tool for.
+
+## [0.45.0] - 2026-09-27
+
+### Added
+
+- **A ticket in flight keeps a worklog beside it.** When an orchestrator starts a task it writes
+  `tickets/in-progress/<ID>-<slug>.worklog.md` next to the ticket, and appends one entry per
+  stage as the pipeline runs:
+
+  ```markdown
+  ## 2026-09-27 14:12 — coding · implement
+
+  - Put the retry in the HTTP wrapper, not in each caller — the policy is inherited, not repeated.
+  - Left the cache out, which the plan left open: the endpoint already sits behind the CDN.
+  ```
+
+  The ticket says what to build; the worklog says what was decided while it was built — the
+  direction the plan settled on and the approach it turned down, the issues the review sent back,
+  the code-level calls the plan left open, what the verification found. None of that used to
+  survive: a plan, a review verdict, and a test run lived in one session's context and went with
+  it, so a task picked up a week later, or after an escalation, started from the diff.
+
+  - **The orchestrating command is the only writer.** The agents report their decisions and it
+    writes them down, so the file has one writer and the two concurrent stages — the interview
+    beside the scout, verification beside the code review — cannot lose each other's entry. The
+    read-only agents stay read-only.
+  - **Decisions and outcomes only**, one line each. Never the plan in full, never code, never a
+    restatement of the ticket, never pasted command output. An entry that is written is never
+    rewritten: a decision that turns out wrong becomes a new entry saying so.
+  - **Every exit writes one**, including an escalation or an abort, so the next session reads the
+    worklog to learn where the task stopped and why.
+  - **It moves with the ticket into `done/`**, and is never deleted: the finished ticket and its
+    worklog together are the record of the task.
+  - **The shape ships as a template**, at
+    `skills/ticket-board/assets/worklog-template.md`, and the `product-docs` skill holds
+    the vault version of its header — `type: worklog`, and the ticket as a wikilink.
+
+- **Every ticket carries an `Assignee` field**, under `Status`, naming who holds the work right
+  now: an agent's name while that agent works (`implementation-planner`, `coding`,
+  `verify, code-reviewer` when two hold it at once, `plan-reviewer (correctness)` when one role
+  runs twice with different lenses), the command or skill name when a session does the work itself
+  instead of delegating it, `user` when a run escalates and a person has to act, and `—` when
+  nobody does. Whoever writes the status writes the assignee in the same edit, so the two never
+  disagree, and in a vault it is the `assignee` property — queryable in Bases or Dataview beside
+  `status`. A ticket with no `Assignee` field is unassigned, and the field is added the next time
+  that ticket is written.
+
+### Changed
+
+- **The ticket template's `## Iteration Log` section is gone.** It recorded the same thing the
+  worklog does, in the ticket, where it grew between the acceptance criteria and the next reader.
+  The `ai-planning-workflow` skill's feedback checkpoint now appends a worklog entry instead, so
+  the hand-driven workflow and the agent pipeline write one record in one place.
+- **The coding agent's JSON block gained `decisions`** — the code-level calls it made that the
+  brief left open, one line each with the reason. It is what the orchestrator writes into the
+  `coding · implement` entry, so a later reader learns them without re-deriving them from the
+  diff. The agent reports a choice there when another competent engineer would plausibly have gone
+  the other way, and leaves out what the codebase's conventions already settled.
+- **`/whats-next` reports who holds each task in flight** and quotes the last line of its worklog,
+  so a task that escalated says where it stopped. A task assigned to `user` leads the report:
+  it is the one thing that needs somebody to act rather than to start something new.
+- **`/code` and `/review` append one entry** when the ticket they were handed already has a
+  worklog, and change nothing else — they create no worklog, write no status, and touch no
+  assignee, because they do not own the board.
+- **`/plan` writes a ticket unassigned**, with no worklog: the work has not started.
+- **`/scaffold` creates no worklog** — there is no ticket to put one beside yet — and its tree
+  now shows where one appears.
+
 ## [0.44.0] - 2026-09-14
 
 ### Changed

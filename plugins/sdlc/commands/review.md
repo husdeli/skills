@@ -11,7 +11,9 @@ Target: $ARGUMENTS
 
 This is the code gate on its own. Both orchestrators already run it at their verify stage, so use `/review` for code that never went through one: a change `/code` made, work you wrote by hand, a branch someone else pushed, a ticket you want checked before you open a pull request.
 
-The reviewer reads the code itself and loads the plugin's skills itself — `clean-fullstack-architecture`, `ts-clean`, `react-clean`, `clean-tanstack-start`. Leave those rules out of the prompt: its own definition already holds them, and a spawn prompt is re-paid on every spawn.
+The reviewer reads the code itself and loads the plugin's skills itself — `clean-fullstack-architecture`, `ts-clean`, `react-clean`, `clean-tanstack-start`. Leave those rules out of the prompt: its own definition already holds them.
+
+**Load two skills before you spawn anything**, namespaced here as `sdlc:<name>`: **`agent-pipeline`** for how to spawn, resume, and read the agent's JSON block, and **`clean-writing`** for the report. Add **`product-docs`** and **`ticket-board`** when the target is a ticket.
 
 ## Workflow
 
@@ -22,7 +24,7 @@ The reviewer reads the code itself and loads the plugin's skills itself — `cle
 - **Nothing given** → review the uncommitted changes. Run `git status --porcelain` yourself: when the tree is dirty, the target is the working tree against `HEAD`, untracked files included. When it is clean, the target is this branch against the default branch, and say in one line which comparison you chose.
 - **A path** (a file or a directory) → review those files as they stand.
 - **A branch, a commit, or a range** → review that diff.
-- **A ticket ID or ticket path** → find the ticket by ID under the docs root (glob `<docs root>/tickets/*/<ID>-*.md`, then `<docs root>/tickets/<ID>-*.md`). The docs root is the `root` field of `.sdlc.json` at the project root when that file exists — a project may keep its documents in an Obsidian vault — and `.sdlc/` otherwise. Read the ticket, and review the current change with the ticket's acceptance criteria as the standard.
+- **A ticket ID or ticket path** → find the ticket by its ID as `ticket-board` says, under the docs root `product-docs` resolves. Read it, and review the current change with the ticket's acceptance criteria as the standard.
 
 Derive acceptance criteria from the ticket when there is one. Otherwise take them from the change itself — the commit messages and the code — and state in one line what you took them to be.
 
@@ -40,9 +42,9 @@ Agent(subagent_type: "sdlc:code-reviewer", model: "opus",
                  criteria above are the whole brief. Read the code yourself.")
 ```
 
-It ends its turn with one fenced `json` block carrying `verdict`, `summary`, and `issues`. Parse it.
+It ends its turn with one fenced `json` block carrying `verdict`, `summary`, and `issues`. Parse it as `agent-pipeline` says.
 
-- Nothing returned, or no valid JSON block after one retry → report that the agent returned no usable result, and stop.
+- `aborted` — nothing returned, or no valid JSON block after the one retry → report that the agent returned no usable result, and stop.
 - `APPROVED` with an empty `issues` list → report the approval and stop.
 - `APPROVED` with minor issues, or `CHANGES_REQUESTED` → report them, then Stage 4.
 
@@ -83,11 +85,29 @@ Then re-review by resuming the **same** reviewer: `SendMessage(reviewerId, "Re-r
 
 With neither the flag nor the ask, report and stop. A request to read code is a request to read it, and the user decides what happens next.
 
+### 5. Record it on the ticket, when you reviewed one
+
+**When the target was a ticket that has a worklog beside it** — the **`ticket-board`** skill holds
+the file's shape — append one entry: the verdict, the blocking issues, and what the fix changed
+when Stage 4 ran.
+
+```markdown
+## 2026-09-27 15:40 — code-reviewer · review
+
+- CHANGES_REQUESTED: two server functions read the session without authenticating it.
+- Both fixed, re-review returned APPROVED. Nobody ran the suite.
+```
+
+Sign it with the agent whose verdict it carries, `code-reviewer`. **Create no worklog, write no
+status, and touch no assignee** — this command does not own the board. With no ticket, or no
+worklog beside it, there is nothing to write.
+
 ## Rules
 
 - **The agent reviews the code.** You resolve the target, spawn it, and report.
 - **Keep the prompt thin.** The checklist, the skills, and the severity rules live in the agent definition.
-- **Spawn once, resume with `SendMessage`.** One fix cycle, then stop.
+- **Spawn once, resume with `SendMessage`** — `agent-pipeline` holds the mechanics. One fix cycle, then stop.
 - **Report the verdict first.** A blocking issue leads the first line.
 - **Fix on an explicit ask alone** — the `fix` argument, or the user saying so.
 - **Name every gating command that nobody ran.** Unverified code reaches the user as unverified code.
+- **Log onto a ticket only when it already has a worklog.** Never create one, and never write a status or an assignee here.

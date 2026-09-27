@@ -1,6 +1,6 @@
 ---
 name: product-docs
-description: Rules for where this plugin's product documents live and how each destination writes them — the docs root, the `.sdlc.json` pointer file, and the Obsidian-vault conventions. Use before reading, creating, moving, or updating a PRD, a design doc, a roadmap, or a ticket.
+description: Rules for where this plugin's product documents live and how each destination writes them — the docs root, the `.sdlc.json` pointer file, and the Obsidian-vault conventions. Use before reading, creating, moving, or updating a PRD, a design doc, a roadmap, a ticket, or a ticket's worklog.
 ---
 
 # product-docs

@@ -11,8 +11,10 @@ writing, including a folder in an Obsidian vault.
 
 Arguments (if provided): $ARGUMENTS
 
-Load the **`product-docs`** skill (namespaced `sdlc:product-docs`) before you create anything.
-It holds the resolution order, the pointer file, and the vault conventions this command writes.
+Load two skills before you create anything, namespaced here as `sdlc:<name>`: **`product-docs`**,
+which holds the resolution order, the pointer file, and the vault conventions this command writes,
+and **`ticket-board`**, which holds the shape of the tickets and the roadmap it scaffolds and
+migrates.
 
 ```
 <docs root>/
@@ -24,14 +26,17 @@ It holds the resolution order, the pointer file, and the vault conventions this 
   tickets/
     TEMPLATE.md         copy this per task, named <EPIC>-<NNN>-<slug>.md
     todo/               a ticket waits here until an orchestrator starts it
-    in-progress/        the ticket being built — in progress, blocked, or in review
-    done/               a completed ticket
+    in-progress/        the ticket being built — in progress, blocked, or in review,
+                        with its worklog beside it
+    done/               a completed ticket, and its worklog
 ```
 
 Each kind of document has its own folder once there can be more than one of it. A design doc
 covers one subject and stays in `designs/` for the life of the project. A ticket moves between
-the three status folders as its status changes — the `ai-planning-workflow` skill holds the
-mapping and the move rules.
+the three status folders as its status changes — the `ticket-board` skill holds the mapping and the
+move rules. **A worklog appears beside a ticket in the step that starts the work**, holds what each
+agent decided while the ticket was built, and moves with the ticket into `done/`. Write none here:
+there is no ticket yet to put one beside.
 
 ## Rules
 
@@ -147,8 +152,8 @@ the count per folder afterwards. When the user says no, leave every file where i
 folder still works, because every agent reads the status field inside the ticket.
 
 **Ticket IDs with no epic** need the same explicit yes. Every ticket ID starts with the code of
-the epic that holds it, and the numbering restarts at 001 in each epic — the
-`ai-planning-workflow` skill holds the rule, and the roadmap holds the list of epics. A project
+the epic that holds it, and the numbering restarts at 001 in each epic — the `ticket-board` skill
+holds the rule, and the roadmap holds the list of epics. A project
 whose tickets all share one project-wide prefix (`SW-001`, `SW-002`, …), or whose roadmap has no
 `## <CODE> — <epic name>` sections, is on the older shape. Say what the rename costs before you
 offer it: a branch, a review, or a note that cites an old ID stops finding the file, so this
@@ -373,18 +378,18 @@ The row is the whole task here; what the task delivers and what it has to satisf
 ticket. A new epic appends a section, so two branches that plan separate features touch
 separate parts of the file. A `Depends on` cell lists outstanding blockers only, so `—` means
 the task is ready to start, and a cell may name a task in another epic because every ID is
-unique across the project. The **`ai-planning-workflow`** skill holds the rest of the rules,
-including what to delete when a task is done.
+unique across the project. The **`ticket-board`** skill holds the rest of the rules, including what
+to delete when a task is done.
 
 In a vault, `**Last updated**` becomes the `updated` property under a `type: roadmap`
 frontmatter block, and the ticket citation becomes a wikilink — `[[AREA-001-<slug>]]`.
 
 **`<docs root>/tickets/TEMPLATE.md`**
 
-Copy the `ai-planning-workflow` skill's ticket template verbatim from
-`skills/ai-planning-workflow/assets/ticket-template.md` in the plugin directory
-(`${CLAUDE_PLUGIN_ROOT}/skills/ai-planning-workflow/assets/ticket-template.md`). If that
-file is unreadable, write the template from the skill's documented ticket shape instead.
+Copy the `ticket-board` skill's ticket template verbatim from
+`skills/ticket-board/assets/ticket-template.md` in the plugin directory
+(`${CLAUDE_PLUGIN_ROOT}/skills/ticket-board/assets/ticket-template.md`). If that file is
+unreadable, write the template from the skill's documented ticket shape instead.
 
 In a vault, convert the template's leading `**Field**: value` lines into frontmatter properties
 once, here, so every ticket copied from it starts in the right shape.

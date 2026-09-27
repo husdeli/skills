@@ -70,6 +70,9 @@ Return a summary in this structure:
 - [x] 1: [title] — [brief summary of changes, including any code-level choice worth knowing]
 - [x] 2: [title] — [brief summary of changes]
 
+### Decisions
+- [A choice the brief left open, what you chose, and why it beat the alternative]
+
 ### Files Changed
 - Created: [paths]
 - Modified: [paths]
@@ -88,8 +91,14 @@ fenced `json` block in this shape, and nothing after it. The orchestrator parses
 pipeline:
 
 ```json
-{ "summary": "", "workItemsCompleted": [""], "filesChanged": { "created": [""], "modified": [""] }, "blockers": [""] }
+{ "summary": "", "workItemsCompleted": [""], "filesChanged": { "created": [""], "modified": [""] }, "decisions": [""], "blockers": [""] }
 ```
+
+`decisions` holds the code-level calls you made that the brief left open — one short line each,
+with the reason it went that way. The orchestrator writes them into the ticket's worklog, so a
+later reader learns them without re-deriving them from the diff. Report a choice there when
+another competent engineer would plausibly have gone the other way; leave out the ones the
+codebase's conventions already settled.
 
 `blockers` is `[]` when nothing blocked you — a non-empty `blockers` array stops the pipeline, so
 use it only for work you genuinely could not complete.
