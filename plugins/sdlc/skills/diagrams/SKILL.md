@@ -47,7 +47,8 @@ The spec is a scratch file: delete it once the drawing is written.
 - **[The format reference](./references/excalidraw-md-format.md)** holds the `.excalidraw.md` file
   itself — read it only to repair a drawing by hand or to work out why one will not open.
 - **Name the file after what it shows**, in kebab-case: `checkout.excalidraw.md`. A diagram that
-  belongs to a design doc takes that doc's subject, and a second diagram of the same subject adds
+  belongs to a design doc takes that doc's subject — the subject alone, never the feature folder
+  that holds the doc — and a second diagram of the same subject adds
   what it shows — `checkout-states.excalidraw.md`.
 - **Validate every file you write.** A drawing that fails `validate` does not open cleanly.
 - **Editing an existing drawing**: `unwrap` it to a scene, change the scene, `wrap` it back — or
@@ -68,6 +69,7 @@ one-line caption** naming what the picture shows that the surrounding prose does
 | --- | --- | --- |
 | `repo`, `folder` | `prd.md` | `[Checkout parts](diagrams/checkout.excalidraw.md)` |
 | `repo`, `folder` | `designs/checkout.design.md` | `[Checkout parts](../diagrams/checkout.excalidraw.md)` |
+| `repo`, `folder` | `features/checkout/checkout.design.md` | `[Checkout parts](../../diagrams/checkout.excalidraw.md)` |
 | `repo`, `folder` | `tickets/todo/AUTH-001-user-login.md` | `[Checkout parts](../../diagrams/checkout.excalidraw.md)` |
 | `vault` | any document in the docs root | `![[checkout.excalidraw]]` |
 

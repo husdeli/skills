@@ -17,7 +17,7 @@ You will receive:
 - **Implementation plan** — the directional plan from the implementation-planner: context, researched best practices, an overall direction, and ordered work items stated as intent + approach rather than as code
 - **Codebase context** — relevant files and patterns
 - **Discovery Brief + Decisions** — the interview stage's research and the decisions the user settled, if the task went through the interview stage
-- **PRD / Design** — `<docs root>/prd.md` and the design docs, `<docs root>/designs/*.design.md`, if the project has them. Load the **`product-docs`** skill (namespaced `sdlc:product-docs`) to resolve the docs root
+- **PRD / Feature / Design** — `<docs root>/prd.md`, the feature note at `<docs root>/features/<feature>/<feature>.feature.md`, and the design docs — `<docs root>/features/*/*.design.md` and `<docs root>/designs/*.design.md` — if the project has them. Load the **`product-docs`** skill (namespaced `sdlc:product-docs`) to resolve the docs root
 
 ## Two-turn mode (pre-read, then review)
 
@@ -33,7 +33,7 @@ When the first message already contains the plan, ignore this section and review
 Evaluate the plan against every item below. Read the referenced files to confirm the plan's claims — do not review from the plan text alone.
 
 1. **Completeness** — Does the plan cover ALL acceptance criteria? Are any requirements missing?
-2. **PRD & decision alignment** — If the docs root's `prd.md` or a design doc exists — `<docs root>/designs/*.design.md`, an older flat `<docs root>/*.design.md` or single `design.md`, or the project-root fallback — does the plan align with the product requirements, the user stories, and the intended design? If the task carried a Discovery Brief + Decisions, does the plan honor every settled decision without silently reopening one?
+2. **PRD & decision alignment** — If the docs root's `prd.md`, the task's feature note, or a design doc exists — `<docs root>/features/*/*.design.md`, `<docs root>/designs/*.design.md`, an older flat `<docs root>/*.design.md` or single `design.md`, or the project-root fallback — does the plan align with the product requirements, the user stories, and the intended design? If the task carried a Discovery Brief + Decisions, does the plan honor every settled decision without silently reopening one?
 3. **Correctness** — Will the work items achieve the outcome? Are there logical errors? Do the referenced files and modules exist?
 4. **Ordering** — Are work items in the right dependency order? Can each be completed independently, in sequence?
 5. **Altitude** — The plan must set direction, not write the code. Flag it in either direction:

@@ -1,5 +1,5 @@
 ---
-description: Create the folder that holds the PRD, the glossary, the design docs, the diagrams, the roadmap, and the tickets — in an Obsidian vault, or in the repository — and register the repositories the product is built in.
+description: Create the folder that holds the PRD, the glossary, the features, the design docs, the diagrams, the roadmap, and the tickets — in an Obsidian vault, or in the repository — and register the repositories the product is built in.
 argument-hint: [product name] [destination path] [repository paths]
 ---
 
@@ -21,11 +21,11 @@ one folder per product — and it sets up the documents there and asks which rep
 
 Arguments (if provided): $ARGUMENTS
 
-Load two skills before you create anything, namespaced here as `sdlc:<name>`: **`product-docs`**,
+Load three skills before you create anything, namespaced here as `sdlc:<name>`: **`product-docs`**,
 which holds the resolution order, the two pointer files, and the vault conventions this command
-writes,
-and **`ticket-board`**, which holds the shape of the tickets and the roadmap it creates and
-migrates.
+writes, **`ticket-board`**, which holds the shape of the tickets and the roadmap it creates and
+migrates, and **`feature`**, which holds the feature folder, the index note, and the code that ties
+a feature to its epic.
 
 ```
 <docs root>/
@@ -35,9 +35,15 @@ migrates.
   glossary.md           the product's terms — one ## heading per term, defined once
                         here and linked from every other document
   roadmap.md            the work that is left, in order, grouped by epic
+  features/             one folder per feature — one thing a customer can do
+    <feature>/
+      <feature>.feature.md   the index — what the customer can do, and its state.
+                             Carries the code that numbers the feature's tickets
+      <subject>.design.md    the design docs that belong to this feature
   designs/
-    overview.design.md  design docs — how the solution works, end to end. One file per
-                        subject, named <subject>.design.md; overview is the entry point
+    overview.design.md  the design docs that underpin every feature — an app shell, an
+                        auth model, a shared data model. One file per subject, named
+                        <subject>.design.md; overview is the entry point
   diagrams/             one .excalidraw.md file per diagram, referenced by any document
   tickets/
     TEMPLATE.md         copy this per task, named <EPIC>-<NNN>-<slug>.md
@@ -48,7 +54,8 @@ migrates.
 ```
 
 Each kind of document has its own folder once there can be more than one of it. A design doc
-covers one subject and stays in `designs/` for the life of the project. A ticket moves between
+covers one subject and stays where its ownership puts it — the feature's folder when it belongs to
+one feature, `designs/` when it underpins every feature. A ticket moves between
 the three status folders as its status changes — the `ticket-board` skill holds the mapping and the
 move rules. **A worklog appears beside a ticket in the step that starts the work**, holds what each
 agent decided while the ticket was built, and moves with the ticket into `done/`. Write none here:
@@ -59,9 +66,9 @@ there is no ticket yet to put one beside.
 - **Never overwrite.** Create a file only when it does not exist. Report each existing file
   as kept, and leave its contents alone.
 - **One design stub, at most.** Write `designs/overview.design.md` only when the project has no
-  design doc at all — no `*.design.md` file in `designs/`, in the docs root itself, or
-  at the project root, and no single `design.md` in any of those places. Report the one it
-  already has as kept.
+  design doc at all — no `*.design.md` file in `features/*/`, in `designs/`, in the docs root
+  itself, or at the project root, and no single `design.md` in any of those places. Report the one
+  it already has as kept.
 - **Write stubs, not content.** Each stub carries only the headings and the placeholder
   lines below. Do not invent product requirements, surfaces, or tasks — the person fills
   them in, or `/prd` and `/design` do.
@@ -72,8 +79,11 @@ there is no ticket yet to put one beside.
   `AGENTS.md`, or `CLAUDE.md`. Not the current working directory when that sits deeper.
 - **Register every repository** — Step 2. A docs root with no registry can only be driven from
   inside a repository, which is the thing this command exists to fix.
-- **Create `designs/`, `diagrams/`, and all three ticket status folders**, even though they start
-  empty.
+- **Write no feature.** `features/` is created empty. A feature is opened when the product has
+  one — by `/prd`, by `/plan`, or by the user — and the `feature` skill governs it. Inventing a
+  feature here invents a code that nothing owns.
+- **Create `features/`, `designs/`, `diagrams/`, and all three ticket status folders**, even though
+  they start empty.
   Write a `.gitkeep` file into every one that ends up with no file in it **when the docs root
   sits inside a git working tree**, because git does not track an empty directory. A docs root
   outside git gets no `.gitkeep` — it is clutter in a vault.
@@ -221,8 +231,10 @@ Look for documents this plugin would otherwise create twice:
 - Root-level `prd.md`, `PRD.md`, `glossary.md`, `GLOSSARY.md`, `design.md`, `DESIGN.md`,
   `roadmap.md`, `ROADMAP.md`.
 - A root-level `tickets/` directory.
-- A design doc in any shape: `*.design.md` files in `<docs root>/designs/`, in the docs root
-  itself, or at the project root; or a single `design.md` in any of those.
+- A design doc in any shape: `*.design.md` files in `<docs root>/features/*/`, in
+  `<docs root>/designs/`, in the docs root itself, or at the project root; or a single `design.md`
+  in any of those.
+- A `features/` directory, and whether it holds a feature note.
 
 If any of these exist outside the docs root, **ask before touching them**: offer to
 move each into the folder with `git mv` (preserving history), or to leave it where it is.
@@ -234,9 +246,10 @@ document.
 into a folder git does not track. Say that plainly whenever the docs root is a vault or an
 outside folder, before you offer the move, and use a plain `mv` when the user says yes.
 
-**Design docs outside `designs/`** need the same explicit yes. Design docs live in
-`<docs root>/designs/`, one file per subject, named `<subject>.design.md`, so anything
-else is an older shape:
+**Design docs outside a folder** need the same explicit yes. A design doc lives in
+`<docs root>/features/<feature>/` when it belongs to one feature, and in `<docs root>/designs/`
+when it underpins every feature. One file per subject, named `<subject>.design.md`, so anything
+else is an older shape. Gather them into `designs/` first, then offer the feature migration below:
 
 - `*.design.md` files in the docs root itself or at the project root → offer to move each
   one into `designs/` under the same name, and report the count moved.
@@ -246,6 +259,38 @@ else is an older shape:
 
 When the user says no, leave every file where it is: every agent reads the older shapes as a
 fallback. Skip the offer when `<docs root>/designs/` already holds the docs.
+
+**A project with no `features/` folder** needs the same explicit yes. A **feature** is one thing a
+customer can do: it owns a folder, an index note that says what the customer can do and whether it
+is shipped, the design docs for that feature, and the code that numbers its tickets. The `feature`
+skill holds the shape. A project whose design docs all sit in `designs/`, or whose roadmap has
+epics but no feature notes, is on the older shape.
+
+Say what the migration buys before you offer it: the feature register becomes the list of what the
+product does, so the business plan, the roadmap, and every design doc point at one place instead of
+three. Say what it costs: a design doc that moves changes its path, so a note or a bookmark that
+cites the old path stops resolving. Then offer it in three steps, and stop at any step the user
+does not approve:
+
+1. **Propose the features.** Read the roadmap's epics, the design docs in `designs/`, and the PRD's
+   product areas. Each epic is a candidate feature, and its code is the feature's code. Each design
+   doc is either a feature's doc or cross-cutting. Show the whole mapping as one table — feature
+   name, code, PRD area, status, and the design docs that move into it — with a second short table
+   of the docs that stay in `designs/` and why. Ask the user to accept it, rename a feature, move a
+   doc, or drop a row.
+2. **Create the folders and the index notes.** One folder per approved feature, and one
+   `<feature>.feature.md` in each, with the properties the `feature` skill defines. **Check each
+   status against the work root** before you write it — an epic with rows left is `In Progress` or
+   `Planned`, and a feature is `Shipped` only when the code holds the whole of it. Report any
+   feature whose evidence disagreed with the roadmap.
+3. **Move the design docs and rewrite every reference.** Move each approved doc with `git mv` into
+   its feature's folder, keeping its name. Add a `**Feature**:` line to each roadmap epic section
+   that now has a feature. Then search the docs root for every moved path and fix what that finds —
+   a `Related` line, a ticket, a diagram caption, the business plan. Report the counts: features
+   opened, docs moved, docs kept in `designs/`, references rewritten.
+
+When the user says no, create `features/` empty and leave every design doc in `designs/`: every
+agent reads that shape as a fallback. Skip the offer when `features/` already holds a feature.
 
 A **flat tickets folder** needs the same explicit yes. That is a `tickets/` directory holding
 ticket files directly, with no `todo/`, `in-progress/`, or `done/` inside it. Offer to create
@@ -273,7 +318,8 @@ steps, and stop at any step the user does not approve:
 3. **Rewrite every reference.** Group the roadmap rows into one `##` section per epic, and
    rename each ID in the tables, in the `Depends on` cells, and in the `Ticket` cells. Then
    search the whole project for each old ID and fix what that finds — a ticket's `Related`
-   links, a design doc, a note. Report the count renamed and the files touched.
+   links, a design doc, a note, a feature note's `code`. Report the count renamed and the files
+   touched.
 
 When the user says no, leave every ID alone, and say that new tickets keep continuing the
 project's own scheme. Never rename part of the set: a half-migrated project cites two schemes
@@ -417,8 +463,9 @@ tags:
 Write the placeholder term only — never invent terms. `/prd`, `/design`, and `/plan` fill the
 entries as the product gains them, and the **`glossary`** skill holds the rules they follow.
 
-**`<docs root>/designs/overview.design.md`** — the entry-point design doc. Every
-later subject gets its own `<subject>.design.md` beside it, written by `/design`.
+**`<docs root>/designs/overview.design.md`** — the entry-point design doc, for the subjects that
+underpin every feature. A subject that belongs to one feature gets its `<subject>.design.md` in
+that feature's folder instead. `/design` writes both.
 
 ```markdown
 # <product> — design
@@ -495,13 +542,15 @@ ticket in `tickets/done/` is the record of what was built.
 
 Status values: ⬜ **Pending** · 🚧 **In Progress** · 🚫 **Blocked**
 
-Every task belongs to an epic. The epic's code prefixes every ticket ID under it, and the
-numbering restarts at 001 in each epic. Tickets sit in `tickets/todo/`, `tickets/in-progress/`,
-or `tickets/done/`. Find one by name.
+Every task belongs to an epic, and every epic delivers one feature in `features/`. They share one
+code: it prefixes every ticket ID under the epic, and the numbering restarts at 001 in each epic.
+Tickets sit in `tickets/todo/`, `tickets/in-progress/`, or `tickets/done/`. Find one by name.
 
 ---
 
 ## AREA — <epic name>
+
+**Feature**: `features/<feature>/<feature>.feature.md`
 
 <One sentence: what this epic delivers.>
 
@@ -510,7 +559,8 @@ or `tickets/done/`. Find one by name.
 | AREA-001 | <task title> | ⬜ **Pending** | — | `AREA-001-<slug>.md` |
 ```
 
-One `##` section per epic, holding that epic's sentence and its own table — and nothing else.
+One `##` section per epic, holding the feature it delivers, that epic's sentence, and its own
+table — and nothing else.
 The row is the whole task here; what the task delivers and what it has to satisfy live in its
 ticket. A new epic appends a section, so two branches that plan separate features touch
 separate parts of the file. A `Depends on` cell lists outstanding blockers only, so `—` means
@@ -519,7 +569,8 @@ unique across the project. The **`ticket-board`** skill holds the rest of the ru
 to delete when a task is done.
 
 In a vault, `**Last updated**` becomes the `updated` property under a `type: roadmap`
-frontmatter block, and the ticket citation becomes a wikilink — `[[AREA-001-<slug>]]`.
+frontmatter block, and the ticket citation becomes a wikilink — `[[AREA-001-<slug>]]`. The
+`**Feature**` line becomes a wikilink too — `[[<feature>.feature]]`.
 
 **`<docs root>/tickets/TEMPLATE.md`**
 
@@ -541,7 +592,9 @@ Everything the user reads here follows the **`clean-writing`** skill (namespaced
 
 Say **where the docs root is** and, when you wrote one, that `.sdlc.json` now points at it.
 Report the tree you created, marking each file `created` or `kept`, and each moved file with
-its old and new path.
+its old and new path. When you ran the feature migration, report it as its own block: the features
+opened with their codes and statuses, the design docs moved into each one, the docs kept in
+`designs/`, and any feature whose status the work root contradicted.
 
 **Then report the registry**: one line per repository — the code, the path, and the `what` line —
 and say that `sdlc.json` is machine-local and gitignored. Name any repository you could not reach,
@@ -562,10 +615,12 @@ Then offer the next step, in this order:
 
 1. `/prd <product>` — fill the PRD first. It chooses the product's terms and writes each one's
    entry in `glossary.md`. Every later document takes its vocabulary from there.
-2. `/design <target>` — specify how each system, flow, or surface works once the PRD names
-   it. Each run writes or updates one `designs/<subject>.design.md`.
-3. `/plan <request>` — turn a request into roadmap tasks and tickets. The roadmap stub holds a
+2. `/feature <name>` — open a feature for each thing a customer can do. The feature holds its
+   design docs and the code that numbers its tickets, so it comes before both.
+3. `/design <target>` — specify how each system, flow, or surface works once the PRD names
+   it. Each run writes or updates one design doc, in its feature's folder or in `designs/`.
+4. `/plan <request>` — turn a request into roadmap tasks and tickets. The roadmap stub holds a
    placeholder row, not a task.
-4. `/orchestrate` — start building once the roadmap has a task.
+5. `/orchestrate` — start building once the roadmap has a task.
 
 Do not run these yourself. Name them and stop.

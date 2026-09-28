@@ -41,7 +41,9 @@ Skip it, and say in one line that you skipped it, when:
 The mockup must look like it belongs to the product, so learn the product first.
 
 - Read the docs root's `prd.md` for what the screen is for and who uses it. Read the matching
-  `<docs root>/designs/<subject>.design.md` for the states and rules the screen must hold. The
+  the screen's design doc — `<docs root>/features/<feature>/<subject>.design.md` when the screen
+  belongs to a feature, `<docs root>/designs/<subject>.design.md` when it does not — for the states
+  and rules the screen must hold. The
   `product-docs` skill resolves the docs root — load it before you read one.
 - Find the design system the codebase already has: the styling approach (Tailwind, CSS
   modules, styled components), the token file or theme config, the font stack, the spacing
@@ -108,7 +110,7 @@ person or agent who writes the code may never open it.
 
 - Give the implementer: the artifact URL, the states the design covers, the layout and component
   decisions, and the tokens and existing components to build from.
-- Update `<docs root>/designs/<subject>.design.md` when the project keeps design docs, so the agreed
+- Update the screen's design doc — in the feature's folder, or in `designs/` — when the project keeps design docs, so the agreed
   behavior survives the session. Follow the `design-doc` skill for that file, and record the
   artifact URL in it.
 - Name what the design deliberately leaves out, so nobody reads the gap as a missing feature.

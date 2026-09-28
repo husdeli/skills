@@ -8,7 +8,7 @@ description: "Create or update a product requirements document at <docs root>/pr
 Write or update a product requirements document following the structure and style below.
 
 **Where it lives.** The PRD is `<docs root>/prd.md`, alongside `glossary.md`, `roadmap.md`, the
-`designs/` folder, and the `tickets/` folder. **Load the `product-docs` skill and resolve the docs
+`features/` folder, the `designs/` folder, and the `tickets/` folder. **Load the `product-docs` skill and resolve the docs
 root as it says**, before you read or write anything. Create the folder if it is missing. When the project already keeps
 a PRD at the root (`prd.md`/`PRD.md`), update that file in place instead — one PRD per
 project, never two.
@@ -44,6 +44,8 @@ Two rules govern how the behavior sections read:
 **Cohesive, by product area — not a per-feature checklist.** Organize section 5 into a handful of **product-area subsections** (Content, Workspace, Outputs, AI, Publishing, …). Each subsection is a **cohesive description in prose** of how that part of the product works and how it connects to the others — a few short paragraphs telling one coherent story, not a list of atomic "the system shall X" line items. Describe the product as a set of interacting parts, so a reader understands the *shape* of each area, not just an inventory of capabilities. Do not decompose an area into numbered, individually-IDed micro-requirements; let related behaviors sit together in the same paragraph. Use a bullet only when enumerating parallel items (e.g. the export formats a deck supports), not as the default unit of a requirement.
 
 Give each subsection **one stable area-level anchor** — a short uppercase code in the heading (e.g. `### Social platforms & publishing \`SOCIAL\``) — so other specs and tickets can cite the area. That is the granularity of traceability: one code per product area, never one per sentence. Keep a code stable as its area's prose evolves; add a new code only for a genuinely new area.
+
+**An area is not a feature.** An area is a handful of paragraphs describing one part of the product; a **feature** is one thing a customer can do, and several of them usually sit inside one area. Each feature has its own note in `<docs root>/features/`, which carries the area's anchor code in its `area` property and holds the design docs and the tickets for that feature. The **`feature`** skill governs those notes. The PRD never becomes a list of them: it keeps telling the area's story in prose, and the register in `features/` is where the inventory lives. When the PRD names a part of the product that has no feature note, open the feature rather than decomposing the area into line items.
 
 **Positive framing — say what the product does.** State behavior affirmatively: describe what happens, not what doesn't, and don't define a requirement by contrast with a rejected design. A guarantee that is really about restraint gets phrased as the positive behavior that holds — "content stays on the device until the user publishes", not "content is never sent to the server without publishing"; "every output stays editable", not "rendering is never a one-way door". Drop asides like "not a separate subsystem", "no built-in deck", "rather than an ad-hoc poll" — they describe an absent alternative, not the product. (Section 3's *non-goals* are the one exception: they scope what the product isn't building **yet**, which is a scope statement, not a behavior description.)
 
@@ -114,7 +116,8 @@ Bullet list. Concrete unresolved product decisions that block design or implemen
 
 - **Edit in place; keep it whole.** The PRD is a living document, not an append log. Fold changes into the existing sections — no "changes" or "revisions" section.
 - **State the new requirement as the current truth.** Rewrite the affected passage so it reads as if it were always the target. Do not narrate the change ("previously X, now Y", "supersedes …", "revised") — that history lives in version control.
-- **Keep area names and anchors stable.** When an area's behavior evolves, revise the prose in place under its existing heading so inbound references stay valid. Add a new subsection only for a genuinely new product area. If a behavior is dropped, remove it and reconcile anything that referenced it.
+- **Keep area names and anchors stable.** When an area's behavior evolves, revise the prose in place under its existing heading so inbound references stay valid. Add a new subsection only for a genuinely new product area. If a behavior is dropped, remove it and reconcile anything that referenced it — including the `area` property of every feature note that cites the anchor.
+- **Keep the feature register in step.** A new part of the product earns a feature note; a dropped one has its note retired. The `feature` skill holds both.
 - **Keep the whole document consistent.** Reflect the change everywhere it lands — overview, goals, personas, related areas, success metrics, open questions — so no two sections disagree.
 - **Keep the glossary in step.** The `glossary` skill says what an added, renamed, or dropped term costs — do that in the same run.
 - **Bump `Last updated`** and revisit `Status`.

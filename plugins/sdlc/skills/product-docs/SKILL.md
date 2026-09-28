@@ -1,26 +1,32 @@
 ---
 name: product-docs
-description: "Rules for where this plugin's documents and code live and how each destination writes them — the docs root, the work root, the `sdlc.json` registry that names every repository a product is built in, the `.sdlc.json` pointer file, and the Obsidian-vault conventions (folder naming, frontmatter properties, wikilinks). INVOKE THIS SKILL before you read, create, move, or update a PRD, a glossary, a design doc, a roadmap, a ticket, or a ticket's worklog, before you resolve any path under either root, and before you run any command against a repository that is not the working directory. Enforces one resolution order for every command and agent, one registry per product, and one document shape per destination."
+description: "Rules for where this plugin's documents and code live and how each destination writes them — the docs root, the work root, the `sdlc.json` registry that names every repository a product is built in, the `.sdlc.json` pointer file, and the Obsidian-vault conventions (folder naming, frontmatter properties, wikilinks). INVOKE THIS SKILL before you read, create, move, or update a PRD, a glossary, a feature, a design doc, a roadmap, a ticket, or a ticket's worklog, before you resolve any path under either root, and before you run any command against a repository that is not the working directory. Enforces one resolution order for every command and agent, one registry per product, and one document shape per destination."
 ---
 
 # product-docs skill
 
 Every document this plugin reads or writes sits in one folder: the **docs root**. The docs root
-holds `prd.md`, `glossary.md`, `roadmap.md`, `designs/`, `diagrams/`, and `tickets/` — and inside
-`tickets/`, a worklog beside each ticket that work has started on. A product with a business plan
-also holds `business/`, with the plan and a `competitors/` folder beside it. Every line of code it writes
-sits in a **work root**: one code repository. This skill says where each root is, how to find one
-from the other, and how the documents inside the docs root are written.
+holds `prd.md`, `glossary.md`, `roadmap.md`, `features/`, `designs/`, `diagrams/`, and `tickets/` —
+and inside `tickets/`, a worklog beside each ticket that work has started on. A product with a
+business plan also holds `business/`, with the plan and a `competitors/` folder beside it. Every
+line of code it writes sits in a **work root**: one code repository. This skill says where each
+root is, how to find one from the other, and how the documents inside the docs root are written.
 
-Three skills hold what goes *inside* a document: the **`glossary`** skill for the product's terms
-and the links that point at their definitions, the **`diagrams`** skill for a picture of a shape,
-and the **`ticket-board`** skill for the board.
+Four skills hold what goes *inside* a document: the **`feature`** skill for what a customer can do
+and the folder that holds it, the **`glossary`** skill for the product's terms and the links that
+point at their definitions, the **`diagrams`** skill for a picture of a shape, and the
+**`ticket-board`** skill for the board.
+
+**`features/` and `designs/` split by ownership.** A design doc that belongs to one feature sits in
+that feature's folder, `features/<feature>/<subject>.design.md`, beside the feature's index note. A
+design doc that underpins every feature — an app shell, an authentication model, a shared data
+model — stays in `designs/`. The `feature` and `design-doc` skills hold which is which.
 
 ## The two roots
 
 | Root | What it holds | How many |
 | --- | --- | --- |
-| **docs root** | Every document: the PRD, the glossary, the design docs, the diagrams, the roadmap, the tickets, and the worklogs | One per product |
+| **docs root** | Every document: the PRD, the glossary, the features, the design docs, the diagrams, the roadmap, the tickets, and the worklogs | One per product |
 | **work root** | The code: one repository, with its own instructions, its own test suite, and its own git history | One per repository — a product may have several |
 
 One docs root drives one or more work roots. The PRD says what the product does; the repositories
@@ -75,7 +81,7 @@ this order, and stop at the first hit:
    root, and its `kind` field names the destination. Use them.
 2. **`.sdlc/` at the project root** — the default. The destination is `repo`.
 3. **Neither** — the project has no docs root. Read whatever it already keeps at the project
-   root (`prd.md`/`PRD.md`, `glossary.md`/`GLOSSARY.md`, `*.design.md`, `design.md`,
+   root (`prd.md`/`PRD.md`, `glossary.md`/`GLOSSARY.md`, `features/`, `*.design.md`, `design.md`,
    `roadmap.md`, `diagrams/`, `tickets/`), and name the platform's setup entry point as the way
    to create the structure.
 
@@ -165,7 +171,8 @@ In this order, and stop at the first that answers:
 1. **A repo-rooted session** → the work root is the session's own repository. Nothing to resolve.
 2. **One entry in the registry** → that entry is the work root.
 3. **Several entries** → read the evidence, in this order, and take the repository it points at:
-   - the design doc the ticket cites, and the parts of the system it names;
+   - the feature the ticket's code names, and the design docs in that feature's folder;
+   - any other design doc the ticket cites, and the parts of the system it names;
    - the ticket's description, its acceptance criteria, and any path, route, or module it names;
    - the epic's name and its `**Note**:` line;
    - each registry entry's `what` line;
@@ -237,15 +244,15 @@ the headings, and the words of every document stay the same.
 
 - **No name in the docs root starts with a dot.** Obsidian hides dot-folders and dot-files, so a
   `.sdlc/` folder inside a vault is invisible. The docs root is named after the product
-  (`Acme/`), and `designs/`, `diagrams/`, `tickets/`, `todo/`, `in-progress/`, `done/`,
-  `business/`, and `competitors/` keep their names.
+  (`Acme/`), and `features/`, `designs/`, `diagrams/`, `tickets/`, `todo/`, `in-progress/`,
+  `done/`, `business/`, and `competitors/` keep their names.
 - **The vault root is a valid docs root.** A vault kept for one product needs no folder inside
   it, and a folder named after the vault (`sdlc-obsidian/sdlc-obsidian/`) helps nobody. Use a
   product-named folder inside the vault instead when the vault root already holds notes of its
   own, so `prd.md` does not land among them. The setup entry point settles which of the two it
   is; every other command takes the docs root from `.sdlc.json` and never second-guesses it.
-- File names are unchanged: `prd.md`, `glossary.md`, `roadmap.md`, `checkout.design.md`,
-  `AUTH-001-user-login.md`.
+- File names are unchanged: `prd.md`, `glossary.md`, `roadmap.md`, `checkout.feature.md`,
+  `checkout.design.md`, `AUTH-001-user-login.md`.
 
 ### Frontmatter properties
 
@@ -260,22 +267,26 @@ The key is the field name in lower case, with `Last updated` as the one exceptio
 | `**Status**: In Progress` | `status: In Progress` |
 | `**Assignee**: coding` | `assignee: coding` — left empty when the value is `—` |
 | `**Epic**: AUTH` | `epic: AUTH` |
+| `**Feature**: …` | `feature:` — a wikilink, quoted |
 | `**Priority**: High` | `priority: High` |
 | `**Effort**: M` | `effort: M` |
 | `**Category**: feature` | `category: feature` |
 | `**Created**: 2026-09-10` | `created: 2026-09-10` |
+| `**Code**: CHECKOUT` | `code: CHECKOUT` |
+| `**Area**: PAYMENTS` | `area: PAYMENTS` |
 | `**Last updated**: 2026-09-10` | `updated: 2026-09-10` |
 | `**Product**: Acme` | `product: Acme` |
 | `**Related**: …` | `related:` — a list |
 
 Every document also carries two properties the plugin adds:
 
-- **`type`** — `prd`, `glossary`, `design`, `roadmap`, `ticket`, `worklog`, `business-plan`, or
-  `competitor`.
+- **`type`** — `prd`, `glossary`, `feature`, `design`, `roadmap`, `ticket`, `worklog`,
+  `business-plan`, or `competitor`.
 - **`tags`** — one entry, `sdlc/<type>`, so the whole structure is one search.
 
 A ticket adds `id` (`AUTH-001`), a design doc adds `subject` (`checkout`), and a worklog adds
-`ticket` — the wikilink to the ticket it belongs to.
+`ticket` — the wikilink to the ticket it belongs to. A feature adds `code` (`CHECKOUT`), `area`,
+`customer_facing`, and `shipped`; the **`feature`** skill holds what each one means.
 
 **The property is the record.** When a command sets a ticket's status, it rewrites the
 frontmatter `status` property — there is no `**Status**` line in the body to keep in step with
@@ -290,6 +301,7 @@ the file name without its `.md` extension, in double brackets:
 - `[[AUTH-001-user-login]]`, not `` `AUTH-001-user-login.md` ``
 - `[[prd]]`, not `../prd.md`
 - `[[checkout.design]]`, not `checkout.design.md`
+- `[[checkout.feature]]`, not `features/checkout/checkout.feature.md`
 
 Obsidian resolves a wikilink by name, which is why a ticket keeps its links when it moves
 between the status folders.
@@ -322,6 +334,7 @@ In the repository:
 # [AUTH-001] User login
 
 **Epic**: AUTH — Authentication
+**Feature**: `features/auth/auth.feature.md`
 **Status**: In Progress
 **Assignee**: coding
 **Priority**: High
@@ -333,6 +346,7 @@ In the repository:
 …
 
 ## Related
+- Feature: `features/auth/auth.feature.md`
 - PRD area: `AUTH`
 - Sibling: `AUTH-002-session-timeout.md`
 ```
@@ -344,6 +358,7 @@ In a vault:
 type: ticket
 id: AUTH-001
 epic: AUTH — Authentication
+feature: "[[auth.feature]]"
 status: In Progress
 assignee: coding
 priority: High
@@ -360,6 +375,7 @@ tags:
 …
 
 ## Related
+- Feature: [[auth.feature]]
 - PRD area: `AUTH`
 - Sibling: [[AUTH-002-session-timeout]]
 ```

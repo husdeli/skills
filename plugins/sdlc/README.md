@@ -53,9 +53,16 @@ falls back to when nothing points elsewhere. The layout is the same wherever the
   glossary.md           the product's terms — one ## heading per term, defined once
                         here and linked from every other document
   roadmap.md            the work that is left, in order, grouped by epic
+  features/             one folder per feature — one thing a customer can do
+    checkout/
+      checkout.feature.md    the index — what the customer can do, its state, and
+                             the code that numbers its tickets
+      checkout.design.md     the design docs that belong to this feature
+      payment-retry.design.md
+    …
   designs/
-    overview.design.md  design docs — how the solution works, end to end. One file
-    checkout.design.md  per subject, named <subject>.design.md
+    overview.design.md  the design docs that underpin every feature — an app shell,
+    app-shell.design.md an auth model, a shared data model
     …
   diagrams/
     checkout.excalidraw.md   one file per diagram, referenced by any document
@@ -76,16 +83,30 @@ links that heading at the term's first use instead of writing the definition a s
 coins a term writes its entry, so `/prd`, `/design`, and `/plan` each keep the file current. The
 `glossary` skill holds the rules.
 
+**A feature is one thing a customer can do**, and it owns a folder. The index,
+`<feature>.feature.md`, says what the customer can do and whether it is `Planned`, `In Progress`,
+or `Shipped`, and it carries the uppercase code that numbers the feature's tickets — the feature
+and its epic are one thing seen from two sides. Everything that points at the feature points at
+that note: the roadmap epic, each ticket, and the business plan's table of what the product does,
+which is a Dataview query over `features/` rather than a list anyone maintains by hand. `/feature`
+opens one, and the `feature` skill holds the rules.
+
 Each kind of document gets its own folder once there can be more than one of it. A design doc
-covers one subject — a system, a service, a flow, an integration, a rule, or a screen — and
-stays in `designs/` for the life of the project. `overview.design.md` is the entry point that
-names the parts of the whole solution and points at the rest.
+covers one subject — a system, a service, a flow, an integration, a rule, or a screen. **Ownership
+decides where it sits**: in its feature's folder when it belongs to one feature, and in `designs/`
+when it underpins every feature. `designs/overview.design.md` is the entry point that names the
+parts of the whole solution and points at the rest.
+
+**The roadmap shrinks; the feature register does not.** An epic's section is deleted when its last
+task is done, and the feature note stays, marked `Shipped`. So `features/` is the list of what the
+product does, `roadmap.md` is the list of what is left, and `tickets/done/` is the record of what
+happened.
 
 A ticket moves between the three status folders as the work progresses, and its `Status` field
 always names the folder it sits in. The commands move it for you: into `in-progress/` when an
 orchestrator starts the task, into `done/` when verification passes. A project that already
-keeps its design docs or its tickets in one flat folder keeps working — `/setup` offers the
-migration, and never forces it.
+keeps its design docs or its tickets in one flat folder, or that has no `features/` folder at all,
+keeps working — `/setup` offers each migration, and never forces one.
 
 **A ticket in flight says who holds it, and keeps a worklog of what was decided.** Its
 `Assignee` field names whoever is working on it right now — `implementation-planner` while the
@@ -320,12 +341,18 @@ worth as much as its record.
   touched in a list, a defect's location next to the issue.
   Invoked directly, it re-pitches a message that didn't land. Every agent, command, and
   document skill in this plugin routes its human-facing output through it.
+- **feature** — The feature: one thing a customer can do, with its own folder, an index note
+  that says what the customer can do and whether it is `Planned`, `In Progress`, or `Shipped`, and
+  the uppercase code that numbers its tickets — the feature and its epic are one thing. Holds how a
+  feature is chosen, named, coded, and retired, the rule that a `Shipped` status is verified
+  against the code and never taken from the board, and the query that turns `features/` into every
+  list of what the product does.
 - **design-doc** — Create or update a design doc specifying how a solution works: the parts
   it is built from, how work flows through it end to end, the states it reaches, and the
   limits it holds within. The subject is a system, a service, a flow, an integration, a rule,
-  or a screen — a user interface is one case, not the default. One file per subject in
-  `designs/`, named `<subject>.design.md`, so the file name says what it specifies. The doc states the intended
-  end state, not how to build it.
+  or a screen — a user interface is one case, not the default. One file per subject, named
+  `<subject>.design.md`, in its feature's folder when it belongs to one feature and in `designs/`
+  when it underpins every feature. The doc states the intended end state, not how to build it.
 - **frontend-design** — Agree what a screen looks like before it is built. Reads the PRD, the
   design doc, and the design system the codebase already has, publishes a static mockup as an
   Artifact — every state, the small screen, placeholder data, nothing wired up — and iterates
@@ -350,7 +377,9 @@ worth as much as its record.
 - **business-plan** — Create or update the business plan and one note per competitor. Every
   figure is a sourced fact or a numbered assumption in a register, each topic is written once and
   linked everywhere else, competitor prices come from the web with a checked date, and in a vault
-  the plan lists the competitors with a Dataview query instead of a copied table.
+  the plan lists the competitors — and the features the product ships — with a Dataview query
+  instead of a copied table. What the product does is never typed out here: it comes from
+  `features/`, and a status it quotes is checked against the code first.
 - **prd** — Create or update a product requirements document: product-only content,
   cohesive per-area descriptions with stable anchor codes, and positive framing. The terms it
   chooses are defined in `glossary.md`, never in the PRD.
@@ -385,8 +414,8 @@ what a ticket is, and why changing how a status transition works is one edit rat
   plan from either orchestrator, or a request `/code` sends with no plan at all.
 - **verify** — runs the project's gating commands (tests, lint, typecheck, e2e when there is
   one) concurrently and reports pass/fail per command. Writes no code, and reviews none either.
-- **cto** — stands in for you when nobody is in the room. It reads the PRD, the glossary, and the
-  design docs once, then answers what `/orchestrate` would have asked you: which task to build next,
+- **cto** — stands in for you when nobody is in the room. It reads the PRD, the glossary, the
+  feature notes, and the design docs once, then answers what `/orchestrate` would have asked you: which task to build next,
   whether it gets end-to-end tests, how each open decision goes, and what happens when a stage runs
   out of retries — one more cycle with guidance, a narrower task, a deferred task, or the end of the
   run. It hands a decision back to you only for the things a person must own: money, credentials,
@@ -398,20 +427,26 @@ what a ticket is, and why changing how a status transition works is one edit rat
 - **/setup** — asks where the docs root goes — in an Obsidian vault, which it recommends, or in
   the repository as `.sdlc/` — registers every repository the product is built in as `sdlc.json` in
   the docs root, then creates it with stub files for the PRD, the glossary,
-  the design doc, the roadmap, a ticket template, the `designs/` and `diagrams/` folders, and the
-  `todo/`, `in-progress/`, and `done/` ticket folders. An outside folder gets a `.sdlc.json` pointer file at
+  the design doc, the roadmap, a ticket template, the `features/`, `designs/`, and `diagrams/`
+  folders, and the `todo/`, `in-progress/`, and `done/` ticket folders. An outside folder gets a `.sdlc.json` pointer file at
   the project root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no
   dot-folders. Never overwrites an existing file, and offers to move a root-level
   `prd.md`, `glossary.md`, `design.md`, or `tickets/` into the folder with `git mv` — including
   sorting a flat tickets folder into the three status folders, moving loose `*.design.md` files into
   `designs/`, and renaming a lone `design.md` to `designs/overview.design.md`. It also offers to
+  **build the feature register** on a project that has none — proposing one feature per roadmap
+  epic, showing you which design docs move into each feature folder and which stay cross-cutting,
+  and moving them once you approve the table — to
   migrate a project-wide ticket scheme (`SW-001`, `SW-002`, …) onto epic-prefixed IDs, after it
   shows you the epic grouping and you approve it, and to clean a roadmap that still holds
   finished work — deleting the completed rows and folding each per-task detail section into the
   ticket that should hold it.
+- **/feature** — opens a feature, or keeps an existing one true: the folder, the index note, the
+  code its epic and tickets take, and the status, which it checks against the code rather than the
+  board. Run it before `/design` and `/plan` for anything new a customer can name.
 - **/plan** — turns a request into the documents the rest of the plugin reads: it interviews
   with the **feature-interviewer** agent, settles the open decisions with you, then updates the
-  PRD and the design docs, appends one roadmap row per task under its epic, and writes one
+  PRD, opens or updates the feature, writes the design docs, appends one roadmap row per task under its epic, and writes one
   ticket per task into `tickets/todo/`. The detail goes in the ticket, never in the roadmap. It
   writes no code and sets no status past pending — `/orchestrate` takes it from there.
 - **/whats-next** — answers what can be worked on right now. It reads the roadmap and the ticket
@@ -461,8 +496,9 @@ what a ticket is, and why changing how a status transition works is one edit rat
   blocking issues to the coding agent and re-review the result once. Use it for work that never
   went through an orchestrator — a `/code` change, code you wrote by hand, a branch to read
   before a pull request.
-- **/design** — loads the `design-doc` skill to create or update
-  `designs/<subject>.design.md` for a given system, service, flow, integration, or screen.
+- **/design** — loads the `design-doc` skill to create or update a `<subject>.design.md` for a
+  given system, service, flow, integration, or screen — in the feature's folder when it belongs to
+  one feature, in `designs/` when it underpins every feature.
 - **/frontend-design** — loads the `frontend-design` skill to agree the look of a screen, a
   component, or a flow before it is built: it publishes a static mockup as an Artifact, iterates
   with you, and records what you agreed. It writes no production code — `/code` builds it after.
@@ -487,6 +523,7 @@ Use these equivalents in a Codex prompt:
 | `/review [target]` | `$sdlc:review [target]` |
 | `/plan [request]` | `$sdlc:plan [request]` |
 | `/design [target]` | `$sdlc:design-doc [target]` |
+| `/feature [target]` | `$sdlc:feature [target]` |
 | `/frontend-design [target]` | `$sdlc:frontend-design [target]` |
 | `/prd [target]` | `$sdlc:prd [target]` |
 | `/business-plan [target]` | `$sdlc:business-plan [target]` |

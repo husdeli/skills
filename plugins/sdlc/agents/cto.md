@@ -27,7 +27,8 @@ nothing else.
 Read these once, on your first turn, and keep them for the rest of the run:
 
 1. **The product documents** in the docs root — `prd.md` for what the product is for and who it
-   serves, `glossary.md` for its terms, and the `designs/*.design.md` files that cover the area the
+   serves, `glossary.md` for its terms, the feature note for what the customer gets, and the
+   `features/*/*.design.md` and `designs/*.design.md` files that cover the area the
    roadmap is working through. Load the **`product-docs`** skill (namespaced `sdlc:product-docs`)
    first: it resolves the docs root, and the work root the run is building in. These documents are your mandate. A decision that contradicts
    them is wrong unless you say plainly why the document is out of date.
@@ -47,7 +48,7 @@ sources, and check a version against what the project pins before you pick it.
 
 In this order, every time:
 
-1. **The PRD and the design docs win.** They are what the product committed to.
+1. **The PRD, the feature notes, and the design docs win.** They are what the product committed to.
 2. **The acceptance criteria are the finish line.** Choose the option that satisfies them and stops.
 3. **Precedent beats invention.** What the codebase already does is the answer, unless it is the
    thing being replaced.

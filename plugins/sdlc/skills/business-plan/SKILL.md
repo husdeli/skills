@@ -9,10 +9,12 @@ A business plan states the **commercial case** for the product: who pays, what o
 and costs, how many customers the business needs, and what the next 12 to 18 months must prove. The
 PRD already says what the product does. The plan links the PRD for that and never restates it.
 
-Load three skills before you read or write anything:
+Load four skills before you read or write anything:
 
 - **`product-docs`**: resolve the docs root, and follow its vault conventions (frontmatter
   properties, wikilinks, no dot-folders).
+- **`feature`**: the register in `features/` is what section 2 lists, and it holds the status
+  vocabulary and the query the capability table is built from.
 - **`clean-writing`**: every sentence of the plan and of each competitor note.
 - **`glossary`**: use the product's terms, and link each one at its first use.
 
@@ -49,15 +51,21 @@ business plan somewhere else, move it into `business/` with the user's yes, and 
    the same two or three inputs, and say which inputs to replace with measured values, and when.
 6. **Name the point where the plan changes course.** A dated threshold, two measurable conditions,
    and the options that follow. A plan with no such point cannot fail, so it cannot guide.
-7. **Verify the product state in the code.** A capability is "shipped" only when the work root
-   holds it. The PRD and the roadmap can lag the code. Check the feature folders before you mark
-   a capability as missing.
+7. **Verify the product state in the code.** A feature is `Shipped` only when the work root holds
+   it. The feature note, the PRD, and the roadmap can all lag the code. Read the work root before
+   you quote a status, and correct the feature note in the same step when the two disagree — the
+   **`feature`** skill holds that check.
 
 ## Step 1: Gather the facts
 
-Read the PRD, the glossary, the roadmap, and every design doc that covers pricing, plans,
-payments, hosting, or growth. Read the work root for the values the docs do not hold: plan
-prices, plan limits, credit or usage rates, and the list of shipped integrations.
+Read the PRD, the glossary, **every feature note in `features/`**, the roadmap, and every design
+doc that covers pricing, plans, payments, hosting, or growth. Read the work root for the values the
+docs do not hold: plan prices, plan limits, credit or usage rates, and the list of shipped
+integrations.
+
+**Check every feature's status against the work root**, per rule 7. The feature register is what
+section 2 lists, so a wrong status there becomes a wrong claim in the plan. Fix the note, do not
+work around it.
 
 **Done when** you hold, with a source for each: what the product sells today, every published
 price, every plan limit, the cost of one unit of usage, and the open work that blocks a launch.
@@ -159,14 +167,14 @@ tags:
 ---
 ```
 
-Under the title, one **Related** line links the PRD, the roadmap, the design docs the plan cites,
-and the competitors folder.
+Under the title, one **Related** line links the PRD, the feature register, the roadmap, the design
+docs the plan cites, and the competitors folder.
 
 ### Sections, in this order
 
 1. **Summary**: one-line pointers to the sections below, each ending in a link.
-2. **The product**: what a customer can do today, as a capability and state table that links the
-   PRD and the tickets. Then what makes it different, in three to five points.
+2. **The product**: what a customer can do today — the **feature table** below, generated from
+   `features/`, never typed out by hand. Then what makes it different, in three to five points.
 3. **The problem and the customer**: the problem in one paragraph, then a table of the segments
    who pay first, why they pay, and the plan they land on.
 4. **Market and launch focus**: the one launch focus, the first and the second market, and what
@@ -187,6 +195,37 @@ and the competitors folder.
 13. **Assumptions register**: every assumption ID, the value used, and how to replace it.
 
 An investor plan adds a **Team** section after Operations.
+
+### The feature table
+
+Section 2 lists what a customer can do, one row per feature. **The rows come from `features/`**, so
+a new feature appears in the plan with no edit to the plan. In a vault, that is a Dataview query:
+
+````markdown
+```dataview
+TABLE WITHOUT ID
+  file.link AS "Feature",
+  area AS "Area",
+  status AS "State",
+  shipped AS "Since"
+FROM "<docs root, relative to the vault root>/features"
+WHERE type = "feature" AND customer_facing = true
+SORT status ASC, name ASC
+```
+````
+
+The `FROM` path is relative to the vault root, as the competitor query below explains. **In a
+`repo` or `folder` destination** there is no Dataview: write the same columns as a Markdown table
+with a relative link per feature, and rewrite it whenever a feature's status changes.
+
+- **`customer_facing: false` keeps a feature out of this table.** A platform epic is work, not a
+  capability a customer buys.
+- **Never type a capability that has no feature note.** When the product does something the
+  register does not list, open the feature — the **`feature`** skill says how — and let the query
+  pick it up.
+- **Never restate a feature's prose here.** The row links the note; the note says what the customer
+  can do. What belongs in this section is the three to five points on what makes the product
+  different, which no feature note carries.
 
 ### The competitor query
 
@@ -220,6 +259,8 @@ table with a relative link per note, and rewrite the table whenever a competitor
 
 ## Step 5: Check the result
 
+- Every feature in section 2 has a note in `features/`, and every note's status matches the work
+  root.
 - Every wikilink resolves to a note, and every `#heading` link resolves to a heading.
 - Every assumption ID the prose cites has a row in the register, and every row is cited.
 - No topic is written out in two sections.
@@ -236,6 +277,9 @@ report the plan as written.
   register with its date, and update every figure derived from it.
 - **Refresh stale competitor notes** before the plan relies on them, and add a note for each new
   competitor the user names.
+- **Re-check every feature status against the work root.** A feature that shipped since the last
+  revision changes section 2, and usually the milestones and the financial plan with it. Fix the
+  feature note, not the table — the table is generated.
 - **Bump `updated`.**
 
 ## After writing or updating

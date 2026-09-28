@@ -18,7 +18,8 @@ at one.
 The reader knows this product by the names the product uses. Use those names.
 
 - **Take the vocabulary from the project**, in this order: `<docs root>/glossary.md`,
-  `<docs root>/prd.md`, `<docs root>/designs/*.design.md` (or, on an older shape,
+  `<docs root>/prd.md`, `<docs root>/features/*/*.feature.md`,
+  `<docs root>/features/*/*.design.md`, `<docs root>/designs/*.design.md` (or, on an older shape,
   `<docs root>/*.design.md` or a single `design.md`), `AGENTS.md`, `CLAUDE.md`, the ticket or
   roadmap, then the code. Read these before you write about a domain you have not written about in
   this session.
@@ -60,7 +61,8 @@ has exactly one owner, and the code calls this member an `OrgMember` with the `o
   one-term-per-concept rule forbids. When the code uses a different name for the thing, name that
   symbol inside the entry.
 - **Two or three sentences per entry**: what the thing is, and the one fact that separates it from
-  the term nearest to it. A requirement stays in the PRD, and behavior stays in a design doc.
+  the term nearest to it. A requirement stays in the PRD, what a customer can do stays in a
+  feature note, and behavior stays in a design doc.
 - **Only load-bearing terms.** A term earns an entry when a second document uses it, or when a
   reader would otherwise guess what it means. A plain English word gets no entry.
 - **No history in the file.** No changelog, no "formerly", no note about when a definition changed.
@@ -79,6 +81,7 @@ none of them mattered.
 | --- | --- | --- |
 | `repo`, `folder` | `prd.md`, `roadmap.md` | `[workspace owner](glossary.md#workspace-owner)` |
 | `repo`, `folder` | `designs/checkout.design.md` | `[workspace owner](../glossary.md#workspace-owner)` |
+| `repo`, `folder` | `features/checkout/checkout.feature.md` | `[workspace owner](../../glossary.md#workspace-owner)` |
 | `repo`, `folder` | `tickets/todo/AUTH-001-user-login.md` | `[workspace owner](../../glossary.md#workspace-owner)` |
 | `vault` | any document in the docs root | `[[glossary#Workspace owner]]` |
 

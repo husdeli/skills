@@ -1,16 +1,31 @@
 ---
 name: design-doc
-description: "Create a design doc at <docs root>/designs/<subject>.design.md — .sdlc/designs/ by default, or the folder .sdlc.json points at, such as one in an Obsidian vault — that specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when: asked to write a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen. A design doc defines the target state — not how to build it"
+description: "Create a design doc at <docs root>/features/<feature>/<subject>.design.md when it belongs to one feature, or <docs root>/designs/<subject>.design.md when it underpins every feature — under .sdlc/ by default, or the folder .sdlc.json points at, such as one in an Obsidian vault — that specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when: asked to write a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen. A design doc defines the target state — not how to build it"
 ---
 
 # Design-doc skill
 
 Create a design doc following the structure and style below.
 
-**Where they live.** Design docs sit in `<docs root>/designs/`, **one file per
-subject**, named `<subject>.design.md` — `checkout.design.md`, `event-ingestion.design.md`,
-`app-shell.design.md`. Create the folder if it is missing. There is no single `design.md`: a
-design doc covers one subject, and the file name is that subject.
+**Where they live.** A design doc is **one file per subject**, named `<subject>.design.md` —
+`checkout.design.md`, `event-ingestion.design.md`, `app-shell.design.md`. There is no single
+`design.md`: a design doc covers one subject, and the file name is that subject.
+
+**Two folders hold them, and ownership decides which.**
+
+| The subject | Where the file goes |
+| --- | --- |
+| Belongs to **one feature** — what that feature is built from, how it behaves | `<docs root>/features/<feature>/<subject>.design.md` |
+| Underpins **every feature** — an app shell, an authentication model, a shared data model, an event queue | `<docs root>/designs/<subject>.design.md` |
+
+Create the folder if it is missing. **Load the `feature` skill before you decide**, and open the
+feature first when the subject belongs to a feature that has no folder yet: a design doc never
+creates the feature it describes as a side effect.
+
+Ask one question to settle it: *would this doc still be needed if the feature were dropped?* Yes →
+`designs/`. No → the feature's folder. A doc that two features depend on and a third would not is
+still cross-cutting; `designs/` is where a shared subject belongs, not the folder of whichever
+feature reached it first.
 
 **Load the `product-docs` skill and resolve the docs root as it says**, before you read or write
 anything. It also holds what a vault changes: `Last updated` and `Related` become frontmatter
@@ -20,20 +35,23 @@ properties there, and a cross-reference becomes a wikilink.
   `billing-design.md`, or `billing.design.doc.md`. Kebab-case, and singular where that reads
   naturally.
 - **One subject per file.** A name that needs "and" in it describes two docs.
-- **`overview.design.md`** is the optional entry point. It names the parts of the whole
-  solution, says how they fit together, and points at the per-subject docs. Write it once a
+- **`overview.design.md`** is the optional entry point, in `designs/`. It names the parts of the
+  whole solution, says how they fit together, and points at the per-subject docs. Write it once a
   project has more than a handful of them.
-- **Cross-reference by relative filename** — "see `app-shell.design.md`" — never by copying
-  the content across. In a vault, cross-reference with a wikilink instead:
-  `[[app-shell.design]]`.
-- **Find the docs by listing** `<docs root>/designs/*.design.md`, then read the ones
-  the task touches.
+- **Cross-reference by relative path** — "see `../../designs/app-shell.design.md`" — never by
+  copying the content across. In a vault, cross-reference with a wikilink instead, and the folder
+  makes no difference: `[[app-shell.design]]`.
+- **A doc in a feature's folder names its feature** on the `Related` line, with the feature's
+  index note. A doc in `designs/` names the PRD instead.
+- **Find the docs by listing** `<docs root>/features/*/*.design.md` and
+  `<docs root>/designs/*.design.md`, then read the ones the task touches. A feature's own docs
+  are the ones in its folder — list that folder first when the task names a feature.
 
-**A project on an older shape keeps working.** Design docs used to sit directly in
-the docs root, and before that in a single `design.md` there or at the project root.
-Read whichever shape the project has, and update the file in place where it already sits.
-Move the docs into `designs/`, or split a single `design.md` by subject, only when the user
-asks — `/setup` offers the move.
+**A project on an older shape keeps working.** Design docs used to sit in `designs/` whether or
+not they belonged to a feature, before that directly in the docs root, and before that in a single
+`design.md` there or at the project root. Read whichever shape the project has, and update the file
+in place where it already sits. Move the docs into a feature folder, or split a single `design.md`
+by subject, only when the user asks — `/setup` offers the move.
 
 A design doc is a **specification of the intended end state of one solution**: the **parts** it
 is built from, how those parts fit together, how work flows through it **end to end**, and how
@@ -98,11 +116,10 @@ that a term this design coins gets its entry in the same step.
    one subject and carries its name — a shared app shell, an authentication model, an
    ingestion pipeline, an onboarding flow. When the design needs a second subject, write a
    second `<subject>.design.md` and reference it, rather than inlining and duplicating it.
-   Cross-reference by numbered heading ("see 3.5 Behavior") within a doc and by relative filename
-   between design docs, which are siblings in `designs/`. **Reference
-   only other design docs, the glossary, and the PRD** — the glossary for a term's definition, and
-   the PRD only when `../prd.md` (or an equivalent)
-   actually exists in the project; otherwise omit it. Never link to build or operations docs
+   Cross-reference by numbered heading ("see 3.5 Behavior") within a doc and by relative path
+   between design docs. **Reference only other design docs, the feature this doc belongs to, the
+   glossary, and the PRD** — the glossary for a term's definition, and
+   the PRD only when it actually exists in the project; otherwise omit it. Never link to build or operations docs
    (deployment runbooks, setup guides, generated API references).
 6. **No tickets, no code references.** The doc stands on its own and stays true as the work
    and the codebase move. Never cite a ticket, issue, PR, roadmap item, or milestone
@@ -121,8 +138,8 @@ The file is `<subject>.design.md`, and the title names the same subject.
 # <Subject> — design
 
 **Last updated**: <YYYY-MM-DD>
-**Related**: `../prd.md` — only if a PRD exists; plus each `<other-subject>.design.md`
-this design touches
+**Related**: the feature this doc belongs to — `checkout.feature.md` — or, for a doc in
+`designs/`, the PRD when one exists; plus each `<other-subject>.design.md` this design touches
 
 <One or two sentences: what the subject is, and what it is for. Never what the document
 covers, leaves out, or how it relates to the PRD — the Related line carries that.>
@@ -230,10 +247,13 @@ Start a second doc — `<other-subject>.design.md` — as soon as one of these a
 - The same design is being restated for a second reader or a second part.
 - The doc needs "and" to say what it covers.
 
-Every doc carries the same header block (Status / Last updated / Related), links to its
-siblings through `Related`, and stays a **design doc** — structure and behavior only. The doc
-that references another names it by file (e.g. "see `event-ingestion.design.md`") instead of
+Every doc carries the same header block (Status / Last updated / Related), links to its feature
+and its siblings through `Related`, and stays a **design doc** — structure and behavior only. The
+doc that references another names it by file (e.g. "see `event-ingestion.design.md`") instead of
 repeating it. Never spin off (or link to) a build or operations doc.
+
+**A new subject inherits the folder of the doc it came out of** when it belongs to the same
+feature, and moves to `designs/` when the split is what made it cross-cutting.
 
 ## After drafting
 
@@ -249,7 +269,7 @@ and confirm with the user:
 4. Does any line cite a ticket/issue/PR or point at the code (a path, class name, route,
    prop)? Remove it, or restate it as an observable property.
 5. Is any part self-contained enough to be its own `<subject>.design.md` beside this one,
-   cross-referenced from here?
+   cross-referenced from here? If it is, does it belong to this feature, or to `designs/`?
 6. Are the states complete, including the failures — invalid input, a missing permission, an
    unavailable dependency, a duplicate?
 7. Would the doc lose anything if it were half as long? If not, cut it in half.

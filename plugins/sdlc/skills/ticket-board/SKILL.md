@@ -1,6 +1,6 @@
 ---
 name: ticket-board
-description: "Rules for the ticket board this plugin drives — where a ticket lives, the status folders it moves through, the epic that numbers it, the roadmap that lists the work that is left, the `Assignee` field that names who holds it, and the worklog that records what was decided while it was built. INVOKE THIS SKILL before you read, write, move, assign, or complete a ticket, before you add or delete a roadmap row, and before you write a worklog entry. Enforces one status record per ticket, a roadmap that only shrinks or gets corrected, one writer for the worklog, and one tool block per status transition."
+description: "Rules for the ticket board this plugin drives — where a ticket lives, the status folders it moves through, the epic that numbers it and the feature that epic delivers, the roadmap that lists the work that is left, the `Assignee` field that names who holds it, and the worklog that records what was decided while it was built. INVOKE THIS SKILL before you read, write, move, assign, or complete a ticket, before you add or delete a roadmap row, and before you write a worklog entry. Enforces one status record per ticket, a roadmap that only shrinks or gets corrected, one writer for the worklog, and one tool block per status transition."
 ---
 
 # ticket-board skill
@@ -54,11 +54,22 @@ already in flight. Keep writing the status field in place, and name the platform
 point as the way to migrate. Run that entry point when the tickets folder does not exist at all.
 A project that already keeps tickets elsewhere keeps them there — do not start a second home.
 
-## Every ticket belongs to an epic
+## Every ticket belongs to an epic, and every epic delivers one feature
 
-An **epic** is a named group of tasks that deliver one feature. It carries a short uppercase
-code — two to eight letters, taken from the product's own vocabulary — and that code prefixes
-every ticket ID under it: `AUTH-001`, `AUTH-002`, `BILLING-001`.
+An **epic** is the group of tasks that deliver one **feature**. The two are one thing seen from
+two sides: the feature is what a customer can do, and the epic is the work that gets it there.
+They share one short uppercase code — two to eight letters, taken from the product's own
+vocabulary — and that code prefixes every ticket ID under it: `AUTH-001`, `AUTH-002`,
+`BILLING-001`.
+
+**The feature note is where the code comes from.** `<docs root>/features/<feature>/<feature>.feature.md`
+carries it, and the **`feature`** skill holds how a feature is opened, named, and coded. Load that
+skill before you open an epic: an epic with no feature note is an epic whose code nothing owns.
+A feature exists before its first ticket, and outlives its last one.
+
+**An epic with no feature is the exception, not the shape.** A migration, an upgrade, or a cleanup
+that no customer would name gets an epic and a feature note with `customer_facing: false`, so the
+code still has one owner and the work still has one home.
 
 **The numbering restarts at 001 in each epic.** That is what the prefix buys. Two branches that
 plan separate features write into separate number spaces, so each can add a first ticket and
@@ -68,8 +79,13 @@ both branches take the same next free number, and both name the file the same th
 **`roadmap.md` is the list of epics that still have work in them.** It holds one
 `## <CODE> — <epic name>` section per epic, and that section holds the epic's task table. An epic
 exists in the roadmap before any ticket carries its code, and each code is unique in the project.
-A code may repeat a PRD area anchor code when the epic covers that whole area. A code never means
+A code may repeat a PRD area anchor code when the feature fills that whole area. A code never means
 two different things.
+
+**The roadmap shrinks; the features do not.** An epic's section is deleted when its last row is
+gone, and the feature note stays — it moves to `status: Shipped` and becomes the record that the
+product has the feature. Never read the roadmap as the list of what the product does; that list is
+`features/`.
 
 **Read the next number out of the files.** Glob every status folder for `<CODE>-*.md`, take the
 highest number in the epic, and add one. `done/` is part of that search, because a completed
@@ -85,8 +101,16 @@ point as the way to migrate.
 ## The roadmap holds the work that is left
 
 `roadmap.md` lists the tasks that are **not done yet**, and nothing else. One
-`## <CODE> — <epic name>` section per epic, one sentence on what the epic delivers, and one table
-row per task:
+`## <CODE> — <epic name>` section per epic, a `**Feature**:` line linking the feature the epic
+delivers, one sentence on what the epic delivers, and one table row per task:
+
+```markdown
+## CHECKOUT — Checkout
+
+**Feature**: [[checkout.feature]]
+
+A customer pays for an order without leaving the page.
+```
 
 | ID | Task | Status | Depends on | Ticket |
 | --- | --- | --- | --- | --- |
@@ -111,7 +135,10 @@ cell may name a task in another epic, because every ID is unique across the proj
 1. Delete the task's row.
 2. Delete the task's ID from every other row's `Depends on` cell, and write `—` in a cell that
    has nothing left.
-3. Delete the epic's whole section once its last row is gone.
+3. Delete the epic's whole section once its last row is gone, and set its feature to
+   `status: Shipped` with today's `shipped` date — after you check the work root holds the whole
+   feature, as the **`feature`** skill requires. A feature that is only partly usable stays
+   `In Progress` and keeps no roadmap section; say so in the report.
 4. Bump `**Last updated**`.
 
 The ticket in `done/` is the record of what was built, so the roadmap loses nothing. **The

@@ -1,6 +1,7 @@
 # [EPIC-XXX] Ticket Title
 
 **Epic**: EPIC — <epic name, as the roadmap section names it>  
+**Feature**: `features/<feature>/<feature>.feature.md` — the feature this epic delivers  
 **Status**: Not Started | In Progress | Blocked | Review | Completed  
 **Assignee**: — | <agent or command name> | user  
 **Priority**: Critical | High | Medium | Low  
@@ -52,6 +53,7 @@ Unit → Integration/API → Frontend E2E (critical paths only).
 
 ## Related
 
+- Feature: `features/<feature>/<feature>.feature.md`
 - Related Tickets: [links]
 - PRs: [links when created]
 - Worklog: `[EPIC-XXX]-[slug].worklog.md` — written once the work starts

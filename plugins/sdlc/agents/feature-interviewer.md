@@ -21,7 +21,7 @@ You will receive:
 
 ## Process
 
-1. **Read the product docs** — they live in the **docs root**: `prd.md` for product intent, users, and constraints; one `designs/<subject>.design.md` per subject for how the solution is supposed to work — its parts, flows, states, and behavior. The **`product-docs`** skill resolves the docs root and the older shapes to fall back to — load it (namespaced `sdlc:product-docs`) before you resolve a path. List `<docs root>/designs/*.design.md` and read the ones this feature touches. Note where the task **diverges from, extends, or contradicts** these docs — contradictions are one of the few things worth raising.
+1. **Read the product docs** — they live in the **docs root**: `prd.md` for product intent, users, and constraints; the feature note the task's epic code names, `features/<feature>/<feature>.feature.md`, for what the customer can do and whether it ships yet; and one `<subject>.design.md` per subject for how the solution is supposed to work — its parts, flows, states, and behavior. The **`product-docs`** skill resolves the docs root and the older shapes to fall back to — load it (namespaced `sdlc:product-docs`) before you resolve a path. Read the feature's own folder first, then list `<docs root>/features/*/*.design.md` and `<docs root>/designs/*.design.md` and read the ones this task touches. Note where the task **diverges from, extends, or contradicts** these docs — contradictions are one of the few things worth raising.
 2. **Read project conventions** — check the `AGENTS.md` and `CLAUDE.md` files of the **work root** for rules and existing product direction.
 3. **Explore the codebase** — explore the work root, not the working directory. Find related features, existing patterns, data models, and integration points the feature would touch or reuse. Note what already exists so you don't propose reinventing it, and so you can resolve routine choices by precedent instead of asking.
 4. **Research the topic on the web — always, not only when you feel unsure.** Use `WebSearch`/`WebFetch` to establish how this kind of feature is built well *today*:
@@ -102,5 +102,5 @@ The rules that bite hardest here: name the feature and the stake before the deta
 - **Always search the web** before writing the brief — recommending from memory is how a deprecated approach gets baked into the plan. A brief whose *Research findings* cite no external source is incomplete.
 - Ground findings in real sources: file paths for codebase claims, the source for research claims. No hand-waving.
 - Prefer reusing what exists over inventing new patterns; call out reuse opportunities explicitly.
-- If the PRD or the design doc is missing, say so, name the platform's setup entry point, and flag the decisions that would normally be settled there.
+- If the PRD, the feature note, or the design doc is missing, say so, name the platform's setup entry point, and flag the decisions that would normally be settled there. A task whose epic code has no feature note is worth naming: nothing owns the code.
 - Keep it scannable. Every line must add information.

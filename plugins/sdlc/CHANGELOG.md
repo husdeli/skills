@@ -5,6 +5,51 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.54.0] - 2026-09-28
+
+### Added
+
+- **The feature is now an entity in the framework, with `/feature` and the `feature` skill.** A
+  feature is one thing a customer can do. It owns a folder in `features/`, an index note named
+  `<feature>.feature.md`, and every design doc that belongs to it. Everything that needs to point
+  at a feature points at that one note.
+
+  - **The feature and its epic are one thing.** `ticket-board` already defined an epic as the group
+    of tasks that deliver one feature, so the two now share one uppercase code. The feature note
+    carries it, the roadmap epic section links the note with a `**Feature**:` line, and every
+    ticket under the epic takes the code as its prefix.
+  - **The roadmap shrinks; the feature register does not.** An epic's section is deleted when its
+    last task is done, and its feature note stays, marked `Shipped`. `features/` is what the
+    product does, `roadmap.md` is what is left, and `tickets/done/` is what happened.
+  - **A status is verified against the code.** A feature is `Shipped` only when the work root holds
+    the whole of it. The board can lag the code and the code can lag the board, so every command
+    that writes or quotes a status reads the repository first and corrects the note when the two
+    disagree.
+  - **The business plan's list of what the product does is generated.** Section 2 is a Dataview
+    query over `features/` in a vault, and a written table everywhere else. A capability with no
+    feature note is not typed into the plan — the feature is opened instead. `customer_facing:
+    false` keeps a platform epic out of the table.
+  - `product-docs` now names the `features/` folder and the `feature` type, and the ticket template
+    carries a `**Feature**` field.
+
+### Changed
+
+- **A design doc's folder is decided by ownership.** A doc that belongs to one feature sits in that
+  feature's folder, `features/<feature>/<subject>.design.md`. A doc that underpins every feature —
+  an app shell, an authentication model, a shared data model — stays in `designs/`. `/design` asks
+  one question to settle it: would this doc still be needed if the feature were dropped?
+- **A PRD area is not a feature.** The PRD keeps describing a handful of product areas in prose,
+  and the features that sit inside an area each get their own note, carrying the area's anchor code
+  in an `area` property. The PRD never becomes a list of features.
+- **`/setup` migrates a project that has no `features/` folder.** It proposes one feature per
+  roadmap epic, shows which design docs move into each feature folder and which stay cross-cutting,
+  and moves them after you approve the table. Like every other migration in `/setup`, it needs an
+  explicit yes, and a project that declines keeps working — every agent reads the older shape as a
+  fallback.
+- Every agent that reads the product documents now reads the feature note for the task it is
+  working on: `feature-interviewer`, `implementation-planner`, `plan-reviewer`, `code-reviewer`,
+  and `cto`.
+
 ## [0.53.0] - 2026-09-28
 
 ### Added

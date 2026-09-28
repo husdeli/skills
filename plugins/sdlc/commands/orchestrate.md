@@ -24,7 +24,8 @@ skill **once**, and follow it. Do not work from memory, and do not restate a ski
 spawn prompt: the agents load their own.
 
 **The documents sit in the docs root** — `prd.md`, `glossary.md`,
-`designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, with a worklog
+`features/<feature>/`, `designs/<subject>.design.md`, `roadmap.md`, and
+`tickets/<status>/<ID>-*.md`, with a worklog
 beside a ticket in flight. `product-docs` resolves the
 root, and every `.sdlc/…` path below means `<docs root>/…`. When the project has no structure at
 all, work from whatever it keeps at its root and name `/setup` in your report.
@@ -39,7 +40,7 @@ root and the code is somewhere else.
 `product-docs` holds the whole rule; what this command owns is *when*:
 
 - **Resolve the work root in Stage 0**, after the task is approved and before the ticket is
-  started. The ticket never names a repository, so the resolution reads the design doc, the ticket,
+  started. The ticket never names a repository, so the resolution reads the feature, the design doc, the ticket,
   the epic, and the registry's `what` lines. When it stays open, ask the user with
   `AskUserQuestion` — that question belongs to you, not to an agent.
 - **Write it into the opening worklog entry** — the code, the absolute path, and the evidence.
@@ -180,7 +181,7 @@ Track stages with the task/todo tools so the user sees live progress.
 **Stage 0.5 — Interview & Challenge (complexity-gated), with the planner scouting in parallel.**
 - **Skip the interview** when the task is trivially unambiguous — a small, well-specified change with no product/UX/architecture forks ("fix this off-by-one", "rename this field everywhere"). Note the skip in the report. Nothing to overlap: go to Stage 1 and spawn the planner in one-turn mode. Still record the **Decisions** block holding the `e2eDecision` from Step 2.
 - **Otherwise interview — and spawn the scout in the same message.** Issue **both `Agent` calls in one tool block** so they run concurrently:
-  - `sdlc:feature-interviewer` (namespaced `subagent_type`) with the task description, acceptance criteria, and roadmap context. It reads `.sdlc/prd.md` and the design docs the task touches, explores the codebase, researches the topic, and returns a **Discovery Brief** with **open decisions**, each with options and a recommendation.
+  - `sdlc:feature-interviewer` (namespaced `subagent_type`) with the task description, acceptance criteria, and roadmap context. It reads `.sdlc/prd.md`, the feature note the task's epic code names, and the design docs the task touches, explores the codebase, researches the topic, and returns a **Discovery Brief** with **open decisions**, each with options and a recommendation.
   - `sdlc:implementation-planner` (opus) in **scout-only** mode — see Stage 1. **Keep its id.**
 - **When the brief comes back**, settle it with the user while the scout runs or is parked:
   - **Put the decisions to the user yourself** with `AskUserQuestion` — a subagent cannot ask. Batch them (up to 4 per call), lead each with the interviewer's recommended option (labelled "(Recommended)"), and surface the brief's assumptions for confirmation. One call, not one per decision — every round trip is human latency on the critical path.

@@ -35,7 +35,8 @@ Each name may be namespaced here — `sdlc:product-docs`, `sdlc:ticket-board`,
 skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
 spawn prompt: the agents load their own.
 
-**The documents sit in the docs root** — `prd.md`, `glossary.md`, `designs/<subject>.design.md`,
+**The documents sit in the docs root** — `prd.md`, `glossary.md`, `features/<feature>/`,
+`designs/<subject>.design.md`,
 `roadmap.md`, and `tickets/<status>/<ID>-*.md`, with a worklog beside a ticket in flight.
 `product-docs` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`.
 
@@ -46,7 +47,7 @@ the work root per task, and reaches into a repository somewhere else. `product-d
 resolution rule. What is this command's:
 
 - **The work root is resolved in Stage 1.5**, after the CTO picks the task and before the ticket is
-  started. The ticket names no repository, so the evidence is the design doc, the ticket, the epic,
+  started. The ticket names no repository, so the evidence is the feature, the design doc, the ticket, the epic,
   and the registry's `what` lines.
 - **Nobody is here to break a tie.** When the evidence leaves it open, the `cto` agent answers —
   request `work-root` — and that answer counts against the same ruling budget as every other.
@@ -216,7 +217,7 @@ Track the stages with the task/todo tools, so the task's log shows live progress
 
 ### 1.5 Resolve the work root
 Resolve it as `product-docs` says, before anything is written and before any agent is spawned. One
-entry in the registry answers it outright; several mean reading the design doc the ticket cites, the
+entry in the registry answers it outright; several mean reading the feature and the design doc the ticket cites, the
 ticket itself, the epic, and each entry's `what` line, and then looking inside the candidate
 repositories for the code the task names.
 

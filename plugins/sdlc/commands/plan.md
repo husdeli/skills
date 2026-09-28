@@ -21,9 +21,9 @@ This is the intake path. `/prd` writes the PRD, `/design` writes the design doc,
 | **`diagrams`** | A diagram of a shape — how one is drawn, and how a document references it |
 | **`clean-writing`** | Every sentence you write, in a document or to the user |
 
-The documents sit in the **docs root**: `prd.md`, `glossary.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `product-docs` resolves the root; every `.sdlc/…` path below means `<docs root>/…`.
+The documents sit in the **docs root**: `prd.md`, `glossary.md`, `features/<feature>/<feature>.feature.md`, `features/<feature>/<subject>.design.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `product-docs` resolves the root; every `.sdlc/…` path below means `<docs root>/…`.
 
-**A ticket never names the repository it is built in** — the run that builds it works that out, from the design doc, the ticket, and the docs root's registry. So write the ticket about the product, and never about a repository path. What you *can* do is make that resolution easy: name the surface the work lands on in the ticket's description, in the words the design doc uses. When this session is vault-rooted and the code matters to the research, pass the candidate repositories to the interviewer as absolute paths, and check the session can read them. **Every ticket this command writes starts in `todo/`**, because no work has started on it. When the project keeps its design docs directly in the docs root, or its tickets folder is flat, write into the shape it already has.
+**A ticket never names the repository it is built in** — the run that builds it works that out, from the feature, the design doc, the ticket, and the docs root's registry. So write the ticket about the product, and never about a repository path. What you *can* do is make that resolution easy: name the surface the work lands on in the ticket's description, in the words the design doc uses. When this session is vault-rooted and the code matters to the research, pass the candidate repositories to the interviewer as absolute paths, and check the session can read them. **Every ticket this command writes starts in `todo/`**, because no work has started on it. When the project keeps its design docs directly in the docs root or all in `designs/`, or its tickets folder is flat, write into the shape it already has.
 
 ## Architecture: you write, one agent researches
 
@@ -72,7 +72,7 @@ Agent(subagent_type: "sdlc:feature-interviewer",
                  because the document update follows your brief.")
 ```
 
-...and read `glossary.md`, `prd.md`, the `designs/*.design.md` docs this request touches, and `roadmap.md` yourself. You need four things the interviewer will not hand you: the product's vocabulary, the parts and surfaces this request touches, the roadmap's epics and the numbering inside each of them, and the existing tasks the request duplicates or depends on.
+...and read `glossary.md`, `prd.md`, the feature notes in `features/` this request touches, the design docs in those feature folders and in `designs/`, and `roadmap.md` yourself. You need five things the interviewer will not hand you: the product's vocabulary, the features this request touches and the codes they already own, the parts and surfaces it changes, the roadmap's epics and the numbering inside each of them, and the existing tasks the request duplicates or depends on.
 
 The brief comes back as *Understanding*, *What already exists*, *Research findings*, *Open decisions*, *Assumptions*, and *Out of scope*. Nothing returned, or no brief after one retry → report that and stop before writing any file.
 
@@ -88,7 +88,8 @@ One gate, before you write any file:
 ## Plan: [feature]
 
 **PRD** — [section] — [what changes]  (or: no change)
-**Design docs** — [`designs/<subject>.design.md`] — [what changes]  (or: no change)
+**Features** — [`features/<feature>/<feature>.feature.md`] — [opened, or what changed]  (or: no change)
+**Design docs** — [the doc's path] — [what changes]  (or: no change)
 
 **Epic** — [CODE] — [epic name] — [existing, or new]
 
@@ -121,7 +122,9 @@ write the document it governs, and follow it. Do not restate its rules from memo
 
 **PRD** — load the **`prd`** skill and follow it. Fold the request into the existing sections in place, as the current truth, and keep the document whole. It stays product-only: no ticket ID, no roadmap reference, no library name, no file path. The decisions from the interview live in the tickets, not here. Bump `Last updated`.
 
-**Design docs** — only when the request changes how a part, a flow, or a surface works. Load the **`design-doc`** skill and follow it: one file per subject at `.sdlc/designs/<subject>.design.md`, the per-subject pattern (structure → behavior → states → variation and limits), the structural altitude, no tickets and no code references. Update the doc whose subject the request touches, and start a new one only for a subject that has none. Bump `Last updated` on each file you touch.
+**Features** — whenever the request adds something a customer can name, or changes the state of something they already can. Load the **`feature`** skill and follow it: one folder per feature, one `<feature>.feature.md` index, and the code that feature's epic and tickets take. Open the feature **before** you write its design doc or its first ticket, so both have an owner. A request that only changes how an existing feature works updates that feature's index and opens nothing.
+
+**Design docs** — only when the request changes how a part, a flow, or a surface works. Load the **`design-doc`** skill and follow it: one file per subject, in the feature's folder when it belongs to one feature and in `.sdlc/designs/` when it underpins every feature, the per-subject pattern (structure → behavior → states → variation and limits), the structural altitude, no tickets and no code references. Update the doc whose subject the request touches, and start a new one only for a subject that has none. Bump `Last updated` on each file you touch.
 
 **Roadmap** — follow the **`ticket-board`** skill's roadmap rules: one row per task and nothing else, the row cited by ticket file name, and a `Depends on` cell that names outstanding blockers only. Append the approved rows under their epic with status `⬜ **Pending**`, matching the file's existing style — an existing epic gets rows in its table, a new epic gets a new section at the end of the file with one sentence on what it delivers. **Touch no other epic's section**, so a branch planning a different feature changes different lines. Bump `Last updated`. **Never write any status other than pending**: in-progress belongs to whoever builds the task, and a completed task is deleted from the file rather than marked.
 
@@ -167,7 +170,7 @@ Do not run `/orchestrate` yourself. Name it and stop.
 - **Interview before you write.** Every request that reaches Stage 3 gets one; a request too small to interview was handed to `/code` in Stage 1.
 - **Never write a file before the user approves the breakdown.**
 - **Statuses stay at the start** — pending in the roadmap, `Not Started` and unassigned in the ticket, and the ticket file in `todo/`. This command never marks progress, never assigns a ticket, never writes a worklog, and never moves a ticket out of `todo/`.
-- **The link runs one way.** A ticket may cite a PRD area code; the PRD and the design doc never cite a ticket, an ID, or a roadmap row.
+- **The link runs one way.** A ticket cites its feature and may cite a PRD area code; the PRD, the feature index, and the design doc never cite a ticket, an ID, or a roadmap row. The feature index lists open work through a query, which is not a citation.
 - **Reuse the product's words** from the PRD for every domain term, in every document you touch — a second name for the same thing is how two documents start disagreeing.
 - **Never renumber or overwrite** an existing row, ID, or ticket.
 - **Hand off when the request needs code rather than documents** — name `/code`, `/orchestrate-quick`, or `/orchestrate`, and why.

@@ -32,7 +32,7 @@ A published mockup the user can open, and a written record of what they agreed t
 
 - **Nothing given** → ask which screen, component, or flow to design. Do not guess.
 - **A description** → use it as-is.
-- **A file path** (a ticket, a design doc, a note) → read it and design what it describes.
+- **A file path** (a ticket, a feature note, a design doc, a note) → read it and design what it describes.
 
 Say in one line when the target does not need this command — an invisible change, a copy fix, or
 one more row in a table that already exists. The skill lists what to skip.

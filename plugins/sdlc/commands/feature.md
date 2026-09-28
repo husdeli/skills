@@ -1,0 +1,42 @@
+---
+description: Open or update a feature — the folder that holds what a customer can do, its design docs, and the code that numbers its tickets.
+argument-hint: [the feature, in the words a customer would use]
+---
+
+# Feature
+
+Open or update a **feature** for the target below.
+
+Target: $ARGUMENTS
+
+Invoke the **`feature`** skill and follow it. If the skill is namespaced here (e.g.
+`sdlc:feature`), invoke that. Load it **before** you write anything, and follow its folder shape,
+its index properties, and its status rules exactly.
+
+- **Load the `product-docs` skill** (namespaced `sdlc:product-docs`) and resolve the docs root as
+  it says. It also holds what changes in a vault, where the index's fields are frontmatter
+  properties and every reference is a wikilink. Run `/setup` first when the project has no
+  structure at all.
+- **Load the `clean-writing` skill** and follow it for every sentence of the index. Two or three
+  sentences carry the whole feature, so each one has to land.
+- **Load the `glossary` skill** for the feature's name and every term it uses. A feature that
+  coins a term writes that term's entry in the same run.
+- **Look before you write.** List `<docs root>/features/`, and grep the docs root for the code you
+  are about to take. A feature that already exists is updated in place, never opened twice, and a
+  code that is already taken means the feature is already there under another name.
+- **Check the status against the work root.** `Shipped` is a claim about the code, not about the
+  board. Read the repository the registry names — `product-docs` resolves it — before you write or
+  change a status, and say what the evidence was.
+- **Write the index only.** A design doc is written by `/design`, which puts it in this feature's
+  folder. A ticket is written by `/plan`. This command opens the feature and keeps its index true.
+
+**When the feature already exists**, update it in place: the status and its `shipped` date, the
+`area` when the PRD moved it, the list of designs when a doc was added, and `updated`. Never
+rewrite the code of a feature that has tickets.
+
+**Then report**: the feature's name, its code, its status and the evidence behind it, the path of
+the index, and what to do next — `/design` to specify how it works, `/plan` to turn it into
+tickets.
+
+If no target was given above, list the features that already exist and ask which one to open or
+update.
