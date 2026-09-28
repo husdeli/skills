@@ -128,8 +128,9 @@ orchestrator builds it.
 
 Inside a vault the documents are written the way Obsidian reads them, and nothing else changes:
 
-- **No folder starts with a dot**, because Obsidian hides those. The docs root is named after
-  the product, and it is always a folder inside the vault, never the vault root.
+- **No folder starts with a dot**, because Obsidian hides those. The docs root is a folder named
+  after the product — or the vault root itself, when you keep a vault for this one product and
+  point `/scaffold` at it.
 - **Fields become properties.** `**Status**: In Progress` under the title becomes
   `status: In Progress` in the frontmatter, so a ticket is queryable in Bases or Dataview. The
   property is the record the commands rewrite.

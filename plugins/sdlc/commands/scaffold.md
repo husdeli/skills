@@ -88,11 +88,21 @@ stop at the first that applies:
 **Then classify the destination.** Walk up from the chosen path looking for a `.obsidian/`
 folder — in the path itself, or in any parent directory:
 
-- **Found** → the destination is a **vault**. Name the vault in your report. When the chosen
-  path *is* the vault root, create the docs root as a folder inside it, named after the product
-  (`<vault>/Acme/`), so `prd.md` does not land among the user's own notes. Never name a folder
+- **Found** → the destination is a **vault**. Name the vault in your report. Never name a folder
   in a vault with a leading dot: Obsidian hides it. If the user asked for `.sdlc` inside a
   vault, say why it would be invisible and offer the product-named folder instead.
+
+  **When the chosen path is the vault root itself**, look at what that folder already holds,
+  ignoring `.obsidian/`:
+
+  - **Nothing, or only this plugin's own documents** — `prd.md`, `glossary.md`, `roadmap.md`,
+    `designs/`, `diagrams/`, `tickets/` → **the vault root is the docs root.** A vault kept for
+    one product needs no folder inside it, and a folder named after the vault
+    (`sdlc-obsidian/sdlc-obsidian/`) helps nobody. Do not ask, and never nest.
+  - **Notes of its own** — any other note or folder → say that `prd.md`, `glossary.md`, and
+    `roadmap.md` would land among those notes, and offer a product-named folder inside the vault
+    (`<vault>/Acme/`) as the alternative. The user chooses; take the vault root when they
+    confirm it.
 - **Not found**, and the path is outside the repository → the destination is a **folder**.
 - **Inside the repository** → the destination is the **repository**, and the docs root is
   `.sdlc/`.

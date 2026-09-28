@@ -76,8 +76,11 @@ the headings, and the words of every document stay the same.
   `.sdlc/` folder inside a vault is invisible. The docs root is named after the product
   (`Acme/`), and `designs/`, `diagrams/`, `tickets/`, `todo/`, `in-progress/`, and `done/` keep
   their names.
-- **Never scaffold into the vault root.** The docs root is always a folder inside the vault, so
-  `prd.md` does not land among the user's own notes.
+- **The vault root is a valid docs root.** A vault kept for one product needs no folder inside
+  it, and a folder named after the vault (`sdlc-obsidian/sdlc-obsidian/`) helps nobody. Use a
+  product-named folder inside the vault instead when the vault root already holds notes of its
+  own, so `prd.md` does not land among them. The scaffold entry point settles which of the two it
+  is; every other command takes the docs root from `.sdlc.json` and never second-guesses it.
 - File names are unchanged: `prd.md`, `glossary.md`, `roadmap.md`, `checkout.design.md`,
   `AUTH-001-user-login.md`.
 

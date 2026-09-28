@@ -5,6 +5,18 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.49.1] - 2026-09-28
+
+### Changed
+
+- **`/scaffold` can put the documents in the vault root.** A vault kept for one product needed a
+  folder inside it, which made a docs root named after the vault it already sat in
+  (`sdlc-obsidian/sdlc-obsidian/`). Now the command looks at what the vault root holds, ignoring
+  `.obsidian/`: an empty vault, or one holding only this plugin's own documents, **is** the docs
+  root, with no folder and no question. A vault holding notes of its own still gets the offer of a
+  product-named folder, because `prd.md` should not land among them — but the user can pick the
+  vault root.
+
 ## [0.49.0] - 2026-09-28
 
 ### Added
