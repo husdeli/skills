@@ -5,6 +5,80 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.49.0] - 2026-09-28
+
+### Added
+
+- **`/run-roadmap` builds the roadmap with nobody in the room.** It is `/orchestrate` with the human
+  taken out: the same stages, the same gates, the same caps, and **no `AskUserQuestion` at any
+  stage**. One invocation is one task, from pending to committed.
+
+- **The `cto` agent is what sits where you would.** It reads the PRD, the glossary, and the design
+  docs on its first turn, and it is spawned once and resumed for every question in the run, so one
+  line of judgment covers the whole roadmap. It answers three requests:
+
+  | Request | What it decides |
+  | --- | --- |
+  | `task-selection` | Which candidate task to build, and whether the task gets end-to-end tests |
+  | `decisions` | Every open decision the feature interview raised, every assumption, and the out-of-scope list |
+  | `escalation` | What happens when a stage runs out of retries — `retry` with guidance, `rescope`, `defer`, or `stop-run` |
+
+  It decides in a fixed order — the PRD and the design docs first, then the acceptance criteria, then
+  precedent, then the reversible option — and it names the cost of every decision it makes. It writes
+  no file: the command records each answer in the ticket and the worklog.
+
+- **The hand-back bar is the edge of its authority.** The CTO stops the run and leaves the ticket for
+  a person only for money, credentials it does not hold, anything irreversible, the security or
+  permission model, a legal or licensing call, a PRD contradiction it cannot settle from the
+  documents, and work the roadmap does not authorize. Everything else — a library choice, a data
+  model, a test strategy, a scope trim — is its own.
+
+- **`scripts/run-roadmap.sh` is the unattended loop.** It calls `claude -p "/sdlc:run-roadmap"` once
+  per task, so each task starts with a clean context and ends with its own commit:
+
+  ```shell
+  plugins/sdlc/scripts/run-roadmap.sh --max-tasks 5
+  ```
+
+  It refuses to start outside git, on a dirty tree, with a log directory git would commit, or on a
+  non-interactive shell without `--yes`. It kills a task that runs past `--timeout` along with
+  everything that task started, stops when a task leaves uncommitted work behind, stops when the
+  roadmap stops shrinking, and prints one line per task with the commit it produced. `--max-tasks`,
+  `--keep-going`, `--roadmap`, `--model`, `--permission-mode`, `--dry-run`, and `--quiet` are the
+  rest of it.
+
+- **The command ends in one parsable line**, which is the interface between the two:
+
+  ```
+  RUN-ROADMAP-RESULT {"outcome":"completed","taskId":"AUTH-002","commit":"a1b2c3d","remaining":4,"nextAction":"continue","reason":""}
+  ```
+
+  Seven outcomes — `completed`, `deferred`, `handed-back`, `aborted`, `stop-run`, `no-work`, and
+  `blocked` — and `nextAction` follows from the outcome mechanically, so the script never has to
+  judge anything.
+
+- **Every cap is hard, because nobody is watching.** One task per invocation, one plan revision, one
+  fix cycle, one CTO ruling per stage, two per task, and one retry cycle per ruling. A cap with
+  nothing left is a hand-back.
+
+- **A run leaves a clean tree either way.** A finished task is committed with the ticket, its
+  worklog, and the roadmap edit in the same commit. A deferred task's code is reverted and its record
+  kept, so the next task starts where the last one did. Nothing is ever pushed.
+
+### Changed
+
+- **The interview always runs in `/run-roadmap`.** `/orchestrate` may skip it on a trivially
+  unambiguous task because a person is there to catch what the skip missed. Nobody is there here, the
+  brief is what the CTO rules on, and a task with no brief is a task whose assumptions nobody stated.
+
+- **The end-to-end suite runs inside the gate**, not as a question at the end the way
+  `/orchestrate-quick` asks it. There is no user to ask, and an unattended commit must not rest on a
+  suite nobody ran.
+
+- **The Codex subagent protocol names the CTO role and lifts one rule for it.** `$run-roadmap` is the
+  single exception to its user-decision section: that workflow asks the user nothing, and the `cto`
+  agent chooses on their behalf. Every other workflow keeps the approval rules exactly as they were.
+
 ## [0.48.0] - 2026-09-27
 
 ### Added

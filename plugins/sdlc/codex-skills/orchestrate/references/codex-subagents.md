@@ -1,6 +1,6 @@
 # Codex Subagent Protocol
 
-Use this protocol with `commands/orchestrate.md`, `commands/orchestrate-quick.md`, `commands/code.md`, `commands/review.md`, and `commands/plan.md`.
+Use this protocol with `commands/orchestrate.md`, `commands/orchestrate-quick.md`, `commands/run-roadmap.md`, `commands/code.md`, `commands/review.md`, and `commands/plan.md`.
 The command file defines workflow behavior. This protocol replaces only Claude-specific tools and runtime terms.
 
 ## Contents
@@ -43,7 +43,7 @@ Apply these replacements while executing the shared command:
 | `WebSearch`, `WebFetch` | Use Codex web tools and cite the sources that the role requires. |
 | `opus`, `sonnet`, or another Claude model | Omit the model override and inherit the current Codex model. |
 | `CLAUDE.md` | Read applicable `AGENTS.md` files first. Also read `CLAUDE.md` when present. |
-| `/scaffold`, `/orchestrate`, `/orchestrate-quick`, `/code`, `/review`, `/plan` | Use `$scaffold`, `$orchestrate`, `$orchestrate-quick`, `$code`, `$review`, `$plan`. |
+| `/scaffold`, `/orchestrate`, `/orchestrate-quick`, `/run-roadmap`, `/code`, `/review`, `/plan` | Use `$scaffold`, `$orchestrate`, `$orchestrate-quick`, `$run-roadmap`, `$code`, `$review`, `$plan`. |
 | `/design`, `/prd`, `/explain` | Use `$design-doc`, `$prd`, `$explain`. |
 | `$ARGUMENTS` | Use the text that follows the Codex skill invocation. |
 
@@ -165,6 +165,12 @@ When the shared workflow requires approval or decisions:
 3. End the turn and wait for the user's answer.
 4. Resume the existing persistent agents after the answer arrives.
 
+`$run-roadmap` is the one exception to this section. Invoking it authorizes the `cto` agent to answer
+in the user's place, so that workflow asks the user nothing at all: no user-input tool, and no turn
+that ends waiting for an answer. Spawn `cto` once, resume it with `followup_task` for every later
+question, and follow `commands/run-roadmap.md` for what happens when it hands a decision back. Every
+other rule in this section applies to every other workflow.
+
 Invoking `$orchestrate` with a roadmap is not approval for the selected task.
 Do not change task status or create subagents until a later user message approves that task.
 Invoking `$plan` with a request is not approval for the task breakdown it proposes.
@@ -188,6 +194,7 @@ Do not request a JSON block after a scout or pre-read turn when its role contrac
 
 | Workflow role | Role file | First task name |
 | --- | --- | --- |
+| CTO (`$run-roadmap` only) | `cto.md` | `cto` |
 | Feature interviewer | `feature-interviewer.md` | `feature_interviewer` |
 | Implementation planner | `implementation-planner.md` | `implementation_planner` |
 | Normal reviewer | `plan-reviewer.md` | `plan_reviewer` |
@@ -203,7 +210,7 @@ Do not change the shared plan-reviewer contract.
 
 ## 11. Handle missing collaboration tools
 
-The full workflow, the quick workflow, `$code`, `$review`, and `$plan` require Codex collaboration tools.
+The full workflow, the quick workflow, `$run-roadmap`, `$code`, `$review`, and `$plan` require Codex collaboration tools.
 If `spawn_agent`, `followup_task`, or `wait_agent` is unavailable, stop before changing task status.
 
 Tell the user that this Codex session does not provide subagents.
@@ -212,3 +219,4 @@ Do not silently replace the reviewed workflow with one main-agent pass.
 For `$code`, the coding subagent is the whole workflow, so the same rule applies.
 For `$review`, the code-reviewer subagent is the whole workflow, so the same rule applies.
 For `$plan`, the interview is the research the documents rest on, so stop rather than plan from memory.
+For `$run-roadmap`, the CTO subagent is what stands in for the user, so stop rather than decide alone.

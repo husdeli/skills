@@ -1,8 +1,9 @@
 # sdlc
 
 Plan, review, implement, and verify a change, with clean architecture rules for TypeScript,
-React, and TanStack Start. Eleven commands drive six agents, and ten skills hold the rules they
-all follow.
+React, and TanStack Start. Twelve commands drive seven agents, and fourteen skills hold the rules they
+all follow. One of those commands needs nobody in the room: `/run-roadmap` puts a **cto** agent
+where the user would be and builds the roadmap unattended.
 
 Part of the [husdeli skills](../../README.md) marketplace.
 
@@ -33,6 +34,7 @@ skills/                          # shared rules and document skills, read by bot
 codex-skills/                    # Codex entry points, never loaded by Claude Code
 agents/                          # agent definitions and Codex role contracts
 commands/                        # Claude commands and shared workflow sources
+scripts/                         # run-roadmap.sh, the unattended launcher
 ```
 
 ## Where your product docs live
@@ -139,6 +141,44 @@ Inside a vault the documents are written the way Obsidian reads them, and nothin
 
 The `product-docs` skill holds these rules, and the plugin loads it whenever the destination is a
 vault. Pick **In the repository** at the prompt and none of it applies.
+
+## Running the roadmap unattended
+
+Every other command in this plugin stops and asks you something. `/run-roadmap` does not, because it
+is built for the case where you are not there: the **cto** agent answers in your place, the task is
+committed when it passes, and a launcher script starts the next one in a fresh session.
+
+```shell
+# from the repository you want built
+plugins/sdlc/scripts/run-roadmap.sh --max-tasks 5
+plugins/sdlc/scripts/run-roadmap.sh --roadmap docs/roadmap.md --keep-going --yes
+```
+
+**One task per session** is what makes a long roadmap possible: the script calls
+`claude -p "/sdlc:run-roadmap"` once per task, and each task starts with a clean context and ends
+with its own commit. The command prints one `RUN-ROADMAP-RESULT` line, the script reads it, and the
+roadmap itself is the loop counter — the run ends when the last row is gone.
+
+**What stops a run:**
+
+| It stops when | Because |
+| --- | --- |
+| The roadmap has no task whose dependencies are satisfied | There is nothing to build |
+| The CTO hands a decision back | Money, credentials, anything irreversible, the security model, a legal call, or a PRD contradiction it cannot settle |
+| A stage runs out of rulings | One ruling per stage, two per task. A third is a person's problem |
+| An agent returns nothing usable | A dead agent is not a thing to retry around |
+| The tree is dirty before it starts, or a commit is rejected | Every task commits with `git add -A`, so the ground has to be clean |
+| A task runs past `--timeout` | The task and everything it started are killed, and the run stops |
+
+**Before the first run:** be on a branch you are willing to throw away. The script checks that you
+are in git with a clean tree, and it commits to the branch you are on — one commit per task, never a
+push. It runs with `--permission-mode bypassPermissions`, because a permission prompt in a headless
+session is a dead run, so the tasks it builds get your full tool access without asking. Read
+`--help` first, and read `git log` after.
+
+**What you read afterwards** is the worklog beside each ticket in `done/`. Every CTO answer is in
+there — the decision, what it beat, and the cost it accepted — because a run nobody watched is only
+worth as much as its record.
 
 ## What's in it
 
@@ -250,6 +290,14 @@ what a ticket is, and why changing how a status transition works is one edit rat
   plan from either orchestrator, or a request `/code` sends with no plan at all.
 - **verify** — runs the project's gating commands (tests, lint, typecheck, e2e when there is
   one) concurrently and reports pass/fail per command. Writes no code, and reviews none either.
+- **cto** — stands in for you when nobody is in the room. It reads the PRD, the glossary, and the
+  design docs once, then answers what `/orchestrate` would have asked you: which task to build next,
+  whether it gets end-to-end tests, how each open decision goes, and what happens when a stage runs
+  out of retries — one more cycle with guidance, a narrower task, a deferred task, or the end of the
+  run. It hands a decision back to you only for the things a person must own: money, credentials,
+  anything irreversible, the security model, a legal or licensing call, and a contradiction with the
+  PRD it cannot settle from the documents. It writes no file — `/run-roadmap` records every answer
+  in the ticket and the worklog, which is how an unattended run stays readable afterwards.
 
 ### Commands and Codex skills
 - **/scaffold** — asks where the docs root goes — in the repository as `.sdlc/`, or in a folder
@@ -288,6 +336,22 @@ what a ticket is, and why changing how a status transition works is one edit rat
   plan → one review → implement → verify and code review, with no interview and no review
   gating. Takes a task description or a roadmap/ticket path. It asks nothing: end-to-end tests
   default to no, and it reports that default.
+- **/run-roadmap** — `/orchestrate` with nobody in the loop. It never asks you anything: the **cto**
+  agent picks the task and calls the end-to-end question, the interview always runs and the CTO
+  settles its decisions, and a stage that hits its cap gets a CTO ruling — retry once with guidance,
+  narrow the task, defer it, or end the run — instead of stopping to wait for you. The finished task
+  is committed on the branch you are on, and nothing is pushed. One invocation is one task, and it
+  ends with a machine-readable result line, so
+  [`scripts/run-roadmap.sh`](scripts/run-roadmap.sh) can loop it over a whole roadmap in a fresh
+  session per task:
+
+  ```shell
+  plugins/sdlc/scripts/run-roadmap.sh --max-tasks 5
+  ```
+
+  The script refuses to start outside git or on a dirty tree, kills a task that runs too long,
+  stops the moment the CTO hands something back, and prints one line per task at the end with the
+  commit each one produced. Read `--help` before the first run, and read the commits after it.
 - **/code** — hands your request straight to the **coding** agent, which loads the coding skills
   itself. One agent, no planner, no reviewer, no verify agent: it finds the files, writes the
   change, runs a targeted self-check, and the command reports what it did and what nobody ran.
@@ -319,6 +383,7 @@ Use these equivalents in a Codex prompt:
 | `/scaffold [product]` | `$sdlc:scaffold [product]` |
 | `/orchestrate [roadmap]` | `$sdlc:orchestrate [roadmap]` |
 | `/orchestrate-quick [task]` | `$sdlc:orchestrate-quick [task]` |
+| `/run-roadmap [roadmap]` | `$sdlc:run-roadmap [roadmap]` |
 | `/code [request]` | `$sdlc:code [request]` |
 | `/review [target]` | `$sdlc:review [target]` |
 | `/plan [request]` | `$sdlc:plan [request]` |

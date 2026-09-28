@@ -1,0 +1,4 @@
+interface:
+  display_name: "Run Roadmap Autonomously"
+  short_description: "Build the next roadmap task with a CTO agent in place of you"
+  default_prompt: "Use $run-roadmap to build the next roadmap task without asking me anything."

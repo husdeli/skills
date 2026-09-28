@@ -133,8 +133,9 @@ Rules for the report:
 
 End with one line, matching what you found:
 
-- **Something is ready** → `/orchestrate` to build it with the full pipeline, or
-  `/orchestrate-quick <ID>` when the task is already well understood.
+- **Something is ready** → `/orchestrate` to build it with the full pipeline,
+  `/orchestrate-quick <ID>` when the task is already well understood, or `/run-roadmap` when nobody
+  is going to be in the room and the `cto` agent should decide instead.
 - **Something in flight is assigned to `user`** → name it first, whatever else is ready: an
   escalated task is waiting on a decision only a person can make. Say what its last worklog entry
   gives as the reason, and that `/orchestrate` continues it once that is settled.
