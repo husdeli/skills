@@ -5,6 +5,46 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.51.0] - 2026-09-28
+
+### Added
+
+- **One board can now drive several code repositories, and running from the vault is the
+  recommended shape.** Until now the workflow ran one way: a session inside a code repository found
+  its documents through `.sdlc.json`. A product built from a web app and an API needed two boards,
+  or one board only half of the work could reach. Now the pointer runs both ways — start a session
+  in the vault, pick a task from one roadmap, and it is built in whichever repository it belongs to.
+
+  - **`sdlc.json` in the docs root is the registry.** One entry per repository: a short code, the
+    path, and one line saying what belongs in that repository. It is machine-local, and `/setup`
+    gitignores it when the docs root sits in a git tree.
+  - **`/setup` writes both pointers** — the registry in the docs root, and `.sdlc.json` in every
+    repository it names — and it now runs from either end. Started in the vault, it asks which
+    repositories the product is built in; started in a repository, it registers that one.
+  - **A ticket still names no repository.** The run resolves the **work root** when it picks the
+    task, from the design doc the ticket cites, the ticket, the epic, each registry entry's `what`
+    line, and the code already in each candidate tree. It asks you when the evidence leaves it
+    open, and the `cto` agent answers instead in an unattended run — a new `work-root` request.
+    The choice and its evidence are written into the worklog, which is the only record of where a
+    task was built.
+  - **Every stage now runs against the work root**: `git -C <work root> …`, `cd <work root> && …`,
+    that repository's `AGENTS.md` and `CLAUDE.md`, its verification commands, its code review, and
+    its commit. The planner carries `workRoot` in the context pack, so the reviewer, the coding
+    agent, and the verifier all land in the same tree.
+  - **`run-roadmap.sh` runs from the docs root.** It reads the registry, grants the session each
+    repository with `--add-dir`, checks every tree is clean before it starts and between tasks,
+    commits each task in the repository it landed in, and reports a commit range per repository.
+    `--docs-root PATH` runs it from anywhere. The `RUN-ROADMAP-RESULT` line gained a `workRoots`
+    field.
+  - **A task that must change two repositories at once** implements, verifies, reviews, and commits
+    in each, and passes only when both pass.
+
+### Changed
+
+- **Nothing changes for a single-repository project.** A session started inside a repository
+  behaves exactly as before: the registry is read only when the session starts in the vault, and a
+  docs root with no `sdlc.json` still drives the one repository whose `.sdlc.json` points at it.
+
 ## [0.50.0] - 2026-09-28
 
 ### Changed

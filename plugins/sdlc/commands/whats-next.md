@@ -13,7 +13,7 @@ Filter (if provided): $ARGUMENTS
 
 **Load three skills before you report**, each once — namespaced here as `sdlc:<name>`:
 
-- **`product-docs`** — where the docs root is. Every `.sdlc/…` path below means `<docs root>/…`.
+- **`product-docs`** — where the docs root and the work root are. Every `.sdlc/…` path below means `<docs root>/…`.
 - **`ticket-board`** — the roadmap's shape, what a `Depends on` cell means, the status-to-folder
   map, the `Assignee` field, and the worklog. It is what you are reading; read it there rather
   than inferring it from the files.
@@ -21,6 +21,12 @@ Filter (if provided): $ARGUMENTS
 
 The documents sit in the docs root: `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md` with a
 worklog beside a ticket that work has started on.
+
+**Say where the work happens.** A docs root with a `sdlc.json` registry drives one repository or
+several. List them once, at the top of the report — the code and the path per entry — and, for each
+ticket in flight, name the work root its worklog records. That is the only place a task's repository
+is written down, and it is what tells a reader which tree to open. Say nothing about a repository
+when there is no registry: the code is then wherever this session is standing.
 
 **This command is read-only.** Do not write a file, do not move a ticket, do not change a status,
 and do not start a task. It reports what is there and stops. Reading the roadmap wrong is the one

@@ -15,7 +15,7 @@ This is `/orchestrate` with the human-in-the-loop stages removed. There is **no 
 
 | Skill | What it holds | Load before |
 | --- | --- | --- |
-| **`product-docs`** | Where the docs root is, and how each destination writes a document | you read any document |
+| **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 2 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 3 |
 | **`clean-writing`** | Every word the user reads | Stage 3 |
@@ -84,7 +84,9 @@ as Stage 2 does.
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
-The documents sit in the **docs root** — `prd.md`, `glossary.md`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md` with a worklog beside a ticket in flight. `product-docs` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`; a bare path resolves against the docs root first, then the project root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
+The documents sit in the **docs root** — `prd.md`, `glossary.md`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md` with a worklog beside a ticket in flight. `product-docs` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`; a bare path resolves against the docs root first, then the work root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
+
+**The code sits in the work root**, which is the session's own repository in a repo-rooted run, and a repository named in the docs root's registry in a vault-rooted one. `product-docs` holds the resolution; this command resolves it in Stage 2, before the ticket starts, writes it into the opening worklog entry, and passes it as an absolute path in every agent prompt. Ask the user when the evidence leaves it open, and check the session can write there before you spawn anything — `/add-dir <work root>` is the fix, and no agent can apply it.
 
 Never start a task whose dependencies are incomplete.
 
@@ -96,8 +98,10 @@ Never start a task whose dependencies are incomplete.
 
 Track the stages with the task/todo tools so the user sees live progress.
 
-### 2. Start the ticket
-Before spawning anything, run the **`ticket-board`** skill's **Starting a ticket** transition yourself, with the edits in one tool block. Two values are this command's: the **assignee** is `implementation-planner, plan-reviewer`, and the **opening worklog entry** is `orchestrate-quick · start` — the task, what it delivers, and the end-to-end default below.
+### 2. Resolve the work root, then start the ticket
+Resolve the work root first, as `product-docs` says. Then run the **`ticket-board`** skill's **Starting a ticket** transition yourself, with the edits in one tool block. Two values are this command's: the **assignee** is `implementation-planner, plan-reviewer`, and the **opening worklog entry** is `orchestrate-quick · start` — the task, what it delivers, the work root and the evidence that settled it, and the end-to-end default below.
+
+With a bare task description and no board, there is no worklog to write it in: resolve the work root anyway, and name it in one line of your report.
 
 Do whichever of the ticket and the roadmap exists. With a bare task description and no files, skip this stage.
 
@@ -107,17 +111,18 @@ Issue **both `Agent` calls in one tool block** so they run concurrently. The rev
 ```
 Agent(subagent_type: "sdlc:implementation-planner", model: "opus",
       prompt: task block + acceptance criteria + any ticket/roadmap context + the e2eDecision line
+              + the work root as an absolute path
               + "No interview ran — plan from the task and acceptance criteria alone.
                  State any assumption you make rather than guessing silently.")
 
 Agent(subagent_type: "sdlc:plan-reviewer", model: "sonnet",
-      prompt: task block + acceptance criteria
+      prompt: task block + acceptance criteria + the work root as an absolute path
               + "PRE-READ ONLY. There is no context pack and no plan yet — the plan is being
                  written now. Find and read the code this task touches, and reply with a few
                  lines on what you read and any hazard you already see. Do NOT issue a verdict.")
 ```
 
-Keep **both ids**. The planner returns the plan markdown plus one `json` block carrying `contextPack` (relevant files, key symbols, conventions, `verificationCommands`, `e2eCommand`) and `riskProfile` — **ignore `riskProfile` here**, it drives gates this pipeline does not have. Forward the `contextPack` into the plan reviewer's, coding agent's, code reviewer's, and every verify agent's *first* message so none of them cold-explores the codebase; later `SendMessage` turns already have it.
+Keep **both ids**. The planner returns the plan markdown plus one `json` block carrying `contextPack` (the `workRoot`, relevant files, key symbols, conventions, `verificationCommands`, `e2eCommand`) and `riskProfile` — **ignore `riskProfile` here**, it drives gates this pipeline does not have. Forward the `contextPack` into the plan reviewer's, coding agent's, code reviewer's, and every verify agent's *first* message so none of them cold-explores the codebase; later `SendMessage` turns already have it.
 
 Planner returns nothing → `aborted` (stage `plan`).
 

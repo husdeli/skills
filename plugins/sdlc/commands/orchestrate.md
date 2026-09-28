@@ -13,7 +13,7 @@ Roadmap file (if provided): $ARGUMENTS
 
 | Skill | What it holds | Load before |
 | --- | --- | --- |
-| **`product-docs`** | Where the docs root is, and how each destination writes a document | you read any document |
+| **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 0 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 0.5 |
 | **`clean-writing`** | Every word the user reads | Stage 1 |
@@ -28,6 +28,29 @@ spawn prompt: the agents load their own.
 beside a ticket in flight. `product-docs` resolves the
 root, and every `.sdlc/…` path below means `<docs root>/…`. When the project has no structure at
 all, work from whatever it keeps at its root and name `/setup` in your report.
+
+## The code sits in the work root, which is not always where you are standing
+
+**The work root is the repository this task is built in.** In a session started inside a repository
+it is that repository, and nothing below changes. In a session started in the vault — the
+recommended shape, where one board drives several repositories — the working directory is the docs
+root and the code is somewhere else.
+
+`product-docs` holds the whole rule; what this command owns is *when*:
+
+- **Resolve the work root in Stage 0**, after the task is approved and before the ticket is
+  started. The ticket never names a repository, so the resolution reads the design doc, the ticket,
+  the epic, and the registry's `what` lines. When it stays open, ask the user with
+  `AskUserQuestion` — that question belongs to you, not to an agent.
+- **Write it into the opening worklog entry** — the code, the absolute path, and the evidence.
+- **Put it in every agent prompt as an absolute path**, and tell the planner to carry it in the
+  context pack as `workRoot`, so the reviewer, the coding agent, the verifier, and the code
+  reviewer all read the same value.
+- **Check the session can write there** before Stage 0.5. When it cannot, stop and say which
+  command fixes it: `/add-dir <work root>`, or a restart as `claude --add-dir <work root>`. That
+  is a setup problem, and no agent can solve it.
+- **A task that spans two repositories** runs the implementation, the verification, the code
+  review, and the commit once per work root, and passes only when every one of them passes.
 
 ## The worklog and the assignee — you are the only writer
 
@@ -62,7 +85,7 @@ This command runs entirely **in the main loop, with you**. The human-facing stag
 ```
   YOU (main loop)
   ─────────────────────────
-  list candidates ─► AskUserQuestion (which task + e2e?) ─► start the ticket ─►
+  list candidates ─► AskUserQuestion (which task + e2e?) ─► work root ─► start the ticket ─►
 
   ┌ Agent(feature-interviewer) ─► AskUserQuestion (settle Decisions) ─┐   concurrent
   └ Agent(planner) "SCOUT ONLY" ─► context pack ────────────────────┐ │
@@ -97,7 +120,7 @@ Two spawns go out **early and concurrent**, so they run inside otherwise dead ai
 A scouted plan or pre-read review is occasionally discarded (the gate skips review, or the decisions redirect the task). That is a token cost, not a wall-clock one — take it.
 
 ### Context Pack (built once, forwarded automatically)
-The planner emits a **context pack** — relevant files, key symbols, conventions, the exact verification commands, and the project's e2e command — in its JSON block on the **scout turn**, before the plan exists. Paste it into the plan reviewer's, the coding agent's, and the code reviewer's *first* message and into every `verify` spawn, so none of them cold-explores the codebase (later `SendMessage` turns already have it). The interview's **Decisions** arrive later, as the planner's second message.
+The planner emits a **context pack** — the work root, relevant files, key symbols, conventions, the exact verification commands, and the project's e2e command — in its JSON block on the **scout turn**, before the plan exists. Paste it into the plan reviewer's, the coding agent's, and the code reviewer's *first* message and into every `verify` spawn, so none of them cold-explores the codebase (later `SendMessage` turns already have it). The interview's **Decisions** arrive later, as the planner's second message.
 
 ## Everything you show the user goes through `clean-writing`
 
@@ -149,9 +172,10 @@ Then put **one `AskUserQuestion` call** with **two questions** — one round tri
 ### 3. Drive the Task to Completion
 Track stages with the task/todo tools so the user sees live progress.
 
-**Stage 0 — Start the ticket (before spawning any agent).** As soon as the task is approved and *before* launching `feature-interviewer`, run the **`ticket-board`** skill's **Starting a ticket** transition — status, assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all in one tool block. Do it yourself with file edits; do not delegate it. Two values are this command's:
+**Stage 0 — Resolve the work root, then start the ticket (before spawning any agent).** As soon as the task is approved and *before* launching `feature-interviewer`, resolve the work root as `product-docs` says, then run the **`ticket-board`** skill's **Starting a ticket** transition — status, assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all in one tool block. Do it yourself with file edits; do not delegate it. Three values are this command's:
+- The **work root**, resolved before the transition is written, and checked to be writable from this session.
 - The **assignee** is the agents you are about to spawn: `feature-interviewer, implementation-planner`, or `implementation-planner` alone when the interview is skipped.
-- The **opening worklog entry** is `orchestrate · start`: the task you are building, what it delivers, and the `e2eDecision`.
+- The **opening worklog entry** is `orchestrate · start`: the task you are building, what it delivers, the work root and the evidence that settled it, and the `e2eDecision`.
 
 **Stage 0.5 — Interview & Challenge (complexity-gated), with the planner scouting in parallel.**
 - **Skip the interview** when the task is trivially unambiguous — a small, well-specified change with no product/UX/architecture forks ("fix this off-by-one", "rename this field everywhere"). Note the skip in the report. Nothing to overlap: go to Stage 1 and spawn the planner in one-turn mode. Still record the **Decisions** block holding the `e2eDecision` from Step 2.
@@ -172,6 +196,7 @@ When in doubt whether a task is trivial enough to skip, do **not** skip — run 
 ```
 Agent(subagent_type: "sdlc:implementation-planner", model: "opus",
       prompt: task block + acceptance criteria + roadmap context + the e2eDecision line
+              + the work root as an absolute path
               + "SCOUT ONLY. A feature interview is running in parallel; its Decisions
                  are not settled yet, so do NOT write the plan. Survey the codebase and
                  research the current best practice for this work now, reply with a few
@@ -179,7 +204,7 @@ Agent(subagent_type: "sdlc:implementation-planner", model: "opus",
                  wait — I will send the Decisions and ask for the plan.")
 ```
 
-It returns `contextPack` (relevant files, key symbols, conventions, `verificationCommands`, `e2eCommand`) and `riskProfile` (`filesTouched`, `addsDependency`, `addsPublicApi`, `criteriaAutoCheckable`) in one fenced `json` block. The shape lives in the agent definition — do not restate it in the prompt. On the scout turn, treat `riskProfile` as **provisional**.
+It returns `contextPack` (the `workRoot`, relevant files, key symbols, conventions, `verificationCommands`, `e2eCommand`) and `riskProfile` (`filesTouched`, `addsDependency`, `addsPublicApi`, `criteriaAutoCheckable`) in one fenced `json` block. The shape lives in the agent definition — do not restate it in the prompt. On the scout turn, treat `riskProfile` as **provisional**.
 
 **Once the Decisions are settled**, resume the same planner — do not spawn a second one:
 
@@ -282,6 +307,8 @@ Report only after the files are updated.
 - [x] Code review — approved ([N] revisions)
 - [x] Status — ticket marked Completed, unassigned, and moved to `done/` with its worklog; roadmap row deleted
 
+Work root: `[code]` — `[absolute path]`
+
 [Summary of what was accomplished]
 ```
 
@@ -294,6 +321,7 @@ Report only after the files are updated.
 ## Rules
 The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `product-docs` for the paths, `clean-writing` for the prose. What is this command's own:
 - **One task at a time.** Do not execute the whole roadmap.
+- **Resolve the work root before the ticket starts**, record it in the worklog, and pass it to every agent. Never let an agent infer which repository it is working in.
 - **Load every skill in the table before the stage that needs it.** They are the rules; this file is the sequence.
 - **The code review always runs.** Verify and the code reviewer go out in one tool block, and the task passes only when the commands pass *and* the verdict is `APPROVED`. Only the plan review has a skip gate.
 - **Interview before planning** for any non-trivial feature; skip only via the complexity gate.

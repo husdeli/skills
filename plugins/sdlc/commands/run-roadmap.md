@@ -25,7 +25,7 @@ a hand-back that stops the run whenever the decision belongs to a person.
 
 | Skill | What it holds | Load before |
 | --- | --- | --- |
-| **`product-docs`** | Where the docs root is, and how each destination writes a document | you read any document |
+| **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 1 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 2 |
 | **`clean-writing`** | Every word a person reads later — the worklog, the commit message, the report | Stage 2 |
@@ -39,6 +39,25 @@ spawn prompt: the agents load their own.
 `roadmap.md`, and `tickets/<status>/<ID>-*.md`, with a worklog beside a ticket in flight.
 `product-docs` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`.
 
+**The code sits in the work root** — the repository this task is built in. A run started inside a
+repository builds there and nothing changes. A run started in the vault — the recommended shape,
+where one board drives several repositories — has the docs root as its working directory, resolves
+the work root per task, and reaches into a repository somewhere else. `product-docs` holds the
+resolution rule. What is this command's:
+
+- **The work root is resolved in Stage 1.5**, after the CTO picks the task and before the ticket is
+  started. The ticket names no repository, so the evidence is the design doc, the ticket, the epic,
+  and the registry's `what` lines.
+- **Nobody is here to break a tie.** When the evidence leaves it open, the `cto` agent answers —
+  request `work-root` — and that answer counts against the same ruling budget as every other.
+- **Every git call names the repository**: `git -C <work root> …`. Every build, test, and package
+  manager command runs as `cd <work root> && …`. A bare `npm test` runs in the vault and proves
+  nothing.
+- **Every agent prompt carries the work root as an absolute path**, and the planner carries it in
+  the context pack as `workRoot`.
+- **The commit belongs to the work root.** The docs root is usually no git tree, so the ticket move
+  and the roadmap edit are not part of it — Stage 9 holds both cases.
+
 ## The one rule that makes this command different
 
 **Never call `AskUserQuestion`. Not once, at any stage, for any reason.** There is no person on the
@@ -51,6 +70,7 @@ Every question goes to the `cto` agent, which answers in the user's place:
 | --- | --- |
 | Which candidate task to build | `cto`, request `task-selection` |
 | Whether the task gets end-to-end tests | `cto`, in the same `task-selection` answer |
+| Which repository the task is built in | `cto`, request `work-root` — only when the evidence left it open |
 | The interviewer's open decisions and assumptions | `cto`, request `decisions` |
 | Nothing — it stops and escalates | `cto`, request `escalation` |
 
@@ -142,13 +162,18 @@ in the tree for the next task to commit.
 ### 0. Preflight — refuse to start on ground you cannot commit from
 Check these first, in one parallel Bash batch, and stop before you spawn anything if one fails:
 
-- **A git work tree.** `git rev-parse --is-inside-work-tree`. Without git there is no per-task
-  commit and no audit trail, so this command does not run. Outcome `blocked`.
-- **A clean working tree.** `git status --porcelain`. The task's commit is `git add -A`, so
-  pre-existing changes would be swallowed into it and attributed to a task that did not make them.
-  Outcome `blocked`, naming what is dirty.
 - **The docs root and the roadmap exist.** Resolve the root with `product-docs`. With no roadmap
   anywhere, outcome `blocked`, naming `/setup`.
+- **Every candidate work root is a git work tree with nothing uncommitted in it.** Which repository
+  this task lands in is not known yet, so check them all: `git -C <path> rev-parse
+  --is-inside-work-tree` and `git -C <path> status --porcelain`, one pair per entry in the docs
+  root's registry, in one parallel batch. In a repo-rooted run that is the session's own repository,
+  and the registry is not read. Without git there is no per-task commit and no audit trail; with a
+  dirty tree the task's `git add -A` would swallow changes it did not make. Either one is outcome
+  `blocked`, naming the repository and what is wrong with it.
+- **Every registered repository is reachable from this session.** A path that does not exist, or
+  that this session cannot write to, is outcome `blocked` — name it, and name the fix: restart as
+  `claude --add-dir <work root>`. An unattended run cannot grant itself access.
 
 Report a `blocked` preflight in two lines and print the result line. Do not try to fix the ground.
 
@@ -189,11 +214,36 @@ the shape is in the agent definition, do not restate it.
 
 Track the stages with the task/todo tools, so the task's log shows live progress.
 
+### 1.5 Resolve the work root
+Resolve it as `product-docs` says, before anything is written and before any agent is spawned. One
+entry in the registry answers it outright; several mean reading the design doc the ticket cites, the
+ticket itself, the epic, and each entry's `what` line, and then looking inside the candidate
+repositories for the code the task names.
+
+**When the evidence still leaves it open, ask the CTO — never guess:**
+
+```
+Agent(subagent_type: "sdlc:cto", …resume the id from Stage 1…)
+SendMessage(ctoId, "Request: work-root. Which repository is this task built in?"
+                 + the ticket, its acceptance criteria, and its epic
+                 + one line per candidate: code, path, and the registry's `what`
+                 + what you already ruled out, and why)
+```
+
+It answers with one `workRoot` code, or with two when the task genuinely spans both. A
+`handBack: true` here is outcome `handed-back` before the ticket starts, exactly as in Stage 1. This
+ruling counts against the per-task budget like any other.
+
+Then confirm the chosen repository is clean — `git -C <work root> status --porcelain` — even though
+preflight checked it: a run that took minutes to pick a task may have found a tree that changed
+under it. A dirty tree here is outcome `blocked`.
+
 ### 2. Start the ticket, then interview and scout concurrently
 Run `ticket-board`'s **Starting a ticket** transition yourself, with the edits in one tool block.
 Two values are this command's: the **assignee** is `feature-interviewer, implementation-planner`, and
-the **opening worklog entry** is `run-roadmap · start` — the task, what it delivers, the
-`e2eDecision`, and the line that this is an autonomous run whose decisions come from the `cto` agent.
+the **opening worklog entry** is `run-roadmap · start` — the task, what it delivers, the work root
+and the evidence that settled it, the `e2eDecision`, and the line that this is an autonomous run
+whose decisions come from the `cto` agent.
 
 Then issue **both `Agent` calls in one tool block**:
 
@@ -376,18 +426,22 @@ the closing worklog entries, the move into `done/`, and the roadmap row deleted.
 closing entry is `run-roadmap · done`, and the worklog also takes the verification and code-review
 entries.
 
-Do this **before** the commit, so the ticket move and the roadmap edit land in the task's own commit.
+Do this **before** the commit. When the docs root sits inside the work root's git tree, the ticket
+move and the roadmap edit then land in the task's own commit. When it does not — a vault, or a folder
+outside the repository — the documents are already saved and the commit below covers the code alone.
 
 Never finish the ticket unless verification passed **and** the code review returned `APPROVED`.
 
 ### 9. Commit the task
 One commit per finished task, so `git log` holds the run as a sequence of changes a person can read.
 
-1. `git add -A`, then one commit. The tree was clean at preflight, so everything staged belongs to
-   this task: the code, the ticket in its new folder, the worklog, and the roadmap edit.
-2. **Match the project's own commit convention.** Read `git log --oneline -20` and follow what is
-   there — a Conventional Commits prefix, a ticket ID in the subject, whatever the project does.
-   With no discernible convention, use `<ID>: <title>`.
+1. `git -C <work root> add -A`, then one commit in the same repository. The tree was clean at
+   preflight, so everything staged belongs to this task: the code, and — when the docs root sits
+   inside this tree — the ticket in its new folder, the worklog, and the roadmap edit.
+2. **Match that repository's own commit convention.** Read `git -C <work root> log --oneline -20`
+   and follow what is there — a Conventional Commits prefix, a ticket ID in the subject, whatever
+   the repository does. With no discernible convention, use `<ID>: <title>`. Two work roots may hold
+   two different conventions; each commit follows the one in its own tree.
 3. The body is three or four lines: what landed, the decision the CTO made that shaped it, and the
    verification result. `clean-writing` governs it.
 4. **Never push, never branch, never amend, and never touch a commit that was already there.** The
@@ -395,6 +449,11 @@ One commit per finished task, so `git log` holds the run as a sequence of change
 5. A commit that fails — a hook rejects it, or there is nothing to commit — is outcome `blocked`.
    Say what the hook said, and leave the tree as it is for a person to look at. Do not retry with
    `--no-verify`.
+6. **A docs root that is its own git tree gets its own commit**, in its own repository, with the same
+   subject. A docs root in a vault is no git tree: nothing to commit, and nothing to report but the
+   files written.
+7. **A task that spanned two work roots gets one commit in each**, same subject, each body naming the
+   other repository. Report both shas.
 
 **Keep the record, discard the code** — the exit every unfinished task takes: `deferred`,
 `stop-run`, `handed-back`, and `aborted` alike, once a ticket has been started. Half-built code must
@@ -403,12 +462,15 @@ tree. That is three requirements and one order of operations:
 
 1. Write the *Stopping without finishing* edits first — the status, the assignee `user`, and the
    outcome worklog entry.
-2. **Stage only the record**: `git add <docs root>` and the ticket's own path. Nothing else.
-3. `git checkout -- .` then `git clean -fd`. Both leave staged content alone, so this discards
-   exactly the code and keeps exactly the record.
+2. **Stage only the record**: `git -C <work root> add <docs root>` and the ticket's own path —
+   only when the docs root sits inside that tree. A docs root in a vault is already saved and is
+   never staged.
+3. `git -C <work root> checkout -- .` then `git -C <work root> clean -fd`. Both leave staged content
+   alone, so this discards exactly the code and keeps exactly the record. Run the pair in every work
+   root the task touched.
 4. Commit it, with a subject naming the task and the outcome — `<ID>: deferred by cto` — and the
    CTO's reason in the body. A person reading `git log` sees why the run stopped here.
-5. Confirm the tree is clean with `git status --porcelain`. It has to be empty; the script stops the
+5. Confirm the tree is clean with `git -C <work root> status --porcelain`. It has to be empty; the script stops the
    whole run when a task leaves work behind.
 
 Say plainly in the report that the code was discarded and the record kept, so nobody goes looking for
@@ -426,6 +488,7 @@ The report is short — a person reads a hundred of these in a log, not one on a
 - [x] Implementation — [N] files
 - [x] Verification — passed ([the commands], or: [what was skipped and why])
 - [x] Code review — approved
+- [x] Work root — [code] `[absolute path]`
 - [x] Commit — [sha] [subject]
 - [x] Status — ticket Completed and moved to `done/`, roadmap row deleted
 
@@ -437,7 +500,7 @@ Then, as the **last line of your final message and nothing after it**, print exa
 The launcher script parses it to decide whether to start another task:
 
 ```
-RUN-ROADMAP-RESULT {"outcome":"completed","taskId":"AUTH-002","commit":"a1b2c3d","remaining":4,"nextAction":"continue","reason":""}
+RUN-ROADMAP-RESULT {"outcome":"completed","taskId":"AUTH-002","commit":"a1b2c3d","workRoots":["/Users/me/Projects/acme-api"],"remaining":4,"nextAction":"continue","reason":""}
 ```
 
 One line, valid compact JSON, no code fence, no text after it. The fields:
@@ -446,7 +509,8 @@ One line, valid compact JSON, no code fence, no text after it. The fields:
 | --- | --- |
 | `outcome` | `completed`, `deferred`, `handed-back`, `aborted`, `stop-run`, `no-work`, or `blocked` |
 | `taskId` | The task this invocation worked on, or `""` when none was started |
-| `commit` | The short sha, or `""` when nothing was committed |
+| `commit` | The short sha, or `""` when nothing was committed. Two repositories give two shas, joined by a comma |
+| `workRoots` | Every repository this invocation wrote to, as absolute paths. `[]` when none was started. The script checks these trees between tasks |
 | `remaining` | Tasks left on the roadmap **after** this invocation, counted from the file you just wrote |
 | `nextAction` | `continue` or `stop` |
 | `reason` | One short sentence on a non-`completed` outcome, `""` otherwise. No newline, no quote character |
@@ -476,6 +540,7 @@ The four skills carry the rules they own. What is this command's own:
   overrule the CTO — but never let it past a failing gate either. A test result and a review verdict
   are not product decisions.
 - **Every cap is hard**, and the CTO's `retry` buys exactly one cycle. No improvised extra pass.
+- **Resolve the work root before the ticket starts**, record it in the worklog, pass it to every agent, and name it in the result line. Never let an agent infer which repository it is working in.
 - **You write the status, the assignee, the worklog, the roadmap, and the commit.** No agent writes
   any of them.
 - **Never finish a task unless verification passed and the code review approved.**

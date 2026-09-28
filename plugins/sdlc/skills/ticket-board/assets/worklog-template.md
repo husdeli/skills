@@ -10,4 +10,5 @@ is written is never rewritten.
 
 ## YYYY-MM-DD HH:MM — <agent or command name> · <stage>
 
+- Work root: `<code>` — `<absolute path>`. [The evidence that settled it.] (opening entry only)
 - [One decision or outcome per line, with the reason it went that way]

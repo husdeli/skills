@@ -39,13 +39,16 @@ scripts/                         # run-roadmap.sh, the unattended launcher
 
 ## Where your product docs live
 
-Every document the plugin reads or writes sits in one folder — the **docs root**. The recommended
-home is a folder in an **Obsidian vault**, outside the repository — [the section below](#recommended-keep-them-in-an-obsidian-vault)
+Every document the plugin reads or writes sits in one folder — the **docs root** — and every line of
+code it writes sits in a **work root**, which is one code repository. The recommended home for the
+documents is a folder in an **Obsidian vault**, outside the repository — [the section below](#recommended-keep-them-in-an-obsidian-vault)
 says why. The in-repository option is `.sdlc/` at your project root, which is what every command
 falls back to when nothing points elsewhere. The layout is the same wherever the folder sits:
 
 ```
 <docs root>/            # a folder in your vault, or .sdlc/ in the repository
+  sdlc.json             the repositories this product is built in — machine-local,
+                        gitignored, and what lets one board drive several repos
   prd.md                product requirements — what the product does and why
   glossary.md           the product's terms — one ## heading per term, defined once
                         here and linked from every other document
@@ -139,7 +142,9 @@ at your project root so every command still finds it:
 }
 ```
 
-Every command and agent resolves `.sdlc.json` before it reads anything, so `/plan`,
+It writes `sdlc.json` in the docs root in the same run — the registry naming every repository the
+product is built in, which is what lets one board drive several. Every command and agent resolves
+`.sdlc.json` before it reads anything, so `/plan`,
 `/orchestrate`, `/prd`, `/design`, and `/review` work against the vault exactly as they work
 against `.sdlc/`. A ticket still moves from `todo/` to `in-progress/` to `done/` as the
 orchestrator builds it.
@@ -161,6 +166,53 @@ Inside a vault the documents are written the way Obsidian reads them, and nothin
 The `product-docs` skill holds these rules, and the plugin loads it whenever the destination is a
 vault. Pick **In the repository** at the prompt and none of it applies.
 
+## One board, several repositories
+
+A product is often more than one repository — a web app and an API, a client and a service, an app
+and its infrastructure. The vault is what lets one board cover all of them, because the documents
+belong to the product rather than to any one tree.
+
+**`/setup` writes two pointers**, so the pair can be driven from either end:
+
+- **`sdlc.json` in the docs root** — the registry. One entry per repository: a short code, the path,
+  and one line saying what belongs in that repository. It is machine-local and gitignored, because
+  the paths exist on one machine.
+- **`.sdlc.json` in each repository** — the pointer back to the docs root, as before.
+
+```json
+{
+  "repos": {
+    "web": { "path": "~/Projects/acme-web", "what": "TanStack Start app — every screen" },
+    "api": { "path": "~/Projects/acme-api", "what": "Fastify service — the API and the jobs" }
+  }
+}
+```
+
+**Then run the workflow from the vault:**
+
+```shell
+cd ~/Vaults/Personal/Acme
+claude --add-dir ~/Projects/acme-web --add-dir ~/Projects/acme-api
+```
+
+One `--add-dir` per repository — without it the session can read the board but cannot write code.
+Inside a session already open, `/add-dir <path>` does the same. Then `/orchestrate`, `/whats-next`,
+`/plan`, and the rest work exactly as they do inside a repository, over every repository at once.
+
+**A ticket never names its repository.** The run works out where a task is built, when it picks the
+task: from the design doc the ticket cites, the ticket itself, the epic, each registry entry's
+`what` line, and, when that is not enough, the code already in each candidate tree. It asks you when
+the evidence leaves it open — and the `cto` agent answers instead in an unattended run. The choice
+lands in the worklog beside the ticket, with the evidence that settled it, so a task built two weeks
+ago still says which tree it landed in.
+
+From there the run is per repository: that repository's `AGENTS.md`, its test suite, its code review,
+its commit, its git history. A task that genuinely has to change two repositories at once does each
+of those in both, and passes only when both pass.
+
+**Nothing changes for a single-repository project.** Start a session inside the repository and every
+command behaves exactly as it did — the registry is read only when the session starts in the vault.
+
 ## Running the roadmap unattended
 
 Every other command in this plugin stops and asks you something. `/run-roadmap` does not, because it
@@ -171,7 +223,16 @@ committed when it passes, and a launcher script starts the next one in a fresh s
 # from the repository you want built
 plugins/sdlc/scripts/run-roadmap.sh --max-tasks 5
 plugins/sdlc/scripts/run-roadmap.sh --roadmap docs/roadmap.md --keep-going --yes
+
+# or from the vault, over every repository in the registry
+cd ~/Vaults/Personal/Acme && ~/Projects/skills/plugins/sdlc/scripts/run-roadmap.sh --max-tasks 5
+plugins/sdlc/scripts/run-roadmap.sh --docs-root ~/Vaults/Personal/Acme --yes
 ```
+
+**Run it from the docs root and it drives every repository the registry names.** It grants the
+session each one with `--add-dir`, checks every tree is clean before it starts and between tasks,
+commits each task in whichever repository that task landed in, and reports the commit range per
+repository at the end.
 
 **One task per session** is what makes a long roadmap possible: the script calls
 `claude -p "/sdlc:run-roadmap"` once per task, and each task starts with a clean context and ends
@@ -186,11 +247,13 @@ roadmap itself is the loop counter — the run ends when the last row is gone.
 | The CTO hands a decision back | Money, credentials, anything irreversible, the security model, a legal call, or a PRD contradiction it cannot settle |
 | A stage runs out of rulings | One ruling per stage, two per task. A third is a person's problem |
 | An agent returns nothing usable | A dead agent is not a thing to retry around |
-| The tree is dirty before it starts, or a commit is rejected | Every task commits with `git add -A`, so the ground has to be clean |
+| A tree is dirty before it starts, or a commit is rejected | Every task commits with `git add -A`, so the ground has to be clean — in every registered repository |
+| A registered repository is missing or is not a git tree | The registry is machine-local, so it can point at a path this machine does not have |
 | A task runs past `--timeout` | The task and everything it started are killed, and the run stops |
 
-**Before the first run:** be on a branch you are willing to throw away. The script checks that you
-are in git with a clean tree, and it commits to the branch you are on — one commit per task, never a
+**Before the first run:** be on a branch you are willing to throw away, in every repository the run
+can touch. The script checks that each one is in git with a clean tree, and it commits to the branch
+each one is on — one commit per task, never a
 push. It runs with `--permission-mode bypassPermissions`, because a permission prompt in a headless
 session is a dead run, so the tasks it builds get your full tool access without asking. Read
 `--help` first, and read `git log` after.
@@ -281,11 +344,14 @@ worth as much as its record.
 - **prd** — Create or update a product requirements document: product-only content,
   cohesive per-area descriptions with stable anchor codes, and positive framing. The terms it
   chooses are defined in `glossary.md`, never in the PRD.
-- **product-docs** — Where the documents live and how each destination writes them: the docs
-  root, the `.sdlc.json` pointer file, and the Obsidian-vault conventions — folder naming,
-  frontmatter properties, wikilinks, and when a move uses `git mv`. Every command and agent
-  resolves the docs root through it, so one project can keep its documents in the repository and
-  the next can keep them in a vault.
+- **product-docs** — Where the documents and the code live, and how each destination writes a
+  document: the docs root, the work root, the `sdlc.json` registry naming every repository the
+  product is built in, the `.sdlc.json` pointer file, and the Obsidian-vault conventions — folder
+  naming, frontmatter properties, wikilinks, and when a move uses `git mv`. It also holds how a run
+  started in the vault works out which repository a task is built in, and how it reaches a tree that
+  is not its own working directory. Every command and agent resolves both roots through it, so one
+  project can keep its documents in the repository and the next can drive four repositories from a
+  vault.
 
 **A rule is written in exactly one skill, and the commands load it.** A command file holds its own
 sequence — the stages, the gates, the questions it asks — and names the skills that hold everything
@@ -320,7 +386,8 @@ what a ticket is, and why changing how a status transition works is one edit rat
 
 ### Commands and Codex skills
 - **/setup** — asks where the docs root goes — in an Obsidian vault, which it recommends, or in
-  the repository as `.sdlc/` — then creates it with stub files for the PRD, the glossary,
+  the repository as `.sdlc/` — registers every repository the product is built in as `sdlc.json` in
+  the docs root, then creates it with stub files for the PRD, the glossary,
   the design doc, the roadmap, a ticket template, the `designs/` and `diagrams/` folders, and the
   `todo/`, `in-progress/`, and `done/` ticket folders. An outside folder gets a `.sdlc.json` pointer file at
   the project root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no

@@ -35,7 +35,9 @@ TypeScript, React, and TanStack Start layers, the writing standard every human-f
 goes through, the glossary that defines the product's terms, the diagrams that show a shape, and
 the PRD, design-doc, and frontend-design document skills. Every document it
 reads or writes lives in one folder — a folder in an Obsidian vault, which `/setup` recommends, or
-`.sdlc/` at your project root.
+`.sdlc/` at your project root. Put them in a vault and one board can drive **several code
+repositories**: `/setup` registers each one, and a session started in the vault picks a task from
+one roadmap and builds it in whichever repository it belongs to.
 
 One of the twelve runs with nobody in the room: **`/run-roadmap`** puts a **cto** agent where you
 would be — it picks the task, settles the decisions, rules on a stage that runs out of retries, and

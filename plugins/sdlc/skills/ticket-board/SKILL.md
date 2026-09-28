@@ -9,8 +9,8 @@ The board is `tickets/` and `roadmap.md` inside the docs root. This skill says h
 named, where it sits, who holds it, what records what happened to it, and what each status
 transition has to write.
 
-**The `product-docs` skill says where the docs root is** — load it before you resolve any path,
-and resolve the root once. Every `.sdlc/…` path below means `<docs root>/…`. In a vault the
+**The `product-docs` skill says where the docs root is, and where the work root is** — load it
+before you resolve any path, and resolve both roots once. Every `.sdlc/…` path below means `<docs root>/…`. In a vault the
 fields below are frontmatter properties and the references are wikilinks; `product-docs` holds
 that mapping too.
 
@@ -181,6 +181,9 @@ The header carries the local date and time, the name of the agent or command who
 records, and the stage. In the body:
 
 - **Decisions and outcomes only** — what was chosen, and what it beat. One line each.
+- **The opening entry names the work root** — the repository code, its absolute path, and the one
+  line of evidence that settled it. A ticket carries no repository field, so this entry is the only
+  record of where the task was built. `product-docs` holds how the work root is resolved.
 - **Only what a later reader cannot get elsewhere.** Never the plan in full, never code, never a
   restatement of the ticket, and never pasted command output — name the command and its result.
 - A stage that decided nothing still gets one line: what ran, and what came back.
@@ -207,8 +210,8 @@ Never spread a transition across turns, and never delegate one to an agent.
 4. **Move it** into `.sdlc/tickets/in-progress/`. Skip the move in a flat tickets folder — the
    status field alone carries the state there.
 5. **Write the worklog** beside it, in its destination folder, with the opening entry: the task,
-   what it delivers, and any decision already settled. A ticket escalated by an earlier run
-   already has a worklog — append to it, never overwrite it.
+   what it delivers, the **work root** this task is built in, and any decision already settled. A
+   ticket escalated by an earlier run already has a worklog — append to it, never overwrite it.
 6. **Roadmap row** → the in-progress marker, in the file's own style.
 
 With no ticket file, update the roadmap alone.

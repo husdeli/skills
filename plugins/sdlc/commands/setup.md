@@ -1,25 +1,36 @@
 ---
-description: Create the folder that holds the PRD, the glossary, the design docs, the diagrams, the roadmap, and the tickets — in an Obsidian vault, or in the repository.
-argument-hint: [product name] [destination path]
+description: Create the folder that holds the PRD, the glossary, the design docs, the diagrams, the roadmap, and the tickets — in an Obsidian vault, or in the repository — and register the repositories the product is built in.
+argument-hint: [product name] [destination path] [repository paths]
 ---
 
 # Setup
 
-Create the **docs root** — the single home for every document this plugin reads and writes. The
-recommended home is a folder in an **Obsidian vault**, outside the repository: the documents stay
-readable and editable wherever the vault syncs, they stay out of every diff and merge, and one
-vault holds every project. The docs root can also sit in the repository as `.sdlc/`, which is
-where every command looks when no pointer file says otherwise.
+Create the **docs root** — the single home for every document this plugin reads and writes — and
+**register the repositories** the product is built in, so a later run can start from either end.
+
+The recommended home is a folder in an **Obsidian vault**, outside the repository: the documents
+stay readable and editable wherever the vault syncs, they stay out of every diff and merge, one
+vault holds every project, and one board can drive **several repositories** — the web app and the
+API are then two entries in one registry, and one roadmap covers both. The docs root can also sit in
+the repository as `.sdlc/`, which is where every command looks when no pointer file says otherwise.
+
+**This command runs from either end.** Start it inside a code repository, and it sets up the
+documents for that repository. Start it in the vault — in the docs root, or in a vault that holds
+one folder per product — and it sets up the documents there and asks which repositories they drive.
+`product-docs` holds how that is detected; resolve it before Step 1.
 
 Arguments (if provided): $ARGUMENTS
 
 Load two skills before you create anything, namespaced here as `sdlc:<name>`: **`product-docs`**,
-which holds the resolution order, the pointer file, and the vault conventions this command writes,
+which holds the resolution order, the two pointer files, and the vault conventions this command
+writes,
 and **`ticket-board`**, which holds the shape of the tickets and the roadmap it creates and
 migrates.
 
 ```
 <docs root>/
+  sdlc.json             the repositories this product is built in — machine-local,
+                        gitignored, and the file a vault-rooted run reads first
   prd.md                product requirements — what the product does and why
   glossary.md           the product's terms — one ## heading per term, defined once
                         here and linked from every other document
@@ -59,6 +70,8 @@ there is no ticket yet to put one beside.
 - **Settle the destination before you create anything** — Step 1. The repository option puts
   the docs root at `.sdlc/` in the project root: the directory holding `.git`, `package.json`,
   `AGENTS.md`, or `CLAUDE.md`. Not the current working directory when that sits deeper.
+- **Register every repository** — Step 2. A docs root with no registry can only be driven from
+  inside a repository, which is the thing this command exists to fix.
 - **Create `designs/`, `diagrams/`, and all three ticket status folders**, even though they start
   empty.
   Write a `.gitkeep` file into every one that ends up with no file in it **when the docs root
@@ -70,6 +83,10 @@ there is no ticket yet to put one beside.
 The docs root goes where the user keeps this kind of writing. Decide where, in this order, and
 stop at the first that applies:
 
+- **This session is vault-rooted** — the working directory is a docs root, or a vault holding one
+  → the destination is settled before you ask anything. The docs root is that folder; when the
+  vault holds several product folders, take the product from the arguments, and ask which one
+  otherwise. Fill the gaps there and go to Step 2, which is the step that has work to do.
 - **`.sdlc.json` already exists** at the project root → read it. The destination is settled.
   Report where the documents live and fill the gaps there. Do not ask.
 - **`.sdlc/` already exists** → the destination is the repository. You are filling gaps, not
@@ -137,7 +154,66 @@ properties instead of the `**Field**: value` lines, wikilinks instead of file na
 paths, and no `.gitkeep`. The `product-docs` skill holds the mapping. A **folder** destination
 changes nothing but the path.
 
-## 2. Check what is already there
+## 2. Register the repositories
+
+The docs root drives the code. **`sdlc.json` in the docs root names every repository this product
+is built in**, and it is what lets a session started in the vault work on any of them. The
+`product-docs` skill holds its shape; this step writes it.
+
+**Collect the repositories.** Take them in this order:
+
+- **The arguments name repository paths** → use them.
+- **This session is repo-rooted** — you are standing in a code repository → that repository is the
+  first entry. Ask whether the product has others, and take the paths the user gives.
+- **This session is vault-rooted** — you are standing in the docs root → ask for the path of every
+  repository the product is built in. One is a complete answer; a product with a web app and an API
+  gives two.
+
+**Write one entry per repository**, keyed by a short lower-case code the user recognises — `web`,
+`api`, `mobile`, `infra`. Derive the code from the repository's own name and offer it; the user
+overrides it. Each entry carries the `path` and a `what` line:
+
+```json
+{
+  "repos": {
+    "web": {
+      "path": "~/Projects/acme-web",
+      "what": "TanStack Start app — every screen, and the server functions behind them"
+    },
+    "api": {
+      "path": "~/Projects/acme-api",
+      "what": "Fastify service — the HTTP API, the background jobs, and the database"
+    }
+  }
+}
+```
+
+**The `what` line is the one part of this file that has to be written well.** Every later run reads
+it to work out which repository a task is built in, because no ticket carries that field. Write it
+from the repository itself — read its `README.md`, its `package.json`, and its top-level folders —
+and name the surface, the stack, and the kind of work that lands there. Never write `what` as the
+repository's name again. Show each line to the user with the path, and correct what they correct.
+
+**Then write the two pointers, so the product can be driven from either end:**
+
+1. **`sdlc.json` in the docs root** — the registry above. Never overwrite an existing registry:
+   merge the new entries into it, keep every entry that is already there, and report a path that
+   changed rather than replacing it silently.
+2. **`.sdlc.json` at the root of every repository in the registry** — the pointer back to the docs
+   root, exactly as Step 1 writes it. A repository you cannot reach from this session is reported
+   as unregistered, with the one command that fixes it: run setup again from inside it.
+
+**Gitignore the registry.** It holds paths that exist on this machine only. When the docs root sits
+inside a git working tree, append the registry's path relative to that tree's root to its
+`.gitignore` — `.sdlc/sdlc.json` for a docs root in the repository — as one line, never replacing
+the file, and never a second time when the line is already there. A vault is usually no working
+tree, and then there is nothing to ignore. Say in the report that the file is machine-local either
+way.
+
+**A product with one repository still gets a registry.** It costs one file, and it is what makes a
+vault-rooted run possible later without a second setup.
+
+## 3. Check what is already there
 
 Look for documents this plugin would otherwise create twice:
 
@@ -225,7 +301,7 @@ Report the counts: tasks removed, detail sections folded into tickets, epics clo
 user says no, leave the roadmap exactly as it is — every command reads the older shape as a
 fallback. Skip the offer when the roadmap already holds pending work only.
 
-## 3. Write the stubs
+## 4. Write the stubs
 
 The stubs below are the repository shape. **In a vault, write the same stub with its fields as
 frontmatter properties** — the `product-docs` skill holds the field-to-property mapping and the
@@ -458,14 +534,31 @@ once, here, so every ticket copied from it starts in the right shape.
 The template stays at the top of `tickets/`, outside the three status folders. It is a
 template, not a ticket, so it never moves.
 
-## 4. Report and hand off
+## 5. Report and hand off
 
 Everything the user reads here follows the **`clean-writing`** skill (namespaced
 `sdlc:clean-writing`) — load it before you report.
 
 Say **where the docs root is** and, when you wrote one, that `.sdlc.json` now points at it.
 Report the tree you created, marking each file `created` or `kept`, and each moved file with
-its old and new path. Then offer the next step, in this order:
+its old and new path.
+
+**Then report the registry**: one line per repository — the code, the path, and the `what` line —
+and say that `sdlc.json` is machine-local and gitignored. Name any repository you could not reach,
+and say that running setup again from inside it registers it.
+
+**Then say how to start a run from the vault**, which is the shape this registry buys:
+
+```shell
+cd <docs root>
+claude --add-dir <work root> [--add-dir <work root> …]
+```
+
+One `--add-dir` per repository in the registry. Inside a session that is already open, `/add-dir
+<work root>` does the same thing. Without it the session can read the board but cannot write code.
+A repo-rooted run needs none of this, and keeps working exactly as before.
+
+Then offer the next step, in this order:
 
 1. `/prd <product>` — fill the PRD first. It chooses the product's terms and writes each one's
    entry in `glossary.md`. Every later document takes its vocabulary from there.

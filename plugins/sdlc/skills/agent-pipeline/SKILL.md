@@ -56,6 +56,13 @@ belongs in the agent definition, where it is written once. A spawn prompt is re-
 spawn, so it carries only what this run's agent cannot already know: the task, the criteria, the
 context pack, the decisions, and what changed since its last turn.
 
+**The work root is one of those things.** Every agent that reads code, writes code, or runs a
+command gets the repository it works in as an absolute path, in its first message. A subagent
+inherits the session's working directory, which in a run started from an Obsidian vault holds the
+documents and not the code — an agent left to assume would read the wrong tree and report a clean
+result from it. `product-docs` holds how the work root is resolved; resolving it is the command's
+job, once, before the first spawn.
+
 ## Never duplicate the gating run
 
 - The **coding agent self-checks** what it touched, and nothing more.

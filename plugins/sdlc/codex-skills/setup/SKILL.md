@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Create the product-document structure — in an Obsidian vault (recommended), or in the repository as `.sdlc/` — without overwriting existing files. Use when a user asks to set up or initialize the plugin documents, choose where the documents live, migrate existing root documents, or invokes `$setup` as the Codex equivalent of `/setup`.
+description: Create the product-document structure — in an Obsidian vault (recommended), or in the repository as `.sdlc/` — and register every code repository the product is built in, without overwriting existing files. Use when a user asks to set up or initialize the plugin documents, choose where the documents live, register a repository, migrate existing root documents, or invokes `$setup` as the Codex equivalent of `/setup`.
 ---
 
 # Setup
@@ -19,8 +19,12 @@ Create the project document structure with the shared setup command.
 
 Do not invoke a nested `/setup` command. Execute the shared instructions directly.
 
-Codex has no `AskUserQuestion` tool. Ask the destination question from Step 1 in prose, and wait
-for the answer before you create anything.
+Codex has no `AskUserQuestion` tool. Ask the destination question from Step 1, and the repository
+question from Step 2, in prose, and wait for each answer before you create anything.
+
+A Codex session started in the docs root reaches a repository the way that runtime does — it has no
+`--add-dir`. Say which repositories the registry names and which of them this session can write to,
+so the user starts the next session in the right place.
 
 In the final handoff, use these Codex skill names:
 

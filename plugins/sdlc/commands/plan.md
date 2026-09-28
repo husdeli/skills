@@ -15,13 +15,15 @@ This is the intake path. `/prd` writes the PRD, `/design` writes the design doc,
 
 | Skill | What it holds |
 | --- | --- |
-| **`product-docs`** | Where the docs root is, and how each destination writes a document |
+| **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document |
 | **`ticket-board`** | The epic that numbers a ticket, the roadmap's shape, and the ticket's own shape |
 | **`glossary`** | The product's terms — where each one is defined, and how a document links it |
 | **`diagrams`** | A diagram of a shape — how one is drawn, and how a document references it |
 | **`clean-writing`** | Every sentence you write, in a document or to the user |
 
-The documents sit in the **docs root**: `prd.md`, `glossary.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `product-docs` resolves the root; every `.sdlc/…` path below means `<docs root>/…`. **Every ticket this command writes starts in `todo/`**, because no work has started on it. When the project keeps its design docs directly in the docs root, or its tickets folder is flat, write into the shape it already has.
+The documents sit in the **docs root**: `prd.md`, `glossary.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `product-docs` resolves the root; every `.sdlc/…` path below means `<docs root>/…`.
+
+**A ticket never names the repository it is built in** — the run that builds it works that out, from the design doc, the ticket, and the docs root's registry. So write the ticket about the product, and never about a repository path. What you *can* do is make that resolution easy: name the surface the work lands on in the ticket's description, in the words the design doc uses. When this session is vault-rooted and the code matters to the research, pass the candidate repositories to the interviewer as absolute paths, and check the session can read them. **Every ticket this command writes starts in `todo/`**, because no work has started on it. When the project keeps its design docs directly in the docs root, or its tickets folder is flat, write into the shape it already has.
 
 ## Architecture: you write, one agent researches
 

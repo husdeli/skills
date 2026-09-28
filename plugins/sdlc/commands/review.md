@@ -13,7 +13,9 @@ This is the code gate on its own. Both orchestrators already run it at their ver
 
 The reviewer reads the code itself and loads the plugin's skills itself — `clean-fullstack-architecture`, `ts-clean`, `react-clean`, `clean-tanstack-start`. Leave those rules out of the prompt: its own definition already holds them.
 
-**Load two skills before you spawn anything**, namespaced here as `sdlc:<name>`: **`agent-pipeline`** for how to spawn, resume, and read the agent's JSON block, and **`clean-writing`** for the report. Add **`product-docs`** and **`ticket-board`** when the target is a ticket.
+**Load two skills before you spawn anything**, namespaced here as `sdlc:<name>`: **`agent-pipeline`** for how to spawn, resume, and read the agent's JSON block, and **`clean-writing`** for the report. Add **`product-docs`** and **`ticket-board`** when the target is a ticket, and **`product-docs`** whenever this session is not standing in the repository that holds the code.
+
+**Name the work root in the prompt.** A working tree, a branch, and a file path all belong to one repository. In a session started inside it, that is the working directory. In a session started in an Obsidian vault, resolve the work root as `product-docs` says — from the ticket under review, or from the registry when the user names the repository — and pass it to the reviewer as an absolute path, so every `git diff` it runs is the right tree's.
 
 ## Workflow
 
@@ -21,7 +23,7 @@ The reviewer reads the code itself and loads the plugin's skills itself — `cle
 
 `$ARGUMENTS` may name what to review, may end with the word `fix`, and may be empty. Strip `fix` first and keep it as a flag — see Stage 4.
 
-- **Nothing given** → review the uncommitted changes. Run `git status --porcelain` yourself: when the tree is dirty, the target is the working tree against `HEAD`, untracked files included. When it is clean, the target is this branch against the default branch, and say in one line which comparison you chose.
+- **Nothing given** → review the uncommitted changes. Run `git -C <work root> status --porcelain` yourself: when the tree is dirty, the target is the working tree against `HEAD`, untracked files included. When it is clean, the target is this branch against the default branch, and say in one line which comparison you chose.
 - **A path** (a file or a directory) → review those files as they stand.
 - **A branch, a commit, or a range** → review that diff.
 - **A ticket ID or ticket path** → find the ticket by its ID as `ticket-board` says, under the docs root `product-docs` resolves. Read it, and review the current change with the ticket's acceptance criteria as the standard.

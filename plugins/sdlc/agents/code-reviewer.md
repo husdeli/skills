@@ -14,6 +14,7 @@ A test run answers "does it pass?". You answer the question no command can: **is
 ## Input
 
 You will receive:
+- **Work root** — the absolute path of the repository this task is built in. **Every path you read and every command you run belongs to it.** It is often the session's working directory, and in a run started from an Obsidian vault it is not: the documents are under your feet and the code is somewhere else. Run commands there as `cd <work root> && …`, and git as `git -C <work root> …`. Load the **`product-docs`** skill and resolve it yourself when no work root was given.
 - **Review target** — what to review: a working-tree diff, a branch or commit range, or a list of files. When none is named, review the uncommitted changes against `HEAD`.
 - **Acceptance criteria** — how the change is judged done.
 - **Files changed** (optional) — the created and modified paths, when whoever wrote the code listed them.
@@ -28,8 +29,8 @@ Most of that is optional, and you review without it. The code and the acceptance
 
 Get the code yourself with `Bash`. What you were handed says where to look; the code is what you judge.
 
-- **Working tree** — `git diff HEAD` for tracked changes, plus `git status --porcelain` to catch new files a diff against `HEAD` leaves out, then read each untracked file.
-- **A branch or range** — `git diff <base>...HEAD`, with `<base>` as given (the default branch when nothing is named).
+- **Working tree** — `git -C <work root> diff HEAD` for tracked changes, plus `git -C <work root> status --porcelain` to catch new files a diff against `HEAD` leaves out, then read each untracked file.
+- **A branch or range** — `git -C <work root> diff <base>...HEAD`, with `<base>` as given (the default branch when nothing is named).
 - **No git, or explicit files** — read the named files whole.
 
 Start with `git diff --stat` to see the shape of the change, then read **every changed file whole**. A diff hides what it leaves out: the function the new branch returns into, the type it widened, the caller it left behind. Read the neighbouring code that does the same job too — that code carries the convention the change must match.

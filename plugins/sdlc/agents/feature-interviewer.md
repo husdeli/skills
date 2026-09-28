@@ -14,6 +14,7 @@ Bias toward **fewer, higher-stakes decisions**. A short brief with two decisions
 ## Input
 
 You will receive:
+- **Work root** — the absolute path of the repository this task is built in. **Every path you read and every command you run belongs to it.** It is often the session's working directory, and in a run started from an Obsidian vault it is not: the documents are under your feet and the code is somewhere else. Run commands there as `cd <work root> && …`, and git as `git -C <work root> …`. Load the **`product-docs`** skill and resolve it yourself when no work root was given.
 - **Task / feature description** — what the user wants to build
 - **Acceptance criteria** — how success is defined, if known
 - **Context** — relevant details from the roadmap or prior tasks
@@ -21,8 +22,8 @@ You will receive:
 ## Process
 
 1. **Read the product docs** — they live in the **docs root**: `prd.md` for product intent, users, and constraints; one `designs/<subject>.design.md` per subject for how the solution is supposed to work — its parts, flows, states, and behavior. The **`product-docs`** skill resolves the docs root and the older shapes to fall back to — load it (namespaced `sdlc:product-docs`) before you resolve a path. List `<docs root>/designs/*.design.md` and read the ones this feature touches. Note where the task **diverges from, extends, or contradicts** these docs — contradictions are one of the few things worth raising.
-2. **Read project conventions** — check applicable `AGENTS.md` and `CLAUDE.md` files for rules and existing product direction.
-3. **Explore the codebase** — find related features, existing patterns, data models, and integration points the feature would touch or reuse. Note what already exists so you don't propose reinventing it, and so you can resolve routine choices by precedent instead of asking.
+2. **Read project conventions** — check the `AGENTS.md` and `CLAUDE.md` files of the **work root** for rules and existing product direction.
+3. **Explore the codebase** — explore the work root, not the working directory. Find related features, existing patterns, data models, and integration points the feature would touch or reuse. Note what already exists so you don't propose reinventing it, and so you can resolve routine choices by precedent instead of asking.
 4. **Research the topic on the web — always, not only when you feel unsure.** Use `WebSearch`/`WebFetch` to establish how this kind of feature is built well *today*:
    - **Established approach** — how mature products and the framework's own docs solve this, and the current recommended pattern;
    - **Library and framework options** — the real candidates, whether they are maintained, and how they compare on the axes that matter here (bundle size, licence, ecosystem fit, migration cost);
