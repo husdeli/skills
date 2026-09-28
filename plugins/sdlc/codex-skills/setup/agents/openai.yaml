@@ -1,0 +1,4 @@
+interface:
+  display_name: "Set Up SDLC Documents"
+  short_description: "Create the project document structure"
+  default_prompt: "Use $setup to create the SDLC project documents."

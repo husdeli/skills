@@ -1,19 +1,21 @@
 ---
-description: Create the folder that holds the PRD, the glossary, the design docs, the diagrams, the roadmap, and the tickets — in the repository, or in an Obsidian vault.
+description: Create the folder that holds the PRD, the glossary, the design docs, the diagrams, the roadmap, and the tickets — in an Obsidian vault, or in the repository.
 argument-hint: [product name] [destination path]
 ---
 
-# Scaffold
+# Setup
 
-Create the **docs root** — the single home for every document this plugin reads and writes. It
-sits in the repository as `.sdlc/` by default, and it can sit anywhere else the user keeps their
-writing, including a folder in an Obsidian vault.
+Create the **docs root** — the single home for every document this plugin reads and writes. The
+recommended home is a folder in an **Obsidian vault**, outside the repository: the documents stay
+readable and editable wherever the vault syncs, they stay out of every diff and merge, and one
+vault holds every project. The docs root can also sit in the repository as `.sdlc/`, which is
+where every command looks when no pointer file says otherwise.
 
 Arguments (if provided): $ARGUMENTS
 
 Load two skills before you create anything, namespaced here as `sdlc:<name>`: **`product-docs`**,
 which holds the resolution order, the pointer file, and the vault conventions this command writes,
-and **`ticket-board`**, which holds the shape of the tickets and the roadmap it scaffolds and
+and **`ticket-board`**, which holds the shape of the tickets and the roadmap it creates and
 migrates.
 
 ```
@@ -54,9 +56,9 @@ there is no ticket yet to put one beside.
   them in, or `/prd` and `/design` do.
 - **Substitute the product name** wherever the stubs show `<product>`, when the arguments
   gave one. Otherwise leave `TBD`.
-- **Settle the destination before you create anything** — Step 1. The default docs root is
-  `.sdlc/` in the project root: the directory holding `.git`, `package.json`, `AGENTS.md`, or
-  `CLAUDE.md`. Not the current working directory when that sits deeper.
+- **Settle the destination before you create anything** — Step 1. The repository option puts
+  the docs root at `.sdlc/` in the project root: the directory holding `.git`, `package.json`,
+  `AGENTS.md`, or `CLAUDE.md`. Not the current working directory when that sits deeper.
 - **Create `designs/`, `diagrams/`, and all three ticket status folders**, even though they start
   empty.
   Write a `.gitkeep` file into every one that ends up with no file in it **when the docs root
@@ -75,15 +77,24 @@ stop at the first that applies:
 - **The arguments name a path** — an absolute path, a `~`-prefixed path, or anything holding a
   path separator → that is the destination. The rest of the arguments is the product name.
 - **Otherwise, ask.** One question, two options:
-  - **In the repository (`.sdlc/`)** — recommended. The documents are versioned with the code,
-    they travel with a clone, and a review sees a document change beside the change it
-    describes.
-  - **In a folder outside the repository** — an Obsidian vault, or any shared writing folder.
-    The documents are readable and editable without the repository, and several projects can
-    live in one place. Ask for the path in the same turn, or take it from the user's "Other"
-    answer.
+  - **In an Obsidian vault** — recommended. The documents are readable and editable without the
+    repository, on every device the vault syncs to, and Obsidian's properties, backlinks, and
+    search work on the whole board. They sit outside the code, so a branch switch never changes
+    the roadmap, two branches never conflict over a ticket, and a pull request carries the code
+    alone. One vault holds every project. Ask for the vault path in the same turn, or take it
+    from the user's "Other" answer.
+  - **In the repository (`.sdlc/`)** — the documents are versioned with the code, they travel
+    with a clone, and a review sees a document change beside the change it describes. Take this
+    option when the user keeps no vault, or when the team reads the documents only through the
+    repository.
 
   In Codex, ask the same question in prose: a Codex session has no `AskUserQuestion` tool.
+
+  **When the user picks the vault and names no path**, offer the vaults you can find: search for a
+  `.obsidian/` folder a few levels deep under the user's home directory — `~/Documents`,
+  `~/Obsidian`, `~/Vaults`, and the iCloud Obsidian folder — and list each vault you find. Keep the
+  search shallow; never walk the whole home directory. When it finds nothing, ask for the path, and
+  take the repository when the user keeps no vault.
 
 **Then classify the destination.** Walk up from the chosen path looking for a `.obsidian/`
 folder — in the path itself, or in any parent directory:
@@ -130,7 +141,7 @@ changes nothing but the path.
 
 Look for documents this plugin would otherwise create twice:
 
-- The docs root itself — if it exists, you are filling gaps, not scaffolding.
+- The docs root itself — if it exists, you are filling gaps, not setting up.
 - Root-level `prd.md`, `PRD.md`, `glossary.md`, `GLOSSARY.md`, `design.md`, `DESIGN.md`,
   `roadmap.md`, `ROADMAP.md`.
 - A root-level `tickets/` directory.

@@ -23,4 +23,4 @@ In the final handoff, use these Codex skill names:
 - `$sdlc:orchestrate`
 - `$sdlc:orchestrate-quick`
 - `$sdlc:plan`
-- `$sdlc:scaffold`
+- `$sdlc:setup`

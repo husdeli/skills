@@ -148,7 +148,7 @@ Check these first, in one parallel Bash batch, and stop before you spawn anythin
   pre-existing changes would be swallowed into it and attributed to a task that did not make them.
   Outcome `blocked`, naming what is dirty.
 - **The docs root and the roadmap exist.** Resolve the root with `product-docs`. With no roadmap
-  anywhere, outcome `blocked`, naming `/scaffold`.
+  anywhere, outcome `blocked`, naming `/setup`.
 
 Report a `blocked` preflight in two lines and print the result line. Do not try to fix the ground.
 

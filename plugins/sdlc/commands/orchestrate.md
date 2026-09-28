@@ -27,7 +27,7 @@ spawn prompt: the agents load their own.
 `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md`, with a worklog
 beside a ticket in flight. `product-docs` resolves the
 root, and every `.sdlc/…` path below means `<docs root>/…`. When the project has no structure at
-all, work from whatever it keeps at its root and name `/scaffold` in your report.
+all, work from whatever it keeps at its root and name `/setup` in your report.
 
 ## The worklog and the assignee — you are the only writer
 
@@ -113,7 +113,7 @@ Drive one task through the entire pipeline. Do not batch tasks. When it is done,
 
 ### 1. Read the Roadmap
 The **`ticket-board`** skill holds the roadmap's shape: one `## <CODE> — <epic name>` section per epic, one row per task, three statuses, and what an epic's `**Note**:` line and a `Depends on` cell mean. Read it there rather than inferring it from the file.
-- If no roadmap path was given, use the docs root's **`roadmap.md`**. When that file does not exist, look for a roadmap at the project root, and ask for the path only when neither is there — naming `/scaffold` as the way to create one.
+- If no roadmap path was given, use the docs root's **`roadmap.md`**. When that file does not exist, look for a roadmap at the project root, and ask for the path only when neither is there — naming `/setup` as the way to create one.
 - **Read every epic section**, not just the first: a dependency may name a task in another epic.
 - **The row does not say what the task delivers — its ticket does.** Open the ticket of every task you are about to offer, and take the description and the acceptance criteria from there.
 - Carry an epic's `**Note**:` line into the planner prompt as a constraint on the task.

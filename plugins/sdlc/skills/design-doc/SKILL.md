@@ -33,7 +33,7 @@ properties there, and a cross-reference becomes a wikilink.
 the docs root, and before that in a single `design.md` there or at the project root.
 Read whichever shape the project has, and update the file in place where it already sits.
 Move the docs into `designs/`, or split a single `design.md` by subject, only when the user
-asks — `/scaffold` offers the move.
+asks — `/setup` offers the move.
 
 A design doc is a **specification of the intended end state of one solution**: the **parts** it
 is built from, how those parts fit together, how work flows through it **end to end**, and how

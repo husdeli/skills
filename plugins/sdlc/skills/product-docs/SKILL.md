@@ -23,7 +23,7 @@ In this order, and stop at the first hit:
 2. **`.sdlc/` at the project root** — the default. The destination is `repo`.
 3. **Neither** — the project has no docs root. Read whatever it already keeps at the project
    root (`prd.md`/`PRD.md`, `glossary.md`/`GLOSSARY.md`, `*.design.md`, `design.md`,
-   `roadmap.md`, `diagrams/`, `tickets/`), and name the platform's scaffold entry point as the way
+   `roadmap.md`, `diagrams/`, `tickets/`), and name the platform's setup entry point as the way
    to create the structure.
 
 The **project root** is the directory holding `.git`, `package.json`, `AGENTS.md`, or
@@ -51,7 +51,7 @@ path this plugin writes as `.sdlc/…` means `<docs root>/…`.
 The pointer file exists only when the docs root is somewhere other than `.sdlc/`. A project
 whose documents live in `.sdlc/` needs no pointer file, and never gets one.
 
-**Never move the docs root on your own.** Only the scaffold entry point writes or changes
+**Never move the docs root on your own.** Only the setup entry point writes or changes
 `.sdlc.json`, and only after the user says where the documents go.
 
 ## The three destinations
@@ -64,6 +64,11 @@ whose documents live in `.sdlc/` needs no pointer file, and never gets one.
 
 A path is inside an **Obsidian vault** when that path, or one of its parent directories, holds a
 `.obsidian/` folder. Check for it by walking up from the docs root.
+
+`vault` is the destination the setup entry point recommends for a new project, because the
+documents then stay readable outside the repository and out of every branch and diff. `repo` stays
+the shape every rule below is written for, and the one every command falls back to when no pointer
+file exists.
 
 ## Writing into a vault
 
@@ -79,7 +84,7 @@ the headings, and the words of every document stay the same.
 - **The vault root is a valid docs root.** A vault kept for one product needs no folder inside
   it, and a folder named after the vault (`sdlc-obsidian/sdlc-obsidian/`) helps nobody. Use a
   product-named folder inside the vault instead when the vault root already holds notes of its
-  own, so `prd.md` does not land among them. The scaffold entry point settles which of the two it
+  own, so `prd.md` does not land among them. The setup entry point settles which of the two it
   is; every other command takes the docs root from `.sdlc.json` and never second-guesses it.
 - File names are unchanged: `prd.md`, `glossary.md`, `roadmap.md`, `checkout.design.md`,
   `AUTH-001-user-login.md`.

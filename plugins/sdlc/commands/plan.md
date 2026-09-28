@@ -54,8 +54,8 @@ Plan **one request per run.** When the request is really several unrelated featu
 
 ### 2. Check the documents exist
 
-- **No docs root and no product docs at the root** → name `/scaffold` and stop. Planning into a project with no PRD invents the product instead of extending it.
-- **The docs root exists but one document is missing** → create that one file with the stub headings `/scaffold` writes, then continue.
+- **No docs root and no product docs at the root** → name `/setup` and stop. Planning into a project with no PRD invents the product instead of extending it.
+- **The docs root exists but one document is missing** → create that one file with the stub headings `/setup` writes, then continue.
 - **The PRD is still a stub**, with the placeholder lines unfilled → fill only the sections this request touches, and name `/prd` in your report as the way to write the rest. Do not invent a whole product around one request.
 
 ### 3. Interview, and read the documents while it runs

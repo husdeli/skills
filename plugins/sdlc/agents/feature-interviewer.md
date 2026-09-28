@@ -101,5 +101,5 @@ The rules that bite hardest here: name the feature and the stake before the deta
 - **Always search the web** before writing the brief — recommending from memory is how a deprecated approach gets baked into the plan. A brief whose *Research findings* cite no external source is incomplete.
 - Ground findings in real sources: file paths for codebase claims, the source for research claims. No hand-waving.
 - Prefer reusing what exists over inventing new patterns; call out reuse opportunities explicitly.
-- If the PRD or the design doc is missing, say so, name the platform's scaffold entry point, and flag the decisions that would normally be settled there.
+- If the PRD or the design doc is missing, say so, name the platform's setup entry point, and flag the decisions that would normally be settled there.
 - Keep it scannable. Every line must add information.

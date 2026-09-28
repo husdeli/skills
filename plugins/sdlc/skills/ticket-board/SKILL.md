@@ -50,7 +50,7 @@ keeps its tickets flat. Cite a ticket by file name, so that no later move invali
 reference.
 
 **A flat `tickets/` folder stays flat.** Never build the status folders around tickets that are
-already in flight. Keep writing the status field in place, and name the platform's scaffold entry
+already in flight. Keep writing the status field in place, and name the platform's setup entry
 point as the way to migrate. Run that entry point when the tickets folder does not exist at all.
 A project that already keeps tickets elsewhere keeps them there — do not start a second home.
 
@@ -79,7 +79,7 @@ number, and never renumber a ticket that exists — the ID is how the roadmap, t
 the reviews cite it.
 
 **A project on a project-wide scheme keeps the IDs it has.** Never rewrite `SW-001` into an epic
-ID on your own. Keep continuing that project's scheme, and name the platform's scaffold entry
+ID on your own. Keep continuing that project's scheme, and name the platform's setup entry
 point as the way to migrate.
 
 ## The roadmap holds the work that is left
@@ -128,7 +128,7 @@ that line as soon as it no longer applies:
 
 **An older roadmap may still hold finished work** — rows marked completed, and a `###` detail
 section per task. Read it as it is, take a description from the detail section when a task has no
-ticket, and name the platform's scaffold entry point as the way to clean the file up.
+ticket, and name the platform's setup entry point as the way to clean the file up.
 
 ## Who holds the ticket
 

@@ -5,6 +5,26 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.50.0] - 2026-09-28
+
+### Changed
+
+- **`/scaffold` is now `/setup`.** The command creates a home for the product documents and
+  migrates what a project already keeps — it does not scaffold code — so the name said the wrong
+  thing. `$sdlc:scaffold` is now `$sdlc:setup` in Codex, and every command, skill, and agent that
+  named the old entry point names the new one. **Breaking**: `/scaffold` and `$scaffold` no longer
+  resolve.
+
+- **An Obsidian vault outside the repository is the recommended docs root.** The question `/setup`
+  asks is unchanged, but the vault is the recommended answer now, and the repository is the
+  alternative. The documents then stay readable and editable without the repository on every device
+  the vault syncs to, they stay out of the code's history — no branch switch rewriting the roadmap,
+  no two branches conflicting over one ticket, no documents in a pull request — Obsidian reads the
+  board as a queryable database of properties and backlinks, and one vault holds every project.
+  The repository (`.sdlc/`) is still the right answer for a team that reads these documents only
+  through the repository, and it is still the shape every command falls back to when no
+  `.sdlc.json` points elsewhere. Nothing about how a vault is written changed.
+
 ## [0.49.1] - 2026-09-28
 
 ### Changed

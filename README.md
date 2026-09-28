@@ -34,7 +34,8 @@ review, and fourteen skills hold the rules they follow: Clean Code and Hexagonal
 TypeScript, React, and TanStack Start layers, the writing standard every human-facing output
 goes through, the glossary that defines the product's terms, the diagrams that show a shape, and
 the PRD, design-doc, and frontend-design document skills. Every document it
-reads or writes lives in one `.sdlc/` folder at your project root.
+reads or writes lives in one folder — a folder in an Obsidian vault, which `/setup` recommends, or
+`.sdlc/` at your project root.
 
 One of the twelve runs with nobody in the room: **`/run-roadmap`** puts a **cto** agent where you
 would be — it picks the task, settles the decisions, rules on a stage that runs out of retries, and
@@ -42,7 +43,7 @@ hands back only what a person must own — and `scripts/run-roadmap.sh` loops it
 one commit and one fresh session per task.
 
 Claude Code and Codex. See the [plugin README](plugins/sdlc/README.md) for the commands, the
-agents, the skills, the unattended run, and the `.sdlc/` layout.
+agents, the skills, the unattended run, and the docs-root layout.
 
 ### [`daily`](plugins/daily/README.md) — everyday routines
 

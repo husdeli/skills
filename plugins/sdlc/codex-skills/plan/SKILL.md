@@ -33,6 +33,6 @@ Do not invoke a nested `/plan` command. Execute the shared instructions directly
 
 Use these Codex skill names in the handoffs:
 
-- `$sdlc:scaffold`
+- `$sdlc:setup`
 - `$sdlc:code`
 - `$sdlc:orchestrate`

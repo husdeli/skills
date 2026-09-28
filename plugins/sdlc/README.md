@@ -39,11 +39,13 @@ scripts/                         # run-roadmap.sh, the unattended launcher
 
 ## Where your product docs live
 
-Every document the plugin reads or writes sits in one folder — the **docs root**. By default it
-is `.sdlc/` at your project root:
+Every document the plugin reads or writes sits in one folder — the **docs root**. The recommended
+home is a folder in an **Obsidian vault**, outside the repository — [the section below](#recommended-keep-them-in-an-obsidian-vault)
+says why. The in-repository option is `.sdlc/` at your project root, which is what every command
+falls back to when nothing points elsewhere. The layout is the same wherever the folder sits:
 
 ```
-.sdlc/
+<docs root>/            # a folder in your vault, or .sdlc/ in the repository
   prd.md                product requirements — what the product does and why
   glossary.md           the product's terms — one ## heading per term, defined once
                         here and linked from every other document
@@ -76,7 +78,7 @@ names the parts of the whole solution and points at the rest.
 A ticket moves between the three status folders as the work progresses, and its `Status` field
 always names the folder it sits in. The commands move it for you: into `in-progress/` when an
 orchestrator starts the task, into `done/` when verification passes. A project that already
-keeps its design docs or its tickets in one flat folder keeps working — `/scaffold` offers the
+keeps its design docs or its tickets in one flat folder keeps working — `/setup` offers the
 migration, and never forces it.
 
 **A ticket in flight says who holds it, and keeps a worklog of what was decided.** Its
@@ -105,13 +107,29 @@ lost. What does get written back is a correction: when finished work changes wha
 task has to do, that task's row and ticket are rewritten, and a constraint that governs a whole
 epic becomes one `**Note**:` line under it.
 
-Run **`/scaffold`** in Claude Code or **`$sdlc:scaffold`** in Codex to create it.
+Run **`/setup`** in Claude Code or **`$sdlc:setup`** in Codex to create it.
 Every agent falls back to the project root when a project already keeps these documents there.
 
-### Or keep them in an Obsidian vault
+### Recommended: keep them in an Obsidian vault
 
-`/scaffold` asks where the docs root goes: in the repository as `.sdlc/`, or in a folder outside
-it. Point it at an Obsidian vault and it writes the structure there, then writes a pointer file
+`/setup` asks where the docs root goes, and recommends a folder in an Obsidian vault outside the
+repository. Four reasons:
+
+- **The documents are readable and editable without the repository**, on every device the vault
+  syncs to. You can read the roadmap on a phone, and write a ticket without opening an editor.
+- **They stay out of the code's history.** A branch switch never rewrites the roadmap, two
+  branches never conflict over the same ticket file, and a pull request carries the code alone.
+  The board is the same board whatever branch you are on.
+- **Obsidian reads the board as a database.** Properties, backlinks, search, and the graph work
+  across the whole structure, so `status: In Progress` across every epic is one query.
+- **One vault holds every project.** The documents for all of them sit side by side, and a note
+  of your own can link straight into any ticket.
+
+Pick **In the repository** instead when you keep no vault, or when the team only ever reads these
+documents through the repository: there the documents are versioned with the code, they travel
+with a clone, and a review sees a document change beside the change it describes.
+
+Point `/setup` at a vault and it writes the structure there, then writes a pointer file
 at your project root so every command still finds it:
 
 ```json
@@ -130,7 +148,7 @@ Inside a vault the documents are written the way Obsidian reads them, and nothin
 
 - **No folder starts with a dot**, because Obsidian hides those. The docs root is a folder named
   after the product — or the vault root itself, when you keep a vault for this one product and
-  point `/scaffold` at it.
+  point `/setup` at it.
 - **Fields become properties.** `**Status**: In Progress` under the title becomes
   `status: In Progress` in the frontmatter, so a ticket is queryable in Bases or Dataview. The
   property is the record the commands rewrite.
@@ -301,8 +319,8 @@ what a ticket is, and why changing how a status transition works is one edit rat
   in the ticket and the worklog, which is how an unattended run stays readable afterwards.
 
 ### Commands and Codex skills
-- **/scaffold** — asks where the docs root goes — in the repository as `.sdlc/`, or in a folder
-  outside it such as an Obsidian vault — then creates it with stub files for the PRD, the glossary,
+- **/setup** — asks where the docs root goes — in an Obsidian vault, which it recommends, or in
+  the repository as `.sdlc/` — then creates it with stub files for the PRD, the glossary,
   the design doc, the roadmap, a ticket template, the `designs/` and `diagrams/` folders, and the
   `todo/`, `in-progress/`, and `done/` ticket folders. An outside folder gets a `.sdlc.json` pointer file at
   the project root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no
@@ -381,7 +399,7 @@ Use these equivalents in a Codex prompt:
 
 | Claude Code | Codex |
 | --- | --- |
-| `/scaffold [product]` | `$sdlc:scaffold [product]` |
+| `/setup [product]` | `$sdlc:setup [product]` |
 | `/orchestrate [roadmap]` | `$sdlc:orchestrate [roadmap]` |
 | `/orchestrate-quick [task]` | `$sdlc:orchestrate-quick [task]` |
 | `/run-roadmap [roadmap]` | `$sdlc:run-roadmap [roadmap]` |

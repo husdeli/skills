@@ -30,7 +30,7 @@ mistake this command can make, so read the files rather than answering from memo
 
 - **The roadmap** is the docs root's `roadmap.md`, unless `$ARGUMENTS` gives a path. When neither
   exists, look for a roadmap at the project root. With no roadmap anywhere, say so and name
-  `/scaffold` as the way to create the structure, then stop.
+  `/setup` as the way to create the structure, then stop.
 - Read **every** `## <CODE> — <epic name>` section, not just the first. A dependency may name a
   task in another epic. Read an epic's `**Note**:` line when it has one: it constrains every task
   in that epic.
@@ -48,7 +48,7 @@ mistake this command can make, so read the files rather than answering from memo
   started before the worklog existed, or by hand.
 - On an **older roadmap** — rows marked completed, a `###` detail section per task — read what is
   there, take a description from the detail section when a task has no ticket, and say in one line
-  that `/scaffold` cleans the file up.
+  that `/setup` cleans the file up.
 
 **When `$ARGUMENTS` names an epic code** (`AUTH`, `BILLING`), narrow every list below to that
 epic, and say in one line that you narrowed it.

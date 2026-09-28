@@ -43,7 +43,7 @@ Apply these replacements while executing the shared command:
 | `WebSearch`, `WebFetch` | Use Codex web tools and cite the sources that the role requires. |
 | `opus`, `sonnet`, or another Claude model | Omit the model override and inherit the current Codex model. |
 | `CLAUDE.md` | Read applicable `AGENTS.md` files first. Also read `CLAUDE.md` when present. |
-| `/scaffold`, `/orchestrate`, `/orchestrate-quick`, `/run-roadmap`, `/code`, `/review`, `/plan` | Use `$scaffold`, `$orchestrate`, `$orchestrate-quick`, `$run-roadmap`, `$code`, `$review`, `$plan`. |
+| `/setup`, `/orchestrate`, `/orchestrate-quick`, `/run-roadmap`, `/code`, `/review`, `/plan` | Use `$setup`, `$orchestrate`, `$orchestrate-quick`, `$run-roadmap`, `$code`, `$review`, `$plan`. |
 | `/design`, `/prd`, `/explain` | Use `$design-doc`, `$prd`, `$explain`. |
 | `$ARGUMENTS` | Use the text that follows the Codex skill invocation. |
 
