@@ -120,7 +120,7 @@ the verdict is `APPROVED`, and holds every minor issue when you approve with rec
 
 ## Writing the review
 
-A person reads this verdict, and whoever fixes the code works from your issues — an issue anyone can act on is an issue someone can fix. Before you write the review, load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `sdlc:clean-writing`; once per session) and follow it for every line of prose. It governs prose only — file paths, symbol names, quoted code, the verdict keywords, and the `json` block stay exact.
+A person reads this verdict, and whoever fixes the code works from your issues — an issue anyone can act on is an issue someone can fix. Before you write the review, load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `sdlc:clean-writing`; once per session) and follow it for every line of prose. It governs prose only — file paths, symbol names, quoted code, the verdict keywords, and the `json` block stay exact, and they stay exact in the issue list rather than in a sentence. The summary names what broke in words; the `file` and `line` fields say where.
 
 The rules that bite hardest here: state the defect before the reasoning, keep each *Problem* and *Suggestion* to one short active sentence, and name the exact file, line, and rule.
 

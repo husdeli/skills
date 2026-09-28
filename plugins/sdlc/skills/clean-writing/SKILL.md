@@ -1,6 +1,6 @@
 ---
 name: clean-writing
-description: Rules for every piece of prose a person reads — a discovery brief, an implementation plan, a review verdict, a verification report, a question put to the user, a PRD, a design doc, a ticket, a commit message, a pull-request body, or a chat reply. INVOKE THIS SKILL before writing any output directed at a human, and before asking the user a question. Enforces context first (the reader was never in your context window), ASD-STE100 Simplified Technical English (one idea per sentence, active voice, short sentences, one word for one meaning, no jargon or metaphor), the project's ubiquitous language through the `glossary` skill, and the answer before the reasoning. Invoke it directly on a message that did not land, to re-pitch that message.
+description: Rules for every piece of prose a person reads — a discovery brief, an implementation plan, a review verdict, a verification report, a question put to the user, a PRD, a design doc, a ticket, a commit message, a pull-request body, or a chat reply. INVOKE THIS SKILL before writing any output directed at a human, and before asking the user a question. Enforces context first (the reader was never in your context window), ASD-STE100 Simplified Technical English (one idea per sentence, active voice, short sentences, one word for one meaning, no jargon or metaphor), the project's ubiquitous language through the `glossary` skill, prose that names a thing in words rather than by its file name, identifier, or section sign — the exact strings go beside the sentence, in a block or a list — and the answer before the reasoning. Invoke it directly on a message that did not land, to re-pitch that message.
 ---
 
 # Clean Writing
@@ -21,12 +21,15 @@ It does **not** govern: source code, identifiers, file paths, commands, the fenc
 contract blocks that agents emit for the orchestrator, or quoted output copied from a tool.
 Quote those exactly. Never "simplify" a name, a path, or an error message.
 
+**They belong beside the prose, never inside it** — Rule 4 says where each one goes.
+
 ## Rule 1 — Land the context before the point
 
 Open with **one to three sentences** that put the reader in the right place, then give the
 substance. The opening must answer three questions:
 
-- **What is this about?** Name the feature, file, ticket, or decision.
+- **What is this about?** Name the feature, the document, the ticket, or the decision — in
+  words, not by file name. Rule 4 holds that.
 - **Why are you sending it now?** Name what triggered it — a stage finished, a check failed,
   a decision is blocked.
 - **What does it mean for the reader?** Name what is done, what is broken, or what you need
@@ -36,7 +39,7 @@ Do not open with the detail. Do not open with the history of how you got there.
 
 | Instead of | Write |
 | --- | --- |
-| "Fixed the race — the mutex now wraps the whole read." | "The nightly export dropped rows when two workers ran together. I found the race in `ExportQueue` and fixed it. The export is correct again." |
+| "Fixed the race — the mutex now wraps the whole read." | "The nightly export dropped rows when two workers ran together. I found the race in the export queue and fixed it. The export is correct again." |
 | "Should I use option A or B?" | "The plan needs one decision before I can continue: how sessions are stored. Option A keeps them in the database. Option B keeps them in a signed cookie." |
 
 ## Rule 2 — Write Simplified Technical English (ASD-STE100)
@@ -64,8 +67,10 @@ rules:
 9. **No jargon, idiom, metaphor, humor, or hedging.** No "low-hanging fruit", no "circle
    back", no "it should probably be fine". Metaphor is not shared context; it is a second
    thing the reader must decode.
-10. **Be specific.** Numbers, names, and paths beat "several", "shortly", and "the relevant
-    file". Write "3 of 42 tests fail in `auth.test.ts`", not "some tests are failing".
+10. **Be specific.** Numbers and names beat "several", "shortly", and "the relevant part".
+    Write "three of the 42 tests fail, all of them in the login tests", not "some tests are
+    failing". The file each one fails in goes in the list below the sentence, not in it — Rule 4
+    holds that.
 11. **Use a vertical list** whenever an item has more than three parts, or the reader must
     act on each part separately.
 12. **Put the warning before the instruction.** State the risk, then the step. A caution that
@@ -85,7 +90,46 @@ how a document links that definition instead of writing it again. **Load it** (n
 `sdlc:glossary`) before you write about a domain you have not written about in this session, and
 follow it for every name you use here.
 
-## Rule 4 — Give the answer before the reasoning
+## Rule 4 — Name the thing, not the file it lives in
+
+A file name is not the name of a thing. The roadmap is "the roadmap". The rule about where
+documents live is "the rule about where documents live". The export queue is "the export queue".
+The reader knows the product. The reader does not know your tree, and on a phone cannot open it.
+
+**Three things never appear inside a sentence:**
+
+- **The section sign and the pilcrow — `§` and `¶`.** Cite a section by its heading, in words: "the
+  registration step of the setup command". A number into a document the reader does not have open
+  points at nothing.
+- **File names, folders, and extensions.** Write "the roadmap", "the login ticket", "the checkout
+  design doc", "the setup command".
+- **Identifiers and code.** Write "the export queue drops a row when two workers run together".
+  Not the class name, not the function call, not a snippet of the change.
+
+| Instead of | Write |
+| --- | --- |
+| "Updated `product-docs/SKILL.md` §2 to add `workRoot`." | "The rule about where documents live now covers the repository a task is built in." |
+| "Fixed the race in `ExportQueue.flush()`." | "The nightly export dropped rows when two workers ran together. The export is correct again." |
+| "See `AUTH-001-user-login.md`." | "See the ticket for user login." |
+| "`verificationCommands` came back empty." | "The project names no test command, so nothing gated this change." |
+
+**The exact string still has a place — beside the prose, never inside it.** A reader who must act
+on a path needs it exactly; a reader who is being told what happened needs the words. Both readers
+are served by keeping the two apart:
+
+- A command the reader runs goes in its own fenced block, under a line that says what it does.
+- The files a change touched go in a list, under a heading that says so.
+- A defect's location goes in the issue list, one per line, next to the issue — not in the sentence
+  that gives the verdict.
+- A number stays in the prose. "Three of the 42 tests fail" is prose; which file they fail in is a
+  list.
+
+This rule governs prose only. **A document that cites another document still cites it the way the
+`product-docs` and `ticket-board` skills say** — by file name, or as a wikilink in a vault — because
+that citation is a link for a machine and a click, not a sentence. A fenced block, a table cell
+holding a path, and an agent's `json` block are unchanged too.
+
+## Rule 5 — Give the answer before the reasoning
 
 - **Lead with the outcome.** Verdict, result, blocker, or answer first. The evidence follows
   it, and the reader stops as soon as they have enough.
@@ -106,7 +150,9 @@ Check the text against this list. It takes seconds and it catches most of the da
 - [ ] Every sentence names its actor, in the active voice.
 - [ ] Each concept uses one term, and that term is the glossary's term.
 - [ ] No jargon, idiom, metaphor, or hedge survived.
-- [ ] Every quantity, name, and path is specific.
+- [ ] Every quantity and name is specific.
+- [ ] No sentence holds a file name, an identifier, a snippet, a `§`, or a `¶`.
+- [ ] Every exact string the reader needs is there, in a block, a list, or a table cell.
 - [ ] Code, identifiers, paths, quoted output, and any `json` contract block are untouched.
 
 ## Re-pitch mode

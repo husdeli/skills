@@ -47,7 +47,7 @@ their own.
 The **`agent-pipeline`** skill holds the mechanics, the same as in `/orchestrate`. This command's four persistent roles are the **planner**, the **plan reviewer** (one, always), the **coding agent**, and the **code reviewer**; `verify` is spawned fresh every run. Keep all four ids.
 
 ### Everything you show the user goes through `clean-writing`
-You are the only stage that talks to the person, so `clean-writing` governs every word they see: the assumed acceptance criteria you state, the task you present for approval, the Stage 7 end-to-end question and its option labels, the completion report, and every escalation or abort. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, and reuse the ticket's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact.
+You are the only stage that talks to the person, so `clean-writing` governs every word they see: the assumed acceptance criteria you state, the task you present for approval, the Stage 7 end-to-end question and its option labels, the completion report, and every escalation or abort. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, and reuse the ticket's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact. They stay exact **beside** the prose: a path, a symbol, or a snippet never goes inside a sentence, and the sentence names the thing in words instead.
 
 ### The worklog and the assignee — you are the only writer
 

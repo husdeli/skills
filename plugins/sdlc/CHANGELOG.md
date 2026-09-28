@@ -5,6 +5,23 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.52.0] - 2026-09-28
+
+### Changed
+
+- **Prose a person reads no longer carries a file name, an identifier, or a section sign.** A new
+  rule in `clean-writing` — *Name the thing, not the file it lives in* — bans `§` and `¶`, file
+  names, folders, extensions, identifiers, and code snippets from inside a sentence. The reader
+  knows the product; they do not know your tree, and on a phone they cannot open it. So a report
+  says "the nightly export dropped rows", not "the race in `ExportQueue.flush()`", and "see the
+  ticket for user login", not the ticket's file name.
+
+  The exact strings did not disappear — they moved beside the prose, where a reader who must act on
+  one still gets it verbatim: a command in its own fenced block, the files a change touched in a
+  list, a defect's location in the issue list next to the issue. A document's citation of another
+  document is unchanged, because a wikilink is a link and not a sentence. The rule about being
+  specific now asks for numbers and names in the prose and keeps the paths in the list under it.
+
 ## [0.51.0] - 2026-09-28
 
 ### Added

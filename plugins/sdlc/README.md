@@ -310,8 +310,11 @@ worth as much as its record.
   verdict, a report, a question, a PRD, a ticket, a chat reply. Context before the point,
   ASD-STE100 Simplified Technical English (one idea per sentence, active voice with a named
   actor, one word for one meaning, no jargon or metaphor), the project's ubiquitous language
-  through the `glossary` skill, and the answer before the reasoning.
-  Governs prose only — code, identifiers, paths, quoted output, and the agents' `json` blocks stay exact.
+  through the `glossary` skill, prose that names a thing in words rather than by its file name,
+  identifier, or section sign, and the answer before the reasoning.
+  Governs prose only — code, identifiers, paths, quoted output, and the agents' `json` blocks stay
+  exact, beside the sentence rather than inside it: a command in its own block, the files a change
+  touched in a list, a defect's location next to the issue.
   Invoked directly, it re-pitches a message that didn't land. Every agent, command, and
   document skill in this plugin routes its human-facing output through it.
 - **design-doc** — Create or update a design doc specifying how a solution works: the parts

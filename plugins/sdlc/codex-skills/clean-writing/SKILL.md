@@ -1,6 +1,6 @@
 ---
 name: clean-writing
-description: Rules for every piece of prose a person reads — a plan, a review, a report, a question, a document, a commit message, or a chat reply. Use before writing any output directed at a human.
+description: Rules for every piece of prose a person reads — a plan, a review, a report, a question, a document, a commit message, or a chat reply. Use before writing any output directed at a human. Covers context first, Simplified Technical English, the project's own terms, prose that names a thing in words instead of by its file name or identifier, and the answer before the reasoning.
 ---
 
 # clean-writing
