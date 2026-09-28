@@ -29,17 +29,17 @@ Start a new session after installation so the skills become available.
 
 ### [`sdlc`](plugins/sdlc/README.md) — plan, review, implement, verify
 
-Twelve commands drive seven agents through interview → plan → review → implement → verify and code
-review, and fourteen skills hold the rules they follow: Clean Code and Hexagonal Architecture, the
+Thirteen commands drive seven agents through interview → plan → review → implement → verify and code
+review, and fifteen skills hold the rules they follow: Clean Code and Hexagonal Architecture, the
 TypeScript, React, and TanStack Start layers, the writing standard every human-facing output
 goes through, the glossary that defines the product's terms, the diagrams that show a shape, and
-the PRD, design-doc, and frontend-design document skills. Every document it
+the PRD, design-doc, business-plan, and frontend-design document skills. Every document it
 reads or writes lives in one folder — a folder in an Obsidian vault, which `/setup` recommends, or
 `.sdlc/` at your project root. Put them in a vault and one board can drive **several code
 repositories**: `/setup` registers each one, and a session started in the vault picks a task from
 one roadmap and builds it in whichever repository it belongs to.
 
-One of the twelve runs with nobody in the room: **`/run-roadmap`** puts a **cto** agent where you
+One of the thirteen runs with nobody in the room: **`/run-roadmap`** puts a **cto** agent where you
 would be — it picks the task, settles the decisions, rules on a stage that runs out of retries, and
 hands back only what a person must own — and `scripts/run-roadmap.sh` loops it over a whole roadmap,
 one commit and one fresh session per task.

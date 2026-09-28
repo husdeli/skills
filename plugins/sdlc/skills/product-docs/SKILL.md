@@ -7,7 +7,8 @@ description: "Rules for where this plugin's documents and code live and how each
 
 Every document this plugin reads or writes sits in one folder: the **docs root**. The docs root
 holds `prd.md`, `glossary.md`, `roadmap.md`, `designs/`, `diagrams/`, and `tickets/` — and inside
-`tickets/`, a worklog beside each ticket that work has started on. Every line of code it writes
+`tickets/`, a worklog beside each ticket that work has started on. A product with a business plan
+also holds `business/`, with the plan and a `competitors/` folder beside it. Every line of code it writes
 sits in a **work root**: one code repository. This skill says where each root is, how to find one
 from the other, and how the documents inside the docs root are written.
 
@@ -236,8 +237,8 @@ the headings, and the words of every document stay the same.
 
 - **No name in the docs root starts with a dot.** Obsidian hides dot-folders and dot-files, so a
   `.sdlc/` folder inside a vault is invisible. The docs root is named after the product
-  (`Acme/`), and `designs/`, `diagrams/`, `tickets/`, `todo/`, `in-progress/`, and `done/` keep
-  their names.
+  (`Acme/`), and `designs/`, `diagrams/`, `tickets/`, `todo/`, `in-progress/`, `done/`,
+  `business/`, and `competitors/` keep their names.
 - **The vault root is a valid docs root.** A vault kept for one product needs no folder inside
   it, and a folder named after the vault (`sdlc-obsidian/sdlc-obsidian/`) helps nobody. Use a
   product-named folder inside the vault instead when the vault root already holds notes of its
@@ -269,7 +270,8 @@ The key is the field name in lower case, with `Last updated` as the one exceptio
 
 Every document also carries two properties the plugin adds:
 
-- **`type`** — `prd`, `glossary`, `design`, `roadmap`, `ticket`, or `worklog`.
+- **`type`** — `prd`, `glossary`, `design`, `roadmap`, `ticket`, `worklog`, `business-plan`, or
+  `competitor`.
 - **`tags`** — one entry, `sdlc/<type>`, so the whole structure is one search.
 
 A ticket adds `id` (`AUTH-001`), a design doc adds `subject` (`checkout`), and a worklog adds

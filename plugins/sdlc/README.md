@@ -1,7 +1,7 @@
 # sdlc
 
 Plan, review, implement, and verify a change, with clean architecture rules for TypeScript,
-React, and TanStack Start. Twelve commands drive seven agents, and fourteen skills hold the rules they
+React, and TanStack Start. Thirteen commands drive seven agents, and fifteen skills hold the rules they
 all follow. One of those commands needs nobody in the room: `/run-roadmap` puts a **cto** agent
 where the user would be and builds the roadmap unattended.
 
@@ -59,6 +59,9 @@ falls back to when nothing points elsewhere. The layout is the same wherever the
     …
   diagrams/
     checkout.excalidraw.md   one file per diagram, referenced by any document
+  business/
+    business-plan.md    the commercial case: who pays, unit economics, break-even
+    competitors/        one note per competitor, listed in the plan by a Dataview query
   tickets/
     TEMPLATE.md         copy per task, named <EPIC>-<NNN>-<slug>.md
     todo/               AUTH-001-user-login.md
@@ -344,6 +347,10 @@ worth as much as its record.
   writes at a term's first use — a relative anchor in the repository,
   `[[glossary#Workspace owner]]` in a vault. Prose outside the docs root uses the term with no
   link. Every document skill and every agent reaches the terms through this one skill.
+- **business-plan** — Create or update the business plan and one note per competitor. Every
+  figure is a sourced fact or a numbered assumption in a register, each topic is written once and
+  linked everywhere else, competitor prices come from the web with a checked date, and in a vault
+  the plan lists the competitors with a Dataview query instead of a copied table.
 - **prd** — Create or update a product requirements document: product-only content,
   cohesive per-area descriptions with stable anchor codes, and positive framing. The terms it
   chooses are defined in `glossary.md`, never in the PRD.
@@ -461,6 +468,9 @@ what a ticket is, and why changing how a status transition works is one edit rat
   with you, and records what you agreed. It writes no production code — `/code` builds it after.
 - **/prd** — loads the `prd` skill to create or update a product requirements document for
   a given product or feature, and the `glossary` skill for the terms it introduces.
+- **/business-plan** — loads the `business-plan` skill to create or update the business plan in
+  `business/`, and researches one note per competitor into `business/competitors/`. Name a
+  competitor to add or refresh just that note.
 - **/explain** — explains what is happening in plain language: the work you just did, a
   file, an error, a diff, or a concept. Reads the code before explaining, defines every
   term of art on first use, and treats code as an anchor rather than the explanation.
@@ -479,6 +489,7 @@ Use these equivalents in a Codex prompt:
 | `/design [target]` | `$sdlc:design-doc [target]` |
 | `/frontend-design [target]` | `$sdlc:frontend-design [target]` |
 | `/prd [target]` | `$sdlc:prd [target]` |
+| `/business-plan [target]` | `$sdlc:business-plan [target]` |
 | `/explain [target]` | `$sdlc:explain [target]` |
 
 Each Codex entry point lives in `codex-skills/`, and each one reads the shared source in

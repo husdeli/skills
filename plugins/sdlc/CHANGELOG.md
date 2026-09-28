@@ -5,6 +5,28 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.53.0] - 2026-09-28
+
+### Added
+
+- **A business plan is now a document the plugin writes and keeps, with `/business-plan` and the
+  `business-plan` skill.** The PRD says what the product does. The business plan says who pays for
+  it, what one customer earns and costs, and how many customers the business needs. It lives in
+  `business/` in the docs root, beside a `competitors/` folder that holds one note per competitor.
+
+  - **Every figure is a fact or an assumption.** A fact links its source. An assumption gets a
+    numbered row in a register, so a reader can see which numbers are guesses and replace each one
+    when a measured value exists.
+  - **Each topic is written once.** The summary points at sections instead of restating them, and
+    every other mention is a link to the section that owns the topic.
+  - **Competitors are researched, never remembered.** Each note takes its prices from the
+    competitor's own pages, and it records the sources and the date they were read. A note older
+    than 90 days is refreshed before the plan quotes it.
+  - **In a vault, the plan lists the competitors with a Dataview query.** A new or refreshed
+    competitor note shows up in the plan without an edit to the plan. Outside a vault, the plan
+    keeps a Markdown table instead.
+  - `product-docs` now names the `business/` folder and the `business-plan` and `competitor` types.
+
 ## [0.52.0] - 2026-09-28
 
 ### Changed
