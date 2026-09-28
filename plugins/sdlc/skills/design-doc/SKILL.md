@@ -85,6 +85,9 @@ that a term this design coins gets its entry in the same step.
      Either say what *this* design does differently, or delete the line.
    - **A fact stated twice.** State it once, at the highest section it holds for, and point at
      it from everywhere else by its numbered heading (see *Style rules*).
+   - **A fact another document owns.** What a customer can do belongs to the feature note; why
+     the product does it belongs to the PRD; what it earns belongs to the business plan. This doc
+     starts where they stop: at how the thing works. The `product-docs` skill holds the table.
    - **A section with nothing specific to say.** **Delete the heading — never fill it.**
    - **A part you have not designed yet.** It is absent from the doc, not a stub in it.
 

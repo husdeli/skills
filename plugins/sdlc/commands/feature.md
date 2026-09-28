@@ -21,6 +21,10 @@ its index properties, and its status rules exactly.
   sentences carry the whole feature, so each one has to land.
 - **Load the `glossary` skill** for the feature's name and every term it uses. A feature that
   coins a term writes that term's entry in the same run.
+- **Load the `product-intent` skill** (namespaced `sdlc:product-intent`) and cite the goal this
+  feature advances and the personas it serves. When no goal in `<docs root>/product/goals/` fits,
+  say so before opening the feature: either the product gained a goal nobody wrote down, or the
+  feature is not worth building.
 - **Look before you write.** List `<docs root>/features/`, and grep the docs root for the code you
   are about to take. A feature that already exists is updated in place, never opened twice, and a
   code that is already taken means the feature is already there under another name.
@@ -29,6 +33,10 @@ its index properties, and its status rules exactly.
   change a status, and say what the evidence was.
 - **Write the index only.** A design doc is written by `/design`, which puts it in this feature's
   folder. A ticket is written by `/plan`. This command opens the feature and keeps its index true.
+- **Repeat nothing.** The index is two or three sentences saying what a customer can do, plus the
+  links. The PRD area says how that part of the product hangs together, the design docs say how it
+  works, the tickets say what is left, and the business plan says what it earns. `product-docs`
+  holds the table. A sentence that could be pasted into the PRD area belongs there, not here.
 
 **When the feature already exists**, update it in place: the status and its `shipped` date, the
 `area` when the PRD moved it, the list of designs when a doc was added, and `updated`. Never

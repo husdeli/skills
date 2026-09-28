@@ -21,20 +21,28 @@ one folder per product — and it sets up the documents there and asks which rep
 
 Arguments (if provided): $ARGUMENTS
 
-Load three skills before you create anything, namespaced here as `sdlc:<name>`: **`product-docs`**,
+Load four skills before you create anything, namespaced here as `sdlc:<name>`: **`product-docs`**,
 which holds the resolution order, the two pointer files, and the vault conventions this command
 writes, **`ticket-board`**, which holds the shape of the tickets and the roadmap it creates and
-migrates, and **`feature`**, which holds the feature folder, the index note, and the code that ties
-a feature to its epic.
+migrates, **`feature`**, which holds the feature folder, the index note, and the code that ties
+a feature to its epic, and **`product-intent`**, which holds the five notes the PRD is assembled
+from and the migration that splits an existing PRD into them.
 
 ```
 <docs root>/
   sdlc.json             the repositories this product is built in — machine-local,
                         gitignored, and the file a vault-rooted run reads first
-  prd.md                product requirements — what the product does and why
+  prd.md                product requirements — the overview and the product areas in prose,
+                        and one line per note in product/ for the rest
   glossary.md           the product's terms — one ## heading per term, defined once
                         here and linked from every other document
   roadmap.md            the work that is left, in order, grouped by epic
+  product/              the pieces the PRD is assembled from — one note each, because
+    goals/              a feature, a design doc, or the business plan points at them
+    non-goals/          and each one has a state of its own
+    personas/
+    problems/
+    metrics/
   features/             one folder per feature — one thing a customer can do
     <feature>/
       <feature>.feature.md   the index — what the customer can do, and its state.
@@ -79,11 +87,11 @@ there is no ticket yet to put one beside.
   `AGENTS.md`, or `CLAUDE.md`. Not the current working directory when that sits deeper.
 - **Register every repository** — Step 2. A docs root with no registry can only be driven from
   inside a repository, which is the thing this command exists to fix.
-- **Write no feature.** `features/` is created empty. A feature is opened when the product has
-  one — by `/prd`, by `/plan`, or by the user — and the `feature` skill governs it. Inventing a
-  feature here invents a code that nothing owns.
-- **Create `features/`, `designs/`, `diagrams/`, and all three ticket status folders**, even though
-  they start empty.
+- **Write no feature, and no product note.** `features/` and the five folders under `product/` are
+  created empty. A feature is opened when the product has one, and a goal, a persona, or a problem
+  is written when `/prd` settles it. Inventing either here invents a commitment nobody made.
+- **Create `product/` with its five folders, `features/`, `designs/`, `diagrams/`, and all three
+  ticket status folders**, even though they start empty.
   Write a `.gitkeep` file into every one that ends up with no file in it **when the docs root
   sits inside a git working tree**, because git does not track an empty directory. A docs root
   outside git gets no `.gitkeep` — it is clutter in a vault.
@@ -260,6 +268,36 @@ else is an older shape. Gather them into `designs/` first, then offer the featur
 When the user says no, leave every file where it is: every agent reads the older shapes as a
 fallback. Skip the offer when `<docs root>/designs/` already holds the docs.
 
+**A PRD that still holds its goals, personas, problems, and metrics inline** needs the same
+explicit yes. Those five pieces are notes under `product/`, because a feature, a design doc, and
+the business plan all point at them, and because each has a state of its own — met, dropped,
+deferred, adopted, measured. The `product-intent` skill holds the shape. A PRD whose sections 2, 3,
+4, and 7 are written out as prose and tables is on the older shape.
+
+Say what the split buys before you offer it: a goal becomes something a feature can cite and a
+query can count, so "which features advance this goal" and "which goal has nothing being built for
+it" become answerable. Say what it costs: the PRD stops being one file a reader can read top to
+bottom without following links. Then offer it in three steps, and stop at any step the user does
+not approve:
+
+1. **Propose the notes.** Read the PRD's sections 2, 3, 4, and 7. Each numbered failure mode is a
+   problem, each goal a goal, each non-goal a non-goal, each persona row a persona, and each metric
+   a metric. Show the whole mapping as one table — type, file name, and the statement each note
+   would carry — and name any item that splits into two notes or that you would leave inline
+   because it is really prose. Ask the user to accept it, rename a note, merge two, or drop a row.
+2. **Write the notes.** One file per approved row, with the properties `product-intent` defines.
+   Carry the words the PRD already uses; do not rewrite a goal while you move it. Set each `status`
+   from what the PRD says and the work root shows, and report any you could not settle.
+3. **Rewrite the PRD and every reference.** Replace sections 2, 3, 4, and 7 with one line per
+   note — the link, then the statement in a few words — and leave sections 1, 5, and 6 untouched:
+   they are prose, and prose does not decompose. Then set the `goals` and `personas` properties on
+   each feature that has an obvious one, link the personas from the business plan's segment table
+   and the metrics from its milestones, and report what you could not match. Report the counts:
+   notes written per type, PRD sections rewritten, features and plan sections linked.
+
+When the user says no, create `product/` empty and leave the PRD whole: every command reads that
+shape as a fallback. Skip the offer when `product/` already holds a note.
+
 **A project with no `features/` folder** needs the same explicit yes. A **feature** is one thing a
 customer can do: it owns a folder, an index note that says what the customer can do and whether it
 is shipped, the design docs for that feature, and the code that numbers its tickets. The `feature`
@@ -371,24 +409,24 @@ unchanged, except that a reference to another document in the docs root becomes 
 
 ## 2. Problem statement
 
-<What existing tools fail at, as a numbered list, then one sentence on how this product
-solves them.>
+<One line per note in `product/problems/`: the link, then the failure in a few words. The
+note holds the failure; the goal that answers it says what this product does about it.>
 
 ## 3. Goals & non-goals
 
 ### Goals
 
-- <One concrete, testable statement per goal.>
+- <One line per note in `product/goals/`: the link, then the statement in a few words.>
 
 ### Non-goals (current scope)
 
-- <One explicit exclusion per line, each with the reason it is out of scope.>
+- <One line per note in `product/non-goals/`: the link, then the exclusion in a few words.
+  The reason lives in the note, where it is required.>
 
 ## 4. Users & personas
 
-| Persona | Need | Primary flow |
-| --- | --- | --- |
-| <name> | <what they need> | <how they use the product> |
+- <One line per note in `product/personas/`: the link, then the need in a few words. The
+  note holds the need and the primary flow.>
 
 ## 5. How the product works
 
@@ -404,7 +442,8 @@ One stable uppercase anchor code per area, in the heading.>
 
 ## 7. Success metrics
 
-- <Metric name — definition — target.>
+- <One line per note in `product/metrics/`: the link, then the target. The definition and
+  the last measured value live in the note.>
 
 ## 8. Open questions
 
@@ -592,7 +631,9 @@ Everything the user reads here follows the **`clean-writing`** skill (namespaced
 
 Say **where the docs root is** and, when you wrote one, that `.sdlc.json` now points at it.
 Report the tree you created, marking each file `created` or `kept`, and each moved file with
-its old and new path. When you ran the feature migration, report it as its own block: the features
+its old and new path. When you ran the PRD split, report it as its own block: the notes written
+per type, the PRD sections rewritten, and anything you left inline because it was prose. When you
+ran the feature migration, report it as its own block: the features
 opened with their codes and statuses, the design docs moved into each one, the docs kept in
 `designs/`, and any feature whose status the work root contradicted.
 
@@ -613,8 +654,10 @@ A repo-rooted run needs none of this, and keeps working exactly as before.
 
 Then offer the next step, in this order:
 
-1. `/prd <product>` — fill the PRD first. It chooses the product's terms and writes each one's
-   entry in `glossary.md`. Every later document takes its vocabulary from there.
+1. `/prd <product>` — fill the PRD first. It writes the goals, the non-goals, the personas, the
+   problems, and the metrics as notes under `product/`, and the PRD's own prose around them. It
+   also chooses the product's terms and writes each one's entry in `glossary.md`, so every later
+   document takes its vocabulary from there.
 2. `/feature <name>` — open a feature for each thing a customer can do. The feature holds its
    design docs and the code that numbers its tickets, so it comes before both.
 3. `/design <target>` — specify how each system, flow, or surface works once the PRD names

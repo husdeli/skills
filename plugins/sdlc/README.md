@@ -53,6 +53,12 @@ falls back to when nothing points elsewhere. The layout is the same wherever the
   glossary.md           the product's terms — one ## heading per term, defined once
                         here and linked from every other document
   roadmap.md            the work that is left, in order, grouped by epic
+  product/              the pieces the PRD is assembled from — one note each
+    goals/              self-hosted-first.goal.md
+    non-goals/          no-mobile-app.non-goal.md
+    personas/           solo-operator.persona.md
+    problems/           tools-need-a-server.problem.md
+    metrics/            weekly-active-vaults.metric.md
   features/             one folder per feature — one thing a customer can do
     checkout/
       checkout.feature.md    the index — what the customer can do, its state, and
@@ -82,6 +88,18 @@ falls back to when nothing points elsewhere. The layout is the same wherever the
 links that heading at the term's first use instead of writing the definition a second time. Whoever
 coins a term writes its entry, so `/prd`, `/design`, and `/plan` each keep the file current. The
 `glossary` skill holds the rules.
+
+**The PRD is assembled, not written whole.** A goal, a non-goal, a persona, a problem, and a
+success metric are each their own note under `product/`, because something outside the PRD points
+at each one — a feature cites the goal it advances, the business plan sells to a persona, a
+milestone proves a metric — and because each has a state of its own: met, dropped, deferred,
+adopted, measured. The PRD's sections 2, 3, 4, and 7 are one line per note. Its overview, its
+product areas, and its cross-cutting qualities stay prose, because narrative does not decompose.
+The `product-intent` skill holds the five shapes.
+
+That is what makes questions answerable that no single document could answer before: which features
+advance one goal, which goal has nothing being built for it, which deferred non-goal is due for
+review, which metric has gone stale.
 
 **A feature is one thing a customer can do**, and it owns a folder. The index,
 `<feature>.feature.md`, says what the customer can do and whether it is `Planned`, `In Progress`,
@@ -341,6 +359,12 @@ worth as much as its record.
   touched in a list, a defect's location next to the issue.
   Invoked directly, it re-pitches a message that didn't land. Every agent, command, and
   document skill in this plugin routes its human-facing output through it.
+- **product-intent** — The five pieces the PRD is assembled from, each its own note under
+  `product/`: a goal, a non-goal, a persona, a problem, and a success metric. Holds what earns a
+  note (something outside the PRD points at it, and it has a state of its own), the properties and
+  lifecycle of each — a goal is `Committed`, `Met`, or `Dropped`; a non-goal is `Excluded`,
+  `Deferred`, or `Adopted`; a metric carries its last measured value and the date it was read — and
+  the rule that a citation links the note and never repeats its reasoning.
 - **feature** — The feature: one thing a customer can do, with its own folder, an index note
   that says what the customer can do and whether it is `Planned`, `In Progress`, or `Shipped`, and
   the uppercase code that numbers its tickets — the feature and its epic are one thing. Holds how a
@@ -427,8 +451,9 @@ what a ticket is, and why changing how a status transition works is one edit rat
 - **/setup** — asks where the docs root goes — in an Obsidian vault, which it recommends, or in
   the repository as `.sdlc/` — registers every repository the product is built in as `sdlc.json` in
   the docs root, then creates it with stub files for the PRD, the glossary,
-  the design doc, the roadmap, a ticket template, the `features/`, `designs/`, and `diagrams/`
-  folders, and the `todo/`, `in-progress/`, and `done/` ticket folders. An outside folder gets a `.sdlc.json` pointer file at
+  the design doc, the roadmap, a ticket template, the `product/` folders, the `features/`,
+  `designs/`, and `diagrams/` folders, and the `todo/`, `in-progress/`, and `done/` ticket
+  folders. An outside folder gets a `.sdlc.json` pointer file at
   the project root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no
   dot-folders. Never overwrites an existing file, and offers to move a root-level
   `prd.md`, `glossary.md`, `design.md`, or `tickets/` into the folder with `git mv` — including
@@ -436,12 +461,15 @@ what a ticket is, and why changing how a status transition works is one edit rat
   `designs/`, and renaming a lone `design.md` to `designs/overview.design.md`. It also offers to
   **build the feature register** on a project that has none — proposing one feature per roadmap
   epic, showing you which design docs move into each feature folder and which stay cross-cutting,
-  and moving them once you approve the table — to
+  and moving them once you approve the table — to **split a PRD that still holds its goals,
+  personas, problems, and metrics inline** into notes under `product/`, after it shows you the
+  mapping and you approve it, to
   migrate a project-wide ticket scheme (`SW-001`, `SW-002`, …) onto epic-prefixed IDs, after it
   shows you the epic grouping and you approve it, and to clean a roadmap that still holds
   finished work — deleting the completed rows and folding each per-task detail section into the
   ticket that should hold it.
-- **/feature** — opens a feature, or keeps an existing one true: the folder, the index note, the
+- **/feature** — opens a feature, or keeps an existing one true: the goal it advances and the
+  personas it serves, the folder, the index note, the
   code its epic and tickets take, and the status, which it checks against the code rather than the
   board. Run it before `/design` and `/plan` for anything new a customer can name.
 - **/plan** — turns a request into the documents the rest of the plugin reads: it interviews
@@ -503,7 +531,9 @@ what a ticket is, and why changing how a status transition works is one edit rat
   component, or a flow before it is built: it publishes a static mockup as an Artifact, iterates
   with you, and records what you agreed. It writes no production code — `/code` builds it after.
 - **/prd** — loads the `prd` skill to create or update a product requirements document for
-  a given product or feature, and the `glossary` skill for the terms it introduces.
+  a given product or feature, the `product-intent` skill for the goals, non-goals, personas,
+  problems, and metrics it writes as notes under `product/`, and the `glossary` skill for the
+  terms it introduces.
 - **/business-plan** — loads the `business-plan` skill to create or update the business plan in
   `business/`, and researches one note per competitor into `business/competitors/`. Name a
   competitor to add or refresh just that note.
@@ -526,6 +556,7 @@ Use these equivalents in a Codex prompt:
 | `/feature [target]` | `$sdlc:feature [target]` |
 | `/frontend-design [target]` | `$sdlc:frontend-design [target]` |
 | `/prd [target]` | `$sdlc:prd [target]` |
+| (product notes) | `$sdlc:product-intent` |
 | `/business-plan [target]` | `$sdlc:business-plan [target]` |
 | `/explain [target]` | `$sdlc:explain [target]` |
 

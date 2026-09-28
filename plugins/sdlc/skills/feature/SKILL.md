@@ -63,9 +63,12 @@ area: PAYMENTS
 status: Planned | In Progress | Shipped
 customer_facing: true
 shipped: 2026-08-14
+goals:
+  - "[[self-hosted-first.goal]]"
+personas:
+  - "[[solo-operator.persona]]"
+non_goals: []
 updated: 2026-09-28
-related:
-  - "[[prd]]"
 tags:
   - sdlc/feature
 ---
@@ -94,15 +97,32 @@ from the one nearest to it. Never what the document covers.>
 | `status` | `Planned`, `In Progress`, or `Shipped`. Nothing else. |
 | `customer_facing` | `true` when a customer can name the thing. `false` keeps it out of every capability table. |
 | `shipped` | The date the feature reached `Shipped`. Empty until then, and never cleared afterwards. |
+| `goals` | The goal notes this feature advances. One is usual; none means nobody can say why it is being built. |
+| `personas` | The persona notes this feature serves. |
+| `non_goals` | The non-goal notes this feature comes up against. Usually empty — a feature that crosses one is a decision to make, not a line to write. |
 | `updated` | The date the note last changed. |
+
+The last three link notes the **`product-intent`** skill governs. Load it before you set them: the
+link is the citation, and the reason behind each note stays in that note.
 
 In a `repo` or `folder` destination the properties become `**Field**: value` lines under the
 title, exactly as `product-docs` describes for every other document.
 
-**The body is short.** Two or three sentences, the list of designs, and the open work. What the
-feature does in detail belongs to the PRD area it cites; how it works belongs to the design docs it
-lists; what is left to build belongs to the tickets. The index points at all three and repeats
-none of them.
+**The body is short.** Two or three sentences, the list of designs, and the open work. The index
+is a **pointer with a name on it**, not a place to describe the product twice.
+
+Every neighbouring fact is already carried by a property or a link in this note — the `area`, the
+`goals`, the `personas`, the list of designs, the query of open work. The `product-docs` ownership
+table says which document holds each one.
+
+**The two or three sentences say one thing none of those documents can**: what a customer can do,
+in the words they would use, and the one fact that separates this feature from the one nearest to
+it. Write them so a reader who has read the PRD still learns something, and a reader who has not
+still knows what the feature is.
+
+Two tests before you keep a sentence. **Could it be pasted into the PRD area without looking out of
+place?** Then it is the area's sentence — delete it here. **Does it say how something works?** Then
+it is the design doc's — delete it here.
 
 ## Status is verified, never assumed
 
@@ -197,10 +217,16 @@ section of `roadmap.md`."
    glossary, the words the user uses. Load the `glossary` skill when the feature coins a term.
 2. **Check it does not exist.** List `<docs root>/features/`, and grep the docs root for the code.
    A feature that already exists is updated in place, never opened twice.
-3. **Write the folder and the index.** Nothing else. A design doc is written when someone
+3. **Find the goal it advances.** List `<docs root>/product/goals/` and cite the one this feature
+   is being built for. When no goal fits, say so before you open the feature: either the product
+   gained a goal nobody wrote down, or the feature is not worth building. Cite the personas it
+   serves in the same step.
+4. **Write the folder and the index.** Nothing else. A design doc is written when someone
    specifies how the feature works, and the `design-doc` skill governs it.
-4. **Point the PRD at it** when the PRD names the area and does not yet name the feature.
-5. **Open the epic on the roadmap** when there is work to do, with `**Feature**:` linking the
+5. **Check the PRD covers the area**, and set `area` to its anchor. Do not add the feature to the
+   PRD as a line item: the area's prose already covers it, or the area is missing and `/prd` writes
+   it as prose.
+6. **Open the epic on the roadmap** when there is work to do, with `**Feature**:` linking the
    index. The `ticket-board` skill holds the rest.
 
 ## Choosing what is a feature

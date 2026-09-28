@@ -6,21 +6,56 @@ description: "Rules for where this plugin's documents and code live and how each
 # product-docs skill
 
 Every document this plugin reads or writes sits in one folder: the **docs root**. The docs root
-holds `prd.md`, `glossary.md`, `roadmap.md`, `features/`, `designs/`, `diagrams/`, and `tickets/` —
-and inside `tickets/`, a worklog beside each ticket that work has started on. A product with a
+holds `prd.md`, `glossary.md`, `roadmap.md`, `product/`, `features/`, `designs/`, `diagrams/`, and
+`tickets/` — and inside `tickets/`, a worklog beside each ticket that work has started on. A product with a
 business plan also holds `business/`, with the plan and a `competitors/` folder beside it. Every
 line of code it writes sits in a **work root**: one code repository. This skill says where each
 root is, how to find one from the other, and how the documents inside the docs root are written.
 
-Four skills hold what goes *inside* a document: the **`feature`** skill for what a customer can do
-and the folder that holds it, the **`glossary`** skill for the product's terms and the links that
-point at their definitions, the **`diagrams`** skill for a picture of a shape, and the
-**`ticket-board`** skill for the board.
+Five skills hold what goes *inside* a document: the **`product-intent`** skill for the five pieces
+the PRD is assembled from, the **`feature`** skill for what a customer can do and the folder that
+holds it, the **`glossary`** skill for the product's terms and the links that point at their
+definitions, the **`diagrams`** skill for a picture of a shape, and the **`ticket-board`** skill for
+the board.
+
+**`product/` holds what the PRD is assembled from.** A goal, a non-goal, a persona, a problem, and a
+success metric are each a note, in `product/goals/`, `product/non-goals/`, `product/personas/`,
+`product/problems/`, and `product/metrics/`. They are notes rather than PRD paragraphs because
+something outside the PRD points at each one, and because each one has a state of its own. The
+`product-intent` skill governs them.
 
 **`features/` and `designs/` split by ownership.** A design doc that belongs to one feature sits in
 that feature's folder, `features/<feature>/<subject>.design.md`, beside the feature's index note. A
 design doc that underpins every feature — an app shell, an authentication model, a shared data
 model — stays in `designs/`. The `feature` and `design-doc` skills hold which is which.
+
+## One fact, one document
+
+Five documents describe the same product, so each fact has **one owner**. Every other document
+links that owner instead of writing the fact a second time. A fact written twice is a fact that
+disagrees with itself as soon as one copy changes.
+
+| The fact | Owned by | What everyone else does |
+| --- | --- | --- |
+| What existing tools fail at | a note in `product/problems/` | Link the note. Nothing restates the failure, and nothing but the goal that answers it says what this product does about it. |
+| What the product commits to, and what it refuses | a note in `product/goals/` or `product/non-goals/` | Link the note. A feature cites the goal it advances; the PRD lists it in one line. |
+| Who the users are, and what each one needs | a note in `product/personas/` | Link the note. The business plan adds only which of them **pays first** and what they pay for. |
+| What proves the product is working | a note in `product/metrics/` | Link the note. The measured value lives there, with the date it was read. |
+| How a product area works, as a whole | `prd.md` §5 | Link the area's anchor code. A feature note never retells its area's prose. |
+| The guarantees that hold across the product | `prd.md` §6 | Link the theme. |
+| What one customer can do, and whether it ships | the feature index | Link the note. The PRD never enumerates features; the business plan queries them. |
+| How a solution is built and behaves | the design doc | Link the file. The feature index lists its designs and describes none of them. |
+| What the product costs, earns, and is worth against a competitor | `business/business-plan.md` | Nothing else carries a price, a margin, or a positioning claim — the PRD is product-only. |
+| What is left to build | `roadmap.md` and the tickets | Link the ticket. The PRD, the feature index, and the design docs cite no ticket. |
+
+**The direction of a link is fixed.** The plan links the PRD; the PRD never links the plan. A
+ticket links its feature; a feature note never cites a ticket, though its query may list one. A
+design doc links its feature; a feature note lists its designs by name. Reading the chain downwards
+— plan, PRD, feature, design, ticket — each step adds detail and repeats nothing.
+
+**When two documents need the same sentence, the lower one keeps it and the higher one links.** The
+PRD holds the sentence a feature note would otherwise repeat, and the feature note holds the
+sentence the business plan would otherwise repeat.
 
 ## The two roots
 
@@ -244,8 +279,9 @@ the headings, and the words of every document stay the same.
 
 - **No name in the docs root starts with a dot.** Obsidian hides dot-folders and dot-files, so a
   `.sdlc/` folder inside a vault is invisible. The docs root is named after the product
-  (`Acme/`), and `features/`, `designs/`, `diagrams/`, `tickets/`, `todo/`, `in-progress/`,
-  `done/`, `business/`, and `competitors/` keep their names.
+  (`Acme/`), and `product/`, `goals/`, `non-goals/`, `personas/`, `problems/`, `metrics/`,
+  `features/`, `designs/`, `diagrams/`, `tickets/`, `todo/`, `in-progress/`, `done/`, `business/`,
+  and `competitors/` keep their names.
 - **The vault root is a valid docs root.** A vault kept for one product needs no folder inside
   it, and a folder named after the vault (`sdlc-obsidian/sdlc-obsidian/`) helps nobody. Use a
   product-named folder inside the vault instead when the vault root already holds notes of its
@@ -273,6 +309,7 @@ The key is the field name in lower case, with `Last updated` as the one exceptio
 | `**Category**: feature` | `category: feature` |
 | `**Created**: 2026-09-10` | `created: 2026-09-10` |
 | `**Code**: CHECKOUT` | `code: CHECKOUT` |
+| `**Target**: 500 by 2027-03` | `target: 500 by 2027-03` |
 | `**Area**: PAYMENTS` | `area: PAYMENTS` |
 | `**Last updated**: 2026-09-10` | `updated: 2026-09-10` |
 | `**Product**: Acme` | `product: Acme` |
@@ -280,13 +317,15 @@ The key is the field name in lower case, with `Last updated` as the one exceptio
 
 Every document also carries two properties the plugin adds:
 
-- **`type`** — `prd`, `glossary`, `feature`, `design`, `roadmap`, `ticket`, `worklog`,
-  `business-plan`, or `competitor`.
+- **`type`** — `prd`, `glossary`, `goal`, `non-goal`, `persona`, `problem`, `metric`, `feature`,
+  `design`, `roadmap`, `ticket`, `worklog`, `business-plan`, or `competitor`.
 - **`tags`** — one entry, `sdlc/<type>`, so the whole structure is one search.
 
 A ticket adds `id` (`AUTH-001`), a design doc adds `subject` (`checkout`), and a worklog adds
 `ticket` — the wikilink to the ticket it belongs to. A feature adds `code` (`CHECKOUT`), `area`,
-`customer_facing`, and `shipped`; the **`feature`** skill holds what each one means.
+`customer_facing`, `shipped`, `goals`, `personas`, and `non_goals`; the **`feature`** skill holds
+what each one means. Each of the five notes under `product/` carries its own fields, and the
+**`product-intent`** skill holds those.
 
 **The property is the record.** When a command sets a ticket's status, it rewrites the
 frontmatter `status` property — there is no `**Status**` line in the body to keep in step with

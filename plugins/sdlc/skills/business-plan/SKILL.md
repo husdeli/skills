@@ -15,6 +15,8 @@ Load four skills before you read or write anything:
   properties, wikilinks, no dot-folders).
 - **`feature`**: the register in `features/` is what section 2 lists, and it holds the status
   vocabulary and the query the capability table is built from.
+- **`product-intent`**: the personas section 3 sells to, and the metrics section 12 proves, are
+  notes under `product/`. The plan links them and adds only the commercial half.
 - **`clean-writing`**: every sentence of the plan and of each competitor note.
 - **`glossary`**: use the product's terms, and link each one at its first use.
 
@@ -42,9 +44,18 @@ business plan somewhere else, move it into `business/` with the user's yes, and 
    heading (`[[#7. Unit economics|unit economics]]`), never a second copy. The summary is a list of
    one-line pointers, not a restatement. Risks live only in the risks table. Competitor detail
    lives only in the competitor notes.
-3. **Link, never restate.** Product behaviour links the PRD heading. Pricing mechanics link the
-   design doc that owns them. Open work links its ticket. Tickets are allowed here, unlike in the
-   PRD, because launch readiness depends on the state of the work.
+3. **Link, never restate.** The `product-docs` skill holds the table of which document owns which
+   fact — read it before you write a section. The plan owns money: prices, costs, margins, market,
+   and the claim that the product beats a named competitor. It owns nothing else. **The problem links its note in `product/problems/`. A
+   segment links its note in `product/personas/`. A milestone's proof links its note in
+   `product/metrics/`. Product behaviour links the PRD area or the feature note.** Pricing mechanics link the design doc that owns them. Open work links its
+   ticket. Tickets are allowed here, unlike in the PRD, because launch readiness depends on the
+   state of the work.
+
+   What the plan adds to a fact it links is the **commercial half of it**, which no other document
+   carries: which persona pays first, what the problem is worth in money, and which plan a segment
+   lands on. Write that half only. A paragraph that would still be true with every price deleted
+   belongs in the PRD, not here.
 4. **Show the arithmetic.** Every derived figure shows its inputs, so a reader can recompute it
    when an input changes: contribution per customer, break-even count, scenario totals.
 5. **Scenarios are models, not forecasts.** Give three cases (conservative, base, optimistic) with
@@ -174,13 +185,20 @@ docs the plan cites, and the competitors folder.
 
 1. **Summary**: one-line pointers to the sections below, each ending in a link.
 2. **The product**: what a customer can do today — the **feature table** below, generated from
-   `features/`, never typed out by hand. Then what makes it different, in three to five points.
-3. **The problem and the customer**: the problem in one paragraph, then a table of the segments
-   who pay first, why they pay, and the plan they land on.
+   `features/`, never typed out by hand. Nothing else. What makes the product different is one
+   claim, and it lives in section 5 against the competitors it is a claim about; link it from here
+   in one line.
+3. **The problem and the customer**: one line per problem note the paying customer has, then the
+   table this plan owns — the segments who pay first, what they pay for, and the plan they land on.
+   **A segment is a persona note plus a price.** Link the note and never restate its need: the
+   commercial fact is that this one pays before the others, and why. The `pays` property of a
+   persona is what narrows the list.
 4. **Market and launch focus**: the one launch focus, the first and the second market, and what
    limits each. An investor plan adds a bottom-up market size here.
-5. **Competition**: the competitor query below, the positioning line, and one paragraph on the
-   main substitute. No per-competitor detail.
+5. **Competition**: the competitor query below, the positioning line — the one home for what
+   makes this product different, in three to five points, each naming what it beats and by what
+   measure — and one paragraph on the main substitute. No per-competitor detail. A point that names
+   no competitor and no measure is a product goal: it belongs in `prd.md` §3, and the plan links it.
 6. **Business model**: plans, prices, limits, and the rules that shape revenue.
 7. **Unit economics**: contribution and margin per product, the blended figure, and what free
    users cost.
@@ -191,7 +209,9 @@ docs the plan cites, and the competitors folder.
     investor plan adds the funding ask and use of funds. A lender plan adds repayment.
 11. **Risks**: one table of risk, effect, and response. Each risk that already has a ticket links it.
 12. **Milestones**: a dated table with a proof for each, the point where the plan changes course,
-    and the metrics to measure from day one, linked to the PRD's success metrics.
+    and the metrics to measure from day one — each one a link to its note in `product/metrics/`,
+    where the definition and the last measured value already live. The plan writes the commercial
+    target beside it and never a second definition.
 13. **Assumptions register**: every assumption ID, the value used, and how to replace it.
 
 An investor plan adds a **Team** section after Operations.
@@ -261,6 +281,9 @@ table with a relative link per note, and rewrite the table whenever a competitor
 
 - Every feature in section 2 has a note in `features/`, and every note's status matches the work
   root.
+- **No sentence in the plan would survive with every number deleted.** Read section 2, section 3,
+  and section 9 with that test: a sentence that describes the product rather than its commerce
+  belongs to the PRD or the feature note, and the plan links it instead.
 - Every wikilink resolves to a note, and every `#heading` link resolves to a heading.
 - Every assumption ID the prose cites has a row in the register, and every row is cited.
 - No topic is written out in two sections.

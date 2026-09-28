@@ -5,6 +5,46 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.55.0] - 2026-09-28
+
+### Added
+
+- **The PRD is now assembled from notes instead of holding everything itself.** Five pieces of the
+  product definition became their own notes under `<docs root>/product/`, governed by the new
+  `product-intent` skill: a **goal**, a **non-goal**, a **persona**, a **problem**, and a **success
+  metric**.
+
+  - **Two tests decide what earns a note**: something outside the PRD points at it, and it has a
+    state of its own. That is why these five and no others. An open question is deleted the week it
+    is answered, so it stays a bullet. A product area is a paragraph that only means something
+    beside the paragraphs around it, so it stays prose.
+  - **Each note has a lifecycle the old prose could not carry.** A goal is `Committed`, `Met`, or
+    `Dropped`. A non-goal is `Excluded`, `Deferred` with a revisit date, or `Adopted` with a link to
+    the goal it became. A metric carries its last measured value and the date it was read, so a
+    stale number is visible as stale.
+  - **A feature now cites what it is for.** Its index gained `goals`, `personas`, and `non_goals`.
+    Opening a feature that fits no goal is a stop-and-say-so, not a shrug: either the product gained
+    a goal nobody wrote down, or the feature is not worth building.
+  - **Questions no single document could answer are now queries.** Which features advance one goal;
+    which goal has nothing being built for it; which deferred non-goal is due for review; which
+    metric has gone stale.
+  - **`/setup` offers the split**, like every other migration: it proposes the mapping from the
+    PRD's sections 2, 3, 4, and 7, writes the notes with the words the PRD already used, rewrites
+    those four sections as one line per note, and links the features and the business plan. A
+    project that declines keeps a whole PRD, which every command still reads.
+
+### Changed
+
+- **The PRD keeps the prose and composes the rest.** Sections 1, 5, and 6 — the overview, the
+  product areas, and the cross-cutting qualities — stay the PRD's own narrative. Sections 2, 3, 4,
+  and 7 became one line per note: the link, then the statement in a few words, so a reader follows
+  the list without opening a file.
+- **The business plan links the notes it sells.** A segment in section 3 is a persona note plus a
+  price, and a milestone in section 12 links the metric note that already holds the definition and
+  the measured value.
+- **A problem note never says what the product does about it.** The goal that answers it says that,
+  once. That split is what stopped the problem statement from existing in two documents.
+
 ## [0.54.0] - 2026-09-28
 
 ### Added
@@ -34,6 +74,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Each fact now has one owner, and `product-docs` names it.** Five documents describe the same
+  product, so a new table says which one holds each fact and what everyone else does instead. The
+  chain runs plan → PRD → feature → design → ticket: each step adds detail and repeats nothing, and
+  a link only ever points up it.
+
+  - **The PRD owns the problem, the personas, the product areas, and the cross-cutting
+    guarantees** — and now explicitly carries no money: no price, no margin, no market size, and no
+    claim that the product beats a named competitor.
+  - **The feature index owns what one customer can do, and whether it ships.** Its body is a
+    pointer with a name on it: two tests now catch a sentence that belongs to the PRD area or to a
+    design doc.
+  - **The business plan owns money and links the rest.** Its problem paragraph became a link to the
+    PRD, its customer table keeps only the commercial half of a persona, and the "what makes it
+    different" points that used to sit in section 2 moved into the competition section, where the
+    competitors they are a claim about already live. A new check asks whether any sentence would
+    survive with every number deleted.
+  - **A design doc starts where the others stop**: at how the thing works.
 - **A design doc's folder is decided by ownership.** A doc that belongs to one feature sits in that
   feature's folder, `features/<feature>/<subject>.design.md`. A doc that underpins every feature —
   an app shell, an authentication model, a shared data model — stays in `designs/`. `/design` asks
