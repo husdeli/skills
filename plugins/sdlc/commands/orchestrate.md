@@ -139,7 +139,8 @@ Drive one task through the entire pipeline. Do not batch tasks. When it is done,
 The **`ticket-board`** skill holds the roadmap's shape: one `## <CODE> — <epic name>` section per epic, one row per task, three statuses, and what an epic's `**Note**:` line and a `Depends on` cell mean. Read it there rather than inferring it from the file.
 - If no roadmap path was given, use the docs root's **`roadmap.md`**. When that file does not exist, look for a roadmap at the project root, and ask for the path only when neither is there — naming `/setup` as the way to create one.
 - **Read every epic section**, not just the first: a dependency may name a task in another epic.
-- **The row does not say what the task delivers — its ticket does.** Open the ticket of every task you are about to offer, and take the description and the acceptance criteria from there.
+- **The row does not say what the task delivers — its ticket does.** Open the ticket of every task you are about to offer, and take the description, the acceptance criteria, and the **priority** from there.
+- **The ticket is the record.** When a row's `Priority` or `Status` disagrees with the ticket you just opened, correct the row — and re-sort the epic's table when the priority moved it. Fix only the rows whose tickets you read, say in one line what you corrected, and pick the task from the corrected order. `ticket-board` holds the rule.
 - Carry an epic's `**Note**:` line into the planner prompt as a constraint on the task.
 
 ### 2. Pick the Next Task

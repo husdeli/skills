@@ -5,6 +5,30 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.59.0] - 2026-09-29
+
+### Changed
+
+- **The roadmap reflects the tickets, and drift is corrected where it is found.** A row is a view
+  of a ticket, never a second opinion about it. The ticket is the record for both `Status` and
+  `Priority`; when the two disagree the ticket wins, and the row is corrected — never the other
+  way round.
+
+  - **A stale row is fixed the moment its ticket is read.** `/orchestrate`,
+    `/orchestrate-quick`, and `/run-roadmap` open every candidate's ticket already, so they now
+    correct a `Priority` or `Status` cell that does not match it, re-sort the epic's table when
+    the priority moved the row, and pick the task from the corrected order. They fix only the rows
+    whose tickets they read: a row nobody verified is not a row anybody may rewrite, which is what
+    keeps two branches editing different lines.
+  - **`/whats-next` reports the mismatch instead of fixing it**, because it writes nothing. It
+    names the disagreement in one line and uses the ticket's value when it says what to start
+    first.
+  - **`/setup` rebuilds the whole file from the tickets**, and is the only command that does. It
+    offers the rebuild when a table has no `Priority` column, when a row disagrees with its
+    ticket, when an open ticket has no row, or when a row's ticket is already finished. The one
+    thing a rebuild never regenerates is a `Depends on` cell: the dependency graph lives in the
+    roadmap and nowhere else, so those cells are carried across unchanged.
+
 ## [0.58.0] - 2026-09-29
 
 ### Added

@@ -189,7 +189,12 @@ already reads it in the order it should be built.
   — preserving the table's order, so the first candidate in the list is the highest-priority one
   that is actually ready.
 - **The row does not say what the task delivers — its ticket does.** Open the ticket of every
-  candidate and take its description and acceptance criteria from there.
+  candidate and take its description, acceptance criteria, and **priority** from there.
+- **The ticket is the record.** When a row's `Priority` or `Status` disagrees with the ticket you
+  just opened, correct the row and re-sort the epic's table when the priority moved it — then
+  build the candidate list from the corrected order, so the CTO picks against what the tickets
+  actually say. Fix only the rows whose tickets you read, and record what you corrected in the
+  opening worklog entry. `ticket-board` holds the rule.
 - **No candidate at all** → outcome `no-work`. Say whether the roadmap is empty, or every pending
   task waits on something, and print the result line. Never invent a task.
 

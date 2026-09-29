@@ -385,6 +385,26 @@ Report the counts: tasks removed, detail sections folded into tickets, epics clo
 user says no, leave the roadmap exactly as it is — every command reads the older shape as a
 fallback. Skip the offer when the roadmap already holds pending work only.
 
+**A roadmap whose rows disagree with the tickets** gets rebuilt from the tickets, and this
+command is the only one that rebuilds the whole file. A task command corrects the rows it reads
+and touches nothing else, so drift that nobody read stays. Check the whole board in one pass —
+read every ticket outside `done/`, and every row — then offer the rebuild when anything below
+holds, naming what you found and what the rebuild changes:
+
+- **A row carries no `Priority` cell**, or the table has no `Priority` column at all. This is
+  every roadmap written before the column existed.
+- **A row's `Priority` or `Status` disagrees with its ticket.** The ticket wins.
+- **An open ticket has no row**, or a row's ticket sits in `done/`, or its ticket does not exist.
+
+The rebuild writes each epic's table from the tickets: one row per open ticket, its `Priority`
+and `Status` taken from the ticket, sorted by priority with a `Depends on` cell overriding
+priority. **It never rewrites a `Depends on` cell** — the dependency graph lives in the roadmap
+and nowhere else, so a rebuild that regenerated those cells would lose it. Carry each cell across
+unchanged, and drop only the IDs that no longer name a row. A ticket with no priority is
+`Medium`, said plainly in the report. Report the counts: rows rebuilt, priorities corrected, rows
+added for tickets that had none, rows deleted for finished tickets. When the user says no, change
+nothing.
+
 ## 4. Write the stubs
 
 The stubs below are the repository shape. **In a vault, write the same stub with its fields as

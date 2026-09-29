@@ -121,12 +121,31 @@ There is no completed status, because a completed task leaves the file. In a vau
 cell is the wikilink `[[AUTH-002-session-timeout]]`, so it follows the file between the status
 folders.
 
-**The row is the whole task in this file, except for one field it mirrors.** What the task
+**The row is the whole task in this file, except for two fields it mirrors.** What the task
 delivers, and what it has to satisfy, live in its ticket — the file every command opens anyway.
 Never add a per-task `###` section, a description paragraph, or an acceptance-criteria list to
-the roadmap. `Priority` is the exception, alongside `Status`: it repeats the ticket's
-`**Priority**` field so the table can be read, and sorted, without opening every ticket. The two
-never disagree, because whoever changes a ticket's priority changes this cell in the same edit.
+the roadmap. `Status` and `Priority` are the exception: each repeats the ticket's own field so
+the table can be read, and sorted, without opening every ticket.
+
+**The ticket is the record, and the table reflects it.** A row is a view of a ticket, never a
+second opinion about it. So:
+
+- **Write the ticket first, then its row, in the same tool block.** Whoever changes a ticket's
+  priority or status changes that row in the same edit, and re-sorts the table when the priority
+  moved it. A task whose priority changes is one edit, not two.
+- **When a row and its ticket disagree, the ticket wins.** Correct the row; never edit the ticket
+  to match the row. The ticket carries the whole task, so it is the cheaper thing to trust.
+- **Correct a stale row the moment you read its ticket.** Every command that picks a task opens
+  its candidates' tickets already, so it costs nothing to fix a `Priority` or `Status` cell that
+  does not match what the ticket says. Fix the rows whose tickets you actually read, and leave
+  every other row alone — a row you did not verify is not a row you may rewrite.
+- **A row whose ticket sits in `done/`** is a row the finishing step failed to delete. Delete it,
+  by the four steps below.
+- **An open ticket with no row at all** gets one, at its sorted position, with the priority and
+  status its ticket carries.
+- **Rebuilding the whole file from the tickets** — every row, in every epic — is the setup entry
+  point's job, not a task command's. A command in the middle of a task touches the epic it is
+  working in, so two branches building different features keep changing different lines.
 
 **A `Depends on` cell lists outstanding blockers only.** A cell of `—` means the task is ready to
 start. An ID still in the cell is satisfied only when that work is finished — its ticket sits in
@@ -260,7 +279,9 @@ Never spread a transition across turns, and never delegate one to an agent.
 5. **Write the worklog** beside it, in its destination folder, with the opening entry: the task,
    what it delivers, the **work root** this task is built in, and any decision already settled. A
    ticket escalated by an earlier run already has a worklog — append to it, never overwrite it.
-6. **Roadmap row** → the in-progress marker, in the file's own style.
+6. **Roadmap row** → the in-progress marker, in the file's own style, and the `Priority` cell set
+   to what the ticket you just opened actually says. This is the cheapest place to catch a stale
+   row: you are holding the ticket, and you are already writing the row.
 
 With no ticket file, update the roadmap alone.
 
