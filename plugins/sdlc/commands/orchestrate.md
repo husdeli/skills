@@ -140,7 +140,7 @@ The **`ticket-board`** skill holds the roadmap's shape: one `## <CODE> — <epic
 - If no roadmap path was given, use the docs root's **`roadmap.md`**. When that file does not exist, look for a roadmap at the project root, and ask for the path only when neither is there — naming `/setup` as the way to create one.
 - **Read every epic section**, not just the first: a dependency may name a task in another epic.
 - **The row does not say what the task delivers — its ticket does.** Open the ticket of every task you are about to offer, and take the description, the acceptance criteria, and the **priority** from there.
-- **The ticket is the record.** When a row's `Priority` or `Status` disagrees with the ticket you just opened, correct the row — and re-sort the epic's table when the priority moved it. Fix only the rows whose tickets you read, say in one line what you corrected, and pick the task from the corrected order. `ticket-board` holds the rule.
+- **The ticket is the record.** When a row's `Priority`, `Status`, or `Depends on` disagrees with the ticket you just opened, correct the row — and re-sort the epic's table when that moved it. A ticket's `Depends on` field is the dependency graph; the row shows the part of it that is not finished. Fix only the rows whose tickets you read, say in one line what you corrected, and pick the task from the corrected order. `ticket-board` holds the rule, and `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --check` reports the whole file's drift when the board looks stale enough to rebuild.
 - Carry an epic's `**Note**:` line into the planner prompt as a constraint on the task.
 
 ### 2. Pick the Next Task

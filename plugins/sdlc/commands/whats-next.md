@@ -78,11 +78,17 @@ rest is this command's:
 - **The ticket folder wins over the roadmap row** when the two disagree, because the folder is
   the board. Report the disagreement in one line — `AUTH-002 sits in in-progress/, the roadmap
   says pending` — and change neither. Fixing it is the orchestrator's job, or the user's.
-- **The ticket also wins on priority.** For every task you open a ticket for, compare its
-  `Priority` field with the row's cell, and report a mismatch in one line — `AUTH-002 is Critical
-  in its ticket, High on the roadmap` — then use the **ticket's** value when you say what to start
-  first. Say nothing about the priority of a task whose ticket you did not open: a waiting task
-  needs its row and nothing more, and an unread ticket is not evidence of anything.
+- **The ticket also wins on priority and on dependencies.** For every task you open a ticket for,
+  compare its `Priority` and `Depends on` fields with the row's cells, and report a mismatch in one
+  line — `AUTH-002 is Critical in its ticket, High on the roadmap` — then use the **ticket's**
+  values when you say what to start first. Say nothing about the priority of a task whose ticket
+  you did not open: a waiting task needs its row and nothing more, and an unread ticket is not
+  evidence of anything.
+- **To judge the whole file instead of the rows you read**, run
+  `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --check --docs-root <docs root>`. It writes
+  nothing, which is why this read-only command may run it, and it prints exactly which rows differ
+  from the tickets. Report its findings in one or two lines and name `/setup` as what rebuilds the
+  file. Skip it when `python3` is missing, and say so once.
 - **A row whose ticket sits in `done/` should not be there.** Report it in one line — `AUTH-001
   is done, but the roadmap still lists it` — leave it out of every bucket, and say that the
   command that finished it was meant to delete the row.

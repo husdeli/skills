@@ -335,6 +335,7 @@ The key is the field name in lower case, with `Last updated` as the one exceptio
 | `**Epic**: AUTH` | `epic: AUTH` |
 | `**Feature**: …` | `feature:` — a wikilink, quoted |
 | `**Priority**: High` | `priority: High` |
+| `**Depends on**: AUTH-001, AUTH-004` | `depends_on:` — a list of bare IDs, one per line; `[]` when there are none |
 | `**Effort**: M` | `effort: M` |
 | `**Category**: feature` | `category: feature` |
 | `**Created**: 2026-09-10` | `created: 2026-09-10` |
@@ -346,6 +347,12 @@ The key is the field name in lower case, with `Last updated` as the one exceptio
 
 `related:` is not in this table because it is frontmatter in every destination. See
 [Related documents are a frontmatter property](#related-documents-are-a-frontmatter-property).
+
+**`depends_on` holds bare IDs, not wikilinks** — the one place in a vault where a reference to
+another document is not a link. Three reasons: the ID is what the board cites everywhere else, a
+ticket's slug can be corrected without editing every ticket that waits on it, and a query matches
+an ID exactly. The clickable link to that sibling is already in `related:`, so the vault loses no
+navigation. Write `depends_on: []` when a ticket waits on nothing.
 
 Every document also carries two properties the plugin adds:
 
@@ -415,6 +422,7 @@ related:
 **Status**: In Progress
 **Assignee**: coding
 **Priority**: High
+**Depends on**: —
 **Effort**: M
 **Category**: feature
 **Created**: 2026-09-10
@@ -434,6 +442,7 @@ feature: "[[auth.feature]]"
 status: In Progress
 assignee: coding
 priority: High
+depends_on: []
 effort: M
 category: feature
 created: 2026-09-10

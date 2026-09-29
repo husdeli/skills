@@ -11,6 +11,7 @@ related:
 **Status**: Not Started | In Progress | Blocked | Review | Completed  
 **Assignee**: — | <agent or command name> | user  
 **Priority**: Critical | High | Medium | Low  
+**Depends on**: — | <IDs of the tickets this one cannot start without, comma separated>  
 **Effort**: XS | S | M | L | XL  
 **Category**: feature | bug | enhancement | tech-debt | docs  
 **Created**: YYYY-MM-DD

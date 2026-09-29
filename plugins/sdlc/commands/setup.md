@@ -385,25 +385,40 @@ Report the counts: tasks removed, detail sections folded into tickets, epics clo
 user says no, leave the roadmap exactly as it is — every command reads the older shape as a
 fallback. Skip the offer when the roadmap already holds pending work only.
 
-**A roadmap whose rows disagree with the tickets** gets rebuilt from the tickets, and this
-command is the only one that rebuilds the whole file. A task command corrects the rows it reads
-and touches nothing else, so drift that nobody read stays. Check the whole board in one pass —
-read every ticket outside `done/`, and every row — then offer the rebuild when anything below
-holds, naming what you found and what the rebuild changes:
+**A roadmap whose rows disagree with the tickets** gets rebuilt from the tickets. A task command
+corrects only the rows it reads, so drift nobody has read stays until something rebuilds the whole
+file. Find out whether there is any, with the script that does it:
 
-- **A row carries no `Priority` cell**, or the table has no `Priority` column at all. This is
-  every roadmap written before the column existed.
-- **A row's `Priority` or `Status` disagrees with its ticket.** The ticket wins.
-- **An open ticket has no row**, or a row's ticket sits in `done/`, or its ticket does not exist.
+```shell
+${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --check --docs-root <docs root>
+```
 
-The rebuild writes each epic's table from the tickets: one row per open ticket, its `Priority`
-and `Status` taken from the ticket, sorted by priority with a `Depends on` cell overriding
-priority. **It never rewrites a `Depends on` cell** — the dependency graph lives in the roadmap
-and nowhere else, so a rebuild that regenerated those cells would lose it. Carry each cell across
-unchanged, and drop only the IDs that no longer name a row. A ticket with no priority is
-`Medium`, said plainly in the report. Report the counts: rows rebuilt, priorities corrected, rows
-added for tickets that had none, rows deleted for finished tickets. When the user says no, change
-nothing.
+It writes nothing, prints what differs as a diff, and exits 1 when the tables do not match the
+tickets. Show the user that output, then offer the rebuild:
+
+```shell
+${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --docs-root <docs root>
+```
+
+It writes each epic's table from the tickets — one row per open ticket, its `Priority` and
+`Status` from the ticket, its `Depends on` cell computed from the ticket's own `depends_on` list,
+and the rows in the order the **`ticket-board`** skill defines. It never writes a ticket, invents a
+task, closes an epic's section, or decides a feature has shipped. Relay what it reports: a ticket
+with no priority read as `Medium`, a dependency on an ID no ticket carries, a circular dependency,
+an epic it had to add a section for, and an epic whose work is all finished and whose section a
+person now has to close.
+
+**When the script cannot run** — no `python3`, or the user says no — do the same work by hand only
+for the epics the user asks for, and never delete a row whose ticket you did not open. When the
+user declines the rebuild, change nothing: every command reads a stale row as a stale row and
+corrects it when it next opens that ticket.
+
+**A ticket with no `Depends on` field** is the one thing to fix in the tickets, not the roadmap.
+The field is new, so an older ticket has none while its roadmap row still names blockers. Offer to
+copy each row's outstanding IDs into its ticket's `Depends on` field — the `depends_on` property in
+a vault — before the first rebuild, because a rebuild computes that cell from the ticket and a
+ticket with no list produces an empty cell. Say plainly that this is the one migration that loses
+information if it is skipped, and report the count you copied.
 
 ## 4. Write the stubs
 

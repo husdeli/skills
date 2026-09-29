@@ -190,11 +190,17 @@ already reads it in the order it should be built.
   that is actually ready.
 - **The row does not say what the task delivers — its ticket does.** Open the ticket of every
   candidate and take its description, acceptance criteria, and **priority** from there.
-- **The ticket is the record.** When a row's `Priority` or `Status` disagrees with the ticket you
-  just opened, correct the row and re-sort the epic's table when the priority moved it — then
-  build the candidate list from the corrected order, so the CTO picks against what the tickets
-  actually say. Fix only the rows whose tickets you read, and record what you corrected in the
-  opening worklog entry. `ticket-board` holds the rule.
+- **The ticket is the record.** When a row's `Priority`, `Status`, or `Depends on` disagrees with
+  the ticket you just opened, correct the row and re-sort the epic's table when that moved it —
+  then build the candidate list from the corrected order, so the CTO picks against what the tickets
+  actually say. A ticket's `Depends on` field is the dependency graph; the row shows the part of it
+  that is not finished. Fix only the rows whose tickets you read, and record what you corrected in
+  the opening worklog entry. `ticket-board` holds the rule.
+- **In an unattended run, rebuild the whole file first.** Nobody is there to notice a stale row, so
+  run `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --docs-root <docs root>` before you collect
+  the candidates, and put what it reported into the opening worklog entry. Skip it when `python3` is
+  missing, and say so in the report. This is the one command that rebuilds without asking, because
+  asking is what it is built not to do.
 - **No candidate at all** → outcome `no-work`. Say whether the roadmap is empty, or every pending
   task waits on something, and print the result line. Never invent a task.
 

@@ -145,14 +145,31 @@ its own epic, so both can add a first ticket and neither overwrites the other on
 **The roadmap holds the work that is left, and nothing else.** One table row per task — ID,
 title, priority, status, the blockers it is still waiting on, and its ticket. No description, no
 acceptance criteria: those live in the ticket, so the roadmap stays a page you can read in one
-pass. Each epic's table is kept sorted by priority, with one hard rule overriding it: a task
-never sorts above something it still depends on, no matter how urgent it is. Reading a table top
-to bottom is reading the order to build in. When a task is finished, the orchestrator **deletes
-its row** instead of marking it completed, drops its ID from the `Depends on` cells that named
-it, and closes the epic once its last row goes. The ticket in `tickets/done/` is the record of
-what was built, so nothing is lost. What does get written back is a correction: when finished
-work changes what a remaining task has to do, that task's row and ticket are rewritten, and a
-constraint that governs a whole epic becomes one `**Note**:` line under it.
+pass.
+
+**Every cell in it comes from a ticket**, which is the record: the priority, the status, the
+outstanding blockers computed from the ticket's own `Depends on` field, and the row's very
+existence. When a row and its ticket disagree, the ticket wins and the row is corrected — the
+commands that pick a task do that for the rows they read, and
+[`scripts/build-roadmap.py`](scripts/build-roadmap.py) rebuilds the whole file from the tickets:
+
+```shell
+plugins/sdlc/scripts/build-roadmap.py --check    # what differs, as a diff; writes nothing
+plugins/sdlc/scripts/build-roadmap.py            # rewrite every table from the tickets
+```
+
+**Reading a table top to bottom is reading the order to build in.** Three rules make that true: a
+task never sits above something it still depends on; a blocker carries the highest priority of
+anything waiting on it, so the small chore holding up critical work rises to the top instead of
+sinking below unrelated middling work; everything else goes by priority. A `Low` row at the top is
+not a mistake — the row under it is the urgent task it is holding up.
+
+When a task is finished, the orchestrator **deletes its row** instead of marking it completed,
+drops its ID from the `Depends on` cells that named it, and closes the epic once its last row
+goes. The ticket in `tickets/done/` is the record of what was built, so nothing is lost. What does
+get written back is a correction: when finished work changes what a remaining task has to do, that
+task's row and ticket are rewritten, and a constraint that governs a whole epic becomes one
+`**Note**:` line under it.
 
 Run **`/setup`** in Claude Code or **`$sdlc:setup`** in Codex to create it.
 Every agent falls back to the project root when a project already keeps these documents there.

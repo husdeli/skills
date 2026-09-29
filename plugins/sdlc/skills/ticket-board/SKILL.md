@@ -143,32 +143,73 @@ second opinion about it. So:
   by the four steps below.
 - **An open ticket with no row at all** gets one, at its sorted position, with the priority and
   status its ticket carries.
-- **Rebuilding the whole file from the tickets** — every row, in every epic — is the setup entry
-  point's job, not a task command's. A command in the middle of a task touches the epic it is
-  working in, so two branches building different features keep changing different lines.
+- **Rebuilding the whole file from the tickets** is one command, and it is the way to fix drift
+  nobody has read yet:
 
-**A `Depends on` cell lists outstanding blockers only.** A cell of `—` means the task is ready to
-start. An ID still in the cell is satisfied only when that work is finished — its ticket sits in
-`done/`, or it is no longer a row in the file at all. In progress never satisfies a dependency. A
-cell may name a task in another epic, because every ID is unique across the project.
+  ```shell
+  <plugin>/scripts/build-roadmap.py            # rewrite every table from the tickets
+  <plugin>/scripts/build-roadmap.py --check    # report what differs, write nothing
+  ```
 
-**A table is kept sorted by priority, and a `Depends on` cell always wins the tie.** Within one
-epic's table, order rows `Critical` first, then `High`, `Medium`, `Low`; break a tie between
-equal priorities by which was added first. Then apply the one hard constraint: **a row never
-sorts above a task still named in its own `Depends on` cell.** An urgent task blocked on a slower
-one sits below it in the table regardless of priority — the table is an order to build in, and
-work that cannot start yet does not belong at the top. A dependency in another epic does not move
-the row; it is enforced by the cell alone, because sort order is a per-epic thing and every ID is
-unique across the project. Re-sort the table whenever a row's priority changes, a dependency
-clears, or a task is added — the position a row lands in is not a record of when it was written,
-so the file is not an append log.
+  It reads every ticket, writes each epic's table — priority, status, the outstanding blockers, and
+  the sort order above — and reports what needs a person: a missing priority, a dependency on an ID
+  no ticket carries, a circular dependency, an epic with no section, an epic whose work is all
+  finished. It never writes a ticket, invents a task, closes an epic's section, or decides a
+  feature has shipped. `--check` exits 1 when the tables differ, so it also answers "has this file
+  drifted?" without touching it.
+
+  **Run it when the whole board may have moved** — after an edit to several tickets, before a
+  planning session, or when the file looks stale. In the middle of a task, correct the rows you
+  read and leave the rest: a command that rewrites every table touches every epic, and two branches
+  building different features then change the same lines.
+
+**The ticket records what it depends on; the row shows what is still outstanding.** A ticket
+carries a **`Depends on`** field — the `depends_on` property in a vault, a list of bare IDs — and
+that list is the dependency graph. It names every task this one cannot start without, and it is
+**never pruned**: an entry stays after the work it names is finished, because what a task depended
+on is a fact about the task, not a status.
+
+The row's `Depends on` cell is the **outstanding** subset of that list, and it is computed:
+
+- **A cell of `—` means the task is ready to start.** Every ID in the ticket's list names finished
+  work.
+- **An ID is satisfied when its ticket is `Completed`** — the file sits in `done/`. In progress
+  never satisfies a dependency.
+- **An ID that no ticket carries is not satisfied.** It reads as unfinished and the task stays
+  blocked, because the alternative is starting work whose prerequisite may never have been built.
+  Report it; do not quietly drop it.
+- **A cell may name a task in another epic**, because every ID is unique across the project.
+
+This is why the cell is never edited on its own. Change the ticket's list when the dependency
+itself changes, and let the cell follow.
+
+**A table is sorted so that reading it top to bottom is reading the order to build in.** Three
+rules produce that order, and the first two can disagree with plain priority:
+
+1. **A row never sorts above a task it still depends on.** This is absolute. Work that cannot
+   start yet does not belong at the top.
+2. **A blocker carries the highest priority of anything waiting on it.** A `Low` chore that holds
+   up a `Critical` task is built at the `Critical` task's urgency, because the fastest way to reach
+   urgent work is through whatever blocks it. Without this rule the chore sorts below unrelated
+   middling work, and the urgent task waits behind all of it.
+3. **Everything else goes by priority** — `Critical`, `High`, `Medium`, `Low` — and a tie between
+   equal priorities goes to the lower ticket number, which is the one added first.
+
+So a `Low` row at the top of a table is not a mistake: read the row under it, and you will find
+the urgent task it is holding up. A dependency in another epic does not move a row, because sort
+order is a per-epic thing; the cell still names it.
+
+Re-sort whenever a priority changes, a dependency clears, or a task is added. The position a row
+lands in is not a record of when it was written, so the file is not an append log.
 
 **Delete the task when it is done**, in the same step that marks its ticket `Completed`:
 
 1. Delete the task's row.
 2. Delete the task's ID from every other row's `Depends on` cell, and write `—` in a cell that
-   has nothing left. **Re-sort the table** when this frees a row to move up — a cleared
-   dependency can put a `Critical` task at the top that priority alone had ranked below it.
+   has nothing left. **Leave every ticket's `Depends on` field alone** — that list is never pruned,
+   and the cell you just cleared is what the finished work changed. **Re-sort the table** when this
+   frees a row to move up: a cleared dependency can put a `Critical` task at the top, and it can
+   also drop a `Low` chore that was only up there because it blocked one.
 3. Delete the epic's whole section once its last row is gone, and set its feature to
    `status: Shipped` with today's `shipped` date — after you check the work root holds the whole
    feature, as the **`feature`** skill requires. A feature that is only partly usable stays

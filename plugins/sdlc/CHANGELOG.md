@@ -5,6 +5,52 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.60.0] - 2026-09-30
+
+### Added
+
+- **A ticket records what it depends on, so the roadmap can be generated.** `Depends on` is now a
+  ticket field — the `depends_on` property in a vault, a list of bare IDs — and it holds the
+  dependency graph. It is **never pruned**: an entry stays after the work it names is finished,
+  because what a task depended on is a fact about the task and not a status. The roadmap's cell is
+  the outstanding subset of that list, computed rather than typed.
+
+  - **IDs, not wikilinks**, in the one place a vault reference is not a link. The ID is what the
+    board cites everywhere else, a slug can be corrected without editing every ticket that waits on
+    the one renamed, and a query matches an ID exactly. The clickable link is already in `related:`.
+  - **A dependency on an ID no ticket carries is not satisfied.** It reads as unfinished and the
+    task stays blocked, rather than quietly starting work whose prerequisite may never have been
+    built.
+
+- **`scripts/build-roadmap.py` rebuilds every table from the tickets.** One row per open ticket,
+  its priority and status from the ticket, its blockers computed, and the rows in the order the
+  `ticket-board` skill defines. `--check` writes nothing, prints what differs as a diff, and exits 1
+  when the tables do not match — so it also answers "has this file drifted?" for a read-only
+  command. Python 3, no dependencies, and it works in a vault or a repository.
+
+  - **It never writes a ticket, invents a task, closes an epic's section, or decides a feature has
+    shipped.** Those need a person. It reports them instead — a missing priority, a dependency on an
+    unknown ID, a circular dependency, an epic with no section, an epic whose work is all finished.
+  - **A rebuild cannot delete a dependency graph.** On a board written before the ticket carried the
+    field, a row names blockers its ticket does not, and the roadmap is then the only copy. Those
+    IDs are kept in the row and reported for copying into the ticket, never dropped. `/setup` offers
+    that migration before the first rebuild.
+  - **`/run-roadmap` rebuilds before it collects candidates**, because nobody is there to notice a
+    stale row. `/whats-next` runs `--check` and reports. `/setup` offers the rebuild.
+
+### Changed
+
+- **A blocker now carries the highest priority of anything waiting on it.** The sort rule said an
+  urgent task blocked by a slower one sits below it, which was true but incomplete: the `Low` chore
+  holding up `Critical` work sank below unrelated `Medium` work, so the pipeline picked the
+  `Medium` and the urgent task waited behind all of it. Now that chore rises to the urgency of what
+  it blocks. A `Low` row at the top of a table is not a mistake — the row under it is the urgent
+  task it is holding up.
+- **The `Depends on` cell is no longer edited on its own.** Change the ticket's list when the
+  dependency changes, and let the cell follow. This supersedes 0.59.0's statement that the
+  dependency graph lives in the roadmap and nowhere else — it lives in the tickets now, which is
+  what made generating the tables possible.
+
 ## [0.59.0] - 2026-09-29
 
 ### Changed
