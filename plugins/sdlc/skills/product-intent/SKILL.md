@@ -7,7 +7,7 @@ description: "Rules for the product's intent — why it exists, who for, what it
 
 The product's **intent** is why it exists, who it is for, what it refuses to do, and what proves it
 worked. Five pieces carry that, they are **referenced from outside the PRD**, and each has
-a life of its own — it is met, dropped, deferred, adopted, or measured. So each one is a note:
+a life of its own — it is met, dropped, deferred, or measured. So each one is a note:
 
 ```
 <docs root>/product/
@@ -33,7 +33,7 @@ A piece of the product definition becomes a note when **both** of these are true
 
 1. **Something outside the PRD points at it** — a feature, a design doc, a ticket, the business
    plan, or another note.
-2. **It has a state of its own** — it is met or unmet, excluded or adopted, measured or not.
+2. **It has a state of its own** — it is met or unmet, excluded or deferred, measured or not.
 
 That is why these five and no others. An open question is deleted the week it is answered, so it
 stays a bullet in the PRD. A product area is a paragraph that only means something beside the
@@ -105,9 +105,8 @@ already says.>
 ---
 type: non-goal
 name: No mobile app
-status: Excluded | Deferred | Adopted
+status: Excluded | Deferred
 revisit: 2027-03-01
-became: ""
 updated: 2026-09-28
 tags:
   - sdlc/non-goal
@@ -119,12 +118,21 @@ tags:
 
 ## Why
 
-<The reason it is excluded. Required: a non-goal with no reason is an omission, not a decision.>
+<The reason it is not planned. Required: a non-goal with no reason is an omission, not a decision.>
 ```
 
-- **`status`**: `Excluded` is a standing decision, `Deferred` is a decision with a date in
-  `revisit`, and `Adopted` means the product changed its mind. An adopted non-goal keeps its note,
-  links the goal it became in `became`, and stops appearing in the PRD's non-goals list.
+- **A non-goal is something the product has not planned.** It is a thing a customer might ask for,
+  or a thing a competitor provides, that this product does not do and is not building. It records
+  the refusal and its price, so the next person who proposes it argues against a written reason
+  rather than against silence.
+- **`status`**: `Excluded` is a standing decision, and `Deferred` is a decision with a date in
+  `revisit`. There is no third state. A non-goal is the thing the product is not doing, so the
+  moment it commits to doing it the note stops being true.
+- **A non-goal the product commits to is deleted, and becomes a goal.** Write the goal note, carry
+  the reason across, and delete the non-goal in the same step — see "Adopt a non-goal" below. Never
+  keep a note whose own type it contradicts: a reader cannot tell a refusal from a commitment by
+  reading a status, every query over the folder has to learn to filter it out, and the one that
+  forgets reports a goal as "not planned".
 - **A non-goal is the one note a feature may contradict.** When a feature crosses one, that is the
   signal to adopt the non-goal deliberately rather than to quietly build past it.
 
@@ -273,3 +281,24 @@ Useful queries this shape buys, which no single document could answer before:
    personas it hurts.
 4. **Add the line to the PRD's list section**, in the same step. A note no document composes is a
    note nobody will read.
+
+## Adopt a non-goal
+
+The product decided to build the thing it refused. The non-goal is now false, so it is replaced by a
+goal rather than annotated. Do all five steps in one change, because a citation left pointing at a
+deleted note is a broken link and a citation left pointing at a live one is a lie:
+
+1. **Write the goal note**, stating what the product now does.
+2. **Carry the reason across.** The non-goal's `## Why` holds what the thing costs, and that cost
+   does not disappear when the product agrees to pay it — it is what the work has to include. Put it
+   in the goal's `## Why`, beside why the product wants it.
+3. **Repoint every citation** at the goal: a feature's `non_goals` (move it to `goals`), a competitor
+   note's `provides`, a business-plan gap, any design doc or ticket that links the note. Search the
+   docs root for the note's name; a wikilink is the only way anything refers to it.
+4. **Delete the non-goal note**, and remove its line from the PRD's non-goals list. The history is
+   in version control, which is where a superseded decision belongs.
+5. **Say in the goal where it came from** — one clause naming the date the product changed its mind.
+   A reader who wonders whether the refusal was ever considered gets the answer without the corpse.
+
+A `Deferred` non-goal whose `revisit` date passed is not adopted by default. Either it is adopted by
+this procedure, or its `revisit` moves to a new date.

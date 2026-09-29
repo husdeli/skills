@@ -5,6 +5,28 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.56.0] - 2026-09-29
+
+### Changed
+
+- **A non-goal is now only ever a thing the product has not planned.** `Adopted` is gone as a
+  non-goal status, and so is the `became` property. A non-goal is `Excluded` or `Deferred`, and
+  both mean the same kind of thing: something a customer might ask for, or something a competitor
+  provides, that this product does not do and is not building.
+
+  - **The product commits to it, the note goes.** The new "Adopt a non-goal" procedure in the
+    `product-intent` skill writes the goal, carries the non-goal's reason into it, repoints every
+    citation (a feature's `non_goals`, a competitor's `provides`, a business-plan gap), deletes the
+    note, and moves its PRD line from the non-goals list to the goals list. Version control keeps
+    the superseded decision, which is where one belongs.
+  - **A kept note contradicted its own type.** An adopted non-goal read as a refusal and meant a
+    commitment, so a reader had to check a status to tell which, and every query over the folder
+    had to filter it out. One that forgot reported a committed goal as "not planned" — which is
+    what happened in a real vault, in seventeen competitor notes at once, because only the PRD's
+    query carried the filter.
+  - **The non-goals list in the PRD is now every note in the folder**, with no status filter to
+    remember.
+
 ## [0.55.0] - 2026-09-28
 
 ### Added

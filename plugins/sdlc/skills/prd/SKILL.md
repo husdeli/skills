@@ -91,7 +91,7 @@ One line per problem note in `product/problems/`: the link, then the failure in 
 One line per goal note in `product/goals/`: the link, then the statement in a few words. A goal that is `Dropped` leaves this list and keeps its note. The statement, the problem it answers, and the metric that proves it live in the note.
 
 ### Non-goals (current scope)
-One line per non-goal note in `product/non-goals/` whose status is `Excluded` or `Deferred`: the link, then the exclusion in a few words. A non-goal the product adopted leaves this list and keeps its note. The reason lives in the note, where it is required.
+One line per note in `product/non-goals/`: the link, then the exclusion in a few words. Every non-goal is listed, because `Excluded` and `Deferred` are its only two states and both are things the product is not building. A non-goal the product decides to build is deleted and replaced by a goal, so it leaves this list and gains a line in the goals list. The reason lives in the note, where it is required.
 
 ## 4. Users & personas
 
@@ -132,7 +132,7 @@ Bullet list. Concrete unresolved product decisions that block design or implemen
 - **State the new requirement as the current truth.** Rewrite the affected passage so it reads as if it were always the target. Do not narrate the change ("previously X, now Y", "supersedes …", "revised") — that history lives in version control.
 - **Keep area names and anchors stable.** When an area's behavior evolves, revise the prose in place under its existing heading so inbound references stay valid. Add a new subsection only for a genuinely new product area. If a behavior is dropped, remove it and reconcile anything that referenced it — including the `area` property of every feature note that cites the anchor.
 - **Keep the feature register in step.** A new part of the product earns a feature note; a dropped one has its note retired. The `feature` skill holds both.
-- **Change a goal, a non-goal, a persona, a problem, or a metric in its note**, never in the PRD's list line. The line carries a few words of the note; when those words change, update both, and when the note's status changes, the line appears or disappears. A dropped goal and an adopted non-goal keep their notes — deleting one breaks every feature that cites it.
+- **Change a goal, a non-goal, a persona, a problem, or a metric in its note**, never in the PRD's list line. The line carries a few words of the note; when those words change, update both, and when the note's status changes, the line appears or disappears. A dropped goal keeps its note, because a feature may still cite what the product stopped committing to. A non-goal the product adopted is deleted instead, and every citation of it is repointed at the goal in the same change — the `product-intent` skill holds that procedure.
 - **Keep the whole document consistent.** Reflect the change everywhere it lands — overview, goals, personas, related areas, success metrics, open questions — so no two sections disagree.
 - **Keep the glossary in step.** The `glossary` skill says what an added, renamed, or dropped term costs — do that in the same run.
 - **Bump `Last updated`** and revisit `Status`.

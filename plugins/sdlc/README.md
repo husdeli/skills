@@ -93,7 +93,7 @@ coins a term writes its entry, so `/prd`, `/design`, and `/plan` each keep the f
 success metric are each their own note under `product/`, because something outside the PRD points
 at each one — a feature cites the goal it advances, the business plan sells to a persona, a
 milestone proves a metric — and because each has a state of its own: met, dropped, deferred,
-adopted, measured. The PRD's sections 2, 3, 4, and 7 are one line per note. Its overview, its
+measured. The PRD's sections 2, 3, 4, and 7 are one line per note. Its overview, its
 product areas, and its cross-cutting qualities stay prose, because narrative does not decompose.
 The `product-intent` skill holds the five shapes.
 
@@ -362,9 +362,10 @@ worth as much as its record.
 - **product-intent** — The five pieces the PRD is assembled from, each its own note under
   `product/`: a goal, a non-goal, a persona, a problem, and a success metric. Holds what earns a
   note (something outside the PRD points at it, and it has a state of its own), the properties and
-  lifecycle of each — a goal is `Committed`, `Met`, or `Dropped`; a non-goal is `Excluded`,
-  `Deferred`, or `Adopted`; a metric carries its last measured value and the date it was read — and
-  the rule that a citation links the note and never repeats its reasoning.
+  lifecycle of each — a goal is `Committed`, `Met`, or `Dropped`; a non-goal is `Excluded` or
+  `Deferred`, and is deleted rather than restated when the product decides to build it; a metric
+  carries its last measured value and the date it was read — and the rule that a citation links the
+  note and never repeats its reasoning.
 - **feature** — The feature: one thing a customer can do, with its own folder, an index note
   that says what the customer can do and whether it is `Planned`, `In Progress`, or `Shipped`, and
   the uppercase code that numbers its tickets — the feature and its epic are one thing. Holds how a

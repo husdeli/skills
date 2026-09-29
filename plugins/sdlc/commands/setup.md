@@ -271,7 +271,7 @@ fallback. Skip the offer when `<docs root>/designs/` already holds the docs.
 **A PRD that still holds its goals, personas, problems, and metrics inline** needs the same
 explicit yes. Those five pieces are notes under `product/`, because a feature, a design doc, and
 the business plan all point at them, and because each has a state of its own — met, dropped,
-deferred, adopted, measured. The `product-intent` skill holds the shape. A PRD whose sections 2, 3,
+deferred, measured. The `product-intent` skill holds the shape. A PRD whose sections 2, 3,
 4, and 7 are written out as prose and tables is on the older shape.
 
 Say what the split buys before you offer it: a goal becomes something a feature can cite and a
