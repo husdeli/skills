@@ -475,9 +475,6 @@ tags:
 
 **Last updated**: <today, YYYY-MM-DD>
 
-One entry per term this product uses, in alphabetical order. Every other document links the term's
-heading here instead of writing the definition again.
-
 ## <Term>
 
 <Two or three sentences: what the thing is, and the one fact that separates it from the term
@@ -575,17 +572,6 @@ never filled — and leave out any part that is not designed yet.
 # <product> — roadmap
 
 **Last updated**: <today, YYYY-MM-DD>
-
-This file holds the work that is left. A task is deleted from it when the task is done — the
-ticket in `tickets/done/` is the record of what was built.
-
-Status values: ⬜ **Pending** · 🚧 **In Progress** · 🚫 **Blocked**
-
-Every task belongs to an epic, and every epic delivers one feature in `features/`. They share one
-code: it prefixes every ticket ID under the epic, and the numbering restarts at 001 in each epic.
-Tickets sit in `tickets/todo/`, `tickets/in-progress/`, or `tickets/done/`. Find one by name.
-
----
 
 ## AREA — <epic name>
 

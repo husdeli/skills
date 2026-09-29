@@ -5,6 +5,15 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.56.1] - 2026-09-29
+
+### Removed
+
+- **The roadmap and glossary templates no longer open with a paragraph about the plugin's own
+  rules.** `/setup` wrote a roadmap that explained task deletion, the status values, epic codes and
+  the ticket folders, and a glossary that explained its own ordering and linking. Those rules live
+  in the `ticket-board` and `glossary` skills; the documents now start with their content.
+
 ## [0.56.0] - 2026-09-29
 
 ### Changed
