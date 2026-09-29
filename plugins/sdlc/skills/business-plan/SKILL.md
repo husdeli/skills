@@ -173,13 +173,17 @@ product: <name>
 audience: founder | investors | lender
 status: Draft | Living document
 updated: <YYYY-MM-DD>
+related:
+  - "[[prd]]"
+  - "[[roadmap]]"
+  - "[[<each design doc the plan cites>]]"
 tags:
   - sdlc/business-plan
 ---
 ```
 
-Under the title, one **Related** line links the PRD, the feature register, the roadmap, the design
-docs the plan cites, and the competitors folder.
+The `related:` property links the PRD, the roadmap, and each design doc the plan cites. The body
+holds no Related line. Section 2 already lists the features, and section 5 lists the competitors.
 
 ### Sections, in this order
 

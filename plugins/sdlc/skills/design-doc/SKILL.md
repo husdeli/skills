@@ -28,8 +28,9 @@ still cross-cutting; `designs/` is where a shared subject belongs, not the folde
 feature reached it first.
 
 **Load the `product-docs` skill and resolve the docs root as it says**, before you read or write
-anything. It also holds what a vault changes: `Last updated` and `Related` become frontmatter
-properties there, and a cross-reference becomes a wikilink.
+anything. It also holds what a vault changes: `Last updated` becomes a frontmatter property there,
+and a cross-reference becomes a wikilink. The related documents are the `related:` frontmatter
+property in every destination.
 
 - **Name the subject, not the document.** `billing.design.md` — never `design-billing.md`,
   `billing-design.md`, or `billing.design.doc.md`. Kebab-case, and singular where that reads
@@ -41,8 +42,8 @@ properties there, and a cross-reference becomes a wikilink.
 - **Cross-reference by relative path** — "see `../../designs/app-shell.design.md`" — never by
   copying the content across. In a vault, cross-reference with a wikilink instead, and the folder
   makes no difference: `[[app-shell.design]]`.
-- **A doc in a feature's folder names its feature** on the `Related` line, with the feature's
-  index note. A doc in `designs/` names the PRD instead.
+- **A doc in a feature's folder names its feature** in its `related:` property, with the
+  feature's index note. A doc in `designs/` names the PRD instead.
 - **Find the docs by listing** `<docs root>/features/*/*.design.md` and
   `<docs root>/designs/*.design.md`, then read the ones the task touches. A feature's own docs
   are the ones in its folder — list that folder first when the task names a feature.
@@ -138,14 +139,19 @@ that a term this design coins gets its entry in the same step.
 The file is `<subject>.design.md`, and the title names the same subject.
 
 ```
+---
+related:
+  - <the feature this doc belongs to, checkout.feature.md, or for a doc in designs/ the PRD
+    when one exists>
+  - <each other-subject.design.md this design touches>
+---
+
 # <Subject> — design
 
 **Last updated**: <YYYY-MM-DD>
-**Related**: the feature this doc belongs to — `checkout.feature.md` — or, for a doc in
-`designs/`, the PRD when one exists; plus each `<other-subject>.design.md` this design touches
 
 <One or two sentences: what the subject is, and what it is for. Never what the document
-covers, leaves out, or how it relates to the PRD — the Related line carries that.>
+covers, leaves out, or how it relates to the PRD — the related property carries that.>
 
 ---
 
@@ -250,8 +256,8 @@ Start a second doc — `<other-subject>.design.md` — as soon as one of these a
 - The same design is being restated for a second reader or a second part.
 - The doc needs "and" to say what it covers.
 
-Every doc carries the same header block (Status / Last updated / Related), links to its feature
-and its siblings through `Related`, and stays a **design doc** — structure and behavior only. The
+Every doc carries the same header (Status / Last updated), links to its feature and its siblings
+through the `related:` property, and stays a **design doc** — structure and behavior only. The
 doc that references another names it by file (e.g. "see `event-ingestion.design.md`") instead of
 repeating it. Never spin off (or link to) a build or operations doc.
 

@@ -276,6 +276,10 @@ Never mark a ticket `Completed`, and never delete its roadmap row, on this path.
 Implementation decisions belong in the plan, written after the codebase is explored. The full
 rules are in [the ticket guidelines](./references/ticket-guidelines.md).
 
+**A ticket's related documents are its `related:` property**, never a section in its body: the
+PRD area it serves, the design docs it builds, the goal it advances, and the sibling tickets it
+depends on or unblocks. The `product-docs` skill holds the rule.
+
 **A diagram belongs in `diagrams/`, referenced from the ticket.** The **`diagrams`** skill holds
 how one is drawn and how a ticket points at it.
 

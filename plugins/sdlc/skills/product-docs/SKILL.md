@@ -57,6 +57,36 @@ design doc links its feature; a feature note lists its designs by name. Reading 
 PRD holds the sentence a feature note would otherwise repeat, and the feature note holds the
 sentence the business plan would otherwise repeat.
 
+## Related documents are a frontmatter property
+
+**A document names the documents it relates to in one `related:` property, in its YAML
+frontmatter.** This is true in every destination: a vault, a `repo`, and a `folder`. The body never
+holds a `**Related**:` line, a `## Related` section, a list of related specifications, or any other
+block whose only job is to point at other documents.
+
+```yaml
+---
+related:
+  - "[[prd#Authentication `AUTH`|AUTH]]"
+  - "[[auth.design]]"
+  - "[[AUTH-002-session-timeout]]"
+---
+```
+
+- **One entry is one link.** In a vault the entry is a quoted wikilink. In a `repo` or a `folder`
+  it is a path relative to the document, such as `../prd.md` or `../../designs/auth.design.md`. A
+  ticket is the exception: it is named by its file name alone, because it moves between status
+  folders. A link to one section keeps its heading.
+- **An entry holds no reason.** When a reader needs to know why a document matters, the body says
+  so in the sentence that uses it, and links it there.
+- **The direction rules above still hold.** `related:` lists only the documents this document may
+  link. The PRD never lists the business plan, and a feature note never lists a ticket.
+- **A dedicated property is not repeated in `related:`.** A ticket's `feature` and a worklog's
+  `ticket` are properties of their own.
+- **Leave the property out when it has no entry.** Never write an empty list.
+- **Outside a vault, `related:` is the only frontmatter property.** Every other field stays a
+  `**Field**: value` line under the title, as the destinations below describe.
+
 ## The two roots
 
 | Root | What it holds | How many |
@@ -313,7 +343,9 @@ The key is the field name in lower case, with `Last updated` as the one exceptio
 | `**Area**: PAYMENTS` | `area: PAYMENTS` |
 | `**Last updated**: 2026-09-10` | `updated: 2026-09-10` |
 | `**Product**: Acme` | `product: Acme` |
-| `**Related**: …` | `related:` — a list |
+
+`related:` is not in this table because it is frontmatter in every destination. See
+[Related documents are a frontmatter property](#related-documents-are-a-frontmatter-property).
 
 Every document also carries two properties the plugin adds:
 
@@ -370,6 +402,12 @@ library, and an external URL stay exactly as they are written elsewhere.
 In the repository:
 
 ```markdown
+---
+related:
+  - ../../prd.md#authentication-auth
+  - AUTH-002-session-timeout.md
+---
+
 # [AUTH-001] User login
 
 **Epic**: AUTH — Authentication
@@ -383,11 +421,6 @@ In the repository:
 
 ## Description
 …
-
-## Related
-- Feature: `features/auth/auth.feature.md`
-- PRD area: `AUTH`
-- Sibling: `AUTH-002-session-timeout.md`
 ```
 
 In a vault:
@@ -404,6 +437,9 @@ priority: High
 effort: M
 category: feature
 created: 2026-09-10
+related:
+  - "[[prd#Authentication `AUTH`|AUTH]]"
+  - "[[AUTH-002-session-timeout]]"
 tags:
   - sdlc/ticket
 ---
@@ -412,15 +448,10 @@ tags:
 
 ## Description
 …
-
-## Related
-- Feature: [[auth.feature]]
-- PRD area: `AUTH`
-- Sibling: [[AUTH-002-session-timeout]]
 ```
 
 Same ticket, same sections, same words. Only the fields and the links are shaped for the
-destination that holds them.
+destination that holds them. In both, the related documents are the `related:` property.
 
 ## The worklog, in both destinations
 

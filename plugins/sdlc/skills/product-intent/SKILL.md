@@ -229,8 +229,8 @@ apply the same way.>
 | --- | --- |
 | The PRD's list sections | One line per note: the link, then the statement in a few words |
 | A feature index | The `goals`, `non_goals`, and `personas` properties |
-| A design doc | The goal or the quality it holds to, in `Related` |
-| A ticket | The goal the task advances, in `Related` |
+| A design doc | The goal or the quality it holds to, in its `related:` property |
+| A ticket | The goal the task advances, in its `related:` property |
 | The business plan | The persona a segment is, and the metric a milestone proves |
 
 - **A citation carries enough of the note to read past it.** `[[self-hosted-first.goal]] — the

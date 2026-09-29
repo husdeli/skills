@@ -135,7 +135,7 @@ write the document it governs, and follow it. Do not restate its rules from memo
 - **Acceptance criteria are observable outcomes**, and they match what the approved breakdown said the task delivers. The ticket is the only place they are written — the roadmap row does not repeat them.
 - **Status is `Not Started` and `Assignee` is `—`**, so the file goes in `todo/` and nobody holds it. `Created` is today. The `Epic` field names the epic exactly as its roadmap section does. In a vault these four are frontmatter properties — `status`, `assignee` (left empty), `created`, `epic` — beside `type`, `id`, and `tags`.
 - **Write no worklog.** A ticket gets one beside it in the step that starts the work and moves it into `in-progress/`, which is an orchestrator's job, not this command's.
-- Under `Related`, cite the PRD's area anchor code (e.g. `CONTENT`) and any sibling ticket. The link runs ticket → PRD, never back.
+- In the `related:` frontmatter property, link the PRD area the ticket serves and any sibling ticket. The ticket has no Related section in its body. The link runs ticket → PRD, never back.
 - **Never overwrite an existing ticket file.** Check every status folder for the ID before you write, because a completed ticket sits in `done/`. A name collision means the number is wrong — take the next free one in that epic.
 
 ### 6. Report

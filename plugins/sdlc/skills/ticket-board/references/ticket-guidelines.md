@@ -18,6 +18,9 @@ Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable 
 - **High-Level Architecture**: Data flow, reusability principles
 - **Data Requirements**: What data needs storing/retrieval (not schema details)
 - **Testing Expectations**: What needs testing (not specific test files)
+- **Related documents**: The PRD area, the design docs, the goal, and the sibling tickets, in the
+  `related:` frontmatter property. The body holds no Related section. The `product-docs` skill
+  holds the rule.
 
 ---
 

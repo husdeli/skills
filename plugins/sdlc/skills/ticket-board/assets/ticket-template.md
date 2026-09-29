@@ -1,3 +1,9 @@
+---
+related:
+  - ../../prd.md#<area-heading-anchor>
+  - <SIBLING-ID>-<slug>.md
+---
+
 # [EPIC-XXX] Ticket Title
 
 **Epic**: EPIC — <epic name, as the roadmap section names it>  
@@ -50,10 +56,3 @@ Unit → Integration/API → Frontend E2E (critical paths only).
 - **E2E**: [critical paths only — omit if covered by API tests]
 - **Manual**:
   - [ ] Scenario 1
-
-## Related
-
-- Feature: `features/<feature>/<feature>.feature.md`
-- Related Tickets: [links]
-- PRs: [links when created]
-- Worklog: `[EPIC-XXX]-[slug].worklog.md` — written once the work starts

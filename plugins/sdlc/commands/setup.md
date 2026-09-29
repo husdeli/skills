@@ -324,7 +324,7 @@ does not approve:
 3. **Move the design docs and rewrite every reference.** Move each approved doc with `git mv` into
    its feature's folder, keeping its name. Add a `**Feature**:` line to each roadmap epic section
    that now has a feature. Then search the docs root for every moved path and fix what that finds —
-   a `Related` line, a ticket, a diagram caption, the business plan. Report the counts: features
+   a `related:` property, a ticket, a diagram caption, the business plan. Report the counts: features
    opened, docs moved, docs kept in `designs/`, references rewritten.
 
 When the user says no, create `features/` empty and leave every design doc in `designs/`: every
@@ -355,8 +355,8 @@ steps, and stop at any step the user does not approve:
    vault.
 3. **Rewrite every reference.** Group the roadmap rows into one `##` section per epic, and
    rename each ID in the tables, in the `Depends on` cells, and in the `Ticket` cells. Then
-   search the whole project for each old ID and fix what that finds — a ticket's `Related`
-   links, a design doc, a note, a feature note's `code`. Report the count renamed and the files
+   search the whole project for each old ID and fix what that finds — a ticket's `related:`
+   property, a design doc, a note, a feature note's `code`. Report the count renamed and the files
    touched.
 
 When the user says no, leave every ID alone, and say that new tickets keep continuing the
@@ -504,10 +504,14 @@ underpin every feature. A subject that belongs to one feature gets its `<subject
 that feature's folder instead. `/design` writes both.
 
 ```markdown
+---
+related:
+  - ../prd.md
+---
+
 # <product> — design
 
 **Last updated**: <today, YYYY-MM-DD>
-**Related**: `../prd.md`
 
 <One or two sentences: what the product is built from, and where the detail lives. Never
 what this document covers or leaves out.>
@@ -546,7 +550,7 @@ restating. Three to seven bullets, qualitative. Omit the section when there are 
 it holds within.>
 ```
 
-In a vault, the fields and the reference become properties, and `../prd.md` becomes `[[prd]]`:
+In a vault, the fields become properties too, and `../prd.md` becomes `[[prd]]`:
 
 ```markdown
 ---

@@ -5,6 +5,29 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.57.0] - 2026-09-29
+
+### Changed
+
+- **Related documents are always a `related:` frontmatter property.** No document holds a
+  `**Related**:` line, a `## Related` section, or a list of related specifications in its body. The
+  rule applies in every destination. In a `repo` or `folder` destination, `related:` is the one
+  frontmatter property, and every other field stays a `**Field**: value` line. Each entry is one
+  link with no reason beside it: a quoted wikilink in a vault, and a relative path in a repo or a
+  folder. A ticket is named by its file name alone, because it moves between status folders. The
+  rule lives in the `product-docs` skill.
+
+  - **Ticket template**: the `## Related` section is gone, together with its unused `PRs` and
+    `Worklog` lines. The feature stays in its own field. `related:` holds the PRD area, the design
+    docs, the goal, and the sibling tickets.
+  - **Design docs**: the `**Related**` header line is now the `related:` property, in the
+    `design-doc` skill and in the overview design doc that `/setup` writes.
+  - **Business plan**: the `**Related**` line under the title is now the `related:` property. It
+    links the PRD, the roadmap, and the design docs the plan cites. Section 2 already lists the
+    features, and section 5 lists the competitors.
+  - **PRD**: the optional **Related specifications** block is gone. The PRD lists its design docs
+    in `related:`, and never lists the business plan.
+
 ## [0.56.1] - 2026-09-29
 
 ### Removed

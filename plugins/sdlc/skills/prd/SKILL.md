@@ -14,7 +14,9 @@ a PRD at the root (`prd.md`/`PRD.md`), update that file in place instead — one
 project, never two.
 
 When `kind` is `vault`, load the **`product-docs`** skill as well: the PRD's `Status`,
-`Last updated`, and `Product` fields become frontmatter properties there.
+`Last updated`, and `Product` fields become frontmatter properties there. In every destination,
+the PRD lists the design docs it relates to in a `related:` frontmatter property, never in its
+body. It never lists the business plan, because the plan links the PRD and not the reverse.
 
 A PRD describes **what the product does and why** — the requirements, from the user's point of view. It is not an implementation plan, a project tracker, or a technical design. Keep it durable: it stays accurate as tickets come and go and as the implementation is rewritten underneath it.
 
@@ -72,8 +74,6 @@ Use the exact section order below. Keep prose tight — every sentence must add 
 **Status**: Draft | Living document | Final
 **Last updated**: <date>
 **Product**: <name or TBD> — <one-line description>
-
-(optional) **Related specifications**: bullet list of sibling product-spec docs, each with a one-line scope.
 
 ---
 
