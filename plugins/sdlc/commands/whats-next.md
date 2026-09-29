@@ -107,10 +107,10 @@ disagreement between the roadmap and the ticket folders.]
   Last worklog entry: [date] — [agent] · [stage] — [the one line that matters]
 
 ### Ready to start (N)
-- **[ID] — [Title]** · [epic name] ← start here
+- **[ID] — [Title]** · [epic name] · [Priority] ← start here
   [What it delivers, one line.]
   Acceptance: [the criteria, short]
-- **[ID] — [Title]** · [epic name]
+- **[ID] — [Title]** · [epic name] · [Priority]
   …
 
 ### Waiting (N)
@@ -123,8 +123,10 @@ there is more than one epic.]
 
 Rules for the report:
 
-- **Roadmap order throughout** — top to bottom, epic by epic. The first ready task carries
-  `← start here`, because roadmap order is the default choice.
+- **Roadmap order throughout** — top to bottom, epic by epic. `ticket-board` keeps each epic's
+  table sorted by priority, with a `Depends on` cell overriding priority, so roadmap order already
+  **is** priority order. The first ready task carries `← start here`, because it is the
+  highest-priority one that is actually ready.
 - **Drop any empty section.** No "In flight (0)".
 - **Ready is the section that matters.** Give each ready task its acceptance criteria; give the
   others one line.

@@ -180,10 +180,14 @@ Report a `blocked` preflight in two lines and print the result line. Do not try 
 
 ### 1. Read the roadmap, collect the candidates, and let the CTO pick
 `ticket-board` holds the roadmap's shape — one `## <CODE> — <epic name>` section per epic, one row
-per task, and what an epic's `**Note**:` line and a `Depends on` cell mean.
+per task, and what an epic's `**Note**:` line and a `Depends on` cell mean. Each table is kept
+sorted by priority, with a `Depends on` cell overriding priority, so reading a table top to bottom
+already reads it in the order it should be built.
 
 - **Read every epic section**, not just the first: a dependency may name a task in another epic.
-- **Collect every candidate** — every task that is **pending** with **all dependencies satisfied**.
+- **Collect every candidate** — every task that is **pending** with **all dependencies satisfied**
+  — preserving the table's order, so the first candidate in the list is the highest-priority one
+  that is actually ready.
 - **The row does not say what the task delivers — its ticket does.** Open the ticket of every
   candidate and take its description and acceptance criteria from there.
 - **No candidate at all** → outcome `no-work`. Say whether the roadmap is empty, or every pending
@@ -196,7 +200,7 @@ Agent(subagent_type: "sdlc:cto", model: "opus",
       prompt: "Request: task-selection. You are answering in place of the user in an autonomous
                run — no person will be asked anything.
                Pick the next task to build, and call the end-to-end question."
-              + the candidate list (ID, title, epic, description, acceptance criteria, Depends on)
+              + the candidate list (ID, title, priority, epic, description, acceptance criteria, Depends on)
               + any epic **Note**: lines
               + "Remaining on the roadmap: <N> tasks across <K> epics.")
 ```

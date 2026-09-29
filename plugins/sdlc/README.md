@@ -143,14 +143,16 @@ numbering restarts at 001 in each epic. That is what keeps two branches apart: e
 its own epic, so both can add a first ticket and neither overwrites the other on merge.
 
 **The roadmap holds the work that is left, and nothing else.** One table row per task — ID,
-title, status, the blockers it is still waiting on, and its ticket. No description, no
+title, priority, status, the blockers it is still waiting on, and its ticket. No description, no
 acceptance criteria: those live in the ticket, so the roadmap stays a page you can read in one
-pass. When a task is finished, the orchestrator **deletes its row** instead of marking it
-completed, drops its ID from the `Depends on` cells that named it, and closes the epic once its
-last row goes. The ticket in `tickets/done/` is the record of what was built, so nothing is
-lost. What does get written back is a correction: when finished work changes what a remaining
-task has to do, that task's row and ticket are rewritten, and a constraint that governs a whole
-epic becomes one `**Note**:` line under it.
+pass. Each epic's table is kept sorted by priority, with one hard rule overriding it: a task
+never sorts above something it still depends on, no matter how urgent it is. Reading a table top
+to bottom is reading the order to build in. When a task is finished, the orchestrator **deletes
+its row** instead of marking it completed, drops its ID from the `Depends on` cells that named
+it, and closes the epic once its last row goes. The ticket in `tickets/done/` is the record of
+what was built, so nothing is lost. What does get written back is a correction: when finished
+work changes what a remaining task has to do, that task's row and ticket are rewritten, and a
+constraint that governs a whole epic becomes one `**Note**:` line under it.
 
 Run **`/setup`** in Claude Code or **`$sdlc:setup`** in Codex to create it.
 Every agent falls back to the project root when a project already keeps these documents there.

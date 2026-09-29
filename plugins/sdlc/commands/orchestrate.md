@@ -145,12 +145,12 @@ The **`ticket-board`** skill holds the roadmap's shape: one `## <CODE> — <epic
 ### 2. Pick the Next Task
 Collect **every** task that is **pending** and whose **dependencies are all satisfied** — those are the candidates. `ticket-board` says when a `Depends on` cell counts as satisfied. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task.
 
-Show the candidates first, so the user reads the detail that an option label cannot hold. List them in roadmap order — top to bottom, epic by epic:
+Show the candidates first, so the user reads the detail that an option label cannot hold. List them in roadmap order — top to bottom, epic by epic. `ticket-board` keeps each epic's table sorted by priority with dependencies as a hard constraint, so roadmap order already **is** priority order; the first candidate is the highest-priority one that is actually ready.
 
 ```markdown
 ## Candidate Tasks
 
-**[ID]: [Title]** — [Description, from the ticket]
+**[ID]: [Title]** — [Priority] — [Description, from the ticket]
 Dependencies: [list or "none"]
 Acceptance criteria: [the ticket's list]
 
@@ -160,7 +160,7 @@ Acceptance criteria: [the ticket's list]
 
 Then put **one `AskUserQuestion` call** with **two questions** — one round trip, not two, because every round trip is human latency on the critical path:
 
-1. **Which task to build.** One option per candidate, in roadmap order, labelled `<ID>: <Title>`; the option `description` carries the one-line task description and its dependencies. Mark the first in roadmap order **"(Recommended)"** — roadmap order is the default, and the user overrides it. Offer at most 4; with more candidates, offer the first 3 and say in the question text that the user can name any other by ID through "Other". With exactly **one** candidate, still ask — this question is the approval gate — with the task and **Cancel** as the two options.
+1. **Which task to build.** One option per candidate, in roadmap order, labelled `<ID>: <Title>`; the option `description` carries the priority, the one-line task description, and its dependencies. Mark the first in roadmap order **"(Recommended)"** — it is the highest-priority ready candidate, and the user overrides it. Offer at most 4; with more candidates, offer the first 3 and say in the question text that the user can name any other by ID through "Other". With exactly **one** candidate, still ask — this question is the approval gate — with the task and **Cancel** as the two options.
 2. **Whether to add end-to-end tests.** Ask "Add end-to-end tests for this task?" with **Yes — critical path only** and **No — unit and integration cover it**. Recommend **Yes** when the task adds or changes a user-facing flow that no existing e2e spec crosses; recommend **No** otherwise, which is the common case — the test pyramid puts e2e at the top, on critical paths only, and omits it where API tests already cover the behaviour.
 
 **The answer to question 1 is the approval.** Do not start Stage 0 before it lands. "Cancel", or an "Other" answer that names no task on the roadmap, ends the run — say so and stop.

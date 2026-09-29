@@ -112,29 +112,44 @@ delivers, one sentence on what the epic delivers, and one table row per task:
 A customer pays for an order without leaving the page.
 ```
 
-| ID | Task | Status | Depends on | Ticket |
-| --- | --- | --- | --- | --- |
-| AUTH-002 | Session timeout | ⬜ **Pending** | — | `AUTH-002-session-timeout.md` |
+| ID | Task | Priority | Status | Depends on | Ticket |
+| --- | --- | --- | --- | --- | --- |
+| AUTH-002 | Session timeout | High | ⬜ **Pending** | — | `AUTH-002-session-timeout.md` |
 
 A row carries one of three statuses — `⬜ **Pending**`, `🚧 **In Progress**`, `🚫 **Blocked**`.
 There is no completed status, because a completed task leaves the file. In a vault, the `Ticket`
 cell is the wikilink `[[AUTH-002-session-timeout]]`, so it follows the file between the status
 folders.
 
-**The row is the whole task in this file.** What the task delivers, and what it has to satisfy,
-live in its ticket — the file every command opens anyway. Never add a per-task `###` section, a
-description paragraph, or an acceptance-criteria list to the roadmap.
+**The row is the whole task in this file, except for one field it mirrors.** What the task
+delivers, and what it has to satisfy, live in its ticket — the file every command opens anyway.
+Never add a per-task `###` section, a description paragraph, or an acceptance-criteria list to
+the roadmap. `Priority` is the exception, alongside `Status`: it repeats the ticket's
+`**Priority**` field so the table can be read, and sorted, without opening every ticket. The two
+never disagree, because whoever changes a ticket's priority changes this cell in the same edit.
 
 **A `Depends on` cell lists outstanding blockers only.** A cell of `—` means the task is ready to
 start. An ID still in the cell is satisfied only when that work is finished — its ticket sits in
 `done/`, or it is no longer a row in the file at all. In progress never satisfies a dependency. A
 cell may name a task in another epic, because every ID is unique across the project.
 
+**A table is kept sorted by priority, and a `Depends on` cell always wins the tie.** Within one
+epic's table, order rows `Critical` first, then `High`, `Medium`, `Low`; break a tie between
+equal priorities by which was added first. Then apply the one hard constraint: **a row never
+sorts above a task still named in its own `Depends on` cell.** An urgent task blocked on a slower
+one sits below it in the table regardless of priority — the table is an order to build in, and
+work that cannot start yet does not belong at the top. A dependency in another epic does not move
+the row; it is enforced by the cell alone, because sort order is a per-epic thing and every ID is
+unique across the project. Re-sort the table whenever a row's priority changes, a dependency
+clears, or a task is added — the position a row lands in is not a record of when it was written,
+so the file is not an append log.
+
 **Delete the task when it is done**, in the same step that marks its ticket `Completed`:
 
 1. Delete the task's row.
 2. Delete the task's ID from every other row's `Depends on` cell, and write `—` in a cell that
-   has nothing left.
+   has nothing left. **Re-sort the table** when this frees a row to move up — a cleared
+   dependency can put a `Critical` task at the top that priority alone had ranked below it.
 3. Delete the epic's whole section once its last row is gone, and set its feature to
    `status: Shipped` with today's `shipped` date — after you check the work root holds the whole
    feature, as the **`feature`** skill requires. A feature that is only partly usable stays
@@ -156,6 +171,12 @@ that line as soon as it no longer applies:
 **An older roadmap may still hold finished work** — rows marked completed, and a `###` detail
 section per task. Read it as it is, take a description from the detail section when a task has no
 ticket, and name the platform's setup entry point as the way to clean the file up.
+
+**A row or a ticket from before this rule may carry no `Priority` at all** — a blank cell, no
+field in the ticket, or the template's own placeholder left unfilled. Treat it as `Medium`, write
+that value into both the row and the ticket the next time either is touched, and say in the report
+that a priority was assumed rather than read. This is the one case where the table's sort order is
+a guess, not a decision someone made.
 
 ## Who holds the ticket
 

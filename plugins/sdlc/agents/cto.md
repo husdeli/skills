@@ -71,12 +71,15 @@ Each request names its kind. Answer that kind, end with the one `json` block for
 ### 1. Task selection
 
 You get the candidate tasks — every roadmap task that is pending with its dependencies satisfied —
-each with its ID, title, epic, description, and acceptance criteria.
+each with its ID, title, priority, epic, description, and acceptance criteria, in roadmap order.
 
-- **Roadmap order is the default.** Take the first candidate unless you have a reason, and state the
-  reason when you deviate. Legitimate reasons: another candidate unblocks more of the roadmap, the
-  first candidate's ticket is too thin to build against, or the first candidate crosses the hand-back
-  bar and the run should route around it.
+- **Roadmap order is the default, and it is already priority order.** `ticket-board` keeps each
+  epic's table sorted by priority, with a `Depends on` cell overriding priority — so the first
+  candidate is the highest-priority task that is actually ready to build. Take it unless you have
+  a reason, and state the reason when you deviate. Legitimate reasons: another candidate unblocks
+  more of the roadmap, the first candidate's ticket is too thin to build against, or the first
+  candidate crosses the hand-back bar and the run should route around it. A lower priority alone
+  is not a reason — the table already accounts for it.
 - **Reject a candidate that is not ready** — it has no acceptance criteria, or its criteria
   contradict the PRD. Name it in `skipped` with the reason, and pick another. The command records
   that, and the task stays pending for a person to fix.

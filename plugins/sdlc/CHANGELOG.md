@@ -5,6 +5,31 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.58.0] - 2026-09-29
+
+### Added
+
+- **A roadmap table now carries `Priority`, and is kept sorted by it.** Every row got a `Priority`
+  cell that mirrors its ticket's own `**Priority**` field, alongside `Status`. Within one epic's
+  table, rows sort `Critical` first, then `High`, `Medium`, `Low` — with one hard rule overriding
+  priority: a row never sorts above a task still named in its own `Depends on` cell. Reading a
+  table top to bottom is now reading the order to build in, not the order tasks were added.
+  `ticket-board` re-sorts a table whenever a priority changes, a dependency clears, or a task is
+  added — the file is not an append log.
+
+  - **`/plan` sets a task's priority**, defaulting to `Medium` unless the request or the interview
+    names urgency, and shows it in the breakdown table so the user can adjust it before approving.
+    It inserts an approved row at its sorted position instead of appending it, and writes the same
+    value into the row and the new ticket.
+  - **The task-picking commands say what "first in roadmap order" now means.** `/orchestrate`,
+    `/orchestrate-quick`, `/run-roadmap`, `/whats-next`, and the `cto` agent already picked the
+    first ready candidate in roadmap order; that is now explicitly the highest-priority ready
+    task, because the table is kept sorted. `/whats-next` and the candidate lists now show each
+    task's priority.
+  - **A row or ticket from before this rule may carry no priority at all.** Treated as `Medium`
+    until corrected, with the assumption said in the report — the one case where the sort order is
+    a guess rather than a decision someone made.
+
 ## [0.57.0] - 2026-09-29
 
 ### Changed

@@ -583,19 +583,20 @@ never filled — and leave out any part that is not designed yet.
 
 <One sentence: what this epic delivers.>
 
-| ID | Task | Status | Depends on | Ticket |
-| --- | --- | --- | --- | --- |
-| AREA-001 | <task title> | ⬜ **Pending** | — | `AREA-001-<slug>.md` |
+| ID | Task | Priority | Status | Depends on | Ticket |
+| --- | --- | --- | --- | --- | --- |
+| AREA-001 | <task title> | Medium | ⬜ **Pending** | — | `AREA-001-<slug>.md` |
 ```
 
 One `##` section per epic, holding the feature it delivers, that epic's sentence, and its own
 table — and nothing else.
-The row is the whole task here; what the task delivers and what it has to satisfy live in its
-ticket. A new epic appends a section, so two branches that plan separate features touch
-separate parts of the file. A `Depends on` cell lists outstanding blockers only, so `—` means
-the task is ready to start, and a cell may name a task in another epic because every ID is
-unique across the project. The **`ticket-board`** skill holds the rest of the rules, including what
-to delete when a task is done.
+The row is the whole task here, except `Priority`, which mirrors the ticket's own field so the
+table can be sorted without opening every ticket. A new epic appends a section, so two branches
+that plan separate features touch separate parts of the file. A `Depends on` cell lists
+outstanding blockers only, so `—` means the task is ready to start, and a cell may name a task in
+another epic because every ID is unique across the project. Each table is kept sorted by
+priority, with a `Depends on` cell always overriding priority. The **`ticket-board`** skill holds
+the rest of the rules, including the sort order and what to delete when a task is done.
 
 In a vault, `**Last updated**` becomes the `updated` property under a `type: roadmap`
 frontmatter block, and the ticket citation becomes a wikilink — `[[AREA-001-<slug>]]`. The

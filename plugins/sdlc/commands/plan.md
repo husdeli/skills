@@ -95,9 +95,9 @@ One gate, before you write any file:
 
 **Roadmap**
 
-| ID | Task | Depends on | Delivers |
-| --- | --- | --- | --- |
-| [CODE-NNN] | [title] | [IDs or —] | [one line] |
+| ID | Task | Priority | Depends on | Delivers |
+| --- | --- | --- | --- | --- |
+| [CODE-NNN] | [title] | [Critical/High/Medium/Low] | [IDs or —] | [one line] |
 
 Tickets: one per row, in `.sdlc/tickets/todo/`.
 
@@ -109,6 +109,7 @@ How to break the work down:
 - **One task per shippable outcome** — something a person can check when it lands. Not a layer, not a file, not "the backend part".
 - **Size each task for a single `/orchestrate` run.** A task you cannot state in a few lines is two tasks.
 - **Order by dependency.** A task's dependencies sit above it, and name only other tasks that are still on the roadmap. Work that is already done is not a dependency — the roadmap holds no finished task to point at.
+- **Give each task a priority** — `Critical`, `High`, `Medium`, or `Low`. Default to `Medium` unless the request or the interview names urgency or an explicit deadline; state the default in the breakdown table so the user can adjust it before approving. This is what `ticket-board` sorts the roadmap table by.
 - **Put every task in one epic**, and name the epic before you number anything. Use the epic the request already belongs to when the roadmap has one; declare a new epic when it does not. `ticket-board` holds what an epic code looks like, how the numbering restarts inside it, where the next free number comes from, and why an existing ID is never renumbered or reused.
 - **A pending task the request changes is updated in place**, not duplicated. When the request changes work that is already finished, add a new task: the roadmap no longer holds the finished one, and its ticket in `tickets/done/` stays as it was written.
 
@@ -126,14 +127,14 @@ write the document it governs, and follow it. Do not restate its rules from memo
 
 **Design docs** — only when the request changes how a part, a flow, or a surface works. Load the **`design-doc`** skill and follow it: one file per subject, in the feature's folder when it belongs to one feature and in `.sdlc/designs/` when it underpins every feature, the per-subject pattern (structure → behavior → states → variation and limits), the structural altitude, no tickets and no code references. Update the doc whose subject the request touches, and start a new one only for a subject that has none. Bump `Last updated` on each file you touch.
 
-**Roadmap** — follow the **`ticket-board`** skill's roadmap rules: one row per task and nothing else, the row cited by ticket file name, and a `Depends on` cell that names outstanding blockers only. Append the approved rows under their epic with status `⬜ **Pending**`, matching the file's existing style — an existing epic gets rows in its table, a new epic gets a new section at the end of the file with one sentence on what it delivers. **Touch no other epic's section**, so a branch planning a different feature changes different lines. Bump `Last updated`. **Never write any status other than pending**: in-progress belongs to whoever builds the task, and a completed task is deleted from the file rather than marked.
+**Roadmap** — follow the **`ticket-board`** skill's roadmap rules: one row per task and nothing else, the row cited by ticket file name, a `Priority` cell carrying what the approved breakdown gave the task, and a `Depends on` cell that names outstanding blockers only. Insert the approved rows into their epic's table at their sorted position, not appended at the bottom — `ticket-board` orders a table by priority, with a `Depends on` cell always overriding priority — with status `⬜ **Pending**`, matching the file's existing style; a new epic gets a new section at the end of the file with one sentence on what it delivers. **Touch no other epic's section**, so a branch planning a different feature changes different lines. Bump `Last updated`. **Never write any status other than pending**: in-progress belongs to whoever builds the task, and a completed task is deleted from the file rather than marked.
 
 **Tickets** — copy `.sdlc/tickets/TEMPLATE.md` once per row into `.sdlc/tickets/todo/`, named `<ID>-<slug>.md`. When there is no template, use the ticket shape and the ticket guidelines from the **`ticket-board`** skill:
 
 - **What, not how.** No file paths, no component or module names, no library names, no schema detail — those are the planner's job inside `/orchestrate`.
 - **The `Decisions` section is the one exception**, and the reason this command runs an interview: record each settled choice as a fixed constraint, one line with its rationale. A library chosen in the interview is named here, and nowhere else.
 - **Acceptance criteria are observable outcomes**, and they match what the approved breakdown said the task delivers. The ticket is the only place they are written — the roadmap row does not repeat them.
-- **Status is `Not Started` and `Assignee` is `—`**, so the file goes in `todo/` and nobody holds it. `Created` is today. The `Epic` field names the epic exactly as its roadmap section does. In a vault these four are frontmatter properties — `status`, `assignee` (left empty), `created`, `epic` — beside `type`, `id`, and `tags`.
+- **Status is `Not Started` and `Assignee` is `—`**, so the file goes in `todo/` and nobody holds it. `Created` is today. The `Epic` field names the epic exactly as its roadmap section does. **`Priority`** is what the approved breakdown table gave the task — the same value as its roadmap row. In a vault these five are frontmatter properties — `status`, `assignee` (left empty), `created`, `epic`, `priority` — beside `type`, `id`, and `tags`.
 - **Write no worklog.** A ticket gets one beside it in the step that starts the work and moves it into `in-progress/`, which is an orchestrator's job, not this command's.
 - In the `related:` frontmatter property, link the PRD area the ticket serves and any sibling ticket. The ticket has no Related section in its body. The link runs ticket → PRD, never back.
 - **Never overwrite an existing ticket file.** Check every status folder for the ID before you write, because a completed ticket sits in `done/`. A name collision means the number is wrong — take the next free one in that epic.
@@ -151,7 +152,7 @@ write the document it governs, and follow it. Do not restate its rules from memo
 
 ### Tasks added
 Epic: [CODE] — [epic name] ([new], or the section it joined)
-- [ID] — [title] (depends on: [IDs or none])
+- [ID] — [title] · [Priority] (depends on: [IDs or none])
 
 ### Decisions recorded
 - [decision] → [chosen option]
