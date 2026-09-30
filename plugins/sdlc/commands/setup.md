@@ -1,6 +1,6 @@
 ---
 description: Create the folder that holds the PRD, the glossary, the features, the design docs, the diagrams, the roadmap, and the tickets — in an Obsidian vault, or in the repository — and register the repositories the product is built in.
-argument-hint: [product name] [destination path] [repository paths]
+argument-hint: "[product name] [destination path] [repository paths]"
 ---
 
 # Setup

@@ -1,6 +1,6 @@
 ---
 name: code-reviewer
-description: Reviews code that was just written — a working-tree diff, a branch, or named files — for correctness, scope, convention alignment, and plugin skill compliance. Use once code exists and somebody has to read it back: after a change is made, before a pull request, or when a user asks for a code review. Returns APPROVED or CHANGES_REQUESTED — writes no code.
+description: "Reviews code that was just written — a working-tree diff, a branch, or named files — for correctness, scope, convention alignment, and plugin skill compliance. Use once code exists and somebody has to read it back: after a change is made, before a pull request, or when a user asks for a code review. Returns APPROVED or CHANGES_REQUESTED — writes no code."
 tools: Read, Grep, Glob, Bash, Skill
 model: opus
 ---

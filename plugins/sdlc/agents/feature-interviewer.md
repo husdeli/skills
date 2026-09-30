@@ -1,6 +1,6 @@
 ---
 name: feature-interviewer
-description: Researches a feature before planning — reads the PRD and design doc from the project's docs root, explores the codebase, researches the topic, then surfaces only the decisions that genuinely need the user: significant architecture decisions, library/framework choices, or points where the request is unclear or contradicts the PRD or design doc. Resolves everything else itself as an assumption. Use before the implementation-planner, or when the orchestrator reaches its interview stage. Returns a Discovery Brief only — writes no code and asks no questions directly.
+description: "Researches a feature before planning — reads the PRD and design doc from the project's docs root, explores the codebase, researches the topic, then surfaces only the decisions that genuinely need the user: significant architecture decisions, library/framework choices, or points where the request is unclear or contradicts the PRD or design doc. Resolves everything else itself as an assumption. Use before the implementation-planner, or when the orchestrator reaches its interview stage. Returns a Discovery Brief only — writes no code and asks no questions directly."
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch, Skill
 model: opus
 ---

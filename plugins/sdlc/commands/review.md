@@ -1,6 +1,6 @@
 ---
 description: Review code that was already written — the working tree, a branch, a ticket, or named files — with the code-reviewer agent. Add "fix" to hand the blocking issues to the coding agent.
-argument-hint: [what to review — nothing, a path, a branch, a ticket ID] [fix]
+argument-hint: "[what to review — nothing, a path, a branch, a ticket ID] [fix]"
 ---
 
 # Review

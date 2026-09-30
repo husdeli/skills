@@ -1,6 +1,6 @@
 ---
 name: product-intent
-description: Rules for the product's intent — why it exists, who for, what it refuses, and what proves it worked — held as five kinds of note under `<docs root>/product/`: a goal, a non-goal, a persona, a problem, and a success metric. These are the pieces the PRD is assembled from, and the pieces a feature and the business plan cite. Use before writing or changing any of those five, before citing one from a feature, a design doc, a ticket, or the business plan, and before writing the PRD sections that list them.
+description: "Rules for the product's intent — why it exists, who for, what it refuses, and what proves it worked — held as five kinds of note under `<docs root>/product/`: a goal, a non-goal, a persona, a problem, and a success metric. These are the pieces the PRD is assembled from, and the pieces a feature and the business plan cite. Use before writing or changing any of those five, before citing one from a feature, a design doc, a ticket, or the business plan, and before writing the PRD sections that list them."
 ---
 
 # product-intent
