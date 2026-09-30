@@ -1,27 +1,22 @@
 ---
 name: clean-writing
-description: Rules for every piece of prose a person reads — a discovery brief, an implementation plan, a review verdict, a verification report, a question put to the user, a PRD, a design doc, a ticket, a commit message, a pull-request body, or a chat reply. INVOKE THIS SKILL before writing any output directed at a human, and before asking the user a question. Enforces context first (the reader was never in your context window), ASD-STE100 Simplified Technical English (one idea per sentence, active voice, short sentences, one word for one meaning, no jargon or metaphor), the project's ubiquitous language through the `glossary` skill, prose that names a thing in words rather than by its file name, identifier, or section sign — the exact strings go beside the sentence, in a block or a list — and the answer before the reasoning. Invoke it directly on a message that did not land, to re-pitch that message.
+description: Rules for every piece of prose a person reads — a plan, a report, a review verdict, a question put to the user, a PRD, a design doc, a ticket, a commit message, a pull-request body, or a chat reply. INVOKE THIS SKILL before writing any output directed at a human, and before asking the user a question. Enforces context first (the reader was never in your context window), ASD-STE100 Simplified Technical English (one idea per sentence, active voice, short sentences, one word for one meaning, no jargon or metaphor), the project's ubiquitous language through the `glossary` skill, prose that names a thing in words rather than by its file name, identifier, or section sign — the exact strings go beside the sentence, in a block or a list — the answer before the reasoning, and no sentence the reader does not need. Invoke it directly on a message that did not land, to re-pitch that message.
 ---
 
 # Clean Writing
 
-Rules for **every** output a person reads. They govern prose, not code.
-
-You have read files, run commands, and held a plan in context for many turns. The reader has
-done none of that. Text that is obvious to you at the end of that work is frequently
-unreadable to the person who receives it. These rules close that gap.
+Rules for **every** output a person reads. They govern prose, not code. The reader was never in
+your context window.
 
 ## What this governs
 
-Everything a human reads: a discovery brief, an implementation plan, a review verdict, a
-verification report, a completion or escalation report, a question put to the user, a PRD, a
+Everything a human reads: a plan, a report, a review verdict, a question to the user, a PRD, a
 design doc, a ticket, a commit message, a pull-request body, and every chat reply.
 
 It does **not** govern: source code, identifiers, file paths, commands, the fenced `json`
 contract blocks that agents emit for the orchestrator, or quoted output copied from a tool.
-Quote those exactly. Never "simplify" a name, a path, or an error message.
-
-**They belong beside the prose, never inside it** — Rule 4 says where each one goes.
+Quote those exactly. Never "simplify" a name, a path, or an error message. Those strings belong
+beside the prose, never inside it. Rule 4 says where each one goes.
 
 ## Rule 1 — Land the context before the point
 
@@ -44,9 +39,7 @@ Do not open with the detail. Do not open with the history of how you got there.
 
 ## Rule 2 — Write Simplified Technical English (ASD-STE100)
 
-ASD-STE100 is the controlled-English standard the aerospace industry writes maintenance
-documentation in. Its purpose is text that one reader understands one way. Apply its writing
-rules:
+Write so that one reader understands the text one way. Apply these rules:
 
 1. **One idea per sentence.** An instruction is 20 words or fewer. A description is 25 words
    or fewer. Split anything longer; never join two ideas with a semicolon or a dash.
@@ -65,8 +58,7 @@ rules:
 8. **Prefer a simple verb to an `-ing` form.** "To reduce the payload", not "for the purpose
    of reducing the payload".
 9. **No jargon, idiom, metaphor, humor, or hedging.** No "low-hanging fruit", no "circle
-   back", no "it should probably be fine". Metaphor is not shared context; it is a second
-   thing the reader must decode.
+   back", no "it should probably be fine". A metaphor is one more thing the reader must decode.
 10. **Be specific.** Numbers and names beat "several", "shortly", and "the relevant part".
     Write "three of the 42 tests fail, all of them in the login tests", not "some tests are
     failing". The file each one fails in goes in the list below the sentence, not in it — Rule 4
@@ -76,19 +68,16 @@ rules:
 12. **Put the warning before the instruction.** State the risk, then the step. A caution that
     arrives after the action arrives too late.
 
-The full standard also restricts you to an approved dictionary of about 900 words. You do not
-have that dictionary, so do not claim ASD-STE100 compliance. Follow the twelve rules above,
-and follow the dictionary's principle: the plain common word, in one meaning.
+The full standard also restricts you to a dictionary of about 900 words. You do not have that
+dictionary, so never claim ASD-STE100 compliance.
 
 ## Rule 3 — Use the project's ubiquitous language
 
 The reader knows this product by the names the product uses. Use those names.
 
-**The `glossary` skill holds every rule about a term** — where the project's vocabulary comes from,
-one term per concept, how a term is defined under its own heading in `<docs root>/glossary.md`, and
-how a document links that definition instead of writing it again. **Load it** (namespaced
-`sdlc:glossary`) before you write about a domain you have not written about in this session, and
-follow it for every name you use here.
+**The `glossary` skill holds every rule about a term.** Load it (namespaced `sdlc:glossary`)
+before you write about a domain you have not written about in this session. Follow it for every
+name you use here.
 
 ## Rule 4 — Name the thing, not the file it lives in
 
@@ -114,15 +103,15 @@ The reader knows the product. The reader does not know your tree, and on a phone
 | "`verificationCommands` came back empty." | "The project names no test command, so nothing gated this change." |
 
 **The exact string still has a place — beside the prose, never inside it.** A reader who must act
-on a path needs it exactly; a reader who is being told what happened needs the words. Both readers
-are served by keeping the two apart:
+on a path needs it exactly. A reader who is told what happened needs the words. Keep the two
+apart:
 
 - A command the reader runs goes in its own fenced block, under a line that says what it does.
 - The files a change touched go in a list, under a heading that says so.
 - A defect's location goes in the issue list, one per line, next to the issue — not in the sentence
   that gives the verdict.
-- A number stays in the prose. "Three of the 42 tests fail" is prose; which file they fail in is a
-  list.
+- A number stays in the prose. "Three of the 42 tests fail" is prose. Which file each one fails in
+  is a list.
 
 This rule governs prose only. **A document that cites another document still cites it the way the
 `product-docs` and `ticket-board` skills say** — by file name, or as a wikilink in a vault — because
@@ -140,9 +129,23 @@ holding a path, and an agent's `json` block are unchanged too.
 - **Do not narrate your process** unless the reader asked for it. What you tried, in order, is
   not the answer.
 
+## Rule 6 — Cut what the reader does not need
+
+A sentence earns its place by changing what the reader knows, decides, or does. Cut the rest.
+
+- **Cut a detail that is true only sometimes.** "Reviews the code that was just written" is wrong
+  when the target is a branch from last month. Write what holds in every case: "reviews the code
+  under review".
+- **Do not name the reader, and do not explain why you are writing.** The reader knows both. Drop
+  "as you know", "for your reference", and "this report is for whoever fixes the code".
+- **Say each point once.** A restatement in other words is a second thing to read and reconcile.
+- **Stop at three examples.** Three teach the pattern. Eleven become a list the reader skips.
+- **Cut the background the reader will not act on.** Where a rule came from, and what you read to
+  apply it, are not the rule.
+
 ## Before you send
 
-Check the text against this list. It takes seconds and it catches most of the damage.
+Check the text against this list.
 
 - [ ] The first three sentences name the subject, the trigger, and what it means for the reader.
 - [ ] The outcome comes before the evidence.
@@ -151,6 +154,8 @@ Check the text against this list. It takes seconds and it catches most of the da
 - [ ] Each concept uses one term, and that term is the glossary's term.
 - [ ] No jargon, idiom, metaphor, or hedge survived.
 - [ ] Every quantity and name is specific.
+- [ ] Every sentence changes what the reader knows or does.
+- [ ] No claim is true in only some cases.
 - [ ] No sentence holds a file name, an identifier, a snippet, a `§`, or a `¶`.
 - [ ] Every exact string the reader needs is there, in a block, a list, or a table cell.
 - [ ] Code, identifiers, paths, quoted output, and any `json` contract block are untouched.
@@ -165,7 +170,6 @@ When the user invokes this skill directly — "wait, what?", "that didn't land",
 - **Add the context you skipped.** A message that does not land is usually missing Rule 1,
   not missing detail.
 - **Cut the length by half.** The failed message was almost certainly too long, not too short.
-- **Ask one question** if you cannot tell which part did not land — but re-pitch first, and
-  ask after.
+- **Ask one question** if you cannot tell which part did not land. Re-pitch first, then ask.
 
 *Re-pitch mode is adapted from Matt Pocock's `wait-what` skill.*

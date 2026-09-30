@@ -372,7 +372,8 @@ worth as much as its record.
   ASD-STE100 Simplified Technical English (one idea per sentence, active voice with a named
   actor, one word for one meaning, no jargon or metaphor), the project's ubiquitous language
   through the `glossary` skill, prose that names a thing in words rather than by its file name,
-  identifier, or section sign, and the answer before the reasoning.
+  identifier, or section sign, the answer before the reasoning, and no sentence the reader does not
+  need — no detail that holds in only some cases, no background nobody acts on, each point once.
   Governs prose only — code, identifiers, paths, quoted output, and the agents' `json` blocks stay
   exact, beside the sentence rather than inside it: a command in its own block, the files a change
   touched in a list, a defect's location next to the issue.
@@ -449,7 +450,7 @@ what a ticket is, and why changing how a status transition works is one edit rat
   follow — and no code for the coding agent to copy.
 - **plan-reviewer** — reviews a plan for correctness and convention alignment, and returns
   `APPROVED` or `CHANGES_REQUESTED`.
-- **code-reviewer** — reads the code that was just written — a working-tree diff, a branch, or
+- **code-reviewer** — reads the code under review — a working-tree diff, a branch, or
   named files — and returns `APPROVED` or `CHANGES_REQUESTED`. Checks the acceptance criteria,
   correctness, scope, the plugin's skills, the codebase's conventions, error handling, tests,
   and secrets, and confirms every issue in the file before reporting it. Writes no code.

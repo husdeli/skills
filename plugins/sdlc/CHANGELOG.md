@@ -5,6 +5,41 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.61.0] - 2026-09-30
+
+### Added
+
+- **`clean-writing` Rule 6 — cut what the reader does not need.** A sentence earns its place by
+  changing what the reader knows, decides, or does. Five things go: a detail that is true only
+  sometimes, the reader named and the reason for writing, a point said a second way, the fourth
+  example onward, and background nobody acts on. The rule is appended rather than inserted, so every
+  reference to Rules 1 through 5 elsewhere in the plugin still points where it did.
+
+  - **The first of the five is an accuracy rule, not a length rule.** "Reviews the code that was
+    just written" is wrong when the review target is a branch from last month. The rule asks for
+    what holds in every case, which is usually shorter as well as true.
+  - **The checklist gained two lines.** Every sentence changes what the reader knows or does, and no
+    claim is true in only some cases.
+
+### Changed
+
+- **`clean-writing` follows Rule 6 itself.** Out went the opening paragraph about what the writer
+  did over many turns, the aerospace provenance of ASD-STE100, the closing sentence that repeated
+  the plain-word rule above it, three of the 12 document kinds the governing section listed, and the
+  glossary rule's enumeration of what the `glossary` skill already holds. One sentence survives from
+  the opening: the reader was never in your context window. Four of the skill's own breaches went
+  with the padding — three semicolons and one dash joining two ideas.
+- **The code-reviewer agent reads whatever the review target is.** Its description and its first
+  instruction said "the code that was just written", which contradicted the input section three
+  lines below it: the target may be a branch, a commit range, or a list of files, and that code can
+  be months old. Both now say "the code under review", and the README's line for the agent says the
+  same.
+- **The agent's plugin skill checklist is a vertical list.** Each of the four skills it judges code
+  against had its flags packed into one sentence of 40 words or more. Every flag is now its own
+  line, which is what Rule 11 asks for when the reader acts on each part separately. The rest of the
+  agent's prose was rewritten under the skill: six sentences split at a semicolon or a dash, "green
+  tests" and three metaphors replaced, and the PRD named in words instead of by its file name.
+
 ## [0.60.0] - 2026-09-30
 
 ### Added
