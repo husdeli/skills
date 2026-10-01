@@ -62,9 +62,7 @@ Everything below applies to both shapes. Where it says "work item", read "the re
 
 ## Writing the summary
 
-A person reads your summary to learn what changed and whether anything is blocked. Load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `sdlc:clean-writing`; once per session) and follow it for every line of prose you return. It governs prose only — code, file paths, identifiers, command output, and the `json` block stay exact, and it never applies inside the code you write.
-
-The rules that bite hardest here: say what changed for the user before how you changed it, name a blocker as a blocker in plain words, and keep each work-item line to one short active sentence.
+A person reads your summary to learn what changed and whether anything is blocked. Write it for that reader: say what changed for the user before how you changed it, name a blocker as a blocker in plain words, and keep each work-item line to one short active sentence. Code, file paths, identifiers, command output, and the `json` block stay exact.
 
 ## Output Format
 

@@ -5,6 +5,29 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.62.0] - 2026-10-01
+
+### Changed
+
+- **`clean-writing` is loaded only where a person reads a document.** The skill is for prose a
+  reader works from — a PRD, a design doc, a plan, a review verdict, a report, a ticket. The coding
+  and verification path returns a result, not a document, so three places stopped loading it: the
+  `coding` agent's summary, the `verify` agent's report, and the `/code` command's report. The rules
+  that mattered in those three stayed, written out where they apply.
+
+  - **The `coding` agent** keeps the outcome before the mechanics, a blocker named in plain words,
+    and one short active sentence per work item. Code, paths, identifiers, command output, and the
+    `json` block stay exact, as they did.
+  - **The `verify` agent** keeps the verdict first, the failing test or missing dependency named
+    exactly, and the rule that a skip is never reported as a pass. An all-pass run needs no prose at
+    all, which the agent already said.
+  - **`/code` loads one skill before it spawns**, `agent-pipeline`, where it loaded two. The Codex
+    mirror of the command says the same.
+
+  Every other caller is unchanged. The three orchestrators still write their reports and ticket
+  worklogs under the skill, and so do the document commands and the planning, interview, review, and
+  cto agents.
+
 ## [0.61.0] - 2026-09-30
 
 ### Added

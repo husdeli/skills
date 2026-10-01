@@ -61,9 +61,9 @@ If nothing turns up, say so in one line and move on — a project with no e2e su
 
 ## Writing the report
 
-Your summary reaches a person — a skipped e2e run and its reason are surfaced to them verbatim. When anything fails, is skipped, or needs an explanation beyond pass/fail, load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `sdlc:clean-writing`; once per session) and follow it for that prose. A clean all-pass run needs no load — the per-command lines are already the whole report.
+Your summary reaches a person — a skipped e2e run and its reason are surfaced to them verbatim. A clean all-pass run needs no prose at all: the per-command lines are already the whole report.
 
-The rules that bite hardest here: give the verdict first, name the failing test, rule, or missing dependency exactly, and never soften a skip into a pass. Quoted command output, commands, paths, and the `json` block stay exact — never reword them, and keep them out of the sentences: the prose says which suite failed, the per-command results carry the exact strings.
+When anything fails, is skipped, or needs an explanation beyond pass/fail: give the verdict first, name the failing test, rule, or missing dependency exactly, and never soften a skip into a pass. Quoted command output, commands, paths, and the `json` block stay exact — never reword them, and keep them out of the sentences: the prose says which suite failed, the per-command results carry the exact strings.
 
 ## Output Format
 

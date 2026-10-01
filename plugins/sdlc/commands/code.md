@@ -13,7 +13,7 @@ This is the direct path. `/orchestrate` runs interview → plan → review → i
 
 The coding agent takes a request with no plan as one of its two input shapes, so this command needs no planner. It is also the right worker because it already loads the plugin's coding skills itself — `clean-fullstack-architecture` for any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for a component or a hook, `clean-tanstack-start` for TanStack Start server code. Do not restate those rules in the prompt.
 
-**Load two skills before you spawn anything**, namespaced here as `sdlc:<name>`: **`agent-pipeline`** for how to spawn, resume, and read the agent's JSON block, and **`clean-writing`** for the report. Add **`ticket-board`** when the request came from a ticket, and **`product-docs`** whenever this session is not standing in the repository the change lands in.
+**Load the `agent-pipeline` skill before you spawn anything**, namespaced here as `sdlc:agent-pipeline` — it holds how to spawn, resume, and read the agent's JSON block. Add **`ticket-board`** when the request came from a ticket, and **`product-docs`** whenever this session is not standing in the repository the change lands in.
 
 **Name the work root in the prompt.** In a session started inside a repository that is this repository, and nothing changes. In a session started in an Obsidian vault the code is somewhere else: resolve the work root as `product-docs` says — the registry names the candidates, the request says which one it means, and you ask the user when the two do not meet. Pass it to the agent as an absolute path, and check the session can write there first; `/add-dir <work root>` is the fix, and the agent cannot apply it.
 
@@ -93,8 +93,6 @@ moved and assigned by the orchestrators. With no ticket, or no worklog beside it
 to write and nothing to say about it.
 
 ### 6. Report
-
-Load the **`clean-writing`** skill (namespaced here as `sdlc:clean-writing`) before you write the report, and follow it for every sentence. It governs prose only — paths, identifiers, commands, and quoted output stay exact.
 
 The user did not see the agent's turn, so give them the outcome, not a transcript:
 
