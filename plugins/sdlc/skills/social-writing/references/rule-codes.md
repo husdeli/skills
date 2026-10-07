@@ -1,22 +1,14 @@
 # Social Writing — Rule Codes
 
-Every rule in [the skill](../SKILL.md) carries a stable code, grouped the way the rules are
-grouped. A review names the code, so one finding means the same thing in a report, in a
-machine-readable block, and in a linter built against this registry later.
+Every rule in [the skill](../SKILL.md) carries a stable code, grouped the way the rules are grouped. A review names the code, so one finding means the same thing in a report, in a machine-readable block, and in a linter built against this registry later.
 
-**Every code starts with `S` for this skill**, then a letter for its group: `SS` structure, `SV`
-stance and voice, `SE` reader engagement, `SH` hedging and boosting, `SG` signposting, `SA` avoid.
-The `technical-writing` skill uses `T` the same way, so no code means two things.
+**Every code starts with `S` for this skill**, then a letter for its group: `SS` structure, `SV` stance and voice, `SE` reader engagement, `SH` hedging and boosting, `SG` signposting, `SA` avoid. The `technical-writing` skill uses `T` the same way, so no code means two things.
 
-**The codes never change meaning.** A new rule takes a new code. A dropped rule leaves its code
-retired rather than reused.
+**The codes never change meaning.** A new rule takes a new code. A dropped rule leaves its code retired rather than reused.
 
-**`Severity` is the default a review starts from**, not a verdict. Raise it when the finding costs
-this post more, lower it when the post is a draft. Say so in the finding when you move it.
+**`Severity` is the default a review starts from**, not a verdict. Raise it when the finding costs this post more, lower it when the post is a draft. Say so in the finding when you move it.
 
-**`Check` says who can decide the finding.** `mechanical` means a script can decide it from the
-text alone. `judgment` means a reader must decide it. `mixed` means a script finds the candidates
-and a reader confirms each one.
+**`Check` says who can decide the finding.** `mechanical` means a script can decide it from the text alone. `judgment` means a reader must decide it. `mixed` means a script finds the candidates and a reader confirms each one.
 
 ## Structure
 
@@ -84,6 +76,4 @@ and a reader confirms each one.
 
 ## Out of scope
 
-**No code covers these, and a review never reports one against them:** a quoted source, a handle,
-a link, a hashtag the writer chose deliberately and can defend, and the platform's own formatting.
-A deliberate stylistic choice the writer owns is not a finding — say you noticed it and move on.
+**No code covers these, and a review never reports one against them:** a quoted source, a handle, a link, a hashtag the writer chose deliberately and can defend, and the platform's own formatting. A deliberate stylistic choice the writer owns is not a finding — say you noticed it and move on.

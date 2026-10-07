@@ -1,23 +1,14 @@
 # Technical Writing — Rule Codes
 
-Every rule in [the skill](../SKILL.md) carries a stable code, grouped the way the rules are
-grouped. A review names the code, so one finding means the same thing in a report, in a
-machine-readable block, and in a linter built against this registry later.
+Every rule in [the skill](../SKILL.md) carries a stable code, grouped the way the rules are grouped. A review names the code, so one finding means the same thing in a report, in a machine-readable block, and in a linter built against this registry later.
 
-**Every code starts with `T` for this skill**, then a letter for its group: `TS` structure, `TV`
-stance and voice, `TE` reader engagement, `TH` hedging and boosting, `TG` signposting, `TA` avoid.
-The `social-writing` skill uses `S` the same way, so no code means two things.
+**Every code starts with `T` for this skill**, then a letter for its group: `TS` structure, `TV` stance and voice, `TE` reader engagement, `TH` hedging and boosting, `TG` signposting, `TA` avoid. The `social-writing` skill uses `S` the same way, so no code means two things.
 
-**The codes never change meaning.** A new rule takes a new code. A dropped rule leaves its code
-retired rather than reused.
+**The codes never change meaning.** A new rule takes a new code. A dropped rule leaves its code retired rather than reused.
 
-**`Severity` is the default a review starts from**, not a verdict. Raise it when the finding costs
-this reader more, lower it when the text is a draft note rather than something a person must act
-on. Say so in the finding when you move it.
+**`Severity` is the default a review starts from**, not a verdict. Raise it when the finding costs this reader more, lower it when the text is a draft note rather than something a person must act on. Say so in the finding when you move it.
 
-**`Check` says who can decide the finding.** `mechanical` means a script can decide it from the
-text alone. `judgment` means a reader must decide it. `mixed` means a script finds the candidates
-and a reader confirms each one.
+**`Check` says who can decide the finding.** `mechanical` means a script can decide it from the text alone. `judgment` means a reader must decide it. `mixed` means a script finds the candidates and a reader confirms each one.
 
 ## Structure
 
@@ -85,7 +76,4 @@ and a reader confirms each one.
 
 ## Out of scope
 
-**No code covers these, and a review never reports one against them:** source code, an identifier,
-a file path, a command, quoted output copied from a tool, and the fenced `json` contract blocks
-agents emit. `TG1` is the one code that touches them, and it fires on the *sentence* that swallowed
-the string rather than on the string itself.
+**No code covers these, and a review never reports one against them:** source code, an identifier, a file path, a command, quoted output copied from a tool, and the fenced `json` contract blocks agents emit. `TG1` is the one code that touches them, and it fires on the *sentence* that swallowed the string rather than on the string itself.

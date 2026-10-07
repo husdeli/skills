@@ -7,8 +7,6 @@ description: Write social media posts and threads with a strong hook, personal v
 
 The rules live in one shared skill. This entry point points at it.
 
-Read `../../skills/social-writing/SKILL.md` completely before you write any social media post,
-thread, or caption, and before you review one. Follow every rule in it.
+Read `../../skills/social-writing/SKILL.md` completely before you write any social media post, thread, or caption, and before you review one. Follow every rule in it.
 
-Read every reference that file requires, and resolve each path against
-`../../skills/social-writing/`.
+Read every reference that file requires, and resolve each path against `../../skills/social-writing/`.
