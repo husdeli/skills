@@ -652,8 +652,8 @@ template, not a ticket, so it never moves.
 
 ## 5. Report and hand off
 
-Everything the user reads here follows the **`clean-writing`** skill (namespaced
-`sdlc:clean-writing`) — load it before you report.
+Everything the user reads here follows the **`technical-writing`** skill (namespaced
+`sdlc:technical-writing`) — load it before you report.
 
 Say **where the docs root is** and, when you wrote one, that `.sdlc.json` now points at it.
 Report the tree you created, marking each file `created` or `kept`, and each moved file with

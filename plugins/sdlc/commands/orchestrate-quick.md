@@ -18,10 +18,10 @@ This is `/orchestrate` with the human-in-the-loop stages removed. There is **no 
 | **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 2 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 3 |
-| **`clean-writing`** | Every word the user reads | Stage 3 |
+| **`technical-writing`** | Every word the user reads | Stage 3 |
 
 Each name may be namespaced here — `sdlc:product-docs`, `sdlc:ticket-board`,
-`sdlc:agent-pipeline`, `sdlc:clean-writing`. Invoke the namespaced form when it is there, load each
+`sdlc:agent-pipeline`, `sdlc:technical-writing`. Invoke the namespaced form when it is there, load each
 skill **once**, and follow it. Do not restate a skill's rules in a spawn prompt: the agents load
 their own.
 
@@ -46,8 +46,8 @@ their own.
 ### Which agents are persistent here
 The **`agent-pipeline`** skill holds the mechanics, the same as in `/orchestrate`. This command's four persistent roles are the **planner**, the **plan reviewer** (one, always), the **coding agent**, and the **code reviewer**; `verify` is spawned fresh every run. Keep all four ids.
 
-### Everything you show the user goes through `clean-writing`
-You are the only stage that talks to the person, so `clean-writing` governs every word they see: the assumed acceptance criteria you state, the task you present for approval, the Stage 7 end-to-end question and its option labels, the completion report, and every escalation or abort. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, and reuse the ticket's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact. They stay exact **beside** the prose: a path, a symbol, or a snippet never goes inside a sentence, and the sentence names the thing in words instead.
+### Everything you show the user goes through `technical-writing`
+You are the only stage that talks to the person, so `technical-writing` governs every word they see: the assumed acceptance criteria you state, the task you present for approval, the Stage 7 end-to-end question and its option labels, the completion report, and every escalation or abort. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, and reuse the ticket's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact. They stay exact **beside** the prose: a path, a symbol, or a snippet never goes inside a sentence, and the sentence names the thing in words instead.
 
 ### The worklog and the assignee — you are the only writer
 
@@ -235,7 +235,7 @@ Omit the status line when there was no ticket or roadmap to mark.
 - If a stage escalates because the task turned out to need decisions this pipeline cannot make, say so and point at `/orchestrate` — do not improvise an interview here.
 
 ## Rules
-The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `product-docs` for the paths, `clean-writing` for the prose. What is this command's own:
+The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `product-docs` for the paths, `technical-writing` for the prose. What is this command's own:
 - **One task at a time.** Do not execute the whole roadmap.
 - **Load every skill in the table before the stage that needs it.** They are the rules; this file is the sequence.
 - **No interview, no gates.** The plan review and the code review each run exactly once, on sonnet.

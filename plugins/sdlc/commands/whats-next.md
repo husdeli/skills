@@ -17,7 +17,7 @@ Filter (if provided): $ARGUMENTS
 - **`ticket-board`** — the roadmap's shape, what a `Depends on` cell means, the status-to-folder
   map, the `Assignee` field, and the worklog. It is what you are reading; read it there rather
   than inferring it from the files.
-- **`clean-writing`** — this is a status answer a person reads in one pass.
+- **`technical-writing`** — this is a status answer a person reads in one pass.
 
 The documents sit in the docs root: `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md` with a
 worklog beside a ticket that work has started on.

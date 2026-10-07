@@ -5,6 +5,136 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.63.0] - 2026-10-07
+
+### Added
+
+- **`clean-writing` becomes two skills: `technical-writing` and `social-writing`.** One rule set was
+  answering two different questions — how a document reads, and how a post written for a feed reads
+  — and they disagree at the first line. A document opens with context and gives the answer before
+  the reasoning. A post opens with a hook and withholds the payoff. A single standard could not
+  hold both without being wrong about one.
+
+  - **`technical-writing`** is for a text the reader works from: a document, a spec, a PRD, a
+    design doc, a ticket, a report, a review verdict, a commit message, a pull-request body, a
+    runbook, release notes. Context, then the answer, then the evidence, then the ask.
+  - **`social-writing`** is for a text written for a feed: a LinkedIn post, a tweet, a thread, a
+    caption, an announcement. Hook, body, close — and the reader gives the first line about one
+    second. Re-pitch mode moved here, which is where a message that did not land belongs.
+  - **Both follow one template**: purpose and reader, output structure, rules grouped by
+    metadiscourse category (stance and voice, reader engagement, hedging and boosting,
+    signposting) each with the reason it exists, the failure modes to avoid, worked weak-and-strong
+    examples, and a final check to run against the draft.
+  - **`clean-writing` is gone**, and all 34 files that named it now name `technical-writing` —
+    every agent, command, Codex mirror, document skill, and the README. None of them writes for a
+    feed, so none of them loads `social-writing`.
+
+- **One code scheme across both skills.** A code's first letter names its skill (`T` or `S`) and
+  its second names its group (`S` structure, `V` stance and voice, `E` reader engagement, `H`
+  hedging and boosting, `G` signposting, `A` avoid), so `TA2` is the technical sentence-length rule
+  and `SH4` is the social rule against hedging the hook. No code means two things, every rule in
+  both skills has exactly one, and each registry carries the default severity plus whether a script
+  or a reader decides the finding. The numbered `Rule 1`–`Rule 6` scheme and the `CW`/`TW`/`SW`
+  prefixes are retired; the one place that cited a rule number, the figure-of-speech exception in
+  `/explain`, now cites `TA6`.
+
+- **`/review-text` names the register before it reads.** It picks technical or social from the text
+  itself rather than from what the user called it, loads that skill, runs that skill's final check,
+  and never carries a finding from one register into the other. It reports which register it
+  applied — in the first line for the person, and in a `registers` field for a tool — and asks
+  rather than guessing when the register is genuinely unclear.
+
+- **`clean-writing` fires on review as well as on writing.** The skill described one trigger —
+  before you write — so a user who pasted a text and asked whether it reads well got an opinion
+  instead of the standard. Both descriptions now name two triggers: before you write any text a
+  person reads, and whenever the user asks you to review, edit, proofread, tighten, or improve a
+  text written for people. The skill is framed as the rules for any text written for people, and
+  it governs a text the user hands you the same way it governs one you write yourself.
+
+- **`/review-text` — review a text written for people, and return findings a tool can read.**
+  The command takes a path, a folder, a pasted text, or nothing and reviews the last text in the
+  conversation. It reports for the person first: the verdict, then each finding with the text as it
+  stands and the sentence that replaces it, ordered by what the reader loses. It then ends with one
+  fenced `json` block holding the target, the verdict, the counts, and a finding per entry — rule
+  code, severity, line, the exact span, the problem, and the fix. The span is the anchor and the
+  line is a hint, so a tool locates a finding by searching for the span and a line nobody can count
+  is `null` rather than a guess. `fix` as the last word applies every finding that carries a
+  replacement and leaves the rest to the author. A Codex mirror reads the same command.
+
+- **A rule-code registry, so one finding means one thing.** `clean-writing` gained
+  `references/rule-codes.md`: a stable code for every checkable rule, numbered to match the rule it
+  comes from — `CW4` is Rule 4, `CW2.9` is the ninth item under Rule 2. Each code carries what it
+  checks, the severity a review starts from, and whether a script can decide it, a reader must, or
+  a script finds the candidates and a reader confirms them. Codes never change meaning and a
+  dropped code is retired rather than reused, which is what lets a report, a `json` block, and a
+  future linter agree. The registry also names what no code covers: code, identifiers, paths,
+  commands, quoted output, and the agents' contract blocks.
+
+- **Review mode — how a review of a text reports what it finds.** The six rules are the criteria
+  and the pre-send checklist is the instrument, worked one line at a time. The verdict comes
+  first, every finding names the rule it breaks and carries the sentence that replaces it,
+  findings are ordered by what they cost the reader, and the author's claims are left alone — a
+  sentence you cannot parse is a question, not a guess. A sound text gets no invented findings,
+  and a review returns findings rather than a rewritten text unless the user asked for the
+  rewrite.
+
+### Changed
+
+- **`clean-writing` splits its rules into three registers.** One rule set was answering two
+  different questions: how a document reads, and how a message to a person reads. They are not the
+  same job, and rules written for one were being applied to the other.
+
+  - **`references/base-rules.md`** keeps what every text obeys, whoever reads it: Rule 1 (context
+    first), Rule 2 (plain, unambiguous English), Rule 4 (name the thing, not the file), Rule 5
+    (the answer before the reasoning), and Rule 6 (cut what the reader does not need), plus the
+    checklist that closes every output.
+  - **`references/technical-writing-rules.md`** is for a text the reader works from. It takes
+    Rule 3 (the project's ubiquitous language, and the `glossary` skill with it) and adds nine:
+    purpose before mechanism, a term of art defined at its first use, procedures as numbered
+    steps with preconditions first, the edges specified rather than only the happy path, nothing
+    stated that was not verified, one home per fact with a link instead of a restatement, the
+    shape the reader's job needs, exact versions, flags, and defaults, and no sales language.
+  - **`references/social-writing-rules.md`** is for a text addressed to a person. Nine rules: the
+    ask in the first two lines, one ask per message, "I" and "you" with the actor named, bad news
+    early and plainly with the next step before the explanation, no inflation, a position given
+    with its confidence, the right audience with nobody's private context widened, a reply the
+    reader can give in one line, and a last line that names who owns the next step.
+
+  **Rule 3 kept its number** when it moved, so every reference to a numbered rule in this plugin
+  still lands, and the base file says where it went rather than leaving a gap. A text can be both
+  registers — a pull-request body for a named reviewer is — and then both apply, with the stricter
+  rule winning.
+
+- **The rule-code registry covers all three sets, under three prefixes.** `CW` for a base rule,
+  `TW` for a technical one, `SW` for a social one, each with what it checks, the severity a review
+  starts from, and whether a script decides it or a reader must. A rule that moves between files
+  keeps its code, which is now written into the registry's own rules.
+
+- **`/review-text` names the register before it reads.** It picks technical, social, or both from
+  the text itself rather than from what the user called it, reads that register's rules, runs the
+  base checklist and then the register's, and reports which registers it applied — in the first
+  line for the person, and in a `registers` field for a tool.
+
+- **`clean-writing` drops the ASD-STE100 reference.** Rule 2 borrowed a standard's name, and the
+  name did no work: the file could not check the standard's 900-word dictionary, so it ended by
+  telling the reader never to claim compliance with the thing it had just cited. The rule is now
+  *Write plain, unambiguous English*. All twelve of its items are unchanged, and so are their
+  codes — only the standard's name and the paragraph that guarded it are gone. The skill
+  description, the rule-code registry, and the README summary say plain unambiguous English too.
+
+- **`clean-writing` splits into an entry point and a reference.** The skill file was the whole
+  standard, so every caller that loaded it paid for all six rules in full before it wrote a
+  sentence. The rules now live in `references/base-rules.md`, and the skill file keeps what a
+  reader needs to decide and to route: what the standard governs, what it leaves exact, the six
+  rules as one line each, and re-pitch mode. The reference is required reading before the first
+  sentence written for a person — the one-line list is an index, not a substitute.
+
+  - **No rule changed, and no rule moved number.** Rules 1 through 6 read exactly as they did,
+    and so do their examples and the pre-send checklist, which travels with the rules. Every
+    reference to a numbered rule elsewhere in the plugin still points where it did.
+  - **The Codex mirror needs no edit.** It already tells the runtime to read every reference the
+    skill file requires, and to resolve each path against the skill's own folder.
+
 ## [0.62.0] - 2026-10-01
 
 ### Changed

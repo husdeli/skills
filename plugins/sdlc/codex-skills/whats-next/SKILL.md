@@ -11,7 +11,7 @@ Report the roadmap status with the shared command.
 
 1. Resolve `../../commands/whats-next.md` from this skill directory.
 2. Read the command file completely before reporting anything.
-3. Read the skills the command names from the plugin's `skills/<name>/SKILL.md` — `product-docs`, `ticket-board`, and `clean-writing`.
+3. Read the skills the command names from the plugin's `skills/<name>/SKILL.md` — `product-docs`, `ticket-board`, and `technical-writing`.
 4. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
 5. Use Codex read-only tools to read the roadmap and list the ticket folders.
 

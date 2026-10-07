@@ -28,10 +28,10 @@ a hand-back that stops the run whenever the decision belongs to a person.
 | **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 1 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 2 |
-| **`clean-writing`** | Every word a person reads later — the worklog, the commit message, the report | Stage 2 |
+| **`technical-writing`** | Every word a person reads later — the worklog, the commit message, the report | Stage 2 |
 
 Each name may be namespaced here — `sdlc:product-docs`, `sdlc:ticket-board`,
-`sdlc:agent-pipeline`, `sdlc:clean-writing`. Invoke the namespaced form when it is there, load each
+`sdlc:agent-pipeline`, `sdlc:technical-writing`. Invoke the namespaced form when it is there, load each
 skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
 spawn prompt: the agents load their own.
 
@@ -459,7 +459,7 @@ One commit per finished task, so `git log` holds the run as a sequence of change
    the repository does. With no discernible convention, use `<ID>: <title>`. Two work roots may hold
    two different conventions; each commit follows the one in its own tree.
 3. The body is three or four lines: what landed, the decision the CTO made that shaped it, and the
-   verification result. `clean-writing` governs it.
+   verification result. `technical-writing` governs it.
 4. **Never push, never branch, never amend, and never touch a commit that was already there.** The
    run adds commits to the current branch and nothing else.
 5. A commit that fails — a hook rejects it, or there is nothing to commit — is outcome `blocked`.
@@ -543,7 +543,7 @@ One line, valid compact JSON, no code fence, no text after it. The fields:
 | `no-work` | No pending task has its dependencies satisfied | `stop` |
 | `blocked` | Preflight or the commit failed — the ground is wrong | `stop` |
 
-`clean-writing` governs the report. **It does not govern the result line**, which is data: keep the
+`technical-writing` governs the report. **It does not govern the result line**, which is data: keep the
 keys, the order, and the spelling exactly as above.
 
 ## Rules

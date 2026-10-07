@@ -17,7 +17,7 @@ A structured, feedback-driven methodology for implementing tickets and features 
 or a worklog. It holds where each one lives, what its fields mean, and what every status transition
 has to write.
 
-**Everything this workflow produces is read by a person.** Load the **`clean-writing`** skill before you write a ticket, a plan, a feedback request, a design-agreement proposal, or a worklog entry, and follow it for every sentence — context first, one idea per sentence, the active voice, and the project's own term for each concept. This skill decides *what to write and when*; `clean-writing` decides *how it reads*.
+**Everything this workflow produces is read by a person.** Load the **`technical-writing`** skill before you write a ticket, a plan, a feedback request, a design-agreement proposal, or a worklog entry, and follow it for every sentence — context first, one idea per sentence, the active voice, and the project's own term for each concept. This skill decides *what to write and when*; `technical-writing` decides *how it reads*.
 
 ---
 

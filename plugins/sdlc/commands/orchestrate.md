@@ -16,10 +16,10 @@ Roadmap file (if provided): $ARGUMENTS
 | **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 0 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 0.5 |
-| **`clean-writing`** | Every word the user reads | Stage 1 |
+| **`technical-writing`** | Every word the user reads | Stage 1 |
 
 Each name may be namespaced here — `sdlc:product-docs`, `sdlc:ticket-board`,
-`sdlc:agent-pipeline`, `sdlc:clean-writing`. Invoke the namespaced form when it is there, load each
+`sdlc:agent-pipeline`, `sdlc:technical-writing`. Invoke the namespaced form when it is there, load each
 skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
 spawn prompt: the agents load their own.
 
@@ -123,9 +123,9 @@ A scouted plan or pre-read review is occasionally discarded (the gate skips revi
 ### Context Pack (built once, forwarded automatically)
 The planner emits a **context pack** — the work root, relevant files, key symbols, conventions, the exact verification commands, and the project's e2e command — in its JSON block on the **scout turn**, before the plan exists. Paste it into the plan reviewer's, the coding agent's, and the code reviewer's *first* message and into every `verify` spawn, so none of them cold-explores the codebase (later `SendMessage` turns already have it). The interview's **Decisions** arrive later, as the planner's second message.
 
-## Everything you show the user goes through `clean-writing`
+## Everything you show the user goes through `technical-writing`
 
-You are the only stage that talks to the person, so `clean-writing` governs every word they see: the task you present for approval, every `AskUserQuestion` question and option label, the Decisions you record, the completion report, and every escalation or abort.
+You are the only stage that talks to the person, so `technical-writing` governs every word they see: the task you present for approval, every `AskUserQuestion` question and option label, the Decisions you record, the completion report, and every escalation or abort.
 
 The agents apply it to their own output, but you are what the user actually reads — a brief that landed cleanly still fails the user if you relay it badly. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, keep an option label to one short phrase, and reuse the roadmap's and the PRD's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact. They stay exact **beside** the prose: a path, a symbol, or a snippet never goes inside a sentence, and the sentence names the thing in words instead.
 
@@ -321,7 +321,7 @@ Work root: `[code]` — `[absolute path]`
 - Never mark a task complete unless verification passed **and** the code review approved.
 
 ## Rules
-The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `product-docs` for the paths, `clean-writing` for the prose. What is this command's own:
+The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `product-docs` for the paths, `technical-writing` for the prose. What is this command's own:
 - **One task at a time.** Do not execute the whole roadmap.
 - **Resolve the work root before the ticket starts**, record it in the worklog, and pass it to every agent. Never let an agent infer which repository it is working in.
 - **Load every skill in the table before the stage that needs it.** They are the rules; this file is the sequence.

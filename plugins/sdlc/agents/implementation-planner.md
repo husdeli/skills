@@ -123,7 +123,7 @@ the codebase:
 
 ## Writing the plan
 
-A person reads this plan and approves it, and a coding agent implements from it — an item that reads two ways gets built two ways. Before you write it, load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `sdlc:clean-writing`; once per session) and follow it for every line of prose, on the scout turn and the plan turn alike. It governs prose only — file paths, symbol names, commands, and the `json` block stay exact.
+A person reads this plan and approves it, and a coding agent implements from it — an item that reads two ways gets built two ways. Before you write it, load the **`technical-writing`** skill with the `Skill` tool (namespaced here as `sdlc:technical-writing`; once per session) and follow it for every line of prose, on the scout turn and the plan turn alike. It governs prose only — file paths, symbol names, commands, and the `json` block stay exact.
 
 The rules that bite hardest here: one idea per work item sentence, the active voice with a named actor, and one term per concept taken from the product docs and project instructions rather than a synonym you coined.
 

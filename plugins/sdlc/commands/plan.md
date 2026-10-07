@@ -19,7 +19,7 @@ This is the intake path. `/prd` writes the PRD, `/design` writes the design doc,
 | **`ticket-board`** | The epic that numbers a ticket, the roadmap's shape, and the ticket's own shape |
 | **`glossary`** | The product's terms — where each one is defined, and how a document links it |
 | **`diagrams`** | A diagram of a shape — how one is drawn, and how a document references it |
-| **`clean-writing`** | Every sentence you write, in a document or to the user |
+| **`technical-writing`** | Every sentence you write, in a document or to the user |
 
 The documents sit in the **docs root**: `prd.md`, `glossary.md`, `features/<feature>/<feature>.feature.md`, `features/<feature>/<subject>.design.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `product-docs` resolves the root; every `.sdlc/…` path below means `<docs root>/…`.
 
@@ -40,7 +40,7 @@ Everything here runs **in the main loop, with you**. The documents carry the pro
 
 ## Everything here is read by a person
 
-`clean-writing` governs every word the user sees and every line you write into a document: each question, the change proposal, the PRD and design edits, each ticket, and the report. The `prd`, `design-doc`, and `ticket-board` skills say *what belongs in* each document; `clean-writing` says *how each sentence reads*. It governs prose only — IDs, file paths, status values, and anchor codes stay exact.
+`technical-writing` governs every word the user sees and every line you write into a document: each question, the change proposal, the PRD and design edits, each ticket, and the report. The `prd`, `design-doc`, and `ticket-board` skills say *what belongs in* each document; `technical-writing` says *how each sentence reads*. It governs prose only — IDs, file paths, status values, and anchor codes stay exact.
 
 ## Workflow
 

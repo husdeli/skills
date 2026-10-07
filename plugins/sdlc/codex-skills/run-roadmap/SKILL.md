@@ -15,7 +15,7 @@ Run one roadmap task autonomously with the shared run-roadmap command.
 4. Treat the shared command as the source of truth for the stages, the caps, the contracts, the
    commit, and the result line.
 5. Read every skill the command's table names, from the plugin's `skills/<name>/SKILL.md` —
-   `product-docs`, `ticket-board`, `agent-pipeline`, and `clean-writing` — before the stage that
+   `product-docs`, `ticket-board`, `agent-pipeline`, and `technical-writing` — before the stage that
    needs each one.
 6. Run the workflow with the subagent, file, and shell tools of the current runtime.
 

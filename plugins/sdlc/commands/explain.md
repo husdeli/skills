@@ -9,7 +9,7 @@ Explain the target below in **plain language**. The reader wants to understand w
 
 Target: $ARGUMENTS
 
-Load the **`clean-writing`** skill first (namespaced here as `sdlc:clean-writing`) and follow it for every sentence. This command adds the rules below on top of it.
+Load the **`technical-writing`** skill first (namespaced here as `sdlc:technical-writing`) and follow it for every sentence. This command adds the rules below on top of it.
 
 ## What to explain
 
@@ -54,7 +54,7 @@ These are what "plain" means here. They are stricter than everyday writing.
 - **Code is an anchor, not the explanation.** Point at `path/to/file.ts:42` so the reader can check you. Paste at most a few lines, and only when the words alone cannot carry it. The explanation must stand up if every code block is deleted.
 - **Use concrete numbers and names.** "The job retries 3 times, then drops the row" beats "the job retries a few times".
 - **Give the reader the actor.** "The router calls the loader" — never "the loader is called".
-- **One comparison is allowed**, and only to introduce something the reader has no name for yet. Label it as a comparison: "this works like a queue at a counter — one item served at a time." This is the single place this plugin permits a figure of speech, and `clean-writing` Rule 9 otherwise stands: no idiom, no humour, no hedging.
+- **One comparison is allowed**, and only to introduce something the reader has no name for yet. Label it as a comparison: "this works like a queue at a counter — one item served at a time." This is the single place this plugin permits a figure of speech, and the `technical-writing` rule against figures of speech (`TA6`) otherwise stands: no idiom, no humour, no hedging.
 - **Do not narrate your process.** What you searched, in what order, is not the explanation.
 - **Do not sell the work.** No "cleanly handled", no "robust", no "simply". If the design has a weakness, name it in one sentence.
 

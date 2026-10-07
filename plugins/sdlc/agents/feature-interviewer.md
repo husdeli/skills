@@ -87,7 +87,7 @@ Return a Discovery Brief in this exact structure:
 
 ## Writing the brief
 
-A person reads this brief and settles the decisions in it — so it must land on first read. Before you write it, load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `sdlc:clean-writing`; once per session) and follow it for every line of prose: the understanding, the findings, each decision, and each option. It governs prose only — file paths, identifiers, cited sources, and the heading structure below stay exact.
+A person reads this brief and settles the decisions in it — so it must land on first read. Before you write it, load the **`technical-writing`** skill with the `Skill` tool (namespaced here as `sdlc:technical-writing`; once per session) and follow it for every line of prose: the understanding, the findings, each decision, and each option. It governs prose only — file paths, identifiers, cited sources, and the heading structure below stay exact.
 
 The rules that bite hardest here: name the feature and the stake before the detail, keep each option to one idea in one short sentence, and use the product's own vocabulary from the PRD and the design doc for every domain term.
 

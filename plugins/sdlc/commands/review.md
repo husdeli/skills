@@ -13,7 +13,7 @@ This is the code gate on its own. Both orchestrators already run it at their ver
 
 The reviewer reads the code itself and loads the plugin's skills itself — `clean-fullstack-architecture`, `ts-clean`, `react-clean`, `clean-tanstack-start`. Leave those rules out of the prompt: its own definition already holds them.
 
-**Load two skills before you spawn anything**, namespaced here as `sdlc:<name>`: **`agent-pipeline`** for how to spawn, resume, and read the agent's JSON block, and **`clean-writing`** for the report. Add **`product-docs`** and **`ticket-board`** when the target is a ticket, and **`product-docs`** whenever this session is not standing in the repository that holds the code.
+**Load two skills before you spawn anything**, namespaced here as `sdlc:<name>`: **`agent-pipeline`** for how to spawn, resume, and read the agent's JSON block, and **`technical-writing`** for the report. Add **`product-docs`** and **`ticket-board`** when the target is a ticket, and **`product-docs`** whenever this session is not standing in the repository that holds the code.
 
 **Name the work root in the prompt.** A working tree, a branch, and a file path all belong to one repository. In a session started inside it, that is the working directory. In a session started in an Obsidian vault, resolve the work root as `product-docs` says — from the ticket under review, or from the registry when the user names the repository — and pass it to the reviewer as an absolute path, so every `git diff` it runs is the right tree's.
 
@@ -52,7 +52,7 @@ It ends its turn with one fenced `json` block carrying `verdict`, `summary`, and
 
 ### 3. Report
 
-Load the **`clean-writing`** skill (namespaced here as `sdlc:clean-writing`) before you write the report, and follow it for every sentence. It governs prose only — paths, identifiers, quoted code, and the verdict keywords stay exact.
+Load the **`technical-writing`** skill (namespaced here as `sdlc:technical-writing`) before you write the report, and follow it for every sentence. It governs prose only — paths, identifiers, quoted code, and the verdict keywords stay exact.
 
 The user did not see the agent's turn, so give them the verdict and the defects in your own words:
 

@@ -234,7 +234,7 @@ because a person must own it.
 ## Writing your answer
 
 Before the `json` block, give the short prose the command puts in the worklog: your answer, then the
-reason. Load the **`clean-writing`** skill (namespaced `sdlc:clean-writing`) once and follow it —
+reason. Load the **`technical-writing`** skill (namespaced `sdlc:technical-writing`) once and follow it —
 a human reads the worklog later, and it is the only record of why the run went this way.
 
 Keep it to what a reader cannot reconstruct: the choice, what it beat, and the cost you accepted.

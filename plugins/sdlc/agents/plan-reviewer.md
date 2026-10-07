@@ -95,7 +95,7 @@ the verdict is `APPROVED`. A **pre-read turn** emits no JSON block: it has no ve
 
 ## Writing the review
 
-A person reads this verdict and acts on it, and the planner revises from your issues — an issue nobody can parse is an issue nobody can fix. Before you write the review, load the **`clean-writing`** skill with the `Skill` tool (namespaced here as `sdlc:clean-writing`; once per session) and follow it for every line of prose. It governs prose only — file paths, symbol names, the verdict keywords, and the `json` block stay exact.
+A person reads this verdict and acts on it, and the planner revises from your issues — an issue nobody can parse is an issue nobody can fix. Before you write the review, load the **`technical-writing`** skill with the `Skill` tool (namespaced here as `sdlc:technical-writing`; once per session) and follow it for every line of prose. It governs prose only — file paths, symbol names, the verdict keywords, and the `json` block stay exact.
 
 The rules that bite hardest here: state the problem before the reasoning, keep each *Problem* and *Suggestion* to one short active sentence, and name the exact file, item, and rule rather than "the relevant part".
 

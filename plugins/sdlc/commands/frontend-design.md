@@ -14,7 +14,7 @@ Invoke the **`frontend-design`** skill and follow it end to end:
 - If the skill is namespaced here (e.g. `sdlc:frontend-design`), invoke that.
 - Load it **before** you draw anything, and follow its process, its visual direction rules, and
   its hard rules exactly.
-- Load the **`artifact-design`** skill as the skill requires, and follow the `clean-writing`
+- Load the **`artifact-design`** skill as the skill requires, and follow the `technical-writing`
   skill for the message that presents the mockup.
 
 You run this in the main session, not in a subagent. Publishing an Artifact and iterating with

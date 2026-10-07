@@ -11,7 +11,7 @@ Explain the requested target with the shared explain command.
 
 1. Resolve `../../commands/explain.md` from this skill directory.
 2. Read the command file completely before writing the explanation.
-3. Load the `clean-writing` skill as the command requires.
+3. Load the `technical-writing` skill as the command requires.
 4. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
 5. Use Codex read-only tools to inspect the evidence before explaining it.
 

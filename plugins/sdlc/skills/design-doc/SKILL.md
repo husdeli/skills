@@ -65,9 +65,9 @@ user-facing screen. **A user interface is one kind of subject, not the default o
 subject first, then apply the same pattern to it.
 
 Engineers, designers, and product people all read this doc and must read it the same way. Load
-the **`clean-writing`** skill on top of this one and follow it for every sentence — it sets the
+the **`technical-writing`** skill on top of this one and follow it for every sentence — it sets the
 sentence length and the active voice. This skill governs *what
-belongs in a design doc*; `clean-writing` governs *how each sentence reads*.
+belongs in a design doc*; `technical-writing` governs *how each sentence reads*.
 
 **Load the `glossary` skill for every domain term.** It says where a term comes from, that
 `<docs root>/glossary.md` defines it under its own heading, how this doc links that definition, and

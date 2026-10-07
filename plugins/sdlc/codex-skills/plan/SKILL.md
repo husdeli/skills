@@ -12,7 +12,7 @@ Turn the request into product documents and work items with the shared plan comm
 1. Resolve `../../commands/plan.md` from this skill directory.
 2. Read the command file completely before you create a subagent or write a document.
 3. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
-4. Create the feature interviewer with the subagent tool of the current runtime, and read every skill the command names — `product-docs`, `ticket-board`, `clean-writing`, `prd`, and `design-doc` — from the plugin's `skills/<name>/SKILL.md` before you resolve a path or write the document each one governs.
+4. Create the feature interviewer with the subagent tool of the current runtime, and read every skill the command names — `product-docs`, `ticket-board`, `technical-writing`, `prd`, and `design-doc` — from the plugin's `skills/<name>/SKILL.md` before you resolve a path or write the document each one governs.
 
 Treat the shared command as the source of truth for the stages, the approval gate, the document rules, and the report.
 

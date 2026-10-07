@@ -13,7 +13,7 @@ Invoke the **`business-plan`** skill and follow it to produce the plan:
 
 - If the skill is namespaced here (e.g. `sdlc:business-plan`), invoke that.
 - Load the skill **before** writing anything, and follow its rules, its steps, and each step's done condition exactly.
-- Load the **`clean-writing`** skill alongside it and follow it for every sentence of the plan and of each competitor note.
+- Load the **`technical-writing`** skill alongside it and follow it for every sentence of the plan and of each competitor note.
 - The plan lives at **`<docs root>/business/business-plan.md`**, and each competitor note in **`<docs root>/business/competitors/`**. **Load the `product-docs` skill** (namespaced `sdlc:product-docs`) and resolve the docs root as it says. When you read code for prices, limits, or shipped integrations, read it in the **work root** that `product-docs` resolves.
 - **Load the `glossary` skill** (namespaced `sdlc:glossary`) and use the product's terms as it defines them.
 - **The plan owns money, and links everything else.** Follow the ownership table in `product-docs`, and the skill's rule 3 for the commercial half it adds to each fact it links.

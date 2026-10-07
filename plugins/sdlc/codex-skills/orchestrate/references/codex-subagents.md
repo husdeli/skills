@@ -145,7 +145,7 @@ The rule files live in `skills/`, not in `codex-skills/`.
 
 Use these local names for the current plugin:
 
-- `clean-writing`
+- `technical-writing`
 - `clean-fullstack-architecture`
 - `ts-clean`
 - `react-clean`

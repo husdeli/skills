@@ -17,7 +17,7 @@ its index properties, and its status rules exactly.
   it says. It also holds what changes in a vault, where the index's fields are frontmatter
   properties and every reference is a wikilink. Run `/setup` first when the project has no
   structure at all.
-- **Load the `clean-writing` skill** and follow it for every sentence of the index. Two or three
+- **Load the `technical-writing` skill** and follow it for every sentence of the index. Two or three
   sentences carry the whole feature, so each one has to land.
 - **Load the `glossary` skill** for the feature's name and every term it uses. A feature that
   coins a term writes that term's entry in the same run.

@@ -367,18 +367,29 @@ worth as much as its record.
   client bundle. Plus the two safety rules: every server function is its own auth boundary
   (a route `beforeLoad` guard isn't the data boundary), and no `Cache-Control: public` on
   an identity-dependent response.
-- **clean-writing** — The standard for every output a person reads: a brief, a plan, a review
-  verdict, a report, a question, a PRD, a ticket, a chat reply. Context before the point,
-  ASD-STE100 Simplified Technical English (one idea per sentence, active voice with a named
-  actor, one word for one meaning, no jargon or metaphor), the project's ubiquitous language
-  through the `glossary` skill, prose that names a thing in words rather than by its file name,
-  identifier, or section sign, the answer before the reasoning, and no sentence the reader does not
-  need — no detail that holds in only some cases, no background nobody acts on, each point once.
-  Governs prose only — code, identifiers, paths, quoted output, and the agents' `json` blocks stay
-  exact, beside the sentence rather than inside it: a command in its own block, the files a change
-  touched in a list, a defect's location next to the issue.
-  Invoked directly, it re-pitches a message that didn't land. Every agent, command, and
-  document skill in this plugin routes its human-facing output through it.
+- **technical-writing** — The standard for every text a reader works from: a brief, a plan, a
+  review verdict, a report, a PRD, a design doc, a ticket, a commit message, a pull-request body.
+  Context first, then the answer, then the evidence. Rules grouped the way they are used — stance
+  and voice (a named actor, the active voice, nothing unverified, no sales language), reader
+  engagement (purpose before mechanism, a term of art defined at its first use, procedures as
+  numbered steps, the warning before the step, the edges specified), hedging and boosting (an
+  assumption marked as one, a failure reported as a failure, exact versions and defaults), and
+  signposting (the thing named in words rather than by its file name, the glossary's term every
+  time, one home per fact, the shape the reader's job needs). Governs prose only — code,
+  identifiers, paths, quoted output, and the agents' `json` blocks stay exact, beside the sentence
+  rather than inside it: a command in its own block, the files a change touched in a list, a
+  defect's location next to the issue. Every agent, command, and document skill in this plugin
+  routes its human-facing output through it.
+- **social-writing** — The standard for a text written for a feed: a LinkedIn post, a tweet, a
+  thread, a caption, an announcement. The reader is mid-scroll and gives the first line about one
+  second, so the shape is hook, body, close. The same four rule groups, answered for that reader —
+  stance and voice (a point of view, self-mention, the cost of the lesson), reader engagement (one
+  question at the end, the reader's situation before your answer, a first line that survives
+  truncation), hedging and boosting (boost what you can show, hedge the scope and never the hook,
+  a number on every strong claim), and signposting (the payoff signalled up front, numbered parts,
+  white space, no document transitions). Names the failure modes it refuses: the context-setting
+  opener, broetry, engagement bait, the humble-brag, the false reveal, the list of negations.
+  Invoked directly, it re-pitches a message that didn't land.
 - **product-intent** — The five pieces the PRD is assembled from, each its own note under
   `product/`: a goal, a non-goal, a persona, a problem, and a success metric. Holds what earns a
   note (something outside the PRD points at it, and it has a state of its own), the properties and
@@ -561,6 +572,12 @@ what a ticket is, and why changing how a status transition works is one edit rat
 - **/explain** — explains what is happening in plain language: the work you just did, a
   file, an error, a diff, or a concept. Reads the code before explaining, defines every
   term of art on first use, and treats code as an anchor rather than the explanation.
+- **/review-text** — reviews a text written for people. It names the register first — technical
+  or social — loads that skill, and judges the text by its own rules, because a post that opens
+  with a hook is right where a document would be wrong. Every finding names a stable rule code,
+  quotes the text as it stands, and carries the sentence that replaces it. The reply ends with a
+  `json` findings block a tool can consume, so the same review can drive a linter later. Add `fix`
+  to apply the findings that have a replacement.
 
 Use these equivalents in a Codex prompt:
 
@@ -580,6 +597,7 @@ Use these equivalents in a Codex prompt:
 | (product notes) | `$sdlc:product-intent` |
 | `/business-plan [target]` | `$sdlc:business-plan [target]` |
 | `/explain [target]` | `$sdlc:explain [target]` |
+| `/review-text [target] [fix]` | `$sdlc:review-text [target] [fix]` |
 
 Each Codex entry point lives in `codex-skills/`, and each one reads the shared source in
 `commands/` or `skills/`. Claude Code scans `skills/` only, so no Codex instruction reaches a

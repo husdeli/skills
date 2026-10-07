@@ -17,7 +17,7 @@ Load four skills before you read or write anything:
   vocabulary and the query the capability table is built from.
 - **`product-intent`**: the personas section 3 sells to, and the metrics section 12 proves, are
   notes under `product/`. The plan links them and adds only the commercial half.
-- **`clean-writing`**: every sentence of the plan and of each competitor note.
+- **`technical-writing`**: every sentence of the plan and of each competitor note.
 - **`glossary`**: use the product's terms, and link each one at its first use.
 
 ## Where it lives

@@ -20,7 +20,7 @@ body. It never lists the business plan, because the plan links the PRD and not t
 
 A PRD describes **what the product does and why** — the requirements, from the user's point of view. It is not an implementation plan, a project tracker, or a technical design. Keep it durable: it stays accurate as tickets come and go and as the implementation is rewritten underneath it.
 
-A PRD is read end to end by people who were not in the room. Load the **`clean-writing`** skill on top of this one and follow it for every sentence you write here — it sets the sentence length and the active voice. This skill governs *what belongs in a PRD*; `clean-writing` governs *how each sentence reads*. The PRD is where the product's ubiquitous language is **chosen**, so the terms you pick here are the terms every design doc, ticket, plan, and report must reuse.
+A PRD is read end to end by people who were not in the room. Load the **`technical-writing`** skill on top of this one and follow it for every sentence you write here — it sets the sentence length and the active voice. This skill governs *what belongs in a PRD*; `technical-writing` governs *how each sentence reads*. The PRD is where the product's ubiquitous language is **chosen**, so the terms you pick here are the terms every design doc, ticket, plan, and report must reuse.
 
 **A diagram goes in `diagrams/`, never inline.** When a product area or a user flow needs a picture, load the **`diagrams`** skill and follow it. The PRD's product-only rules still hold inside the picture: no mechanism, no implementation name.
 

@@ -75,7 +75,7 @@ a browser and click through it.
 
 ### 3. Present it for agreement
 
-Publish, then say what you decided and what you are unsure about. Load the `clean-writing`
+Publish, then say what you decided and what you are unsure about. Load the `technical-writing`
 skill and follow it for the message.
 
 ```markdown
