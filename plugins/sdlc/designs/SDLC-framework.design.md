@@ -7,6 +7,7 @@ tags:
 related:
   - "[[project-structure.design]]"
   - "[[registry.design]]"
+  - "[[feature.design]]"
 ---
 # SDLC framework
 
@@ -21,8 +22,10 @@ The tree:
 ```
 <framework root>/
 ├── sdlc.json                    the registry; machine-local, gitignored
+├── features/                    one folder per feature; see feature
+│   └── <feature-name>/          one feature
 └── projects/                    optional
     └── <project-name>/          one project; see project structure
 ```
 
-What a project folder holds is defined in [[project-structure.design|Project structure]], and the registry in [[registry.design|Registry]].
+What a project folder holds is defined in [[project-structure.design|Project structure]], a feature folder in [[feature.design|Feature]], and the registry in [[registry.design|Registry]].
