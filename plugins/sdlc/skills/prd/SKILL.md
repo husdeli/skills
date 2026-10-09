@@ -8,12 +8,12 @@ description: "Create or update a product requirements document at <docs root>/pr
 Write or update a product requirements document following the structure and style below.
 
 **Where it lives.** The PRD is `<docs root>/prd.md`, alongside `glossary.md`, `roadmap.md`, the
-`product/` folder, the `features/` folder, the `designs/` folder, and the `tickets/` folder. **Load the `product-docs` skill and resolve the docs
+`product/` folder, the `features/` folder, the `designs/` folder, and the `tickets/` folder. **Load the `sdlc-structure` skill and resolve the docs
 root as it says**, before you read or write anything. Create the folder if it is missing. When the project already keeps
 a PRD at the root (`prd.md`/`PRD.md`), update that file in place instead — one PRD per
 project, never two.
 
-When `kind` is `vault`, load the **`product-docs`** skill as well: the PRD's `Status`,
+When `kind` is `vault`, load the **`sdlc-structure`** skill as well: the PRD's `Status`,
 `Last updated`, and `Product` fields become frontmatter properties there. In every destination,
 the PRD lists the design docs it relates to in a `related:` frontmatter property, never in its
 body. It never lists the business plan, because the plan links the PRD and not the reverse.
@@ -31,7 +31,7 @@ A PRD is read end to end by people who were not in the room. Load the **`technic
 ## Product-only: no tickets, no code, no commerce
 
 The PRD describes **product requirements**, nothing else. It is the **highest document**: the
-business plan and every feature note link it, and it links neither of them back. The `product-docs`
+business plan and every feature note link it, and it links neither of them back. The `sdlc-structure`
 skill holds the table of which document owns which fact — read it before you write a section.
 
 Never include:

@@ -15,12 +15,12 @@ This is `/orchestrate` with the human-in-the-loop stages removed. There is **no 
 
 | Skill | What it holds | Load before |
 | --- | --- | --- |
-| **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
+| **`sdlc-structure`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 2 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 3 |
 | **`technical-writing`** | Every word the user reads | Stage 3 |
 
-Each name may be namespaced here — `sdlc:product-docs`, `sdlc:ticket-board`,
+Each name may be namespaced here — `sdlc:sdlc-structure`, `sdlc:ticket-board`,
 `sdlc:agent-pipeline`, `sdlc:technical-writing`. Invoke the namespaced form when it is there, load each
 skill **once**, and follow it. Do not restate a skill's rules in a spawn prompt: the agents load
 their own.
@@ -84,9 +84,9 @@ as Stage 2 does.
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
-The documents sit in the **docs root** — `prd.md`, `glossary.md`, `features/<feature>/`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md` with a worklog beside a ticket in flight. `product-docs` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`; a bare path resolves against the docs root first, then the work root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
+The documents sit in the **docs root** — `prd.md`, `glossary.md`, `features/<feature>/`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md` with a worklog beside a ticket in flight. `sdlc-structure` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`; a bare path resolves against the docs root first, then the work root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
 
-**The code sits in the work root**, which is the session's own repository in a repo-rooted run, and a repository named in the docs root's registry in a vault-rooted one. `product-docs` holds the resolution; this command resolves it in Stage 2, before the ticket starts, writes it into the opening worklog entry, and passes it as an absolute path in every agent prompt. Ask the user when the evidence leaves it open, and check the session can write there before you spawn anything — `/add-dir <work root>` is the fix, and no agent can apply it.
+**The code sits in the work root**, which is the session's own repository in a repo-rooted run, and a repository named in the docs root's registry in a vault-rooted one. `sdlc-structure` holds the resolution; this command resolves it in Stage 2, before the ticket starts, writes it into the opening worklog entry, and passes it as an absolute path in every agent prompt. Ask the user when the evidence leaves it open, and check the session can write there before you spawn anything — `/add-dir <work root>` is the fix, and no agent can apply it.
 
 Never start a task whose dependencies are incomplete.
 
@@ -99,7 +99,7 @@ Never start a task whose dependencies are incomplete.
 Track the stages with the task/todo tools so the user sees live progress.
 
 ### 2. Resolve the work root, then start the ticket
-Resolve the work root first, as `product-docs` says. Then run the **`ticket-board`** skill's **Starting a ticket** transition yourself, with the edits in one tool block. Two values are this command's: the **assignee** is `implementation-planner, plan-reviewer`, and the **opening worklog entry** is `orchestrate-quick · start` — the task, what it delivers, the work root and the evidence that settled it, and the end-to-end default below.
+Resolve the work root first, as `sdlc-structure` says. Then run the **`ticket-board`** skill's **Starting a ticket** transition yourself, with the edits in one tool block. Two values are this command's: the **assignee** is `implementation-planner, plan-reviewer`, and the **opening worklog entry** is `orchestrate-quick · start` — the task, what it delivers, the work root and the evidence that settled it, and the end-to-end default below.
 
 With a bare task description and no board, there is no worklog to write it in: resolve the work root anyway, and name it in one line of your report.
 
@@ -235,7 +235,7 @@ Omit the status line when there was no ticket or roadmap to mark.
 - If a stage escalates because the task turned out to need decisions this pipeline cannot make, say so and point at `/orchestrate` — do not improvise an interview here.
 
 ## Rules
-The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `product-docs` for the paths, `technical-writing` for the prose. What is this command's own:
+The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `sdlc-structure` for the paths, `technical-writing` for the prose. What is this command's own:
 - **One task at a time.** Do not execute the whole roadmap.
 - **Load every skill in the table before the stage that needs it.** They are the rules; this file is the sequence.
 - **No interview, no gates.** The plan review and the code review each run exactly once, on sonnet.

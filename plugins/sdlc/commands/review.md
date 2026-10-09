@@ -13,9 +13,9 @@ This is the code gate on its own. Both orchestrators already run it at their ver
 
 The reviewer reads the code itself and loads the plugin's skills itself — `clean-fullstack-architecture`, `ts-clean`, `react-clean`, `clean-tanstack-start`. Leave those rules out of the prompt: its own definition already holds them.
 
-**Load two skills before you spawn anything**, namespaced here as `sdlc:<name>`: **`agent-pipeline`** for how to spawn, resume, and read the agent's JSON block, and **`technical-writing`** for the report. Add **`product-docs`** and **`ticket-board`** when the target is a ticket, and **`product-docs`** whenever this session is not standing in the repository that holds the code.
+**Load two skills before you spawn anything**, namespaced here as `sdlc:<name>`: **`agent-pipeline`** for how to spawn, resume, and read the agent's JSON block, and **`technical-writing`** for the report. Add **`sdlc-structure`** and **`ticket-board`** when the target is a ticket, and **`sdlc-structure`** whenever this session is not standing in the repository that holds the code.
 
-**Name the work root in the prompt.** A working tree, a branch, and a file path all belong to one repository. In a session started inside it, that is the working directory. In a session started in an Obsidian vault, resolve the work root as `product-docs` says — from the ticket under review, or from the registry when the user names the repository — and pass it to the reviewer as an absolute path, so every `git diff` it runs is the right tree's.
+**Name the work root in the prompt.** A working tree, a branch, and a file path all belong to one repository. In a session started inside it, that is the working directory. In a session started in an Obsidian vault, resolve the work root as `sdlc-structure` says — from the ticket under review, or from the registry when the user names the repository — and pass it to the reviewer as an absolute path, so every `git diff` it runs is the right tree's.
 
 ## Workflow
 
@@ -26,7 +26,7 @@ The reviewer reads the code itself and loads the plugin's skills itself — `cle
 - **Nothing given** → review the uncommitted changes. Run `git -C <work root> status --porcelain` yourself: when the tree is dirty, the target is the working tree against `HEAD`, untracked files included. When it is clean, the target is this branch against the default branch, and say in one line which comparison you chose.
 - **A path** (a file or a directory) → review those files as they stand.
 - **A branch, a commit, or a range** → review that diff.
-- **A ticket ID or ticket path** → find the ticket by its ID as `ticket-board` says, under the docs root `product-docs` resolves. Read it, and review the current change with the ticket's acceptance criteria as the standard.
+- **A ticket ID or ticket path** → find the ticket by its ID as `ticket-board` says, under the docs root `sdlc-structure` resolves. Read it, and review the current change with the ticket's acceptance criteria as the standard.
 
 Derive acceptance criteria from the ticket when there is one. Otherwise take them from the change itself — the commit messages and the code — and state in one line what you took them to be.
 

@@ -22,7 +22,7 @@ a life of its own — it is met, dropped, deferred, or measured. So each one is 
 line per note. Sections 1, 5, and 6 stay the PRD's own prose — an overview, the product areas, and
 the cross-cutting qualities are narrative, and narrative does not decompose.
 
-**The `product-docs` skill resolves the docs root** and holds the table of which document owns which
+**The `sdlc-structure` skill resolves the docs root** and holds the table of which document owns which
 fact — load it before you resolve any path below. The **`prd`** skill holds the document that
 composes these notes, the **`feature`** skill holds the feature that cites them, and the
 **`glossary`** skill holds every term they name.
@@ -59,7 +59,7 @@ not as a tree of individually-IDed micro-requirements.
   work points at them.
 
 In a `repo` or `folder` destination the properties become `**Field**: value` lines under the title,
-and a wikilink becomes a relative path — `product-docs` holds that mapping for every document.
+and a wikilink becomes a relative path — `sdlc-structure` holds that mapping for every document.
 
 ## The goal
 

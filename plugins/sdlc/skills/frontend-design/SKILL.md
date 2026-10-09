@@ -44,7 +44,7 @@ The mockup must look like it belongs to the product, so learn the product first.
   the screen's design doc — `<docs root>/features/<feature>/<subject>.design.md` when the screen
   belongs to a feature, `<docs root>/designs/<subject>.design.md` when it does not — for the states
   and rules the screen must hold. The
-  `product-docs` skill resolves the docs root — load it before you read one.
+  `sdlc-structure` skill resolves the docs root — load it before you read one.
 - Find the design system the codebase already has: the styling approach (Tailwind, CSS
   modules, styled components), the token file or theme config, the font stack, the spacing
   scale, the color palette, the component library, and two or three existing screens.

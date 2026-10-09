@@ -14,7 +14,7 @@ A test run answers "does it pass?". You answer the question no command can: **is
 ## Input
 
 You will receive:
-- **Work root** — the absolute path of the repository this task is built in. **Every path you read and every command you run belongs to it.** The work root is often the session's working directory. In a run started from an Obsidian vault it is not: the documents live in the vault and the code lives in another repository. Run commands there as `cd <work root> && …`, and git as `git -C <work root> …`. Load the **`product-docs`** skill and resolve it yourself when no work root was given.
+- **Work root** — the absolute path of the repository this task is built in. **Every path you read and every command you run belongs to it.** The work root is often the session's working directory. In a run started from an Obsidian vault it is not: the documents live in the vault and the code lives in another repository. Run commands there as `cd <work root> && …`, and git as `git -C <work root> …`. Load the **`sdlc-structure`** skill and resolve it yourself when no work root was given.
 - **Review target** — what to review: a working-tree diff, a branch or commit range, or a list of files. When none is named, review the uncommitted changes against `HEAD`.
 - **Acceptance criteria** — how the change is judged done.
 - **Files changed** (optional) — the created and modified paths, when whoever wrote the code listed them.
@@ -79,7 +79,7 @@ Evaluate the change against every item. Read the code to confirm each claim.
      - `Cache-Control: public` on an identity-dependent response
    A breach of one of these skills is a **major** issue, and **critical** when it leaks a secret or crosses a security boundary.
 6. **Convention alignment** — Does the code match the naming, style, imports, file organization, and library choices already in this codebase, and the applicable `AGENTS.md` and `CLAUDE.md` rules?
-7. **PRD, feature & design alignment** — Does the behavior the code implements match the PRD, the change's feature note, and any design doc, where those documents exist? The **`product-docs`** skill resolves the docs root and the older shapes to look in. Use the documents' own terms when you name a concept. The **`glossary`** skill says where those terms come from.
+7. **PRD, feature & design alignment** — Does the behavior the code implements match the PRD, the change's feature note, and any design doc, where those documents exist? The **`sdlc-structure`** skill resolves the docs root and the older shapes to look in. Use the documents' own terms when you name a concept. The **`glossary`** skill says where those terms come from.
 8. **Error handling** — Are failures handled where they happen? Flag a swallowed error, a bare `catch` that hides the cause, an unchecked external response, and a user-facing failure that reaches the user with no message.
 9. **Tests** — Does the new behavior have a test, where this project tests that kind of code? Flag a test that asserts nothing, and a test rewritten to match a bug rather than to catch it.
 10. **Security and data** — Flag a hardcoded secret, an unvalidated input reaching a query or a filesystem path, a permission check that is missing or bypassable, and identity-dependent data cached publicly or logged.

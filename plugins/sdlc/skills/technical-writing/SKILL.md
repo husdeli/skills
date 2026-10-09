@@ -76,7 +76,7 @@ Every piece follows this shape, long or short.
 **Strong:** "The nightly export dropped rows when two workers ran together. I found the race in the export queue and fixed it. The export is correct again."
 **Why:** context before the point, the outcome stated plainly, and the defect named in words rather than by its mechanism.
 
-**Weak:** "Updated `product-docs/SKILL.md` §2 to add `workRoot`."
+**Weak:** "Updated `sdlc-structure/SKILL.md` §2 to add `workRoot`."
 **Strong:** "The rule about where documents live now covers the repository a task is built in."
 **Why:** the reader cannot open a path or resolve a section number, and the sentence survives without either.
 

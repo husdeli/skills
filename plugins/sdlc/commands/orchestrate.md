@@ -13,12 +13,12 @@ Roadmap file (if provided): $ARGUMENTS
 
 | Skill | What it holds | Load before |
 | --- | --- | --- |
-| **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
+| **`sdlc-structure`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 0 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 0.5 |
 | **`technical-writing`** | Every word the user reads | Stage 1 |
 
-Each name may be namespaced here — `sdlc:product-docs`, `sdlc:ticket-board`,
+Each name may be namespaced here — `sdlc:sdlc-structure`, `sdlc:ticket-board`,
 `sdlc:agent-pipeline`, `sdlc:technical-writing`. Invoke the namespaced form when it is there, load each
 skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
 spawn prompt: the agents load their own.
@@ -26,7 +26,7 @@ spawn prompt: the agents load their own.
 **The documents sit in the docs root** — `prd.md`, `glossary.md`,
 `features/<feature>/`, `designs/<subject>.design.md`, `roadmap.md`, and
 `tickets/<status>/<ID>-*.md`, with a worklog
-beside a ticket in flight. `product-docs` resolves the
+beside a ticket in flight. `sdlc-structure` resolves the
 root, and every `.sdlc/…` path below means `<docs root>/…`. When the project has no structure at
 all, work from whatever it keeps at its root and name `/setup` in your report.
 
@@ -37,7 +37,7 @@ it is that repository, and nothing below changes. In a session started in the va
 recommended shape, where one board drives several repositories — the working directory is the docs
 root and the code is somewhere else.
 
-`product-docs` holds the whole rule; what this command owns is *when*:
+`sdlc-structure` holds the whole rule; what this command owns is *when*:
 
 - **Resolve the work root in Stage 0**, after the task is approved and before the ticket is
   started. The ticket never names a repository, so the resolution reads the feature, the design doc, the ticket,
@@ -174,7 +174,7 @@ Then put **one `AskUserQuestion` call** with **two questions** — one round tri
 ### 3. Drive the Task to Completion
 Track stages with the task/todo tools so the user sees live progress.
 
-**Stage 0 — Resolve the work root, then start the ticket (before spawning any agent).** As soon as the task is approved and *before* launching `feature-interviewer`, resolve the work root as `product-docs` says, then run the **`ticket-board`** skill's **Starting a ticket** transition — status, assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all in one tool block. Do it yourself with file edits; do not delegate it. Three values are this command's:
+**Stage 0 — Resolve the work root, then start the ticket (before spawning any agent).** As soon as the task is approved and *before* launching `feature-interviewer`, resolve the work root as `sdlc-structure` says, then run the **`ticket-board`** skill's **Starting a ticket** transition — status, assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all in one tool block. Do it yourself with file edits; do not delegate it. Three values are this command's:
 - The **work root**, resolved before the transition is written, and checked to be writable from this session.
 - The **assignee** is the agents you are about to spawn: `feature-interviewer, implementation-planner`, or `implementation-planner` alone when the interview is skipped.
 - The **opening worklog entry** is `orchestrate · start`: the task you are building, what it delivers, the work root and the evidence that settled it, and the `e2eDecision`.
@@ -321,7 +321,7 @@ Work root: `[code]` — `[absolute path]`
 - Never mark a task complete unless verification passed **and** the code review approved.
 
 ## Rules
-The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `product-docs` for the paths, `technical-writing` for the prose. What is this command's own:
+The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `sdlc-structure` for the paths, `technical-writing` for the prose. What is this command's own:
 - **One task at a time.** Do not execute the whole roadmap.
 - **Resolve the work root before the ticket starts**, record it in the worklog, and pass it to every agent. Never let an agent infer which repository it is working in.
 - **Load every skill in the table before the stage that needs it.** They are the rules; this file is the sequence.

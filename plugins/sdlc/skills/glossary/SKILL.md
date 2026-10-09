@@ -9,7 +9,7 @@ description: "Rules for the product's terms — the glossary at <docs root>/glos
 product uses. **A term is defined once, here.** Every other document links that entry instead of
 defining the term again, so no two documents can drift into two meanings.
 
-**The `product-docs` skill resolves the docs root** — load it before you resolve the path. This
+**The `sdlc-structure` skill resolves the docs root** — load it before you resolve the path. This
 skill holds the term itself: how it is chosen, how its entry is written, and how a document points
 at one.
 
@@ -68,7 +68,7 @@ has exactly one owner, and the code calls this member an `OrgMember` with the `o
 - **No history in the file.** No changelog, no "formerly", no note about when a definition changed.
 
 In a vault, `**Last updated**` becomes the `updated` property under a `type: glossary` frontmatter
-block, and the term headings are unchanged. The `product-docs` skill holds that mapping for every
+block, and the term headings are unchanged. The `sdlc-structure` skill holds that mapping for every
 document.
 
 ## Reference the entry

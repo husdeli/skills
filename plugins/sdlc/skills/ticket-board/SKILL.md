@@ -9,9 +9,9 @@ The board is `tickets/` and `roadmap.md` inside the docs root. This skill says h
 named, where it sits, who holds it, what records what happened to it, and what each status
 transition has to write.
 
-**The `product-docs` skill says where the docs root is, and where the work root is** — load it
+**The `sdlc-structure` skill says where the docs root is, and where the work root is** — load it
 before you resolve any path, and resolve both roots once. Every `.sdlc/…` path below means `<docs root>/…`. In a vault the
-fields below are frontmatter properties and the references are wikilinks; `product-docs` holds
+fields below are frontmatter properties and the references are wikilinks; `sdlc-structure` holds
 that mapping too.
 
 ## The board
@@ -291,7 +291,7 @@ records, and the stage. In the body:
 - **Decisions and outcomes only** — what was chosen, and what it beat. One line each.
 - **The opening entry names the work root** — the repository code, its absolute path, and the one
   line of evidence that settled it. A ticket carries no repository field, so this entry is the only
-  record of where the task was built. `product-docs` holds how the work root is resolved.
+  record of where the task was built. `sdlc-structure` holds how the work root is resolved.
 - **Only what a later reader cannot get elsewhere.** Never the plan in full, never code, never a
   restatement of the ticket, and never pasted command output — name the command and its result.
 - A stage that decided nothing still gets one line: what ran, and what came back.
@@ -361,7 +361,7 @@ rules are in [the ticket guidelines](./references/ticket-guidelines.md).
 
 **A ticket's related documents are its `related:` property**, never a section in its body: the
 PRD area it serves, the design docs it builds, the goal it advances, and the sibling tickets it
-depends on or unblocks. The `product-docs` skill holds the rule.
+depends on or unblocks. The `sdlc-structure` skill holds the rule.
 
 **A diagram belongs in `diagrams/`, referenced from the ticket.** The **`diagrams`** skill holds
 how one is drawn and how a ticket points at it.

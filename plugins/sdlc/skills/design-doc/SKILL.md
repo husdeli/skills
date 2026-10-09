@@ -27,7 +27,7 @@ Ask one question to settle it: *would this doc still be needed if the feature we
 still cross-cutting; `designs/` is where a shared subject belongs, not the folder of whichever
 feature reached it first.
 
-**Load the `product-docs` skill and resolve the docs root as it says**, before you read or write
+**Load the `sdlc-structure` skill and resolve the docs root as it says**, before you read or write
 anything. It also holds what a vault changes: `Last updated` becomes a frontmatter property there,
 and a cross-reference becomes a wikilink. The related documents are the `related:` frontmatter
 property in every destination.
@@ -88,7 +88,7 @@ that a term this design coins gets its entry in the same step.
      it from everywhere else by its numbered heading (see *Style rules*).
    - **A fact another document owns.** What a customer can do belongs to the feature note; why
      the product does it belongs to the PRD; what it earns belongs to the business plan. This doc
-     starts where they stop: at how the thing works. The `product-docs` skill holds the table.
+     starts where they stop: at how the thing works. The `sdlc-structure` skill holds the table.
    - **A section with nothing specific to say.** **Delete the heading — never fill it.**
    - **A part you have not designed yet.** It is absent from the doc, not a stub in it.
 

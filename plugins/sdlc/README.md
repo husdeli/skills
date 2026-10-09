@@ -224,7 +224,7 @@ Inside a vault the documents are written the way Obsidian reads them, and nothin
   folders.
 - **No `.gitkeep`, and no `git mv`** where git does not track the folder.
 
-The `product-docs` skill holds these rules, and the plugin loads it whenever the destination is a
+The `sdlc-structure` skill holds these rules, and the plugin loads it whenever the destination is a
 vault. Pick **In the repository** at the prompt and none of it applies.
 
 ## One board, several repositories
@@ -439,10 +439,13 @@ worth as much as its record.
 - **prd** — Create or update a product requirements document: product-only content,
   cohesive per-area descriptions with stable anchor codes, and positive framing. The terms it
   chooses are defined in `glossary.md`, never in the PRD.
-- **product-docs** — Where the documents and the code live, and how each destination writes a
-  document: the docs root, the work root, the `sdlc.json` registry naming every repository the
-  product is built in, the `.sdlc.json` pointer file, and the Obsidian-vault conventions — folder
-  naming, frontmatter properties, wikilinks, and when a move uses `git mv`. It also holds how a run
+- **sdlc-structure** — The structure the plugin creates, and where the documents and the code
+  live: the docs root and its folders, every kind of document with its path, its states, and the
+  skill that governs it, which document owns each fact and which way a link points, the work root,
+  the `sdlc.json` registry naming every repository the product is built in, the `.sdlc.json`
+  pointer file, and the Obsidian-vault conventions — folder naming, frontmatter properties,
+  wikilinks, and when a move uses `git mv`. A short index routes to one reference file per topic,
+  so a command reads only the part its job needs. It also holds how a run
   started in the vault works out which repository a task is built in, and how it reaches a tree that
   is not its own working directory. Every command and agent resolves both roots through it, so one
   project can keep its documents in the repository and the next can drive four repositories from a

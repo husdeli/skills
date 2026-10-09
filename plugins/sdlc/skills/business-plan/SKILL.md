@@ -11,7 +11,7 @@ PRD already says what the product does. The plan links the PRD for that and neve
 
 Load four skills before you read or write anything:
 
-- **`product-docs`**: resolve the docs root, and follow its vault conventions (frontmatter
+- **`sdlc-structure`**: resolve the docs root, and follow its vault conventions (frontmatter
   properties, wikilinks, no dot-folders).
 - **`feature`**: the register in `features/` is what section 2 lists, and it holds the status
   vocabulary and the query the capability table is built from.
@@ -44,7 +44,7 @@ business plan somewhere else, move it into `business/` with the user's yes, and 
    heading (`[[#7. Unit economics|unit economics]]`), never a second copy. The summary is a list of
    one-line pointers, not a restatement. Risks live only in the risks table. Competitor detail
    lives only in the competitor notes.
-3. **Link, never restate.** The `product-docs` skill holds the table of which document owns which
+3. **Link, never restate.** The `sdlc-structure` skill holds the table of which document owns which
    fact — read it before you write a section. The plan owns money: prices, costs, margins, market,
    and the claim that the product beats a named competitor. It owns nothing else. **The problem links its note in `product/problems/`. A
    segment links its note in `product/personas/`. A milestone's proof links its note in
@@ -157,7 +157,7 @@ tags:
   refresh it before the plan quotes it.
 
 In a `repo` or `folder` destination, the frontmatter fields become `**Field**: value` lines under
-the title, as `product-docs` describes.
+the title, as `sdlc-structure` describes.
 
 **Done when** every competitor has a note, every note has a `checked` date and at least one
 source, and no price in any note comes from memory.

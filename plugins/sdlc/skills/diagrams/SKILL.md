@@ -10,7 +10,7 @@ stages of a flow, the regions of a screen, the entities and their relations. Pro
 everything else. A diagram that repeats a sentence is a diagram to delete.
 
 Every diagram in this project is **one `<name>.excalidraw.md` file in `<docs root>/diagrams/`**,
-built by this skill. The **`product-docs`** skill resolves the docs root.
+built by this skill. The **`sdlc-structure`** skill resolves the docs root.
 
 ## Build it
 

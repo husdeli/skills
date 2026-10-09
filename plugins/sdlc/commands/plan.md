@@ -15,13 +15,13 @@ This is the intake path. `/prd` writes the PRD, `/design` writes the design doc,
 
 | Skill | What it holds |
 | --- | --- |
-| **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document |
+| **`sdlc-structure`** | Where the docs root and the work root are, and how each destination writes a document |
 | **`ticket-board`** | The epic that numbers a ticket, the roadmap's shape, and the ticket's own shape |
 | **`glossary`** | The product's terms — where each one is defined, and how a document links it |
 | **`diagrams`** | A diagram of a shape — how one is drawn, and how a document references it |
 | **`technical-writing`** | Every sentence you write, in a document or to the user |
 
-The documents sit in the **docs root**: `prd.md`, `glossary.md`, `features/<feature>/<feature>.feature.md`, `features/<feature>/<subject>.design.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `product-docs` resolves the root; every `.sdlc/…` path below means `<docs root>/…`.
+The documents sit in the **docs root**: `prd.md`, `glossary.md`, `features/<feature>/<feature>.feature.md`, `features/<feature>/<subject>.design.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `sdlc-structure` resolves the root; every `.sdlc/…` path below means `<docs root>/…`.
 
 **A ticket never names the repository it is built in** — the run that builds it works that out, from the feature, the design doc, the ticket, and the docs root's registry. So write the ticket about the product, and never about a repository path. What you *can* do is make that resolution easy: name the surface the work lands on in the ticket's description, in the words the design doc uses. When this session is vault-rooted and the code matters to the research, pass the candidate repositories to the interviewer as absolute paths, and check the session can read them. **Every ticket this command writes starts in `todo/`**, because no work has started on it. When the project keeps its design docs directly in the docs root or all in `designs/`, or its tickets folder is flat, write into the shape it already has.
 
@@ -135,7 +135,7 @@ write the document it governs, and follow it. Do not restate its rules from memo
 - **The `Decisions` section is the one exception**, and the reason this command runs an interview: record each settled choice as a fixed constraint, one line with its rationale. A library chosen in the interview is named here, and nowhere else.
 - **Acceptance criteria are observable outcomes**, and they match what the approved breakdown said the task delivers. The ticket is the only place they are written — the roadmap row does not repeat them.
 - **Status is `Not Started` and `Assignee` is `—`**, so the file goes in `todo/` and nobody holds it. `Created` is today. The `Epic` field names the epic exactly as its roadmap section does. **`Priority`** is what the approved breakdown table gave the task — the same value as its roadmap row. In a vault these five are frontmatter properties — `status`, `assignee` (left empty), `created`, `epic`, `priority` — beside `type`, `id`, and `tags`.
-- **`Depends on` is the ticket's own field, and it is where the dependency belongs.** Write every ID the approved breakdown put in that task's `Depends on` column — the `depends_on` property in a vault, a list of bare IDs; `—` and `[]` mean it waits on nothing. The roadmap row shows only the subset that is not finished yet, and it is computed from this field, so a dependency that exists only in a row is a dependency the board will lose. `product-docs` holds why these are IDs and not wikilinks.
+- **`Depends on` is the ticket's own field, and it is where the dependency belongs.** Write every ID the approved breakdown put in that task's `Depends on` column — the `depends_on` property in a vault, a list of bare IDs; `—` and `[]` mean it waits on nothing. The roadmap row shows only the subset that is not finished yet, and it is computed from this field, so a dependency that exists only in a row is a dependency the board will lose. `sdlc-structure` holds why these are IDs and not wikilinks.
 - **Write no worklog.** A ticket gets one beside it in the step that starts the work and moves it into `in-progress/`, which is an orchestrator's job, not this command's.
 - In the `related:` frontmatter property, link the PRD area the ticket serves and any sibling ticket. The ticket has no Related section in its body. The link runs ticket → PRD, never back.
 - **Never overwrite an existing ticket file.** Check every status folder for the ID before you write, because a completed ticket sits in `done/`. A name collision means the number is wrong — take the next free one in that epic.

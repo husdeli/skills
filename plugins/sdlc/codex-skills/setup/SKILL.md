@@ -14,7 +14,7 @@ Create the project document structure with the shared setup command.
 3. Treat that command as the source of truth for file discovery, migration, and safeguards.
 4. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
 5. Replace `${CLAUDE_PLUGIN_ROOT}` with the plugin root that contains this skill.
-6. Read `../../skills/product-docs/SKILL.md`, `../../skills/ticket-board/SKILL.md`, and `../../skills/feature/SKILL.md` before you create or migrate anything.
+6. Read `../../skills/sdlc-structure/SKILL.md`, `../../skills/ticket-board/SKILL.md`, and `../../skills/feature/SKILL.md` before you create or migrate anything.
 7. Use Codex file and user-input tools to perform the command.
 
 Do not invoke a nested `/setup` command. Execute the shared instructions directly.

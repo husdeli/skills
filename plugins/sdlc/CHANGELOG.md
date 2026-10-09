@@ -5,6 +5,24 @@ All notable changes to the **sdlc** plugin (named **clean-architecture** before 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **`product-docs` is now `sdlc-structure`, and it holds the whole structure the plugin creates.**
+  The skill used to say where the documents live. It now also says what the docs root holds:
+  - **The layout reference** has the folder tree, the folder rules, what `/setup` creates and leaves
+    empty, which command writes each part, how the structure grows and shrinks, and the older shapes
+    a project may still be on.
+  - **The document-kinds reference** gives every kind of document with its path, its `type`, its
+    states, the skill that governs it, the command that writes it, and what it cites.
+
+  The skill file itself is now a short index that sends a command to the one reference its job
+  needs. Four references hold the rules the skill already had: ownership and links, the docs root
+  and the registry, the work root, and the destinations with the vault shape. `/setup` points at the
+  layout reference instead of keeping its own copy of the tree. Every agent, command, Codex entry
+  point, document skill, and the README now names `sdlc-structure`.
+
 ## [0.63.0] - 2026-10-07
 
 ### Added

@@ -25,12 +25,12 @@ a hand-back that stops the run whenever the decision belongs to a person.
 
 | Skill | What it holds | Load before |
 | --- | --- | --- |
-| **`product-docs`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
+| **`sdlc-structure`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 1 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 2 |
 | **`technical-writing`** | Every word a person reads later — the worklog, the commit message, the report | Stage 2 |
 
-Each name may be namespaced here — `sdlc:product-docs`, `sdlc:ticket-board`,
+Each name may be namespaced here — `sdlc:sdlc-structure`, `sdlc:ticket-board`,
 `sdlc:agent-pipeline`, `sdlc:technical-writing`. Invoke the namespaced form when it is there, load each
 skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
 spawn prompt: the agents load their own.
@@ -38,12 +38,12 @@ spawn prompt: the agents load their own.
 **The documents sit in the docs root** — `prd.md`, `glossary.md`, `features/<feature>/`,
 `designs/<subject>.design.md`,
 `roadmap.md`, and `tickets/<status>/<ID>-*.md`, with a worklog beside a ticket in flight.
-`product-docs` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`.
+`sdlc-structure` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`.
 
 **The code sits in the work root** — the repository this task is built in. A run started inside a
 repository builds there and nothing changes. A run started in the vault — the recommended shape,
 where one board drives several repositories — has the docs root as its working directory, resolves
-the work root per task, and reaches into a repository somewhere else. `product-docs` holds the
+the work root per task, and reaches into a repository somewhere else. `sdlc-structure` holds the
 resolution rule. What is this command's:
 
 - **The work root is resolved in Stage 1.5**, after the CTO picks the task and before the ticket is
@@ -163,7 +163,7 @@ in the tree for the next task to commit.
 ### 0. Preflight — refuse to start on ground you cannot commit from
 Check these first, in one parallel Bash batch, and stop before you spawn anything if one fails:
 
-- **The docs root and the roadmap exist.** Resolve the root with `product-docs`. With no roadmap
+- **The docs root and the roadmap exist.** Resolve the root with `sdlc-structure`. With no roadmap
   anywhere, outcome `blocked`, naming `/setup`.
 - **Every candidate work root is a git work tree with nothing uncommitted in it.** Which repository
   this task lands in is not known yet, so check them all: `git -C <path> rev-parse
@@ -231,7 +231,7 @@ the shape is in the agent definition, do not restate it.
 Track the stages with the task/todo tools, so the task's log shows live progress.
 
 ### 1.5 Resolve the work root
-Resolve it as `product-docs` says, before anything is written and before any agent is spawned. One
+Resolve it as `sdlc-structure` says, before anything is written and before any agent is spawned. One
 entry in the registry answers it outright; several mean reading the feature and the design doc the ticket cites, the
 ticket itself, the epic, and each entry's `what` line, and then looking inside the candidate
 repositories for the code the task names.

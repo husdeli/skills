@@ -13,7 +13,7 @@ Filter (if provided): $ARGUMENTS
 
 **Load three skills before you report**, each once — namespaced here as `sdlc:<name>`:
 
-- **`product-docs`** — where the docs root and the work root are. Every `.sdlc/…` path below means `<docs root>/…`.
+- **`sdlc-structure`** — where the docs root and the work root are. Every `.sdlc/…` path below means `<docs root>/…`.
 - **`ticket-board`** — the roadmap's shape, what a `Depends on` cell means, the status-to-folder
   map, the `Assignee` field, and the worklog. It is what you are reading; read it there rather
   than inferring it from the files.

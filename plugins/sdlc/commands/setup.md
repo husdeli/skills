@@ -17,57 +17,21 @@ the repository as `.sdlc/`, which is where every command looks when no pointer f
 **This command runs from either end.** Start it inside a code repository, and it sets up the
 documents for that repository. Start it in the vault — in the docs root, or in a vault that holds
 one folder per product — and it sets up the documents there and asks which repositories they drive.
-`product-docs` holds how that is detected; resolve it before Step 1.
+`sdlc-structure` holds how that is detected; resolve it before Step 1.
 
 Arguments (if provided): $ARGUMENTS
 
-Load four skills before you create anything, namespaced here as `sdlc:<name>`: **`product-docs`**,
-which holds the resolution order, the two pointer files, and the vault conventions this command
-writes, **`ticket-board`**, which holds the shape of the tickets and the roadmap it creates and
+Load four skills before you create anything, namespaced here as `sdlc:<name>`: **`sdlc-structure`**,
+which holds the resolution order, the two pointer files, the vault conventions this command
+writes, and the layout it creates — read its layout reference before Step 4 —
+**`ticket-board`**, which holds the shape of the tickets and the roadmap it creates and
 migrates, **`feature`**, which holds the feature folder, the index note, and the code that ties
 a feature to its epic, and **`product-intent`**, which holds the five notes the PRD is assembled
 from and the migration that splits an existing PRD into them.
 
-```
-<docs root>/
-  sdlc.json             the repositories this product is built in — machine-local,
-                        gitignored, and the file a vault-rooted run reads first
-  prd.md                product requirements — the overview and the product areas in prose,
-                        and one line per note in product/ for the rest
-  glossary.md           the product's terms — one ## heading per term, defined once
-                        here and linked from every other document
-  roadmap.md            the work that is left, in order, grouped by epic
-  product/              the pieces the PRD is assembled from — one note each, because
-    goals/              a feature, a design doc, or the business plan points at them
-    non-goals/          and each one has a state of its own
-    personas/
-    problems/
-    metrics/
-  features/             one folder per feature — one thing a customer can do
-    <feature>/
-      <feature>.feature.md   the index — what the customer can do, and its state.
-                             Carries the code that numbers the feature's tickets
-      <subject>.design.md    the design docs that belong to this feature
-  designs/
-    overview.design.md  the design docs that underpin every feature — an app shell, an
-                        auth model, a shared data model. One file per subject, named
-                        <subject>.design.md; overview is the entry point
-  diagrams/             one .excalidraw.md file per diagram, referenced by any document
-  tickets/
-    TEMPLATE.md         copy this per task, named <EPIC>-<NNN>-<slug>.md
-    todo/               a ticket waits here until an orchestrator starts it
-    in-progress/        the ticket being built — in progress, blocked, or in review,
-                        with its worklog beside it
-    done/               a completed ticket, and its worklog
-```
-
-Each kind of document has its own folder once there can be more than one of it. A design doc
-covers one subject and stays where its ownership puts it — the feature's folder when it belongs to
-one feature, `designs/` when it underpins every feature. A ticket moves between
-the three status folders as its status changes — the `ticket-board` skill holds the mapping and the
-move rules. **A worklog appears beside a ticket in the step that starts the work**, holds what each
-agent decided while the ticket was built, and moves with the ticket into `done/`. Write none here:
-there is no ticket yet to put one beside.
+The tree this command creates, what each folder holds, and what it leaves empty are in the
+`sdlc-structure` layout reference. Create every folder that reference lists except `business/`,
+which `/business-plan` creates. Write no worklog here: there is no ticket yet to put one beside.
 
 ## Rules
 
@@ -169,14 +133,14 @@ decides whether to commit the file.
 
 A **vault destination changes how the documents are written**, not what they say: frontmatter
 properties instead of the `**Field**: value` lines, wikilinks instead of file names and relative
-paths, and no `.gitkeep`. The `product-docs` skill holds the mapping. A **folder** destination
+paths, and no `.gitkeep`. The `sdlc-structure` skill holds the mapping. A **folder** destination
 changes nothing but the path.
 
 ## 2. Register the repositories
 
 The docs root drives the code. **`sdlc.json` in the docs root names every repository this product
 is built in**, and it is what lets a session started in the vault work on any of them. The
-`product-docs` skill holds its shape; this step writes it.
+`sdlc-structure` skill holds its shape; this step writes it.
 
 **Collect the repositories.** Take them in this order:
 
@@ -423,7 +387,7 @@ information if it is skipped, and report the count you copied.
 ## 4. Write the stubs
 
 The stubs below are the repository shape. **In a vault, write the same stub with its fields as
-frontmatter properties** — the `product-docs` skill holds the field-to-property mapping and the
+frontmatter properties** — the `sdlc-structure` skill holds the field-to-property mapping and the
 `type` and `tags` properties every document carries. Everything under the frontmatter is
 unchanged, except that a reference to another document in the docs root becomes a wikilink.
 

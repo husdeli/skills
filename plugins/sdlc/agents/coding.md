@@ -17,7 +17,7 @@ Every brief names the **work root** — the absolute path of the repository this
 **Every file you read or write, and every command you run, belongs to it.** It is often the
 session's working directory, and in a run started from an Obsidian vault it is not: the documents
 are under your feet and the code is somewhere else. Run commands there as `cd <work root> && …`,
-and git as `git -C <work root> …`. When no work root was given, load the **`product-docs`** skill
+and git as `git -C <work root> …`. When no work root was given, load the **`sdlc-structure`** skill
 and resolve it before you touch a file.
 
 The brief itself arrives in one of two shapes. Read which one you have before you start.

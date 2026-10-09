@@ -60,7 +60,7 @@ context pack, the decisions, and what changed since its last turn.
 command gets the repository it works in as an absolute path, in its first message. A subagent
 inherits the session's working directory, which in a run started from an Obsidian vault holds the
 documents and not the code — an agent left to assume would read the wrong tree and report a clean
-result from it. `product-docs` holds how the work root is resolved; resolving it is the command's
+result from it. `sdlc-structure` holds how the work root is resolved; resolving it is the command's
 job, once, before the first spawn.
 
 ## Never duplicate the gating run

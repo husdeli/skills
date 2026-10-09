@@ -15,7 +15,7 @@ work is grouped by, and the plan is sold on, so it has one home and one record:
   payment-retry.design.md    a second subject inside the same feature
 ```
 
-**The `product-docs` skill resolves the docs root** — load it before you resolve any path below.
+**The `sdlc-structure` skill resolves the docs root** — load it before you resolve any path below.
 It also holds what a vault changes: the fields become frontmatter properties, and a reference
 becomes a wikilink.
 
@@ -106,13 +106,13 @@ The last three link notes the **`product-intent`** skill governs. Load it before
 link is the citation, and the reason behind each note stays in that note.
 
 In a `repo` or `folder` destination the properties become `**Field**: value` lines under the
-title, exactly as `product-docs` describes for every other document.
+title, exactly as `sdlc-structure` describes for every other document.
 
 **The body is short.** Two or three sentences, the list of designs, and the open work. The index
 is a **pointer with a name on it**, not a place to describe the product twice.
 
 Every neighbouring fact is already carried by a property or a link in this note — the `area`, the
-`goals`, the `personas`, the list of designs, the query of open work. The `product-docs` ownership
+`goals`, the `personas`, the list of designs, the query of open work. The `sdlc-structure` ownership
 table says which document holds each one.
 
 **The two or three sentences say one thing none of those documents can**: what a customer can do,

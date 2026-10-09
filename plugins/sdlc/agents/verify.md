@@ -17,7 +17,7 @@ You will receive:
 - **Work root** — the absolute path of the repository to verify. **Run every command in it**: `cd
   <work root> && <command>`. It is often the session's working directory, and in a run started from
   an Obsidian vault it is not — a bare `npm test` then runs in the vault, finds no suite, and proves
-  nothing. When no work root was given, load the **`product-docs`** skill and resolve it first.
+  nothing. When no work root was given, load the **`sdlc-structure`** skill and resolve it first.
 - **Verification commands** — the exact tests, lint, and typecheck commands for this project.
 - **`e2eCommand`** (optional) — the project's end-to-end command, or the literal `none` meaning the project has no e2e suite. When supplied, **trust it and skip discovery entirely** — do not glob for configs or scripts.
 - **Previously failing commands** (re-runs only) — the commands that failed on the last attempt.
