@@ -20,7 +20,7 @@ One thing a customer can do with the product, kept as a folder under `features/`
 
 ## Framework root
 
-The folder a session starts in. It may hold `projects/`; when it does not, it holds one project's documents directly.
+The folder a session starts in. It holds the registry, and it may hold `projects/`; when it does not, it holds one project's documents directly.
 
 ## Pointer file
 
@@ -40,11 +40,11 @@ One product and every document about it. Its documents sit in `projects/<project
 
 ## Project note
 
-`<project-name>.md`, the note that names a project, says in a paragraph what it is, carries its status, and links its PRD and roadmap.
+`<project-name>.md`, the note that names a project in its `name` property, says in a paragraph what it is, carries its status, and links its PRD and roadmap.
 
 ## Registry
 
-`sdlc.json` beside the project's other documents, naming every work root the project is built in and what belongs in each. It is machine-local and never committed.
+`sdlc.json` at the framework root, naming every work root each project is built in and what belongs in each. It is machine-local and gitignored.
 
 ## Roadmap
 
@@ -56,8 +56,8 @@ One task on the board, named `<EPIC>-<NNN>-<slug>.md`. Its folder under `tickets
 
 ## Work root
 
-One code repository the project is built in, with its own instructions, tests, and git history. A project may have several, and the run picks one per ticket.
+One code repository the project is built in, with its own instructions, tests, and git history. A project may have several, and one ticket may change several of them.
 
 ## Worklog
 
-The record of what was decided while a ticket was built, kept beside the ticket as `<EPIC>-<NNN>-<slug>.worklog.md`. Only the orchestrating command writes it, and it names the work root the ticket landed in.
+The record of what was decided while a ticket was built, kept beside the ticket as `<EPIC>-<NNN>-<slug>.worklog.md`. Only the orchestrating command writes it, and it names every work root the ticket changed.

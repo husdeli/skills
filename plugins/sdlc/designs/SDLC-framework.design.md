@@ -4,6 +4,9 @@ subject: sdlc-framework
 updated: 2026-10-09
 tags:
   - sdlc/design
+related:
+  - "[[project-structure.design]]"
+  - "[[registry.design]]"
 ---
 # SDLC framework
 
@@ -17,8 +20,9 @@ The tree:
 
 ```
 <framework root>/
+├── sdlc.json                    the registry; machine-local, gitignored
 └── projects/                    optional
     └── <project-name>/          one project; see project structure
 ```
 
-What a project folder holds is defined in [[project-structure.design|Project structure]].
+What a project folder holds is defined in [[project-structure.design|Project structure]], and the registry in [[registry.design|Registry]].

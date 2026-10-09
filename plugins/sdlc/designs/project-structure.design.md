@@ -44,6 +44,7 @@ The PRD is defined in [[prd.design|PRD]].
 ```yaml
 ---
 type: project
+name: acme-billing
 status: in progress
 tags:
   - sdlc/project
@@ -56,6 +57,7 @@ Invoicing and payment collection for small agencies.
 - [[roadmap]] — the work that is left
 ```
 
+- **`name` is the project's name**: required, short, lower case, and unique within the framework root. The registry's `projects` list names a project by this value; see [[registry.design|Registry]].
 - **The paragraph says what the project is**, in one or two sentences. The PRD says why, for whom, and how far.
 - **The links point at the project's entry documents** — the PRD and the roadmap, each only when the project has it. The note lists no feature, ticket, or design doc; those are found through the PRD and the roadmap.
 
