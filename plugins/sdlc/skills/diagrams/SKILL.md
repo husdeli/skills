@@ -1,6 +1,6 @@
 ---
 name: diagrams
-description: "Rules for a diagram in any product document — generated into <docs root>/diagrams/<name>.excalidraw.md by this skill's own builder, referenced from the document with a one-line caption, and written as an ASCII diagram only when the builder cannot run. INVOKE THIS SKILL before you put a diagram in a PRD, a design doc, a ticket, or any other document in the docs root, and before you update a document whose shape a diagram already shows. Enforces one diagram per shape, one home for every diagram file, the Obsidian `.excalidraw.md` format, a caption that carries the meaning in text, and prose that stays complete without the picture."
+description: "Rules for a diagram in any product document — generated into the project's diagrams/<name>.excalidraw.md by this skill's own builder, referenced from the document with a one-line caption, and written as an ASCII diagram only when the builder cannot run. INVOKE THIS SKILL before you put a diagram in a PRD, a design doc, a ticket, or any other document in the project, and before you update a document whose shape a diagram already shows. Enforces one diagram per shape, one home for every diagram file, the Obsidian `.excalidraw.md` format, a caption that carries the meaning in text, and prose that stays complete without the picture."
 ---
 
 # diagrams skill
@@ -9,8 +9,8 @@ A document earns a diagram when its **shape** is the fact — the parts and what
 stages of a flow, the regions of a screen, the entities and their relations. Prose carries
 everything else. A diagram that repeats a sentence is a diagram to delete.
 
-Every diagram in this project is **one `<name>.excalidraw.md` file in `<docs root>/diagrams/`**,
-built by this skill. The **`sdlc-structure`** skill resolves the docs root.
+Every diagram in this project is **one `<name>.excalidraw.md` file in `<project>/diagrams/`**,
+built by this skill. The **`sdlc-structure`** skill resolves the project.
 
 ## Build it
 
@@ -18,8 +18,8 @@ built by this skill. The **`sdlc-structure`** skill resolves the docs root.
 and you never draw the picture in prose.
 
 ```bash
-python3 <skill>/scripts/excalidraw_md.py build spec.json <docs root>/diagrams/checkout.excalidraw.md
-python3 <skill>/scripts/excalidraw_md.py validate <docs root>/diagrams/checkout.excalidraw.md
+python3 <skill>/scripts/excalidraw_md.py build spec.json <project>/diagrams/checkout.excalidraw.md
+python3 <skill>/scripts/excalidraw_md.py validate <project>/diagrams/checkout.excalidraw.md
 ```
 
 `<skill>` is this skill's own directory — `${CLAUDE_PLUGIN_ROOT}/skills/diagrams` in Claude Code.
@@ -71,7 +71,7 @@ one-line caption** naming what the picture shows that the surrounding prose does
 | `repo`, `folder` | `designs/checkout.design.md` | `[Checkout parts](../diagrams/checkout.excalidraw.md)` |
 | `repo`, `folder` | `features/checkout/checkout.design.md` | `[Checkout parts](../../diagrams/checkout.excalidraw.md)` |
 | `repo`, `folder` | `tickets/todo/AUTH-001-user-login.md` | `[Checkout parts](../../diagrams/checkout.excalidraw.md)` |
-| `vault` | any document in the docs root | `![[checkout.excalidraw]]` |
+| `vault` | any document in the project | `![[checkout.excalidraw]]` |
 
 - **In a vault the reference is an embed**, and the wikilink drops the final `.md` — a file named
   `checkout.excalidraw.md` is linked as `[[checkout.excalidraw]]`. Obsidian's Excalidraw plugin

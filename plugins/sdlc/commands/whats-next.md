@@ -13,16 +13,16 @@ Filter (if provided): $ARGUMENTS
 
 **Load three skills before you report**, each once — namespaced here as `sdlc:<name>`:
 
-- **`sdlc-structure`** — where the docs root and the work root are. Every `.sdlc/…` path below means `<docs root>/…`.
+- **`sdlc-structure`** — where the project and the work root are. Every `.sdlc/…` path below means `<project>/…`.
 - **`ticket-board`** — the roadmap's shape, what a `Depends on` cell means, the status-to-folder
   map, the `Assignee` field, and the worklog. It is what you are reading; read it there rather
   than inferring it from the files.
 - **`technical-writing`** — this is a status answer a person reads in one pass.
 
-The documents sit in the docs root: `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md` with a
+The documents sit in the project: `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md` with a
 worklog beside a ticket that work has started on.
 
-**Say where the work happens.** A docs root with a `sdlc.json` registry drives one repository or
+**Say where the work happens.** A project with a `sdlc.json` registry drives one repository or
 several. List them once, at the top of the report — the code and the path per entry — and, for each
 ticket in flight, name the work root its worklog records. That is the only place a task's repository
 is written down, and it is what tells a reader which tree to open. Say nothing about a repository
@@ -34,8 +34,8 @@ mistake this command can make, so read the files rather than answering from memo
 
 ## 1. Read the roadmap and the tickets
 
-- **The roadmap** is the docs root's `roadmap.md`, unless `$ARGUMENTS` gives a path. When neither
-  exists, look for a roadmap at the project root. With no roadmap anywhere, say so and name
+- **The roadmap** is the project's `roadmap.md`, unless `$ARGUMENTS` gives a path. When neither
+  exists, look for a roadmap at the repository root. With no roadmap anywhere, say so and name
   `/setup` as the way to create the structure, then stop.
 - Read **every** `## <CODE> — <epic name>` section, not just the first. A dependency may name a
   task in another epic. Read an epic's `**Note**:` line when it has one: it constrains every task
@@ -85,7 +85,7 @@ rest is this command's:
   you did not open: a waiting task needs its row and nothing more, and an unread ticket is not
   evidence of anything.
 - **To judge the whole file instead of the rows you read**, run
-  `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --check --docs-root <docs root>`. It writes
+  `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --check --project <project>`. It writes
   nothing, which is why this read-only command may run it, and it prints exactly which rows differ
   from the tickets. Report its findings in one or two lines and name `/setup` as what rebuilds the
   file. Skip it when `python3` is missing, and say so once.

@@ -1,15 +1,15 @@
 ---
 name: glossary
-description: "Rules for the product's terms — the glossary at <docs root>/glossary.md that defines each term once under its own heading, how a term is chosen, and how every other document links a definition instead of writing it again. INVOKE THIS SKILL before you name a domain concept in anything a person reads, and before you read, write, rename, or link a glossary entry. Enforces one definition per term, one term per concept, a heading that holds the term alone, and a link at the term's first use in every document."
+description: "Rules for the product's terms — the project's glossary.md that defines each term once under its own heading, how a term is chosen, and how every other document links a definition instead of writing it again. INVOKE THIS SKILL before you name a domain concept in anything a person reads, and before you read, write, rename, or link a glossary entry. Enforces one definition per term, one term per concept, a heading that holds the term alone, and a link at the term's first use in every document."
 ---
 
 # glossary skill
 
-`<docs root>/glossary.md` holds the product's **ubiquitous language** — one entry per term the
+`<project>/glossary.md` holds the product's **ubiquitous language** — one entry per term the
 product uses. **A term is defined once, here.** Every other document links that entry instead of
 defining the term again, so no two documents can drift into two meanings.
 
-**The `sdlc-structure` skill resolves the docs root** — load it before you resolve the path. This
+**The `sdlc-structure` skill resolves the project** — load it before you resolve the path. This
 skill holds the term itself: how it is chosen, how its entry is written, and how a document points
 at one.
 
@@ -17,10 +17,10 @@ at one.
 
 The reader knows this product by the names the product uses. Use those names.
 
-- **Take the vocabulary from the project**, in this order: `<docs root>/glossary.md`,
-  `<docs root>/prd.md`, `<docs root>/features/*/*.feature.md`,
-  `<docs root>/features/*/*.design.md`, `<docs root>/designs/*.design.md` (or, on an older shape,
-  `<docs root>/*.design.md` or a single `design.md`), `AGENTS.md`, `CLAUDE.md`, the ticket or
+- **Take the vocabulary from the project**, in this order: `<project>/glossary.md`,
+  `<project>/prd.md`, `<project>/features/*/*.feature.md`,
+  `<project>/features/*/*.design.md`, `<project>/designs/*.design.md` (or, on an older shape,
+  `<project>/*.design.md` or a single `design.md`), `AGENTS.md`, `CLAUDE.md`, the ticket or
   roadmap, then the code. Read these before you write about a domain you have not written about in
   this session.
 - **One term per concept, everywhere.** If the glossary says "workspace", never write "project",
@@ -83,7 +83,7 @@ none of them mattered.
 | `repo`, `folder` | `designs/checkout.design.md` | `[workspace owner](../glossary.md#workspace-owner)` |
 | `repo`, `folder` | `features/checkout/checkout.feature.md` | `[workspace owner](../../glossary.md#workspace-owner)` |
 | `repo`, `folder` | `tickets/todo/AUTH-001-user-login.md` | `[workspace owner](../../glossary.md#workspace-owner)` |
-| `vault` | any document in the docs root | `[[glossary#Workspace owner]]` |
+| `vault` | any document in the project | `[[glossary#Workspace owner]]` |
 
 - **A repository anchor is the heading in lower case, with each space as a hyphen.**
   `## Workspace owner` is reached as `glossary.md#workspace-owner`.
@@ -93,14 +93,14 @@ none of them mattered.
   `[workspace owners](glossary.md#workspace-owner)`.
 - **A document never repeats a definition it links.** When a definition changes, change the entry
   and leave every link alone.
-- **Prose a person reads outside the docs root carries no link** — a chat reply, a commit message,
+- **Prose a person reads outside the project carries no link** — a chat reply, a commit message,
   a pull-request body, a review verdict, an agent's report. Use the glossary's term there, plainly.
 
 ## Keep it current
 
 - **Whoever coins a term writes its entry**, in the same step that introduces it. A document that
   uses a term with no entry is a document that defines the term twice tomorrow.
-- **A rename is one edit**: the heading, and every link that points at it. Search the docs root for
+- **A rename is one edit**: the heading, and every link that points at it. Search the project for
   the old anchor and the old wikilink before you stop.
 - **A term loses its entry when no document uses it.** Delete the entry, and delete the links with
   the prose that carried them.

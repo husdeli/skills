@@ -36,7 +36,7 @@ has to write.
 
 Don't plan on unchallenged assumptions. For any non-trivial feature, run a discovery pass **before** writing the plan:
 
-1. Read the docs root's `prd.md` if it exists, the feature note the ticket's epic code names (`<docs root>/features/<feature>/<feature>.feature.md`), and the design docs this ticket touches — the ones in that feature's folder first, then `<docs root>/designs/*.design.md`, or, on an older shape, `<docs root>/*.design.md` or a single `<docs root>/design.md` — for product intent and the intended design. Note where the ticket diverges. Fall back to the project root when the docs root is absent. See [Where tickets live](#where-tickets-live) for how the docs root is resolved.
+1. Read the PRD if it exists, the feature note the ticket's epic code names (`<project>/features/<feature>/<feature>.feature.md`), and the design docs this ticket touches — the ones in that feature's folder first, then `<project>/designs/*.design.md`, or, on an older shape, `<project>/*.design.md` or a single `<project>/design.md` — for product intent and the intended design. Note where the ticket diverges. Fall back to the repository root when there is no project. The `sdlc-structure` skill resolves the project — load it before you resolve a path.
 2. Research the feature topic — established approaches, common pitfalls, relevant libraries, UX/security conventions.
 3. Explore the codebase for what already exists and can be reused.
 4. Turn the fuzzy parts into **explicit high-level decisions** and put them to the user with concrete options and a recommended default:

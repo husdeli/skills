@@ -5,18 +5,18 @@ argument-hint: "[product name] [destination path] [repository paths]"
 
 # Setup
 
-Create the **docs root** — the single home for every document this plugin reads and writes — and
+Create the **project** — the product and every document this plugin reads and writes about it — and
 **register the repositories** the product is built in, so a later run can start from either end.
 
 The recommended home is a folder in an **Obsidian vault**, outside the repository: the documents
 stay readable and editable wherever the vault syncs, they stay out of every diff and merge, one
 vault holds every project, and one board can drive **several repositories** — the web app and the
-API are then two entries in one registry, and one roadmap covers both. The docs root can also sit in
-the repository as `.sdlc/`, which is where every command looks when no pointer file says otherwise.
+API are then two entries in one registry, and one roadmap covers both. The project can also sit in
+the repository as `.sdlc/` — the default, as the `sdlc-structure` skill defines it.
 
 **This command runs from either end.** Start it inside a code repository, and it sets up the
-documents for that repository. Start it in the vault — in the docs root, or in a vault that holds
-one folder per product — and it sets up the documents there and asks which repositories they drive.
+documents for that repository. Start it in the vault — in the project, or in a vault that holds
+several projects — and it sets up the documents there and asks which repositories they drive.
 `sdlc-structure` holds how that is detected; resolve it before Step 1.
 
 Arguments (if provided): $ARGUMENTS
@@ -38,44 +38,44 @@ which `/business-plan` creates. Write no worklog here: there is no ticket yet to
 - **Never overwrite.** Create a file only when it does not exist. Report each existing file
   as kept, and leave its contents alone.
 - **One design stub, at most.** Write `designs/overview.design.md` only when the project has no
-  design doc at all — no `*.design.md` file in `features/*/`, in `designs/`, in the docs root
-  itself, or at the project root, and no single `design.md` in any of those places. Report the one
-  it already has as kept.
+  design doc at all — no `*.design.md` file in `features/*/`, in `designs/`, in the project
+  itself, or at the repository root, and no single `design.md` in any of those places. Report the
+  one it already has as kept.
 - **Write stubs, not content.** Each stub carries only the headings and the placeholder
   lines below. Do not invent product requirements, surfaces, or tasks — the person fills
   them in, or `/prd` and `/design` do.
 - **Substitute the product name** wherever the stubs show `<product>`, when the arguments
   gave one. Otherwise leave `TBD`.
 - **Settle the destination before you create anything** — Step 1. The repository option puts
-  the docs root at `.sdlc/` in the project root: the directory holding `.git`, `package.json`,
-  `AGENTS.md`, or `CLAUDE.md`. Not the current working directory when that sits deeper.
-- **Register every repository** — Step 2. A docs root with no registry can only be driven from
+  the project in `.sdlc/` at the repository root, which the `sdlc-structure` skill defines — not
+  the current working directory when that sits deeper.
+- **Register every repository** — Step 2. A project with no registry can only be driven from
   inside a repository, which is the thing this command exists to fix.
 - **Write no feature, and no product note.** `features/` and the five folders under `product/` are
   created empty. A feature is opened when the product has one, and a goal, a persona, or a problem
   is written when `/prd` settles it. Inventing either here invents a commitment nobody made.
 - **Create `product/` with its five folders, `features/`, `designs/`, `diagrams/`, and all three
   ticket status folders**, even though they start empty.
-  Write a `.gitkeep` file into every one that ends up with no file in it **when the docs root
-  sits inside a git working tree**, because git does not track an empty directory. A docs root
+  Write a `.gitkeep` file into every one that ends up with no file in it **when the project
+  sits inside a git working tree**, because git does not track an empty directory. A project
   outside git gets no `.gitkeep` — it is clutter in a vault.
 
 ## 1. Settle the destination
 
-The docs root goes where the user keeps this kind of writing. Decide where, in this order, and
+The project goes where the user keeps this kind of writing. Decide where, in this order, and
 stop at the first that applies:
 
-- **This session is vault-rooted** — the working directory is a docs root, or a vault holding one
-  → the destination is settled before you ask anything. The docs root is that folder; when the
-  vault holds several product folders, take the product from the arguments, and ask which one
-  otherwise. Fill the gaps there and go to Step 2, which is the step that has work to do.
-- **`.sdlc.json` already exists** at the project root → read it. The destination is settled.
+- **This session is vault-rooted** — the working directory is a project, or a vault holding one
+  → the destination is settled before you ask anything. The project is the working directory, or
+  the one the vault holds; when the vault holds several, take the one the arguments name, and ask
+  which one otherwise. Fill the gaps there and go to Step 2, which is the step that has work to do.
+- **`.sdlc.json` already exists** at the repository root → read it. The destination is settled.
   Report where the documents live and fill the gaps there. Do not ask.
 - **`.sdlc/` already exists** → the destination is the repository. You are filling gaps, not
   choosing. Do not ask.
 - **The arguments name a path** — an absolute path, a `~`-prefixed path, or anything holding a
   path separator → that is the destination. The rest of the arguments is the product name.
-- **Otherwise, ask.** One question, two options:
+- **Otherwise, ask** where the project's documents should live. One question, two options:
   - **In an Obsidian vault** — recommended. The documents are readable and editable without the
     repository, on every device the vault syncs to, and Obsidian's properties, backlinks, and
     search work on the whole board. They sit outside the code, so a branch switch never changes
@@ -106,7 +106,7 @@ folder — in the path itself, or in any parent directory:
   ignoring `.obsidian/`:
 
   - **Nothing, or only this plugin's own documents** — `prd.md`, `glossary.md`, `roadmap.md`,
-    `designs/`, `diagrams/`, `tickets/` → **the vault root is the docs root.** A vault kept for
+    `designs/`, `diagrams/`, `tickets/` → **the vault root is the project.** A vault kept for
     one product needs no folder inside it, and a folder named after the vault
     (`sdlc-obsidian/sdlc-obsidian/`) helps nobody. Do not ask, and never nest.
   - **Notes of its own** — any other note or folder → say that `prd.md`, `glossary.md`, and
@@ -114,10 +114,10 @@ folder — in the path itself, or in any parent directory:
     (`<vault>/Acme/`) as the alternative. The user chooses; take the vault root when they
     confirm it.
 - **Not found**, and the path is outside the repository → the destination is a **folder**.
-- **Inside the repository** → the destination is the **repository**, and the docs root is
+- **Inside the repository** → the destination is the **repository**, and the project goes in
   `.sdlc/`.
 
-**Write the pointer file** at the project root when the docs root is anything other than
+**Write the pointer file** at the repository root when the project is anywhere other than
 `.sdlc/`, so every other command finds the documents:
 
 ```json
@@ -127,7 +127,7 @@ folder — in the path itself, or in any parent directory:
 }
 ```
 
-Use a path relative to the project root when the folder sits near the project. Otherwise write
+Use a path relative to the repository root when the project sits near the repository. Otherwise write
 the absolute path, and say in your report that it only resolves on this machine — the user
 decides whether to commit the file.
 
@@ -138,7 +138,7 @@ changes nothing but the path.
 
 ## 2. Register the repositories
 
-The docs root drives the code. **`sdlc.json` in the docs root names every repository this product
+The project drives the code. **`sdlc.json` in the project names every repository this product
 is built in**, and it is what lets a session started in the vault work on any of them. The
 `sdlc-structure` skill holds its shape; this step writes it.
 
@@ -147,7 +147,7 @@ is built in**, and it is what lets a session started in the vault work on any of
 - **The arguments name repository paths** → use them.
 - **This session is repo-rooted** — you are standing in a code repository → that repository is the
   first entry. Ask whether the product has others, and take the paths the user gives.
-- **This session is vault-rooted** — you are standing in the docs root → ask for the path of every
+- **This session is vault-rooted** — you are standing in the project → ask for the path of every
   repository the product is built in. One is a complete answer; a product with a web app and an API
   gives two.
 
@@ -178,16 +178,16 @@ repository's name again. Show each line to the user with the path, and correct w
 
 **Then write the two pointers, so the product can be driven from either end:**
 
-1. **`sdlc.json` in the docs root** — the registry above. Never overwrite an existing registry:
+1. **`sdlc.json` in the project** — the registry above. Never overwrite an existing registry:
    merge the new entries into it, keep every entry that is already there, and report a path that
    changed rather than replacing it silently.
-2. **`.sdlc.json` at the root of every repository in the registry** — the pointer back to the docs
-   root, exactly as Step 1 writes it. A repository you cannot reach from this session is reported
+2. **`.sdlc.json` at the root of every repository in the registry** — the pointer back to the
+   project, exactly as Step 1 writes it. A repository you cannot reach from this session is reported
    as unregistered, with the one command that fixes it: run setup again from inside it.
 
-**Gitignore the registry.** It holds paths that exist on this machine only. When the docs root sits
+**Gitignore the registry.** It holds paths that exist on this machine only. When the project sits
 inside a git working tree, append the registry's path relative to that tree's root to its
-`.gitignore` — `.sdlc/sdlc.json` for a docs root in the repository — as one line, never replacing
+`.gitignore` — `.sdlc/sdlc.json` for a project in the repository — as one line, never replacing
 the file, and never a second time when the line is already there. A vault is usually no working
 tree, and then there is nothing to ignore. Say in the report that the file is machine-local either
 way.
@@ -199,38 +199,38 @@ vault-rooted run possible later without a second setup.
 
 Look for documents this plugin would otherwise create twice:
 
-- The docs root itself — if it exists, you are filling gaps, not setting up.
-- Root-level `prd.md`, `PRD.md`, `glossary.md`, `GLOSSARY.md`, `design.md`, `DESIGN.md`,
-  `roadmap.md`, `ROADMAP.md`.
-- A root-level `tickets/` directory.
-- A design doc in any shape: `*.design.md` files in `<docs root>/features/*/`, in
-  `<docs root>/designs/`, in the docs root itself, or at the project root; or a single `design.md`
+- The project itself — if it exists, you are filling gaps, not setting up.
+- `prd.md`, `PRD.md`, `glossary.md`, `GLOSSARY.md`, `design.md`, `DESIGN.md`, `roadmap.md`, or
+  `ROADMAP.md` at the repository root.
+- A `tickets/` directory at the repository root.
+- A design doc in any shape: `*.design.md` files in `<project>/features/*/`, in
+  `<project>/designs/`, in the project itself, or at the repository root; or a single `design.md`
   in any of those.
 - A `features/` directory, and whether it holds a feature note.
 
-If any of these exist outside the docs root, **ask before touching them**: offer to
-move each into the folder with `git mv` (preserving history), or to leave it where it is.
+If any of these exist outside the project, **ask before touching them**: offer to
+move each into the project with `git mv` (preserving history), or to leave it where it is.
 Moving a file is the user's call — never move one without an explicit yes. A file left in
-place still works: every agent falls back to the project root when the folder has no such
+place still works: every agent falls back to the repository root when the project has no such
 document.
 
 **A move out of the repository loses the file's git history**, because `git mv` cannot cross
-into a folder git does not track. Say that plainly whenever the docs root is a vault or an
+into a folder git does not track. Say that plainly whenever the project sits in a vault or an
 outside folder, before you offer the move, and use a plain `mv` when the user says yes.
 
 **Design docs outside a folder** need the same explicit yes. A design doc lives in
-`<docs root>/features/<feature>/` when it belongs to one feature, and in `<docs root>/designs/`
+`<project>/features/<feature>/` when it belongs to one feature, and in `<project>/designs/`
 when it underpins every feature. One file per subject, named `<subject>.design.md`, so anything
 else is an older shape. Gather them into `designs/` first, then offer the feature migration below:
 
-- `*.design.md` files in the docs root itself or at the project root → offer to move each
+- `*.design.md` files directly in the project or at the repository root → offer to move each
   one into `designs/` under the same name, and report the count moved.
-- A single `design.md`, in the docs root or at the project root → offer to move it to
+- A single `design.md`, in the project or at the repository root → offer to move it to
   `designs/overview.design.md`. Say the rename is only a rename: no
   content moves, and splitting it by subject is a later job for `/design`.
 
 When the user says no, leave every file where it is: every agent reads the older shapes as a
-fallback. Skip the offer when `<docs root>/designs/` already holds the docs.
+fallback. Skip the offer when the project's `designs/` already holds the docs.
 
 **A PRD that still holds its goals, personas, problems, and metrics inline** needs the same
 explicit yes. Those five pieces are notes under `product/`, because a feature, a design doc, and
@@ -287,7 +287,7 @@ does not approve:
    feature whose evidence disagreed with the roadmap.
 3. **Move the design docs and rewrite every reference.** Move each approved doc with `git mv` into
    its feature's folder, keeping its name. Add a `**Feature**:` line to each roadmap epic section
-   that now has a feature. Then search the docs root for every moved path and fix what that finds —
+   that now has a feature. Then search the project for every moved path and fix what that finds —
    a `related:` property, a ticket, a diagram caption, the business plan. Report the counts: features
    opened, docs moved, docs kept in `designs/`, references rewritten.
 
@@ -354,14 +354,14 @@ corrects only the rows it reads, so drift nobody has read stays until something 
 file. Find out whether there is any, with the script that does it:
 
 ```shell
-${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --check --docs-root <docs root>
+${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --check --project <project>
 ```
 
 It writes nothing, prints what differs as a diff, and exits 1 when the tables do not match the
 tickets. Show the user that output, then offer the rebuild:
 
 ```shell
-${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --docs-root <docs root>
+${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --project <project>
 ```
 
 It writes each epic's table from the tickets — one row per open ticket, its `Priority` and
@@ -389,9 +389,9 @@ information if it is skipped, and report the count you copied.
 The stubs below are the repository shape. **In a vault, write the same stub with its fields as
 frontmatter properties** — the `sdlc-structure` skill holds the field-to-property mapping and the
 `type` and `tags` properties every document carries. Everything under the frontmatter is
-unchanged, except that a reference to another document in the docs root becomes a wikilink.
+unchanged, except that a reference to another document in the project becomes a wikilink.
 
-**`<docs root>/prd.md`**
+**`<project>/prd.md`**
 
 ```markdown
 # Product Requirements Document
@@ -467,7 +467,7 @@ tags:
 …
 ```
 
-**`<docs root>/glossary.md`**
+**`<project>/glossary.md`**
 
 ```markdown
 # <product> — glossary
@@ -498,7 +498,7 @@ tags:
 Write the placeholder term only — never invent terms. `/prd`, `/design`, and `/plan` fill the
 entries as the product gains them, and the **`glossary`** skill holds the rules they follow.
 
-**`<docs root>/designs/overview.design.md`** — the entry-point design doc, for the subjects that
+**`<project>/designs/overview.design.md`** — the entry-point design doc, for the subjects that
 underpin every feature. A subject that belongs to one feature gets its `<subject>.design.md` in
 that feature's folder instead. `/design` writes both.
 
@@ -569,7 +569,7 @@ tags:
 Keep only the sections that have something specific to say — an empty heading is deleted,
 never filled — and leave out any part that is not designed yet.
 
-**`<docs root>/roadmap.md`**
+**`<project>/roadmap.md`**
 
 ```markdown
 # <product> — roadmap
@@ -601,7 +601,7 @@ In a vault, `**Last updated**` becomes the `updated` property under a `type: roa
 frontmatter block, and the ticket citation becomes a wikilink — `[[AREA-001-<slug>]]`. The
 `**Feature**` line becomes a wikilink too — `[[<feature>.feature]]`.
 
-**`<docs root>/tickets/TEMPLATE.md`**
+**`<project>/tickets/TEMPLATE.md`**
 
 Copy the `ticket-board` skill's ticket template verbatim from
 `skills/ticket-board/assets/ticket-template.md` in the plugin directory
@@ -619,7 +619,7 @@ template, not a ticket, so it never moves.
 Everything the user reads here follows the **`technical-writing`** skill (namespaced
 `sdlc:technical-writing`) — load it before you report.
 
-Say **where the docs root is** and, when you wrote one, that `.sdlc.json` now points at it.
+Say **where the project is** and, when you wrote one, that `.sdlc.json` now points at it.
 Report the tree you created, marking each file `created` or `kept`, and each moved file with
 its old and new path. When you ran the PRD split, report it as its own block: the notes written
 per type, the PRD sections rewritten, and anything you left inline because it was prose. When you
@@ -634,7 +634,7 @@ and say that running setup again from inside it registers it.
 **Then say how to start a run from the vault**, which is the shape this registry buys:
 
 ```shell
-cd <docs root>
+cd <project>
 claude --add-dir <work root> [--add-dir <work root> …]
 ```
 

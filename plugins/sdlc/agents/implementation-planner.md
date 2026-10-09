@@ -20,7 +20,7 @@ You will receive:
 - **Context** — relevant details from the roadmap and previously completed tasks
 - **Discovery Brief + Decisions** — the interview stage's research and the decisions the user settled; treat these as fixed constraints, not open questions
 - **Review feedback** (revisions only) — issues from a prior review to address
-- **PRD / Feature / Design** — `<docs root>/prd.md`, the feature note at `<docs root>/features/<feature>/<feature>.feature.md`, and the design docs — `<docs root>/features/*/*.design.md` and `<docs root>/designs/*.design.md` — if the project has them. Load the **`sdlc-structure`** skill (namespaced `sdlc:sdlc-structure`) to resolve the docs root
+- **PRD / Feature / Design** — `<project>/prd.md`, the feature note at `<project>/features/<feature>/<feature>.feature.md`, and the design docs — `<project>/features/*/*.design.md` and `<project>/designs/*.design.md` — if the project has them. Load the **`sdlc-structure`** skill (namespaced `sdlc:sdlc-structure`) to resolve the project
 
 ## Two-turn mode (scout, then plan)
 
@@ -34,8 +34,8 @@ When the first message contains the task *and* the Decisions, ignore this sectio
 ## Process
 
 1. **Honor the settled decisions** — if you received a Discovery Brief + Decisions, build the plan around those choices; do not reopen them.
-2. **Check the product docs** — resolve the docs root as `sdlc-structure` says, then read its `prd.md` for product context and the feature note the task's epic code names for what the customer gets. Then list that feature's folder and `<docs root>/designs/*.design.md`, and read the design docs whose subject this task touches, for how the solution is supposed to work — its parts, flows, and behavior. That skill also names the older shapes and the project-root fallback to read when a project has no docs root.
-3. **Read project conventions** — check the `AGENTS.md` and `CLAUDE.md` files of the **work root** for rules you must follow. They are the ones that govern the code you are planning; a file beside the documents is not.
+2. **Check the product docs** — resolve the project as `sdlc-structure` says, then read the PRD for product context and the feature note the task's epic code names for what the customer gets. Then list that feature's folder and `<project>/designs/*.design.md`, and read the design docs whose subject this task touches, for how the solution is supposed to work — its parts, flows, and behavior. That skill also names the older shapes and the repository-root fallback to read when a repository has no project.
+3. **Read the repository conventions** — check the `AGENTS.md` and `CLAUDE.md` files of the **work root** for rules you must follow. They are the ones that govern the code you are planning; a file beside the documents is not.
 4. **Explore the codebase** — find related files, existing patterns, conventions, libraries, and naming styles. Explore the work root, not the working directory.
 5. **Research the best practice for how this is built** — use `WebSearch`/`WebFetch` to confirm the approach is the current recommended one, not the one idiomatic three versions ago. The interview brief stops at the product/architecture altitude; cover what it could not settle:
    - the **official docs for the exact libraries and versions this codebase pins** (check `package.json`/lockfile first) — recommended API, current idiom, anything deprecated in that version;

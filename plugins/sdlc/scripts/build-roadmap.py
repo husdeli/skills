@@ -10,12 +10,12 @@
 #
 #   ./build-roadmap.py                      # rebuild the tables in place
 #   ./build-roadmap.py --check              # report drift, write nothing (exit 1 when it differs)
-#   ./build-roadmap.py --docs-root ~/Vaults/Personal/Acme
+#   ./build-roadmap.py --project ~/Vaults/Personal/Acme
 #
-# Run it from the repository that holds the docs root, or from the docs root itself — the folder in
-# an Obsidian vault that holds the roadmap and the tickets. The script finds the docs root the way
-# every command does: the `docsRoot` in a `.sdlc.json` pointer file, else a `.sdlc/` folder, else
-# the working directory when it holds `roadmap.md` and `tickets/`.
+# Run it from the repository that holds the project, or from the project itself — in an Obsidian
+# vault, holding the roadmap and the tickets. The script finds the project the way every command
+# does: the `root` in a `.sdlc.json` pointer file, else a `.sdlc/` folder, else the working
+# directory when it holds `roadmap.md` and `tickets/`.
 #
 # What it never does: invent a task, rewrite a ticket, delete an epic's section, or decide that a
 # feature has shipped. Those need a person or a command. This script writes table rows and the
@@ -522,10 +522,10 @@ def bump_last_updated(roadmap: Roadmap, today: str) -> None:
             return
 
 
-# ------------------------------------------------------------------------------------ the root
+# ------------------------------------------------------------------------------------ the project
 
 
-def find_docs_root(given: str | None) -> Path | None:
+def find_project_dir(given: str | None) -> Path | None:
     if given:
         root = Path(given).expanduser().resolve()
         return root if root.is_dir() else None
@@ -534,7 +534,7 @@ def find_docs_root(given: str | None) -> Path | None:
     for parent in [here, *here.parents]:
         pointer = parent / ".sdlc.json"
         if pointer.is_file():
-            root = _docs_root_from_pointer(pointer)
+            root = _project_dir_from_pointer(pointer)
             if root:
                 return root
         candidate = parent / ".sdlc"
@@ -547,7 +547,7 @@ def find_docs_root(given: str | None) -> Path | None:
     return None
 
 
-def _docs_root_from_pointer(pointer: Path) -> Path | None:
+def _project_dir_from_pointer(pointer: Path) -> Path | None:
     # A tiny JSON read, so a malformed pointer file cannot stop the run.
     try:
         import json
@@ -555,7 +555,7 @@ def _docs_root_from_pointer(pointer: Path) -> Path | None:
         data = json.loads(pointer.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    value = data.get("docsRoot") or data.get("docs_root")
+    value = data.get("root")
     if not value:
         return None
     root = Path(str(value)).expanduser()
@@ -570,17 +570,17 @@ def _docs_root_from_pointer(pointer: Path) -> Path | None:
 def build(args: argparse.Namespace) -> int:
     report = Report(quiet=args.quiet)
 
-    docs_root = find_docs_root(args.docs_root)
-    if docs_root is None:
+    project_dir = find_project_dir(args.project)
+    if project_dir is None:
         print(
-            "No docs root found. Pass --docs-root, or run this from a project that has one.\n"
+            "No project found. Pass --project, or run this from a repository that has one.\n"
             "The setup command creates it.",
             file=sys.stderr,
         )
         return 2
 
-    roadmap_path = Path(args.roadmap).expanduser() if args.roadmap else docs_root / "roadmap.md"
-    tickets_dir = docs_root / "tickets"
+    roadmap_path = Path(args.roadmap).expanduser() if args.roadmap else project_dir / "roadmap.md"
+    tickets_dir = project_dir / "tickets"
     if not roadmap_path.is_file():
         print(f"No roadmap at {roadmap_path}", file=sys.stderr)
         return 2
@@ -731,8 +731,8 @@ def main(argv: list[str] | None = None) -> int:
         prog="build-roadmap.py",
         description="Rebuild the roadmap's tables from the tickets.",
     )
-    parser.add_argument("--docs-root", help="the folder holding roadmap.md and tickets/")
-    parser.add_argument("--roadmap", help="a roadmap path, when it is not <docs root>/roadmap.md")
+    parser.add_argument("--project", help="the project holding roadmap.md and tickets/")
+    parser.add_argument("--roadmap", help="a roadmap path, when it is not <project>/roadmap.md")
     parser.add_argument(
         "--check",
         action="store_true",

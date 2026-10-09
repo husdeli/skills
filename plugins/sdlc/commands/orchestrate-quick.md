@@ -15,7 +15,7 @@ This is `/orchestrate` with the human-in-the-loop stages removed. There is **no 
 
 | Skill | What it holds | Load before |
 | --- | --- | --- |
-| **`sdlc-structure`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
+| **`sdlc-structure`** | Where the project and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 2 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 3 |
 | **`technical-writing`** | Every word the user reads | Stage 3 |
@@ -84,9 +84,9 @@ as Stage 2 does.
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
-The documents sit in the **docs root** — `prd.md`, `glossary.md`, `features/<feature>/`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md` with a worklog beside a ticket in flight. `sdlc-structure` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`; a bare path resolves against the docs root first, then the work root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
+The documents sit in the **project** — `prd.md`, `glossary.md`, `features/<feature>/`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md` with a worklog beside a ticket in flight. `sdlc-structure` resolves the project, and every `.sdlc/…` path below means `<project>/…`; a bare path resolves against the project first, then the work root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
 
-**The code sits in the work root**, which is the session's own repository in a repo-rooted run, and a repository named in the docs root's registry in a vault-rooted one. `sdlc-structure` holds the resolution; this command resolves it in Stage 2, before the ticket starts, writes it into the opening worklog entry, and passes it as an absolute path in every agent prompt. Ask the user when the evidence leaves it open, and check the session can write there before you spawn anything — `/add-dir <work root>` is the fix, and no agent can apply it.
+**The code sits in the work root**, which is the session's own repository in a repo-rooted run, and a repository named in the project's registry in a vault-rooted one. `sdlc-structure` holds the resolution; this command resolves it in Stage 2, before the ticket starts, writes it into the opening worklog entry, and passes it as an absolute path in every agent prompt. Ask the user when the evidence leaves it open, and check the session can write there before you spawn anything — `/add-dir <work root>` is the fix, and no agent can apply it.
 
 Never start a task whose dependencies are incomplete.
 

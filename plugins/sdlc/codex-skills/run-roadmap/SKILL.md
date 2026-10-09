@@ -49,11 +49,11 @@ the last line of the final message, and stop.
 
 The unattended loop over a whole roadmap is a Claude Code script —
 [`scripts/run-roadmap.sh`](../../scripts/run-roadmap.sh), which calls
-`claude -p "/sdlc:run-roadmap"` once per task, from a repository or from the docs root that drives
+`claude -p "/sdlc:run-roadmap"` once per task, from a repository or from the project that drives
 several. Codex has no equivalent launcher in this plugin: in a Codex session, invoke `$run-roadmap`
 again for the next task.
 
-**A run started in the docs root** builds each task in the repository the command resolves — the
+**A run started in the project** builds each task in the repository the command resolves — the
 work root. Codex has no `--add-dir`: the session reaches a repository the way that runtime does, so
 check you can write to the work root before Stage 2, and stop with outcome `blocked` when you
 cannot.

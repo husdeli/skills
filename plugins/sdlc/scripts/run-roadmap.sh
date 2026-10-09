@@ -13,10 +13,10 @@
 #
 #   ./run-roadmap.sh --max-tasks 5
 #   ./run-roadmap.sh --roadmap docs/roadmap.md --keep-going --yes
-#   ./run-roadmap.sh --docs-root ~/Vaults/Personal/Acme        # one board, several repositories
+#   ./run-roadmap.sh --project ~/Vaults/Personal/Acme          # one board, several repositories
 #
-# Run it from the repository you want built, or from the docs root — the folder in your Obsidian
-# vault that holds the roadmap — when one board drives several repositories. In that shape the
+# Run it from the repository you want built, or from the project — in your Obsidian vault, holding
+# the roadmap — when one board drives several repositories. In that shape the
 # script reads sdlc.json for the repositories, gives the session access to each one, and checks
 # every tree between tasks. Use --help for every option.
 
@@ -28,8 +28,8 @@ VERSION="1.1.0"
 
 COMMAND="/sdlc:run-roadmap"
 ROADMAP=""
-DOCS_ROOT=""                 # set by --docs-root, or detected from the working directory
-MODE=""                      # repo (cwd is the code) or vault (cwd is the docs root)
+PROJECT_DIR=""               # set by --project, or detected from the working directory
+MODE=""                      # repo (cwd is the code) or vault (cwd is the project)
 WORK_ROOTS=""                # one absolute repository path per line
 MAX_TASKS=0                  # 0 = until the roadmap is empty
 PERMISSION_MODE="bypassPermissions"
@@ -79,15 +79,15 @@ WHAT IT DOES
 
 WHERE YOU RUN IT
   From a code repository, and it builds that repository.
-  From a docs root — the folder in your vault holding roadmap.md, tickets/ and sdlc.json — and it
+  From a project — in your vault, holding roadmap.md, tickets/ and sdlc.json — and it
   builds every repository sdlc.json names, one task at a time, each task committed in whichever
   repository it landed in. The session is given access to each of them with --add-dir.
 
 OPTIONS
   --max-tasks N        Stop after N tasks. Default: 0, meaning until the roadmap is empty.
-  --roadmap PATH       Roadmap file to pass to the command. Default: the project's own docs root.
-  --docs-root PATH     The folder holding the roadmap, the tickets, and sdlc.json — a folder in
-                       your Obsidian vault. Runs the loop from there, over every repository
+  --roadmap PATH       Roadmap file to pass to the command. Default: the project's own roadmap.
+  --project PATH       The project holding the roadmap, the tickets, and sdlc.json — in your
+                       Obsidian vault. Runs the loop from there, over every repository
                        sdlc.json names. Default: detected from the working directory.
   --model NAME         Model for the main session (the agents pick their own). Default: your config.
   --permission-mode M  Claude permission mode. Default: bypassPermissions, which is what an
@@ -125,7 +125,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --max-tasks)       MAX_TASKS="${2:-}"; shift 2 ;;
     --roadmap)         ROADMAP="${2:-}"; shift 2 ;;
-    --docs-root)       DOCS_ROOT="${2:-}"; shift 2 ;;
+    --project)         PROJECT_DIR="${2:-}"; shift 2 ;;
     --model)           MODEL="${2:-}"; shift 2 ;;
     --permission-mode) PERMISSION_MODE="${2:-}"; shift 2 ;;
     --timeout)         TIMEOUT="${2:-}"; shift 2 ;;
@@ -159,14 +159,14 @@ expand_tilde() {
   esac
 }
 
-# is_docs_root <dir> — the folder holding the board: sdlc.json, or a roadmap beside tickets/.
-is_docs_root() {
+# is_project_dir <dir> — a project holds the board: sdlc.json, or a roadmap beside tickets/.
+is_project_dir() {
   [ -f "$1/sdlc.json" ] && return 0
   { [ -f "$1/roadmap.md" ] || [ -f "$1/prd.md" ]; } && [ -d "$1/tickets" ] && return 0
   return 1
 }
 
-# registry_paths <docs root> — one repository path per line, from sdlc.json.
+# registry_paths <project> — one repository path per line, from sdlc.json.
 registry_paths() {
   reg="$1/sdlc.json"
   [ -f "$reg" ] || return 0
@@ -190,33 +190,33 @@ command -v jq >/dev/null 2>&1 && JQ="$(command -v jq)"
 
 # ---------------------------------------------------------------------------- which end are we at
 
-if [ -n "$DOCS_ROOT" ]; then
-  DOCS_ROOT="$(expand_tilde "$DOCS_ROOT")"
-  [ -d "$DOCS_ROOT" ] || die "--docs-root is not a directory: $DOCS_ROOT" 1
-  DOCS_ROOT="$(cd "$DOCS_ROOT" && pwd)"
-  is_docs_root "$DOCS_ROOT" \
-    || die "$DOCS_ROOT holds no board — expected sdlc.json, or roadmap.md beside tickets/.
+if [ -n "$PROJECT_DIR" ]; then
+  PROJECT_DIR="$(expand_tilde "$PROJECT_DIR")"
+  [ -d "$PROJECT_DIR" ] || die "--project is not a directory: $PROJECT_DIR" 1
+  PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)"
+  is_project_dir "$PROJECT_DIR" \
+    || die "$PROJECT_DIR holds no board — expected sdlc.json, or roadmap.md beside tickets/.
 Run /setup there first." 1
   MODE="vault"
-elif is_docs_root "$PWD" && ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+elif is_project_dir "$PWD" && ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   # A board inside a code repository belongs to that repository — that is a repo-rooted run.
-  DOCS_ROOT="$PWD"
+  PROJECT_DIR="$PWD"
   MODE="vault"
 else
   MODE="repo"
 fi
 
 if [ "$MODE" = "vault" ]; then
-  cd "$DOCS_ROOT" || die "cannot enter the docs root" 1
-  WORK_ROOTS="$(registry_paths "$DOCS_ROOT")"
+  cd "$PROJECT_DIR" || die "cannot enter the project" 1
+  WORK_ROOTS="$(registry_paths "$PROJECT_DIR")"
   [ -n "$WORK_ROOTS" ] \
-    || die "no repository in $DOCS_ROOT/sdlc.json. Run /setup from each repository this product is
+    || die "no repository in $PROJECT_DIR/sdlc.json. Run /setup from each repository this product is
 built in, so the registry names it." 1
   resolved=""
   while IFS= read -r wr; do
     [ -n "$wr" ] || continue
     wr="$(expand_tilde "$wr")"
-    case "$wr" in /*) ;; *) wr="$DOCS_ROOT/$wr" ;; esac
+    case "$wr" in /*) ;; *) wr="$PROJECT_DIR/$wr" ;; esac
     [ -d "$wr" ] || die "a repository in sdlc.json does not exist here: $wr
 The registry is machine-local — run /setup on this machine." 1
     wr="$(cd "$wr" && pwd)"
@@ -231,7 +231,7 @@ EOF
 else
   git rev-parse --is-inside-work-tree >/dev/null 2>&1 \
     || die "not inside a git work tree, and no board here either. Run this from the repository you
-want built, or from your docs root — or pass --docs-root." 1
+want built, or from your project — or pass --project." 1
   REPO_ROOT="$(git rev-parse --show-toplevel)"
   cd "$REPO_ROOT" || die "cannot enter the repository root" 1
   WORK_ROOTS="$REPO_ROOT
@@ -266,7 +266,7 @@ EOF
   fi
 fi
 
-RUN_ROOT="${DOCS_ROOT:-$REPO_ROOT}"
+RUN_ROOT="${PROJECT_DIR:-$REPO_ROOT}"
 BRANCH="$(git -C "$(printf '%s' "$WORK_ROOTS" | head -n 1)" rev-parse --abbrev-ref HEAD 2>/dev/null || printf 'DETACHED')"
 START_COMMIT="$(git -C "$(printf '%s' "$WORK_ROOTS" | head -n 1)" rev-parse --short HEAD 2>/dev/null || printf 'none')"
 
@@ -314,7 +314,7 @@ claude_argv() {
   # Prints one argument per line, so the caller can read them without word splitting.
   printf '%s\n' "claude" "-p" "$(build_prompt)" "--permission-mode" "$PERMISSION_MODE"
   [ -n "$MODEL" ] && printf '%s\n' "--model" "$MODEL"
-  # The session starts in the docs root, so every repository it writes to has to be granted.
+  # The session starts in the project, so every repository it writes to has to be granted.
   if [ "$MODE" = "vault" ]; then
     while IFS= read -r wr; do
       [ -n "$wr" ] || continue
@@ -342,7 +342,7 @@ if [ "$ASSUME_YES" -eq 0 ]; then
   cat <<EOF
 ${C_BOLD}An autonomous run is about to start.${C_RESET}
 
-  board             ${DOCS_ROOT:-$REPO_ROOT}
+  board             ${PROJECT_DIR:-$REPO_ROOT}
   repositories      $(printf '%s' "$WORK_ROOTS" | sed '/^$/d' | paste -sd ', ' - 2>/dev/null || printf '%s' "$WORK_ROOTS")
   branch            $BRANCH (at $START_COMMIT)
   permission mode   $PERMISSION_MODE
@@ -569,7 +569,7 @@ done <"$START_COMMITS"
   printf '\n%s\n' "${C_BOLD}Run summary${C_RESET}"
   printf '  started        %s\n' "$RUN_START"
   printf '  finished       %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-  printf '  board          %s\n' "${DOCS_ROOT:-$REPO_ROOT}"
+  printf '  board          %s\n' "${PROJECT_DIR:-$REPO_ROOT}"
   printf '  commits        %s\n' "$COMMITS"
   printf '%s' "$REPO_LINES" | while IFS='|' read -r name range n path; do
     [ -n "$name" ] && printf '  %-14s %s · %s · %s\n' "$name" "$range" "$n" "$path"

@@ -1,17 +1,17 @@
 # Destinations and the vault shape
 
-The three places a docs root can sit, and how a document is written in each.
+The three places a project can sit, and how a document is written in each.
 
 ## The three destinations
 
-| `kind` | Docs root | What changes |
+| `kind` | Project | What changes |
 | --- | --- | --- |
-| `repo` | `.sdlc/` at the project root | Nothing — this is the default shape every rule is written for. |
+| `repo` | `.sdlc/` at the repository root | Nothing — this is the default shape every rule is written for. |
 | `folder` | Any folder outside the repository | Only the path. The documents are written exactly as in `repo`. |
 | `vault` | A folder inside an Obsidian vault | The path, **and** the document conventions below. |
 
 A path is inside an **Obsidian vault** when that path, or one of its parent directories, holds a
-`.obsidian/` folder. Check for it by walking up from the docs root.
+`.obsidian/` folder. Check for it by walking up from the project.
 
 `vault` is the destination the setup entry point recommends for a new project, because the
 documents then stay readable outside the repository and out of every branch and diff. `repo` stays
@@ -20,21 +20,21 @@ file exists.
 
 ## Writing into a vault
 
-Obsidian reads the docs root as notes. Four things change, and nothing else does — the sections,
+Obsidian reads the project as notes. Four things change, and nothing else does — the sections,
 the headings, and the words of every document stay the same.
 
 ### Folder and file names
 
-- **No name in the docs root starts with a dot.** Obsidian hides dot-folders and dot-files, so a
-  `.sdlc/` folder inside a vault is invisible. The docs root is named after the product
+- **No name in the project starts with a dot.** Obsidian hides dot-folders and dot-files, so a
+  `.sdlc/` folder inside a vault is invisible. The project folder is named after the product
   (`Acme/`), and `product/`, `goals/`, `non-goals/`, `personas/`, `problems/`, `metrics/`,
   `features/`, `designs/`, `diagrams/`, `tickets/`, `todo/`, `in-progress/`, `done/`, `business/`,
   and `competitors/` keep their names.
-- **The vault root is a valid docs root.** A vault kept for one product needs no folder inside
+- **The vault root is a valid project.** A vault kept for one product needs no folder inside
   it, and a folder named after the vault (`sdlc-obsidian/sdlc-obsidian/`) helps nobody. Use a
   product-named folder inside the vault instead when the vault root already holds notes of its
   own, so `prd.md` does not land among them. The setup entry point settles which of the two it
-  is; every other command takes the docs root from `.sdlc.json` and never second-guesses it.
+  is; every other command takes the project from `.sdlc.json` and never second-guesses it.
 - File names are unchanged: `prd.md`, `glossary.md`, `roadmap.md`, `checkout.feature.md`,
   `checkout.design.md`, `AUTH-001-user-login.md`.
 
@@ -91,7 +91,7 @@ it. The status values are unchanged: `Not Started`, `In Progress`, `Blocked`, `R
 
 ### Links
 
-Inside a vault, a reference from one document in the docs root to another is a **wikilink** —
+Inside a vault, a reference from one document in the project to another is a **wikilink** —
 the file name without its `.md` extension, in double brackets:
 
 - `[[AUTH-001-user-login]]`, not `` `AUTH-001-user-login.md` ``
@@ -107,7 +107,7 @@ between the status folders.
 - **Qualify an ambiguous name.** When the vault holds more than one product folder, name the
   folder and keep the display text: `[[Acme/prd|prd]]`.
 
-**Only documents in the docs root become wikilinks.** A file path in the code, a command name, a
+**Only documents in the project become wikilinks.** A file path in the code, a command name, a
 library, and an external URL stay exactly as they are written elsewhere.
 
 ### Moving and tracking files
@@ -116,7 +116,7 @@ library, and an external URL stay exactly as they are written elsewhere.
   usually not one — use a plain `mv` there, and do not report history as preserved.
 - **Move a ticket's worklog with it.** `AUTH-001-user-login.worklog.md` sits in the same folder
   as `AUTH-001-user-login.md` and follows it into `done/`, in the same step.
-- **Write a `.gitkeep` into an empty folder only when the docs root sits inside a git working
+- **Write a `.gitkeep` into an empty folder only when the project sits inside a git working
   tree.** Git does not track an empty directory; a vault does not need the file, and Obsidian
   shows it as clutter.
 - **Moving a document out of the repository loses its git history.** Say so before you offer

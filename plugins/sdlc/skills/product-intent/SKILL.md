@@ -1,6 +1,6 @@
 ---
 name: product-intent
-description: "Rules for the product's intent — why it exists, who for, what it refuses, and what proves it worked — held as five kinds of note under <docs root>/product/: a goal, a non-goal, a persona, a problem, and a success metric. These are the pieces the PRD is assembled from, and the pieces a feature, a design doc, and the business plan cite. INVOKE THIS SKILL before you write or change any of those five, before you cite one from a feature, a design doc, a ticket, or the business plan, and before you write the PRD sections that list them. Enforces one note per piece, a statement that stands on its own, a status that is checked rather than assumed, and a citation that links the note instead of repeating it."
+description: "Rules for the product's intent — why it exists, who for, what it refuses, and what proves it worked — held as five kinds of note under the project's product/: a goal, a non-goal, a persona, a problem, and a success metric. These are the pieces the PRD is assembled from, and the pieces a feature, a design doc, and the business plan cite. INVOKE THIS SKILL before you write or change any of those five, before you cite one from a feature, a design doc, a ticket, or the business plan, and before you write the PRD sections that list them. Enforces one note per piece, a statement that stands on its own, a status that is checked rather than assumed, and a citation that links the note instead of repeating it."
 ---
 
 # product-intent skill
@@ -10,7 +10,7 @@ worked. Five pieces carry that, they are **referenced from outside the PRD**, an
 a life of its own — it is met, dropped, deferred, or measured. So each one is a note:
 
 ```
-<docs root>/product/
+<project>/product/
   goals/       self-hosted-first.goal.md
   non-goals/   no-mobile-app.non-goal.md
   personas/    solo-operator.persona.md
@@ -22,7 +22,7 @@ a life of its own — it is met, dropped, deferred, or measured. So each one is 
 line per note. Sections 1, 5, and 6 stay the PRD's own prose — an overview, the product areas, and
 the cross-cutting qualities are narrative, and narrative does not decompose.
 
-**The `sdlc-structure` skill resolves the docs root** and holds the table of which document owns which
+**The `sdlc-structure` skill resolves the project** and holds the table of which document owns which
 fact — load it before you resolve any path below. The **`prd`** skill holds the document that
 composes these notes, the **`feature`** skill holds the feature that cites them, and the
 **`glossary`** skill holds every term they name.
@@ -46,7 +46,7 @@ not as a tree of individually-IDed micro-requirements.
 
 ## The shape every note shares
 
-- **One folder per type**, under `<docs root>/product/`. Create the folder when you write the
+- **One folder per type**, under `<project>/product/`. Create the folder when you write the
   first note in it.
 - **The file is `<slug>.<type>.md`** — kebab-case, named after the thing itself:
   `self-hosted-first.goal.md`, `solo-operator.persona.md`. The name is what a link shows, so it
@@ -63,7 +63,7 @@ and a wikilink becomes a relative path — `sdlc-structure` holds that mapping f
 
 ## The goal
 
-`<docs root>/product/goals/<slug>.goal.md`
+`<project>/product/goals/<slug>.goal.md`
 
 ```markdown
 ---
@@ -99,7 +99,7 @@ already says.>
 
 ## The non-goal
 
-`<docs root>/product/non-goals/<slug>.non-goal.md`
+`<project>/product/non-goals/<slug>.non-goal.md`
 
 ```markdown
 ---
@@ -138,7 +138,7 @@ tags:
 
 ## The persona
 
-`<docs root>/product/personas/<slug>.persona.md`
+`<project>/product/personas/<slug>.persona.md`
 
 ```markdown
 ---
@@ -170,7 +170,7 @@ Never a demographic, and never a named customer.>
 
 ## The problem
 
-`<docs root>/product/problems/<slug>.problem.md`
+`<project>/product/problems/<slug>.problem.md`
 
 ```markdown
 ---
@@ -196,7 +196,7 @@ about the state of the world — not about this product.>
 
 ## The success metric
 
-`<docs root>/product/metrics/<slug>.metric.md`
+`<project>/product/metrics/<slug>.metric.md`
 
 ```markdown
 ---
@@ -238,7 +238,7 @@ apply the same way.>
   follow a sentence.
 - **Never restate the `Why`.** The citing document says what it does with the note; the note says
   why the note exists.
-- **A rename is one edit**: the file, and every link that points at it. Search the docs root for the
+- **A rename is one edit**: the file, and every link that points at it. Search the project for the
   old name before you stop.
 - **A note is deleted only when nothing cites it.** Check first. A goal that was pursued and
   abandoned is `Dropped`, not deleted.
@@ -251,7 +251,7 @@ to the listing document:
 ````markdown
 ```dataview
 TABLE WITHOUT ID file.link AS "Goal", status AS "State", metric AS "Measured by"
-FROM "<docs root, relative to the vault root>/product/goals"
+FROM "<project, relative to the vault root>/product/goals"
 WHERE type = "goal" AND status != "Dropped"
 SORT name ASC
 ```
@@ -294,7 +294,7 @@ deleted note is a broken link and a citation left pointing at a live one is a li
    in the goal's `## Why`, beside why the product wants it.
 3. **Repoint every citation** at the goal: a feature's `non_goals` (move it to `goals`), a competitor
    note's `provides`, a business-plan gap, any design doc or ticket that links the note. Search the
-   docs root for the note's name; a wikilink is the only way anything refers to it.
+   project for the note's name; a wikilink is the only way anything refers to it.
 4. **Delete the non-goal note**, and remove its line from the PRD's non-goals list. The history is
    in version control, which is where a superseded decision belongs.
 5. **Say in the goal where it came from** — one clause naming the date the product changed its mind.

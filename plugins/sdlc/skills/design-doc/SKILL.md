@@ -1,6 +1,6 @@
 ---
 name: design-doc
-description: "Create a design doc at <docs root>/features/<feature>/<subject>.design.md when it belongs to one feature, or <docs root>/designs/<subject>.design.md when it underpins every feature — under .sdlc/ by default, or the folder .sdlc.json points at, such as one in an Obsidian vault — that specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when: asked to write a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen. A design doc defines the target state — not how to build it"
+description: "Create a design doc at the project's features/<feature>/<subject>.design.md when it belongs to one feature, or the project's designs/<subject>.design.md when it underpins every feature — the project is .sdlc/ by default, or the one .sdlc.json points at, such as one in an Obsidian vault — that specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when: asked to write a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen. A design doc defines the target state — not how to build it"
 ---
 
 # Design-doc skill
@@ -15,8 +15,8 @@ Create a design doc following the structure and style below.
 
 | The subject | Where the file goes |
 | --- | --- |
-| Belongs to **one feature** — what that feature is built from, how it behaves | `<docs root>/features/<feature>/<subject>.design.md` |
-| Underpins **every feature** — an app shell, an authentication model, a shared data model, an event queue | `<docs root>/designs/<subject>.design.md` |
+| Belongs to **one feature** — what that feature is built from, how it behaves | `<project>/features/<feature>/<subject>.design.md` |
+| Underpins **every feature** — an app shell, an authentication model, a shared data model, an event queue | `<project>/designs/<subject>.design.md` |
 
 Create the folder if it is missing. **Load the `feature` skill before you decide**, and open the
 feature first when the subject belongs to a feature that has no folder yet: a design doc never
@@ -27,7 +27,7 @@ Ask one question to settle it: *would this doc still be needed if the feature we
 still cross-cutting; `designs/` is where a shared subject belongs, not the folder of whichever
 feature reached it first.
 
-**Load the `sdlc-structure` skill and resolve the docs root as it says**, before you read or write
+**Load the `sdlc-structure` skill and resolve the project as it says**, before you read or write
 anything. It also holds what a vault changes: `Last updated` becomes a frontmatter property there,
 and a cross-reference becomes a wikilink. The related documents are the `related:` frontmatter
 property in every destination.
@@ -44,13 +44,13 @@ property in every destination.
   makes no difference: `[[app-shell.design]]`.
 - **A doc in a feature's folder names its feature** in its `related:` property, with the
   feature's index note. A doc in `designs/` names the PRD instead.
-- **Find the docs by listing** `<docs root>/features/*/*.design.md` and
-  `<docs root>/designs/*.design.md`, then read the ones the task touches. A feature's own docs
+- **Find the docs by listing** `<project>/features/*/*.design.md` and
+  `<project>/designs/*.design.md`, then read the ones the task touches. A feature's own docs
   are the ones in its folder — list that folder first when the task names a feature.
 
 **A project on an older shape keeps working.** Design docs used to sit in `designs/` whether or
-not they belonged to a feature, before that directly in the docs root, and before that in a single
-`design.md` there or at the project root. Read whichever shape the project has, and update the file
+not they belonged to a feature, before that directly in the project, and before that in a single
+`design.md` there or at the repository root. Read whichever shape the project has, and update the file
 in place where it already sits. Move the docs into a feature folder, or split a single `design.md`
 by subject, only when the user asks — `/setup` offers the move.
 
@@ -70,7 +70,7 @@ sentence length and the active voice. This skill governs *what
 belongs in a design doc*; `technical-writing` governs *how each sentence reads*.
 
 **Load the `glossary` skill for every domain term.** It says where a term comes from, that
-`<docs root>/glossary.md` defines it under its own heading, how this doc links that definition, and
+`<project>/glossary.md` defines it under its own heading, how this doc links that definition, and
 that a term this design coins gets its entry in the same step.
 
 ## Core rules

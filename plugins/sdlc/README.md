@@ -39,14 +39,15 @@ scripts/                         # run-roadmap.sh, the unattended launcher
 
 ## Where your product docs live
 
-Every document the plugin reads or writes sits in one folder — the **docs root** — and every line of
-code it writes sits in a **work root**, which is one code repository. The recommended home for the
+Every document the plugin reads or writes belongs to one **project** — one product and every
+document about it — and every line of code it writes sits in a **work root**, which is one code
+repository. The recommended home for the
 documents is a folder in an **Obsidian vault**, outside the repository — [the section below](#recommended-keep-them-in-an-obsidian-vault)
-says why. The in-repository option is `.sdlc/` at your project root, which is what every command
-falls back to when nothing points elsewhere. The layout is the same wherever the folder sits:
+says why. The in-repository option is `.sdlc/` at your repository root, which is what every command
+falls back to when nothing points elsewhere. The layout is the same wherever the project sits:
 
 ```
-<docs root>/            # a folder in your vault, or .sdlc/ in the repository
+<project>/              # a folder in your vault, or .sdlc/ in the repository
   sdlc.json             the repositories this product is built in — machine-local,
                         gitignored, and what lets one board drive several repos
   prd.md                product requirements — what the product does and why
@@ -172,11 +173,11 @@ task's row and ticket are rewritten, and a constraint that governs a whole epic 
 `**Note**:` line under it.
 
 Run **`/setup`** in Claude Code or **`$sdlc:setup`** in Codex to create it.
-Every agent falls back to the project root when a project already keeps these documents there.
+Every agent falls back to the repository root when a repository already keeps these documents there.
 
 ### Recommended: keep them in an Obsidian vault
 
-`/setup` asks where the docs root goes, and recommends a folder in an Obsidian vault outside the
+`/setup` asks where the project goes, and recommends a folder in an Obsidian vault outside the
 repository. Four reasons:
 
 - **The documents are readable and editable without the repository**, on every device the vault
@@ -194,7 +195,7 @@ documents through the repository: there the documents are versioned with the cod
 with a clone, and a review sees a document change beside the change it describes.
 
 Point `/setup` at a vault and it writes the structure there, then writes a pointer file
-at your project root so every command still finds it:
+at your repository root so every command still finds it:
 
 ```json
 {
@@ -203,7 +204,7 @@ at your project root so every command still finds it:
 }
 ```
 
-It writes `sdlc.json` in the docs root in the same run — the registry naming every repository the
+It writes `sdlc.json` in the project in the same run — the registry naming every repository the
 product is built in, which is what lets one board drive several. Every command and agent resolves
 `.sdlc.json` before it reads anything, so `/plan`,
 `/orchestrate`, `/prd`, `/design`, and `/review` work against the vault exactly as they work
@@ -212,8 +213,8 @@ orchestrator builds it.
 
 Inside a vault the documents are written the way Obsidian reads them, and nothing else changes:
 
-- **No folder starts with a dot**, because Obsidian hides those. The docs root is a folder named
-  after the product — or the vault root itself, when you keep a vault for this one product and
+- **No folder starts with a dot**, because Obsidian hides those. The project is named after the
+  product — or is the vault root itself, when you keep a vault for this one product and
   point `/setup` at it.
 - **Fields become properties.** `**Status**: In Progress` under the title becomes
   `status: In Progress` in the frontmatter, so a ticket is queryable in Bases or Dataview. The
@@ -235,10 +236,10 @@ belong to the product rather than to any one tree.
 
 **`/setup` writes two pointers**, so the pair can be driven from either end:
 
-- **`sdlc.json` in the docs root** — the registry. One entry per repository: a short code, the path,
+- **`sdlc.json` in the project** — the registry. One entry per repository: a short code, the path,
   and one line saying what belongs in that repository. It is machine-local and gitignored, because
   the paths exist on one machine.
-- **`.sdlc.json` in each repository** — the pointer back to the docs root, as before.
+- **`.sdlc.json` in each repository** — the pointer back to the project, as before.
 
 ```json
 {
@@ -287,10 +288,10 @@ plugins/sdlc/scripts/run-roadmap.sh --roadmap docs/roadmap.md --keep-going --yes
 
 # or from the vault, over every repository in the registry
 cd ~/Vaults/Personal/Acme && ~/Projects/skills/plugins/sdlc/scripts/run-roadmap.sh --max-tasks 5
-plugins/sdlc/scripts/run-roadmap.sh --docs-root ~/Vaults/Personal/Acme --yes
+plugins/sdlc/scripts/run-roadmap.sh --project ~/Vaults/Personal/Acme --yes
 ```
 
-**Run it from the docs root and it drives every repository the registry names.** It grants the
+**Run it from the project and it drives every repository the registry names.** It grants the
 session each one with `--add-dir`, checks every tree is clean before it starts and between tasks,
 commits each task in whichever repository that task landed in, and reports the commit range per
 repository at the end.
@@ -414,7 +415,7 @@ worth as much as its record.
   Artifact — every state, the small screen, placeholder data, nothing wired up — and iterates
   until the user agrees. Then it records the decisions, so the code is written from an agreement
   and not from a picture nobody wrote down. It writes no production code.
-- **diagrams** — A picture of a shape, in one place: `diagrams/` in the docs root, one
+- **diagrams** — A picture of a shape, in one place: `diagrams/` in the project, one
   `<name>.excalidraw.md` file per diagram — the Obsidian Excalidraw format, so a vault renders and
   indexes it. The skill ships its own builder: write a small JSON spec of nodes, edges, regions and
   notes, run `scripts/excalidraw_md.py`, and get a valid drawing with bound labels and bound arrows,
@@ -423,12 +424,12 @@ worth as much as its record.
   elements. A document references the file with a one-line caption, and the prose stays complete
   without the picture, because every agent here reads a document as text. Where `python3` is
   missing, the document carries an ASCII diagram instead — one shape never gets both.
-- **glossary** — The product's terms, and the one place each is defined: `glossary.md` in the docs
-  root, one `##` heading per term, in alphabetical order, with two or three sentences under it.
+- **glossary** — The product's terms, and the one place each is defined: `glossary.md` in the
+  project, one `##` heading per term, in alphabetical order, with two or three sentences under it.
   It holds where a term comes from, one term per concept, the domain word ahead of the code symbol,
   what to do when the product has no name for something yet, and the link every other document
   writes at a term's first use — a relative anchor in the repository,
-  `[[glossary#Workspace owner]]` in a vault. Prose outside the docs root uses the term with no
+  `[[glossary#Workspace owner]]` in a vault. Prose outside the project uses the term with no
   link. Every document skill and every agent reaches the terms through this one skill.
 - **business-plan** — Create or update the business plan and one note per competitor. Every
   figure is a sourced fact or a numbered assumption in a register, each topic is written once and
@@ -440,15 +441,15 @@ worth as much as its record.
   cohesive per-area descriptions with stable anchor codes, and positive framing. The terms it
   chooses are defined in `glossary.md`, never in the PRD.
 - **sdlc-structure** — The structure the plugin creates, and where the documents and the code
-  live: the docs root and its folders, every kind of document with its path, its states, and the
+  live: the project and its folders, every kind of document with its path, its states, and the
   skill that governs it, which document owns each fact and which way a link points, the work root,
   the `sdlc.json` registry naming every repository the product is built in, the `.sdlc.json`
   pointer file, and the Obsidian-vault conventions — folder naming, frontmatter properties,
   wikilinks, and when a move uses `git mv`. A short index routes to one reference file per topic,
   so a command reads only the part its job needs. It also holds how a run
   started in the vault works out which repository a task is built in, and how it reaches a tree that
-  is not its own working directory. Every command and agent resolves both roots through it, so one
-  project can keep its documents in the repository and the next can drive four repositories from a
+  is not its own working directory. Every command and agent resolves the project and the work root through it,
+  so one project can keep its documents in the repository and the next can drive four repositories from a
   vault.
 
 **A rule is written in exactly one skill, and the commands load it.** A command file holds its own
@@ -471,7 +472,7 @@ what a ticket is, and why changing how a status transition works is one edit rat
   Verification answers "does it pass?"; this answers "is it the right code, and all of it?".
 - **coding** — implements a work brief and runs a targeted self-check. The brief is an approved
   plan from either orchestrator, or a request `/code` sends with no plan at all.
-- **verify** — runs the project's gating commands (tests, lint, typecheck, e2e when there is
+- **verify** — runs the repository's gating commands (tests, lint, typecheck, e2e when there is
   one) concurrently and reports pass/fail per command. Writes no code, and reviews none either.
 - **cto** — stands in for you when nobody is in the room. It reads the PRD, the glossary, the
   feature notes, and the design docs once, then answers what `/orchestrate` would have asked you: which task to build next,
@@ -483,13 +484,13 @@ what a ticket is, and why changing how a status transition works is one edit rat
   in the ticket and the worklog, which is how an unattended run stays readable afterwards.
 
 ### Commands and Codex skills
-- **/setup** — asks where the docs root goes — in an Obsidian vault, which it recommends, or in
+- **/setup** — asks where the project goes — in an Obsidian vault, which it recommends, or in
   the repository as `.sdlc/` — registers every repository the product is built in as `sdlc.json` in
-  the docs root, then creates it with stub files for the PRD, the glossary,
+  the project, then creates it with stub files for the PRD, the glossary,
   the design doc, the roadmap, a ticket template, the `product/` folders, the `features/`,
   `designs/`, and `diagrams/` folders, and the `todo/`, `in-progress/`, and `done/` ticket
   folders. An outside folder gets a `.sdlc.json` pointer file at
-  the project root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no
+  the repository root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no
   dot-folders. Never overwrites an existing file, and offers to move a root-level
   `prd.md`, `glossary.md`, `design.md`, or `tickets/` into the folder with `git mv` — including
   sorting a flat tickets folder into the three status folders, moving loose `*.design.md` files into

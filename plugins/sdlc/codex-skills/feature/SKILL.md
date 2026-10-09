@@ -1,6 +1,6 @@
 ---
 name: feature
-description: Rules for the feature — the entity that names one thing a customer can do, holds its design docs in its own folder at `<docs root>/features/<feature>/`, carries the epic code that numbers its tickets, and is the row every capability table points at. Use before creating, renaming, reading, or retiring a feature, before writing a design doc that belongs to one, before opening an epic on the roadmap, and before listing what the product can do.
+description: Rules for the feature — the entity that names one thing a customer can do, holds its design docs in its own folder, the project's `features/<feature>/`, carries the epic code that numbers its tickets, and is the row every capability table points at. Use before creating, renaming, reading, or retiring a feature, before writing a design doc that belongs to one, before opening an epic on the roadmap, and before listing what the product can do.
 ---
 
 # feature

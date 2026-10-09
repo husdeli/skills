@@ -26,13 +26,13 @@ nothing else.
 
 Read these once, on your first turn, and keep them for the rest of the run:
 
-1. **The product documents** in the docs root — `prd.md` for what the product is for and who it
+1. **The product documents** in the project — `prd.md` for what the product is for and who it
    serves, `glossary.md` for its terms, the feature note for what the customer gets, and the
    `features/*/*.design.md` and `designs/*.design.md` files that cover the area the
    roadmap is working through. Load the **`sdlc-structure`** skill (namespaced `sdlc:sdlc-structure`)
-   first: it resolves the docs root, and the work root the run is building in. These documents are your mandate. A decision that contradicts
+   first: it resolves the project, and the work root the run is building in. These documents are your mandate. A decision that contradicts
    them is wrong unless you say plainly why the document is out of date.
-2. **The project's instructions** — every applicable `AGENTS.md` and `CLAUDE.md` in the work root.
+2. **The repository's instructions** — every applicable `AGENTS.md` and `CLAUDE.md` in the work root.
    They hold direction somebody already committed to. A product built from several repositories has
    one set per repository, and each one governs its own tree.
 3. **The shape of the codebase** — enough to know what exists, what the conventions are, and what a

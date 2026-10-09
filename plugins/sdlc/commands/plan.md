@@ -15,15 +15,15 @@ This is the intake path. `/prd` writes the PRD, `/design` writes the design doc,
 
 | Skill | What it holds |
 | --- | --- |
-| **`sdlc-structure`** | Where the docs root and the work root are, and how each destination writes a document |
+| **`sdlc-structure`** | Where the project and the work root are, and how each destination writes a document |
 | **`ticket-board`** | The epic that numbers a ticket, the roadmap's shape, and the ticket's own shape |
 | **`glossary`** | The product's terms — where each one is defined, and how a document links it |
 | **`diagrams`** | A diagram of a shape — how one is drawn, and how a document references it |
 | **`technical-writing`** | Every sentence you write, in a document or to the user |
 
-The documents sit in the **docs root**: `prd.md`, `glossary.md`, `features/<feature>/<feature>.feature.md`, `features/<feature>/<subject>.design.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `sdlc-structure` resolves the root; every `.sdlc/…` path below means `<docs root>/…`.
+The documents sit in the **project**: `prd.md`, `glossary.md`, `features/<feature>/<feature>.feature.md`, `features/<feature>/<subject>.design.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `sdlc-structure` resolves the project; every `.sdlc/…` path below means `<project>/…`.
 
-**A ticket never names the repository it is built in** — the run that builds it works that out, from the feature, the design doc, the ticket, and the docs root's registry. So write the ticket about the product, and never about a repository path. What you *can* do is make that resolution easy: name the surface the work lands on in the ticket's description, in the words the design doc uses. When this session is vault-rooted and the code matters to the research, pass the candidate repositories to the interviewer as absolute paths, and check the session can read them. **Every ticket this command writes starts in `todo/`**, because no work has started on it. When the project keeps its design docs directly in the docs root or all in `designs/`, or its tickets folder is flat, write into the shape it already has.
+**A ticket never names the repository it is built in** — the run that builds it works that out, from the feature, the design doc, the ticket, and the project's registry. So write the ticket about the product, and never about a repository path. What you *can* do is make that resolution easy: name the surface the work lands on in the ticket's description, in the words the design doc uses. When this session is vault-rooted and the code matters to the research, pass the candidate repositories to the interviewer as absolute paths, and check the session can read them. **Every ticket this command writes starts in `todo/`**, because no work has started on it. When the project keeps its design docs directly in the project or all in `designs/`, or its tickets folder is flat, write into the shape it already has.
 
 ## Architecture: you write, one agent researches
 
@@ -56,8 +56,8 @@ Plan **one request per run.** When the request is really several unrelated featu
 
 ### 2. Check the documents exist
 
-- **No docs root and no product docs at the root** → name `/setup` and stop. Planning into a project with no PRD invents the product instead of extending it.
-- **The docs root exists but one document is missing** → create that one file with the stub headings `/setup` writes, then continue.
+- **No project, and no product docs at the repository root** → name `/setup` and stop. Planning into a product with no PRD invents the product instead of extending it.
+- **The project exists but one document is missing** → create that one file with the stub headings `/setup` writes, then continue.
 - **The PRD is still a stub**, with the placeholder lines unfilled → fill only the sections this request touches, and name `/prd` in your report as the way to write the rest. Do not invent a whole product around one request.
 
 ### 3. Interview, and read the documents while it runs

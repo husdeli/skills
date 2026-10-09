@@ -1,6 +1,6 @@
 # The document kinds
 
-Every kind of document the docs root holds: where it sits, what it is named, the states it moves
+Every kind of document a project holds: where it sits, what it is named, the states it moves
 through, and which skill holds the rules for what goes inside it. This file is the map. The skill
 named in each row is the territory — load it before you write that document.
 
@@ -49,10 +49,10 @@ why a link points this way and never back.
 
 ## The words that name the structure
 
-- **Docs root** — the one folder that holds every document about one product.
+- **Project** — one product and every document about it. [The project and the registry](roots.md) say where it sits.
 - **Work root** — one code repository the product is built in. A product may have several.
-- **Registry** — `sdlc.json` in the docs root, naming every work root.
-- **Pointer file** — `.sdlc.json` at a repository's root, naming its docs root.
+- **Registry** — `sdlc.json` in the project, naming every work root.
+- **Pointer file** — `.sdlc.json` at a repository's root, naming its project.
 - **Epic** — the group of tickets that delivers one feature. The feature's code is the epic's code,
   it prefixes every ticket ID, and numbering restarts at 001 in each epic.
 - **Product note** — a goal, non-goal, persona, problem, or success metric under `product/`.

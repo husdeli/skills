@@ -25,7 +25,7 @@ a hand-back that stops the run whenever the decision belongs to a person.
 
 | Skill | What it holds | Load before |
 | --- | --- | --- |
-| **`sdlc-structure`** | Where the docs root and the work root are, and how each destination writes a document | you read any document |
+| **`sdlc-structure`** | Where the project and the work root are, and how each destination writes a document | you read any document |
 | **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 1 |
 | **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 2 |
 | **`technical-writing`** | Every word a person reads later — the worklog, the commit message, the report | Stage 2 |
@@ -35,14 +35,14 @@ Each name may be namespaced here — `sdlc:sdlc-structure`, `sdlc:ticket-board`,
 skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
 spawn prompt: the agents load their own.
 
-**The documents sit in the docs root** — `prd.md`, `glossary.md`, `features/<feature>/`,
+**The documents sit in the project** — `prd.md`, `glossary.md`, `features/<feature>/`,
 `designs/<subject>.design.md`,
 `roadmap.md`, and `tickets/<status>/<ID>-*.md`, with a worklog beside a ticket in flight.
-`sdlc-structure` resolves the root, and every `.sdlc/…` path below means `<docs root>/…`.
+`sdlc-structure` resolves the project, and every `.sdlc/…` path below means `<project>/…`.
 
 **The code sits in the work root** — the repository this task is built in. A run started inside a
 repository builds there and nothing changes. A run started in the vault — the recommended shape,
-where one board drives several repositories — has the docs root as its working directory, resolves
+where one board drives several repositories — has the project as its working directory, resolves
 the work root per task, and reaches into a repository somewhere else. `sdlc-structure` holds the
 resolution rule. What is this command's:
 
@@ -56,7 +56,7 @@ resolution rule. What is this command's:
   nothing.
 - **Every agent prompt carries the work root as an absolute path**, and the planner carries it in
   the context pack as `workRoot`.
-- **The commit belongs to the work root.** The docs root is usually no git tree, so the ticket move
+- **The commit belongs to the work root.** The project is usually no git tree, so the ticket move
   and the roadmap edit are not part of it — Stage 9 holds both cases.
 
 ## The one rule that makes this command different
@@ -163,12 +163,12 @@ in the tree for the next task to commit.
 ### 0. Preflight — refuse to start on ground you cannot commit from
 Check these first, in one parallel Bash batch, and stop before you spawn anything if one fails:
 
-- **The docs root and the roadmap exist.** Resolve the root with `sdlc-structure`. With no roadmap
+- **The project and its roadmap exist.** Resolve the project with `sdlc-structure`. With no roadmap
   anywhere, outcome `blocked`, naming `/setup`.
 - **Every candidate work root is a git work tree with nothing uncommitted in it.** Which repository
   this task lands in is not known yet, so check them all: `git -C <path> rev-parse
-  --is-inside-work-tree` and `git -C <path> status --porcelain`, one pair per entry in the docs
-  root's registry, in one parallel batch. In a repo-rooted run that is the session's own repository,
+  --is-inside-work-tree` and `git -C <path> status --porcelain`, one pair per entry in the
+  project's registry, in one parallel batch. In a repo-rooted run that is the session's own repository,
   and the registry is not read. Without git there is no per-task commit and no audit trail; with a
   dirty tree the task's `git add -A` would swallow changes it did not make. Either one is outcome
   `blocked`, naming the repository and what is wrong with it.
@@ -197,7 +197,7 @@ already reads it in the order it should be built.
   that is not finished. Fix only the rows whose tickets you read, and record what you corrected in
   the opening worklog entry. `ticket-board` holds the rule.
 - **In an unattended run, rebuild the whole file first.** Nobody is there to notice a stale row, so
-  run `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --docs-root <docs root>` before you collect
+  run `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --project <project>` before you collect
   the candidates, and put what it reported into the opening worklog entry. Skip it when `python3` is
   missing, and say so in the report. This is the one command that rebuilds without asking, because
   asking is what it is built not to do.
@@ -394,7 +394,7 @@ Agent(subagent_type: "sdlc:code-reviewer", model: <opus on high risk, else sonne
 
 **Pass `e2eCommand` every time, including the literal `"none"`** — that is what stops the verify
 agent globbing for `playwright.config.*`/`cypress/`/`e2e/` on every spawn. Unlike
-`/orchestrate-quick`, this pipeline **runs the end-to-end suite inside the gate** when the project
+`/orchestrate-quick`, this pipeline **runs the end-to-end suite inside the gate** when the work root
 has one: there is no user at the end to ask, and an unattended commit must not rest on a suite
 nobody ran.
 
@@ -442,7 +442,7 @@ the closing worklog entries, the move into `done/`, and the roadmap row deleted.
 closing entry is `run-roadmap · done`, and the worklog also takes the verification and code-review
 entries.
 
-Do this **before** the commit. When the docs root sits inside the work root's git tree, the ticket
+Do this **before** the commit. When the project sits inside the work root's git tree, the ticket
 move and the roadmap edit then land in the task's own commit. When it does not — a vault, or a folder
 outside the repository — the documents are already saved and the commit below covers the code alone.
 
@@ -452,7 +452,7 @@ Never finish the ticket unless verification passed **and** the code review retur
 One commit per finished task, so `git log` holds the run as a sequence of changes a person can read.
 
 1. `git -C <work root> add -A`, then one commit in the same repository. The tree was clean at
-   preflight, so everything staged belongs to this task: the code, and — when the docs root sits
+   preflight, so everything staged belongs to this task: the code, and — when the project sits
    inside this tree — the ticket in its new folder, the worklog, and the roadmap edit.
 2. **Match that repository's own commit convention.** Read `git -C <work root> log --oneline -20`
    and follow what is there — a Conventional Commits prefix, a ticket ID in the subject, whatever
@@ -465,8 +465,8 @@ One commit per finished task, so `git log` holds the run as a sequence of change
 5. A commit that fails — a hook rejects it, or there is nothing to commit — is outcome `blocked`.
    Say what the hook said, and leave the tree as it is for a person to look at. Do not retry with
    `--no-verify`.
-6. **A docs root that is its own git tree gets its own commit**, in its own repository, with the same
-   subject. A docs root in a vault is no git tree: nothing to commit, and nothing to report but the
+6. **A project that is its own git tree gets its own commit**, in its own repository, with the same
+   subject. A project in a vault is no git tree: nothing to commit, and nothing to report but the
    files written.
 7. **A task that spanned two work roots gets one commit in each**, same subject, each body naming the
    other repository. Report both shas.
@@ -478,8 +478,8 @@ tree. That is three requirements and one order of operations:
 
 1. Write the *Stopping without finishing* edits first — the status, the assignee `user`, and the
    outcome worklog entry.
-2. **Stage only the record**: `git -C <work root> add <docs root>` and the ticket's own path —
-   only when the docs root sits inside that tree. A docs root in a vault is already saved and is
+2. **Stage only the record**: `git -C <work root> add <project>` and the ticket's own path —
+   only when the project sits inside that tree. A project in a vault is already saved and is
    never staged.
 3. `git -C <work root> checkout -- .` then `git -C <work root> clean -fd`. Both leave staged content
    alone, so this discards exactly the code and keeps exactly the record. Run the pair in every work

@@ -1,20 +1,25 @@
 ---
 name: sdlc-structure
-description: "The structure this plugin creates and works in — the docs root and its folders, every kind of document in it and where each one sits, which document owns each fact and which way links point, the work root, the `sdlc.json` registry that names every repository a product is built in, the `.sdlc.json` pointer file, and the Obsidian-vault conventions (folder naming, frontmatter properties, wikilinks). INVOKE THIS SKILL before you read, create, move, or update a PRD, a product note, a glossary, a feature, a design doc, a diagram, a roadmap, a ticket, a worklog, or the business plan, before you resolve any path under either root, and before you run any command against a repository that is not the working directory. Enforces one resolution order for every command and agent, one owner per fact, one registry per product, and one document shape per destination."
+description: "The structure this plugin creates and works in — the project and its folders, every kind of document in it and where each one sits, which document owns each fact and which way links point, the work root, the `sdlc.json` registry that names every repository a product is built in, the `.sdlc.json` pointer file, and the Obsidian-vault conventions (folder naming, frontmatter properties, wikilinks). INVOKE THIS SKILL before you read, create, move, or update a PRD, a product note, a glossary, a feature, a design doc, a diagram, a roadmap, a ticket, a worklog, or the business plan, before you resolve any path in the project or a work root, and before you run any command against a repository that is not the working directory. Enforces one resolution order for every command and agent, one owner per fact, one registry per product, and one document shape per destination."
 ---
 
 # sdlc-structure skill
 
-Every document this plugin reads or writes sits in one folder, the **docs root**. Every line of
-code it writes sits in a **work root**: one code repository. A product has one docs root and one or
-more work roots. This skill holds the shape of both, and how to get from one to the other.
+Every document this plugin reads or writes belongs to one **project**. Every line of code it
+writes sits in a **work root**: one code repository. A project has one or more work roots. This
+skill holds the shape of both, and how to get from one to the other.
+
+**This skill is the one place the structure is defined.** Every other skill, command, and agent
+names a document by what it is — the PRD, the roadmap, a ticket — and points here for where it
+sits. The final structure is still being designed in `designs/SDLC-framework.design.md`; until it
+settles, the reference files below hold the rules in force.
 
 The rules sit in the reference files below. This file says which one to read for the job in hand.
 
 ## Read before you start
 
-**Resolve the roots first, once per run, before you read any document.** Read
-[the docs root and the registry](references/roots.md) and follow its resolution order. Every later
+**Resolve the project first, once per run, before you read any document.** Read
+[the project and the registry](references/roots.md) and follow its resolution order. Every later
 path in the run resolves against what it gives you.
 
 ## Then read what the job needs
@@ -36,7 +41,7 @@ path in the run resolves against what it gives you.
   feature's status.
 - **The structure is the same in every destination.** Only how fields and links are written
   changes, and only in a vault.
-- **Only the setup entry point moves the docs root, or writes the pointer file or the registry.**
+- **Only the setup entry point moves the project, or writes the pointer file or the registry.**
 - **A ticket never names its repository.** The run resolves the work root when it picks the task
   and records it in the worklog.
 

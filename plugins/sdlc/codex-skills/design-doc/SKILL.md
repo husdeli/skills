@@ -1,6 +1,6 @@
 ---
 name: design-doc
-description: Create or update a design doc at `<docs root>/features/<feature>/<subject>.design.md` when it belongs to one feature, or `<docs root>/designs/<subject>.design.md` when it underpins every feature, which specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when asked to write a design doc, or to specify a system, a service, a flow, an integration, or a screen.
+description: Create or update a design doc at the project's `features/<feature>/<subject>.design.md` when it belongs to one feature, or the project's `designs/<subject>.design.md` when it underpins every feature, which specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when asked to write a design doc, or to specify a system, a service, a flow, an integration, or a screen.
 ---
 
 # design-doc

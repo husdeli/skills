@@ -1,6 +1,6 @@
 ---
 name: business-plan
-description: "Create or update the business plan at <docs root>/business/business-plan.md and one competitor note per competitor in <docs root>/business/competitors/. Use when: asked to write or update a business plan, analyse, add, or refresh a competitor, or model pricing, unit economics, break-even, or go-to-market."
+description: "Create or update the business plan in the project's business/business-plan.md and one competitor note per competitor in its business/competitors/. Use when: asked to write or update a business plan, analyse, add, or refresh a competitor, or model pricing, unit economics, break-even, or go-to-market."
 ---
 
 # Business plan skill
@@ -11,7 +11,7 @@ PRD already says what the product does. The plan links the PRD for that and neve
 
 Load four skills before you read or write anything:
 
-- **`sdlc-structure`**: resolve the docs root, and follow its vault conventions (frontmatter
+- **`sdlc-structure`**: resolve the project, and follow its vault conventions (frontmatter
   properties, wikilinks, no dot-folders).
 - **`feature`**: the register in `features/` is what section 2 lists, and it holds the status
   vocabulary and the query the capability table is built from.
@@ -23,7 +23,7 @@ Load four skills before you read or write anything:
 ## Where it lives
 
 ```
-<docs root>/
+<project>/
   business/
     business-plan.md          the plan, one per product
     competitors/
@@ -32,7 +32,7 @@ Load four skills before you read or write anything:
       …
 ```
 
-Create `business/` and `competitors/` when they are missing. When the docs root already holds a
+Create `business/` and `competitors/` when they are missing. When the project already holds a
 business plan somewhere else, move it into `business/` with the user's yes, and keep its content.
 
 ## The rules
@@ -232,7 +232,7 @@ TABLE WITHOUT ID
   area AS "Area",
   status AS "State",
   shipped AS "Since"
-FROM "<docs root, relative to the vault root>/features"
+FROM "<project, relative to the vault root>/features"
 WHERE type = "feature" AND customer_facing = true
 SORT status ASC, name ASC
 ```
@@ -265,7 +265,7 @@ TABLE WITHOUT ID
   price_from AS "Paid from",
   choice(threat = 1, "High", choice(threat = 2, "Medium", "Low")) AS "Threat",
   checked AS "Checked"
-FROM "<docs root, relative to the vault root>/business/competitors"
+FROM "<project, relative to the vault root>/business/competitors"
 WHERE type = "competitor"
 SORT threat ASC, name ASC
 ```

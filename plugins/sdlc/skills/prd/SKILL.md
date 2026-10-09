@@ -1,15 +1,15 @@
 ---
 name: prd
-description: "Create or update a product requirements document at <docs root>/prd.md — .sdlc/prd.md by default, or the folder .sdlc.json points at, such as one in an Obsidian vault. Use when: asked to write a PRD, draft or revise product requirements, document a new product or feature set, update an existing PRD, or maintain a living spec."
+description: "Create or update a product requirements document as the project's prd.md — .sdlc/prd.md by default, or prd.md in the project .sdlc.json points at, such as one in an Obsidian vault. Use when: asked to write a PRD, draft or revise product requirements, document a new product or feature set, update an existing PRD, or maintain a living spec."
 ---
 
 # PRD Skill
 
 Write or update a product requirements document following the structure and style below.
 
-**Where it lives.** The PRD is `<docs root>/prd.md`, alongside `glossary.md`, `roadmap.md`, the
-`product/` folder, the `features/` folder, the `designs/` folder, and the `tickets/` folder. **Load the `sdlc-structure` skill and resolve the docs
-root as it says**, before you read or write anything. Create the folder if it is missing. When the project already keeps
+**Where it lives.** The PRD is `<project>/prd.md`, alongside `glossary.md`, `roadmap.md`, the
+`product/` folder, the `features/` folder, the `designs/` folder, and the `tickets/` folder. **Load the `sdlc-structure` skill and resolve the
+project as it says**, before you read or write anything. Create the folder if it is missing. When the project already keeps
 a PRD at the root (`prd.md`/`PRD.md`), update that file in place instead — one PRD per
 project, never two.
 
@@ -24,7 +24,7 @@ A PRD is read end to end by people who were not in the room. Load the **`technic
 
 **A diagram goes in `diagrams/`, never inline.** When a product area or a user flow needs a picture, load the **`diagrams`** skill and follow it. The PRD's product-only rules still hold inside the picture: no mechanism, no implementation name.
 
-**The PRD composes five kinds of note; it does not contain them.** A goal, a non-goal, a persona, a problem, and a success metric are each their own note under `<docs root>/product/`, because a feature, a design doc, a ticket, and the business plan all point at them, and each one has a state of its own. **Load the `product-intent` skill** and follow it for every one you write or change. Sections 2, 3, 4, and 7 of this document are one line per note. Sections 1, 5, and 6 are the PRD's own prose, and they stay prose.
+**The PRD composes five kinds of note; it does not contain them.** A goal, a non-goal, a persona, a problem, and a success metric are each their own note under `<project>/product/`, because a feature, a design doc, a ticket, and the business plan all point at them, and each one has a state of its own. **Load the `product-intent` skill** and follow it for every one you write or change. Sections 2, 3, 4, and 7 of this document are one line per note. Sections 1, 5, and 6 are the PRD's own prose, and they stay prose.
 
 **Each term is defined in the glossary, not in the PRD.** Load the **`glossary`** skill and follow it: it holds the entry shape, the link form, and the rule that whoever coins a term writes its entry in the same step. The PRD states the requirement and never repeats a definition.
 
@@ -58,7 +58,7 @@ Two rules govern how the behavior sections read:
 
 Give each subsection **one stable area-level anchor** — a short uppercase code in the heading (e.g. `### Social platforms & publishing \`SOCIAL\``) — so other specs and tickets can cite the area. That is the granularity of traceability: one code per product area, never one per sentence. Keep a code stable as its area's prose evolves; add a new code only for a genuinely new area.
 
-**An area is not a feature.** An area is a handful of paragraphs describing one part of the product; a **feature** is one thing a customer can do, and several of them usually sit inside one area. Each feature has its own note in `<docs root>/features/`, which carries the area's anchor code in its `area` property and holds the design docs and the tickets for that feature. The **`feature`** skill governs those notes. The PRD never becomes a list of them: it keeps telling the area's story in prose, and the register in `features/` is where the inventory lives. When the PRD names a part of the product that has no feature note, open the feature rather than decomposing the area into line items.
+**An area is not a feature.** An area is a handful of paragraphs describing one part of the product; a **feature** is one thing a customer can do, and several of them usually sit inside one area. Each feature has its own note in `<project>/features/`, which carries the area's anchor code in its `area` property and holds the design docs and the tickets for that feature. The **`feature`** skill governs those notes. The PRD never becomes a list of them: it keeps telling the area's story in prose, and the register in `features/` is where the inventory lives. When the PRD names a part of the product that has no feature note, open the feature rather than decomposing the area into line items.
 
 **The area says how the parts hold together; the feature says what one customer can do.** That is the line between the two, and it is what keeps them from repeating each other. An area paragraph that could be cut and pasted into a feature note is written at the wrong altitude — raise it until it says something no single feature could say. A feature that needs a paragraph of its area repeated to make sense is a feature whose note should link the anchor instead.
 

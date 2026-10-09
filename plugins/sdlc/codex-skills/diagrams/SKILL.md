@@ -1,6 +1,6 @@
 ---
 name: diagrams
-description: Rules for a diagram in any product document — generated into `<docs root>/diagrams/<name>.excalidraw.md` by the skill's own builder, referenced with a one-line caption, and written as ASCII only when the builder cannot run. Use before putting a diagram in a PRD, a design doc, a ticket, or any other document in the docs root.
+description: Rules for a diagram in any product document — generated into the project's `diagrams/<name>.excalidraw.md` by the skill's own builder, referenced with a one-line caption, and written as ASCII only when the builder cannot run. Use before putting a diagram in a PRD, a design doc, a ticket, or any other document in the project.
 ---
 
 # diagrams

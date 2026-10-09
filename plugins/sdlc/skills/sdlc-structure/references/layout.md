@@ -1,13 +1,13 @@
-# The layout of the docs root
+# The layout of a project
 
-The folders the docs root holds, what goes in each, how the structure is created, and how it grows
+The folders a project holds, what goes in each, how the structure is created, and how it grows
 and shrinks as a product is built. [The document kinds](documents.md) say what each file inside it
-is, and [the docs root](roots.md) says where the folder itself sits.
+is, and [the project and the registry](roots.md) say where the project itself sits.
 
 ## The tree
 
 ```
-<docs root>/
+<project>/
   sdlc.json              the registry: every repository this product is built in.
                          Machine-local, and never committed
   prd.md                 what the product does and why, assembled from the notes in product/
@@ -56,14 +56,14 @@ The setup entry point creates the structure once, and every other command fills 
   invents a commitment nobody made.
 - **It creates every folder except `business/`, even an empty one.** `product/` and its five folders, `features/`,
   `designs/`, `diagrams/`, and the three ticket status folders. An empty folder gets a `.gitkeep`
-  only when the docs root sits inside a git working tree.
+  only when the project sits inside a git working tree.
 - **It never overwrites.** A file that exists is kept and reported as kept.
 - **It writes one design stub at most**, `designs/overview.design.md`, and only when the project
   has no design doc anywhere.
 - **It writes no feature and no product note.** `/feature` opens a feature, and `/prd` writes the
   notes under `product/`.
 
-| Command | What it writes into the docs root |
+| Command | What it writes into the project |
 | --- | --- |
 | `/setup` | The structure, the stubs, the registry, and the pointer file in each repository |
 | `/prd` | `prd.md`, the notes under `product/`, and the glossary entries for the terms it coins |
@@ -88,8 +88,8 @@ The setup entry point creates the structure once, and every other command fills 
 
 A project on an older shape keeps working, and every command reads it where it is:
 
-- `prd.md`, `glossary.md`, `roadmap.md`, or `tickets/` at the project root instead of in a docs root;
-- a single `design.md`, or loose `*.design.md` files in the docs root;
+- `prd.md`, `glossary.md`, `roadmap.md`, or `tickets/` at the repository root instead of in a project;
+- a single `design.md`, or loose `*.design.md` files at the top of the project;
 - design docs in `designs/` that belong to one feature, with no `features/` folder;
 - a flat `tickets/` folder with no status folders;
 - a PRD that still holds its goals, personas, problems, and metrics inline.

@@ -22,7 +22,7 @@ The command file defines workflow behavior. This protocol replaces only Claude-s
 Resolve these values before creating an agent:
 
 - `PLUGIN_ROOT`: the plugin directory that contains `.codex-plugin/`, `agents/`, `commands/`, and `skills/`.
-- `WORKSPACE_ROOT`: the project directory in which the user invoked the workflow.
+- `WORKSPACE_ROOT`: the directory in which the user invoked the workflow.
 
 Always pass both absolute paths in the agent's first message.
 Do not assume that the installed plugin remains in the source checkout or a fixed cache path.

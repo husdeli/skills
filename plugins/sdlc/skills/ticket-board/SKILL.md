@@ -5,12 +5,12 @@ description: "Rules for the ticket board this plugin drives — where a ticket l
 
 # ticket-board skill
 
-The board is `tickets/` and `roadmap.md` inside the docs root. This skill says how a ticket is
+The board is `tickets/` and `roadmap.md` in the project. This skill says how a ticket is
 named, where it sits, who holds it, what records what happened to it, and what each status
 transition has to write.
 
-**The `sdlc-structure` skill says where the docs root is, and where the work root is** — load it
-before you resolve any path, and resolve both roots once. Every `.sdlc/…` path below means `<docs root>/…`. In a vault the
+**The `sdlc-structure` skill resolves the project and the work root** — load it
+before you resolve any path, and resolve both once. Every `.sdlc/…` path below means `<project>/…`. In a vault the
 fields below are frontmatter properties and the references are wikilinks; `sdlc-structure` holds
 that mapping too.
 
@@ -62,7 +62,7 @@ They share one short uppercase code — two to eight letters, taken from the pro
 vocabulary — and that code prefixes every ticket ID under it: `AUTH-001`, `AUTH-002`,
 `BILLING-001`.
 
-**The feature note is where the code comes from.** `<docs root>/features/<feature>/<feature>.feature.md`
+**The feature note is where the code comes from.** `<project>/features/<feature>/<feature>.feature.md`
 carries it, and the **`feature`** skill holds how a feature is opened, named, and coded. Load that
 skill before you open an epic: an epic with no feature note is an epic whose code nothing owns.
 A feature exists before its first ticket, and outlives its last one.

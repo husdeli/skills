@@ -13,19 +13,19 @@ Invoke the **`feature`** skill and follow it. If the skill is namespaced here (e
 `sdlc:feature`), invoke that. Load it **before** you write anything, and follow its folder shape,
 its index properties, and its status rules exactly.
 
-- **Load the `sdlc-structure` skill** (namespaced `sdlc:sdlc-structure`) and resolve the docs root as
+- **Load the `sdlc-structure` skill** (namespaced `sdlc:sdlc-structure`) and resolve the project as
   it says. It also holds what changes in a vault, where the index's fields are frontmatter
-  properties and every reference is a wikilink. Run `/setup` first when the project has no
-  structure at all.
+  properties and every reference is a wikilink. Run `/setup` first when there is no
+  project yet.
 - **Load the `technical-writing` skill** and follow it for every sentence of the index. Two or three
   sentences carry the whole feature, so each one has to land.
 - **Load the `glossary` skill** for the feature's name and every term it uses. A feature that
   coins a term writes that term's entry in the same run.
 - **Load the `product-intent` skill** (namespaced `sdlc:product-intent`) and cite the goal this
-  feature advances and the personas it serves. When no goal in `<docs root>/product/goals/` fits,
+  feature advances and the personas it serves. When no goal in the project's `product/goals/` fits,
   say so before opening the feature: either the product gained a goal nobody wrote down, or the
   feature is not worth building.
-- **Look before you write.** List `<docs root>/features/`, and grep the docs root for the code you
+- **Look before you write.** List the project's `features/`, and grep the project for the code you
   are about to take. A feature that already exists is updated in place, never opened twice, and a
   code that is already taken means the feature is already there under another name.
 - **Check the status against the work root.** `Shipped` is a claim about the code, not about the

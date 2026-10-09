@@ -41,7 +41,7 @@ second time, and a person reading `done/` can see where each task landed.
 
 ## Working in a repository that is not the working directory
 
-This is the vault-rooted session: the docs root is the working directory, and the code is somewhere
+This is the vault-rooted session: the project is the working directory, and the code is somewhere
 else. A repo-rooted session can skip the whole section.
 
 - **The session has to be allowed to reach the repository.** In Claude Code, start it from the docs
@@ -57,7 +57,7 @@ else. A repo-rooted session can skip the whole section.
   work root, not the ones beside the vault. Two work roots may carry two different sets of
   conventions, and a change follows the ones in the tree it lands in.
 - **Git belongs to the work root.** The branch, the diff, the commit, and the history are the
-  repository's. The docs root is usually no git working tree at all, so a code commit never carries
-  the ticket move or the roadmap edit with it. When the docs root *is* its own git working tree, it
+  repository's. The project is usually no git working tree at all, so a code commit never carries
+  the ticket move or the roadmap edit with it. When the project *is* its own git working tree, it
   gets its own commit, in its own tree.
 

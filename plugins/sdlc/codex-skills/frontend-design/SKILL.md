@@ -19,6 +19,6 @@ Instead of publishing:
 1. Write the same static HTML file into the project's temporary or scratch directory, not into the source tree.
 2. Give the user the file path and ask them to open it in a browser.
 3. Overwrite that same file on each round, so the user reloads one tab.
-4. Record the agreed decisions in the screen's design doc — `<docs root>/features/<feature>/<subject>.design.md` when the screen belongs to a feature, `<docs root>/designs/<subject>.design.md` when it does not — since there is no artifact URL to record.
+4. Record the agreed decisions in the screen's design doc — `<project>/features/<feature>/<subject>.design.md` when the screen belongs to a feature, `<project>/designs/<subject>.design.md` when it does not — since there is no artifact URL to record.
 
 Skip the `artifact-design` and `dataviz` skills when the runtime does not have them, and follow the shared skill's own visual direction rules.
