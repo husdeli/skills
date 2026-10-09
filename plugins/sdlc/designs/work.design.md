@@ -8,6 +8,7 @@ related:
   - "[[SDLC-framework.design]]"
   - "[[feature.design]]"
   - "[[ticket.design]]"
+  - "[[workflow.design]]"
 ---
 # Work
 

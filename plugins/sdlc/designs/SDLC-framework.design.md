@@ -11,6 +11,7 @@ related:
   - "[[work.design]]"
   - "[[ticket.design]]"
   - "[[glossary.design]]"
+  - "[[workflow.design]]"
 ---
 # SDLC framework
 

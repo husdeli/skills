@@ -10,6 +10,14 @@ tags:
 
 One of the three folders inside `work/` — `backlog/`, `in-progress/`, and `done/`. Each bucket holds one or more ticket statuses; `in-progress/` holds `in progress`, `blocked`, and `review`.
 
+## Claim
+
+The `claimed` property on a ticket, naming the run that holds it, such as `orchestrate-2`. A claimed ticket is never picked by another run; the claim guards the ticket, while `assigned` names the agent working on it.
+
+## Context pack
+
+What the planner gathers before it plans: the work root, the relevant files, the conventions, and the exact check commands. The orchestrator hands it to every later agent, so none of them explores the code again.
+
 ## Design doc
 
 A document that says how one solution works: the parts it is built from, how work flows through it, and how it behaves. It describes the target state, never the steps to build it, and it sits in its feature's folder or, when every feature depends on it, in `designs/`.
@@ -26,9 +34,17 @@ One thing a customer can do with the product, kept as a folder under `features/`
 
 The folder a session starts in. It holds the registry and the glossary, and it may hold `projects/`; when it does not, it holds one project's documents directly.
 
+## Gate
+
+A fixed rule that decides whether a run goes on, such as the plan-review skip gate or the rule that finishes a ticket. A gate is applied mechanically, from the numbers and verdicts the agents report.
+
 ## Glossary
 
 `glossary.md` at the framework root, defining every term the framework and its projects use, each once, under a heading of its own. Every other document links an entry instead of defining the term again.
+
+## Orchestrator
+
+The session that drives one run: it picks the ticket, starts the agents, and settles every gate. It is the only writer of the ticket, the worklog, and the roadmap; an agent reports to it and writes no document.
 
 ## Pointer file
 
@@ -57,6 +73,14 @@ One product and every document about it. Its documents sit in `projects/<project
 ## Roadmap
 
 `roadmap.md`, the work that is left, with one section per epic and one row per ticket. It only shrinks: a row is deleted when its ticket is done.
+
+## Run
+
+One pass of the workflow over one ticket, from the pick to `done` or to a stop as `blocked`. Each run has a number, shared by its claim and its agents.
+
+## Stage
+
+One step of a run, such as the plan review or the implementation. Each stage has its own agent and its own worklog entry.
 
 ## Ticket
 
