@@ -6,6 +6,10 @@ tags:
 ---
 # SDLC framework — glossary
 
+## Bucket
+
+One of the three folders inside `work/` — `backlog/`, `in-progress/`, and `done/`. Each bucket holds one or more ticket statuses; `in-progress/` holds `in progress`, `blocked`, and `review`.
+
 ## Design doc
 
 A document that says how one solution works: the parts it is built from, how work flows through it, and how it behaves. It describes the target state, never the steps to build it, and it sits in its feature's folder or, when every feature depends on it, in `designs/`.
@@ -52,7 +56,11 @@ One product and every document about it. Its documents sit in `projects/<project
 
 ## Ticket
 
-One task on the board, named `<EPIC>-<NNN>-<slug>.md`. Its folder under `tickets/` is its status, and it never names the repository it is built in.
+One task, named `<CODE>-<NNN>-<slug>.md`, where `<CODE>` is the code of the feature it delivers. It carries a status, sits in the bucket under `work/` that status names, and never names the repository it is built in.
+
+## Work folder
+
+`work/` at the framework root, holding every ticket in one of three buckets. It is the ticket board; a work root is a code repository, which is a different thing.
 
 ## Work root
 
@@ -60,4 +68,4 @@ One code repository the project is built in, with its own instructions, tests, a
 
 ## Worklog
 
-The record of what was decided while a ticket was built, kept beside the ticket as `<EPIC>-<NNN>-<slug>.worklog.md`. Only the orchestrating command writes it, and it names every work root the ticket changed.
+The record of what was decided while a ticket was built, kept beside the ticket as `<CODE>-<NNN>-<slug>.worklog.md`. Only the orchestrating command writes it, and it names every work root the ticket changed.

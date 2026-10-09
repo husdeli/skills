@@ -8,6 +8,7 @@ related:
   - "[[project-structure.design]]"
   - "[[registry.design]]"
   - "[[feature.design]]"
+  - "[[work.design]]"
 ---
 # SDLC framework
 
@@ -24,8 +25,12 @@ The tree:
 ├── sdlc.json                    the registry; machine-local, gitignored
 ├── features/                    one folder per feature; see feature
 │   └── <feature-name>/          one feature
+├── work/                        every ticket, in one bucket per status; see work
+│   ├── backlog/
+│   ├── in-progress/
+│   └── done/
 └── projects/                    optional
     └── <project-name>/          one project; see project structure
 ```
 
-What a project folder holds is defined in [[project-structure.design|Project structure]], a feature folder in [[feature.design|Feature]], and the registry in [[registry.design|Registry]].
+What a project folder holds is defined in [[project-structure.design|Project structure]], a feature folder in [[feature.design|Feature]], the work folder in [[work.design|Work]], and the registry in [[registry.design|Registry]].
