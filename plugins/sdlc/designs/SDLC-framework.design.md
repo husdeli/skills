@@ -9,6 +9,7 @@ related:
   - "[[registry.design]]"
   - "[[feature.design]]"
   - "[[work.design]]"
+  - "[[glossary.design]]"
 ---
 # SDLC framework
 
@@ -23,6 +24,7 @@ The tree:
 ```
 <framework root>/
 ├── sdlc.json                    the registry; machine-local, gitignored
+├── glossary.md                  every term, defined once; see glossary
 ├── features/                    one folder per feature; see feature
 │   └── <feature-name>/          one feature
 ├── work/                        every ticket, in one bucket per status; see work
@@ -33,4 +35,6 @@ The tree:
     └── <project-name>/          one project; see project structure
 ```
 
-What a project folder holds is defined in [[project-structure.design|Project structure]], a feature folder in [[feature.design|Feature]], the work folder in [[work.design|Work]], and the registry in [[registry.design|Registry]].
+What a project folder holds is defined in [[project-structure.design|Project structure]], a feature folder in [[feature.design|Feature]], the work folder in [[work.design|Work]], the registry in [[registry.design|Registry]], and the glossary in [[glossary.design|Glossary]].
+
+**Every term the framework's documents use is defined once, in the [[glossary#Glossary|glossary]].** A document links the term's entry at its first use instead of defining the term again.

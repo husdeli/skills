@@ -24,7 +24,11 @@ One thing a customer can do with the product, kept as a folder under `features/`
 
 ## Framework root
 
-The folder a session starts in. It holds the registry, and it may hold `projects/`; when it does not, it holds one project's documents directly.
+The folder a session starts in. It holds the registry and the glossary, and it may hold `projects/`; when it does not, it holds one project's documents directly.
+
+## Glossary
+
+`glossary.md` at the framework root, defining every term the framework and its projects use, each once, under a heading of its own. Every other document links an entry instead of defining the term again.
 
 ## Pointer file
 
