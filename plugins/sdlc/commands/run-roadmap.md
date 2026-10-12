@@ -93,10 +93,18 @@ not try to answer a handed-back question yourself.
         SendMessage(cto, brief) ─► Decisions ◄┘
         SendMessage(planner, Decisions) ─► plan ─►
   ┌ Agent(reviewer) "PRE-READ ONLY" ─────┐  concurrent with planning
+  ├ Agent(test-planner) "SPEC ONLY" ─────┤
   └ [review gate] ─► SendMessage(reviewer, plan) ◄┘
         ▲                          │ CHANGES_REQUESTED
         └── SendMessage(planner) ◄──┘  (revise ×1 ─► then SendMessage(cto, escalation))
-  Agent(coding) ─► ┌ Agent(verify) ──────┐  concurrent
+  SendMessage(test-planner, approved plan) ─► test plan ─► [no cases: skip to coding]
+  Agent(test-writer) ─► failing tests ─► fingerprint them
+  Agent(coding) ─► [fingerprints moved? ─► restore]
+        │ testDisputes ─► SendMessage(test-planner) ─► upheld / revised (test-writer)
+        ▼                  escalate ─► SendMessage(cto, escalation)  (one round per task)
+  Agent(verify, TARGETED) ─► FAILED ─► SendMessage(coding)  (fix ×2 ─► then cto)
+        ▼ passed
+                   ┌ Agent(verify) ──────┐  concurrent
                    └ Agent(code-reviewer)┤
         ▲                                │ FAILED or CHANGES_REQUESTED
         └── SendMessage(coding) ◄─────────┘  (fix ×1 ─► then SendMessage(cto, escalation))
@@ -107,7 +115,9 @@ not try to answer a handed-back question yourself.
 `agent-pipeline` holds the mechanics — spawn once, resume with `SendMessage`, a fresh verify per
 run, concurrent calls in one tool block, the single JSON block and its one retry, and the
 `completed` / `escalate` / `aborted` vocabulary. The persistent roles here are the **cto**, the
-**planner**, the **plan reviewer**, the **coding agent**, and the **code reviewer**. Keep every id.
+**planner**, the **plan reviewer**, the **test planner**, the **test writer**, the **coding agent**,
+and the **code reviewer**. Keep every id. `agent-pipeline` also holds the test fingerprints and the
+dispute route.
 
 **The `cto` is spawned once and resumed for every question in this invocation.** It reads the PRD and
 the design docs on its first turn; re-spawning it throws that away and invites an answer that
@@ -121,6 +131,8 @@ An unattended run with a soft cap is an unattended run that never ends. Apply th
 | --- | --- | --- |
 | Tasks per invocation | **1** | Print the result line and stop. The script starts the next task |
 | Plan revisions | **1** | Ask the CTO for an `escalation` ruling |
+| Targeted fix cycles, a restored test file included | **2** | Ask the CTO for an `escalation` ruling |
+| Test dispute rounds | **1** | A second dispute, or a dispute the test planner escalated, asks the CTO for an `escalation` ruling |
 | Fix cycles after verify and code review | **1** | Ask the CTO for an `escalation` ruling |
 | CTO rulings per stage | **1** | A second escalation at the same stage is `handed-back`. Never ask twice |
 | CTO rulings per task | **2** | The third escalation is `handed-back`, whatever stage it came from |
@@ -137,14 +149,18 @@ pipeline's:
 **You are the only writer.** The agents — the CTO included — report their decisions to you and you
 write them down, so the file has one writer and the two concurrent stages cannot lose an entry.
 
-**The entry and the assignee go in one tool block**, at six boundaries:
+**The entry and the assignee go in one tool block**, at these boundaries:
 
 | Boundary | Entries to append | Assignee becomes |
 | --- | --- | --- |
 | Stage 1, starting the ticket | the worklog itself, with the `run-roadmap · start` entry | `feature-interviewer, implementation-planner` |
 | Stage 3, the decisions land | `feature-interviewer · interview`, then `cto · decisions` | `implementation-planner` |
-| Stage 4, the review gate closes | `implementation-planner · plan`, then `plan-reviewer … · plan review` | `coding` |
-| Stage 5, the implementation lands | `coding · implement` | `verify, code-reviewer` |
+| Stage 4, the review gate closes | `implementation-planner · plan`, then `plan-reviewer … · plan review` | `test-planner` |
+| Stage 4.5, the test plan lands | `test-planner · test plan` | `test-writer`, or `coding` when the plan holds no case |
+| Stage 4.6, the tests land | `test-writer · tests` | `coding` |
+| Stage 5, every test dispute round | `coding · test dispute`, `test-planner · test dispute`, and `test-writer · tests` when a test was revised | `coding` |
+| Stage 5, the implementation lands | `coding · implement` | `verify` for the targeted run, or `verify, code-reviewer` when the test stages were skipped |
+| Stage 5.5, the targeted run passes | `verify · targeted` | `verify, code-reviewer` |
 | Every CTO ruling | `cto · ruling` — the stage, the ruling, and the guidance | unchanged |
 | Stage 6, the gate closes | `verify · verification`, `code-reviewer · code review`, then the outcome | `—` on completion, `user` on every other outcome |
 
@@ -327,11 +343,16 @@ whether a review is likely, and if so spawn the reviewer(s) in **pre-read only**
 prompt `/orchestrate` uses, carrying the task, the criteria, the Decisions, and the context pack, and
 ending with "Do NOT issue a verdict yet."
 
+**Spawn the test planner in the same tool block, always** — `sdlc:test-planner` on opus, with the
+task, the criteria, the Decisions (the `e2eDecision` included), the context pack, and "SPEC ONLY.
+The plan is being written and you will not see it yet. Draft the cases from the specification and
+the existing tests now, and reply with a few lines. I will send the approved plan." Keep its id.
+
 **Then apply the gate mechanically** on the *final* `riskProfile` that came back with the plan:
 
 - **Skip review** iff `filesTouched ≤ 2` **and** `addsDependency == false` **and**
   `addsPublicApi == false` **and** `criteriaAutoCheckable == true`. Log "Review gate: SKIPPED" and go
-  to Stage 5 with the plan as approved.
+  to Stage 4.5 with the plan as approved.
 - Otherwise **review is required**, and it is **high-risk** iff `addsPublicApi == true` **or**
   `addsDependency == true` **or** `filesTouched > 5`.
   - **Normal risk** → **one** reviewer, `model: "sonnet"`.
@@ -346,8 +367,8 @@ seen." + plan)` — both reviewers in one tool block when there are two.
 Merge multiple verdicts: `CHANGES_REQUESTED` if **any** reviewer requests changes; concatenate the
 issues. Every reviewer silent → `aborted` at stage `review`.
 
-- `APPROVED` → append the plan and plan-review entries and set the assignee to `coding`, in one tool
-  block, then Stage 5. The plan entry carries the **direction** the plan settled on and the approach
+- `APPROVED` → append the plan and plan-review entries and set the assignee to `test-planner`, in one
+  tool block, then Stage 4.5. The plan entry carries the **direction** the plan settled on and the approach
   it turned down; the plan markdown is not persisted anywhere else.
 - `CHANGES_REQUESTED`, **not yet revised** → `SendMessage(plannerId, "Revise your plan to resolve
   every issue below. Note in the Context section how each was addressed. Re-emit the full plan
@@ -355,23 +376,84 @@ issues. Every reviewer silent → `aborted` at stage `review`.
 - `CHANGES_REQUESTED`, **already revised once** → **ask the CTO** (Stage 7's ruling procedure) with
   stage `review`.
 
+### 4.5 Test plan
+Resume the test planner: `SendMessage(testPlannerId, approved plan + "The plan is approved. Attach
+your drafted cases to the interfaces it exposes, cut what it made redundant, and return the full
+test plan with its ```json block.")`. It returns `summary`, `cases`, and `untested`. Silent →
+`aborted` at stage `test-plan`.
+
+Append the `test-planner · test plan` entry — each case in one line and each exclusion with its
+reason — and set the assignee to `test-writer`, in one tool block. **An empty `cases` skips Stages
+4.6 and 5.5**: record the planner's reason, set the assignee to `coding`, and go to Stage 5 with no
+written tests.
+
+### 4.6 Write tests
+Spawn **once** and keep the id:
+
+```
+Agent(subagent_type: "sdlc:test-writer", model: "sonnet",
+      prompt: test plan + approved plan + contextPack
+              + "Write exactly these cases, prove each fails for the expected reason, and stop.")
+```
+
+It returns `summary`, `testFiles`, `command`, `cases`, and `blockers`. Silent → `aborted` at stage
+`write-tests`. Non-empty `blockers` → **ask the CTO** with stage `write-tests`. **Fingerprint every
+path in `testFiles`**, as `agent-pipeline` says. Append the `test-writer · tests` entry — the files,
+the command, and each case that did not fail as expected — and set the assignee to `coding`, in one
+tool block.
+
 ### 5. Implement
 Spawn **once** and keep the id:
 
 ```
 Agent(subagent_type: "sdlc:coding", model: "opus",
       prompt: "Implement the approved plan exactly — no scope creep. Match the context pack
-               conventions. Targeted self-check only when you are done; the verify stage runs
-               the full gate."
-              + approved plan + contextPack + acceptance criteria + the Decisions)
+               conventions. Build until the written tests pass. Targeted self-check only when
+               you are done; the verify stage runs the full gate."
+              + approved plan + contextPack + acceptance criteria + the Decisions
+              + test plan + testFiles + the test command  (or: "No test was written: <summary>"))
 ```
 
-It ends every turn with `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, and `blockers`.
-Silent → `aborted` at stage `implement`. Non-empty `blockers` → **ask the CTO** with stage
-`implement`.
+It ends every turn with `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, and
+`testDisputes`. Act on it in this order:
 
-When it lands, append the `coding · implement` entry — its `decisions`, the code-level calls the plan
-left open — and set the assignee to `verify, code-reviewer`, in one tool block before you spawn them.
+1. Silent → `aborted` at stage `implement`.
+2. **Compare the fingerprints.** A changed test file goes back to the coding agent to restore, and
+   that spends one Stage 5.5 fix cycle; with none left → **ask the CTO** with stage `implement`.
+3. Non-empty `blockers` → **ask the CTO** with stage `implement`.
+4. Non-empty `testDisputes` → the dispute round below.
+5. Otherwise append the `coding · implement` entry — its `decisions`, the code-level calls the plan
+   left open — and set the assignee to `verify`, in one tool block, then Stage 5.5. With no written
+   tests, set it to `verify, code-reviewer` and go straight to Stage 6. **When the turn was a Stage 6
+   fix**, skip this step and go back to the Stage 6 re-run; a dispute raised there does not spend
+   Stage 6's fix.
+
+**The dispute round — at most ONE per task.** `SendMessage(testPlannerId, "The coding agent disputes
+these tests. Rule on each against the specification." + testDisputes)`. On `revised`, resume the
+test writer with the revised cases — spawning it now if the empty plan skipped Stage 4.6 — and take
+the fingerprints again. Then send the coding agent every
+ruling in one message, and run its reply through steps 1–5. A ruling of `escalate`, or a second
+dispute from any later coding turn → **ask the CTO** with stage `test-dispute`. The CTO answers a
+question about the specification with a `retry` whose `guidance` holds the reading it chose: send that
+guidance to the test planner, which rules again from it. That is the one extra ruling the CTO's
+`retry` buys. Append the three dispute entries, as the table says.
+
+### 5.5 Targeted verify — at most two fix cycles
+Spawn a fresh verify agent:
+
+```
+Agent(subagent_type: "sdlc:verify", model: "sonnet",
+      prompt: "Scope: targeted. Run the written tests, plus the existing tests of the changed
+               files when the runner can select them. Report pass/fail."
+              + the test command + the coding agent's filesChanged + the work root
+              + (re-runs only) "Previously failing: <failures> — run these first and fail fast.")
+```
+
+Silent → `aborted` at stage `targeted-verify`. Passed → append `verify · targeted` and set the
+assignee to `verify, code-reviewer`, in one tool block, then Stage 6. Failed with a cycle left →
+`SendMessage(codingId, "The written tests still fail. Fix the code, not the tests, then stop; a
+fresh targeted run follows." + failures)`, run its reply through Stage 5's steps 1–5, then a fresh
+targeted verify. Failed with **both cycles spent** → **ask the CTO** with stage `targeted-verify`.
 
 ### 6. Verify and review the code — concurrent, one fix cycle
 Issue **both `Agent` calls in one tool block**. Verify is fresh every run; the code reviewer is
@@ -382,12 +464,14 @@ Agent(subagent_type: "sdlc:verify", model: "sonnet",
       prompt: "Run these verification commands CONCURRENTLY (one parallel Bash batch).
                Report pass/fail per command."
               + verificationCommands and e2eCommand from the context pack + the Decisions
+              + the test writer's e2eCommand, when it wrote end-to-end cases
               + (re-runs only) "Previously failing commands: <failures> — run these first and fail fast.")
 
 Agent(subagent_type: "sdlc:code-reviewer", model: <opus on high risk, else sonnet>,
       prompt: "Review the change the coding agent just made, against the approved plan and the
                acceptance criteria. Verification is running in parallel — do not run the suite."
               + approved plan + acceptance criteria + Decisions + contextPack
+              + the test plan + the test writer's testFiles, and each new case it reported as passing
               + the coding agent's filesChanged + the review target ("the uncommitted changes
                 against HEAD, untracked files included"))
 ```
@@ -409,8 +493,9 @@ nobody ran.
   block.
 - Anything else, **not yet fixed** → one message carrying both sets of defects:
   `SendMessage(codingId, "Verification and code review found the following. Fix ONLY what is needed
-  to clear them — stay within the approved plan, then stop; both will re-run." + failures + blocking
-  review issues)`. Then re-run: **always** a fresh verify agent, carrying the previously failing
+  to clear them — stay within the approved plan, change no test, then stop; both will re-run." +
+  failures + blocking review issues)`. Its reply goes through Stage 5's steps 1–4, so a changed test
+  file goes back and a dispute takes the dispute round if the task has not used it. Then re-run: **always** a fresh verify agent, carrying the previously failing
   commands; re-review **only when the review blocked**. Both in one tool block.
 - Anything else, **already fixed once** → **ask the CTO** with stage `verify` when commands still
   fail, `code-review` when only the review still blocks.
@@ -501,7 +586,9 @@ The report is short — a person reads a hundred of these in a log, not one on a
 - [x] Task chosen by cto — [the rationale, one line]
 - [x] Interview — [N] decisions settled by cto
 - [x] Planning — approved ([0 or 1] revision, or: review gate skipped)
-- [x] Implementation — [N] files
+- [x] Test plan — [N] cases, [M] left untested on purpose (or: no case — [why])
+- [x] Tests written first — [N] failing before the code; [0 or N] disputes ([rulings])
+- [x] Implementation — [N] files, written tests pass ([0–2] targeted fix cycles)
 - [x] Verification — passed ([the commands], or: [what was skipped and why])
 - [x] Code review — approved
 - [x] Work root — [code] `[absolute path]`
@@ -556,6 +643,9 @@ The four skills carry the rules they own. What is this command's own:
   overrule the CTO — but never let it past a failing gate either. A test result and a review verdict
   are not product decisions.
 - **Every cap is hard**, and the CTO's `retry` buys exactly one cycle. No improvised extra pass.
+- **Tests before code, and the coder never touches them.** A test changes only by a `revised` ruling
+  from the test planner. The CTO settles what the specification means; it never tells the coding
+  agent to change a test.
 - **Resolve the work root before the ticket starts**, record it in the worklog, pass it to every agent, and name it in the result line. Never let an agent infer which repository it is working in.
 - **You write the status, the assignee, the worklog, the roadmap, and the commit.** No agent writes
   any of them.

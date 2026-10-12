@@ -1,6 +1,6 @@
 ---
 name: prd
-description: Create or update the product requirements document — the project's `prd.md`. Use when asked to write a PRD, revise product requirements, or maintain a living product spec.
+description: Create or update the product requirements document — a project's `prd.md`, beside its project note. Use when asked to write a PRD, revise product requirements, or maintain a living product spec.
 ---
 
 # prd

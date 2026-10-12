@@ -44,7 +44,7 @@ Each agent ends its reply with exactly **one** fenced ` ```json ` block, in the 
 agent definition specifies. Parse it and drive control flow from it. There is no schema
 enforcement and no background workflow — the block is the interface.
 
-**The contract lives in the agent definition. Do not restate it in a spawn prompt.**
+**The contract lives in the agent definition. Do not restate it in a spawn prompt.** A scout, pre-read, or spec-only turn emits no block when its agent definition says none is due; do not ask for one.
 
 When a block is missing or malformed, `SendMessage` the agent **once**, asking it to re-emit *only*
 the JSON block. A second failure is an `aborted` run.
@@ -63,9 +63,37 @@ documents and not the code — an agent left to assume would read the wrong tree
 result from it. `sdlc-structure` holds how the work root is resolved; resolving it is the command's
 job, once, before the first spawn.
 
+## Tests come before the code, from three different agents
+
+The agent that decides what to test, the agent that writes the tests, and the agent that writes the
+code are three different agents. A coder that writes its own tests, or edits them until they pass,
+produces tests that describe its code rather than check it.
+
+- **`test-planner` drafts from the specification first.** Spawn it in *spec only* mode at the same
+  moment the planner gets the decisions, in the same tool block as the plan reviewer's pre-read.
+  Send it the approved plan when the plan review closes. It is persistent: it also rules on every
+  test dispute, and it keeps what it decided and why.
+- **`test-writer` is persistent** too. A `revised` ruling goes back to the same agent. When an empty test plan meant it was never spawned, spawn it then, with the revised cases, the approved plan, and the context pack.
+- **An empty test plan skips the test stages.** `cases == []` means no test is written and no
+  targeted verify runs. Record the planner's reason; do not second-guess it.
+- **Fingerprint every file `test-writer` changed**, the moment its block lands:
+  `git -C <work root> hash-object <file>…`. Compare after every `coding` turn. A file whose
+  fingerprint moved goes back to `coding` with "restore this test file exactly; dispute it instead
+  of changing it", and that costs one targeted fix cycle. Take the fingerprints again after every
+  `test-writer` turn, since a `revised` ruling changes them legitimately, and drop the ones for
+  files it deleted.
+- **A test dispute goes to `test-planner`, never straight to `test-writer`.** Forward the coding
+  agent's `testDisputes` as they came, with the specification passages they cite. Then act on each
+  ruling: `upheld` → `coding` gets the reason; `revised` → `test-writer` changes the test, then
+  `coding` gets the change; `escalate` → the run's escalation. When one round holds both kinds, run
+  the `test-writer` turn first, then send `coding` one message with every ruling.
+
 ## Never duplicate the gating run
 
 - The **coding agent self-checks** what it touched, and nothing more.
+- The **test writer runs only the tests it wrote**, to prove each one fails before the code exists.
+- The **targeted verification** runs only the written tests and the existing tests of the changed
+  files. It is a fast gate before the full one, not a second full run.
 - The **verification agent** runs the project's gating commands, concurrently, once per cycle. It
   is the authoritative gate.
 - The **code reviewer never runs the suite.** It answers a different question about the same
@@ -81,8 +109,8 @@ Every pipeline ends in exactly one of three states. Use these words, and mean on
 | Outcome | What happened | What it does to the ticket |
 | --- | --- | --- |
 | `completed` | Every gate passed — the commands passed **and** the review returned `APPROVED`. | Finish the ticket. |
-| `escalate` | A stage hit its retry cap, or an agent reported a blocker it cannot pass. | Stop without finishing. Surface the stage, the reason, and the open issues. |
-| `aborted` | An agent returned no usable result — it died, or produced no valid JSON block after one retry. | Stop without finishing. Name the stage and the agent that went silent. |
+| `escalate` | A stage hit its retry cap, an agent reported a blocker it cannot pass, or the test planner ruled that a dispute turns on what the specification means. | Stop without finishing: the ticket becomes `blocked`, with one `blocked_by` line naming what a person must decide. |
+| `aborted` | An agent returned no usable result — it died, or produced no valid JSON block after one retry. | Stop without finishing: the ticket becomes `blocked`, with one `blocked_by` line naming the stage and the agent that went silent. |
 
 **Apply each cap mechanically.** A revision cap of one means one, and a fix cap of one covers every
 defect found in that cycle together — verification failures and blocking review issues in a single
@@ -91,5 +119,5 @@ message, not one message each. Do not improvise an extra cycle because the next 
 **Never report a skipped command as green**, and never mark work complete on a passing suite alone
 when a review is part of the gate.
 
-The `ticket-board` skill holds what each outcome writes to the ticket, the assignee, and the
-worklog.
+The `ticket-board` skill holds what each outcome writes to the ticket — its `status`, `assigned`,
+`claimed`, `blocked_by`, and usage — to the roadmap, and to the worklog.

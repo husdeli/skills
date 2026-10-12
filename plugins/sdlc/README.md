@@ -129,7 +129,8 @@ keeps working — `/setup` offers each migration, and never forces one.
 
 **A ticket in flight says who holds it, and keeps a worklog of what was decided.** Its
 `Assignee` field names whoever is working on it right now — `implementation-planner` while the
-plan is written, `coding` while the change is made, `verify, code-reviewer` while the gate runs,
+plan is written, `test-planner` and `test-writer` while the tests are decided and written,
+`coding` while the change is made, `verify, code-reviewer` while the gate runs,
 `user` when a run escalates and a person has to act, `—` when nobody holds it. Beside it sits
 `<ID>-<slug>.worklog.md`, one entry per stage: the direction the plan settled on, the issues the
 review sent back, the code-level calls the plan left open, what the verification found. All of
@@ -470,10 +471,21 @@ what a ticket is, and why changing how a status transition works is one edit rat
   correctness, scope, the plugin's skills, the codebase's conventions, error handling, tests,
   and secrets, and confirms every issue in the file before reporting it. Writes no code.
   Verification answers "does it pass?"; this answers "is it the right code, and all of it?".
+- **test-planner** — decides which tests a change gets before any code exists. It drafts the
+  cases from the ticket, the design docs, and the decisions before it sees the plan, keeps only
+  the cases that catch a bug the change could ship, picks the cheapest test type for each, and
+  lists what goes untested and why. It also rules on a test the coding agent disputes: the test
+  stands, the test is revised, or the question goes to a person. Writes no test and no code.
+- **test-writer** — writes exactly the planned tests before the code exists, and proves each one
+  fails because the behavior is missing. Writes test files only.
 - **coding** — implements a work brief and runs a targeted self-check. The brief is an approved
-  plan from either orchestrator, or a request `/code` sends with no plan at all.
+  plan from either orchestrator, or a request `/code` sends with no plan at all. In an
+  orchestrated run it builds until the written tests pass and never changes a test. A test it
+  believes is wrong goes back to the test planner as a dispute.
 - **verify** — runs the repository's gating commands (tests, lint, typecheck, e2e when there is
-  one) concurrently and reports pass/fail per command. Writes no code, and reviews none either.
+  one) concurrently and reports pass/fail per command. In its targeted mode it runs only the tests
+  a change was built against, as a fast gate before the full one. Writes no code, and reviews none
+  either.
 - **cto** — stands in for you when nobody is in the room. It reads the PRD, the glossary, the
   feature notes, and the design docs once, then answers what `/orchestrate` would have asked you: which task to build next,
   whether it gets end-to-end tests, how each open decision goes, and what happens when a stage runs
@@ -521,14 +533,17 @@ what a ticket is, and why changing how a status transition works is one edit rat
   roadmap marker disagree, it says so rather than fixing it.
 - **/orchestrate** — offers you every roadmap task whose dependencies are satisfied, asks which
   one to build and whether it gets end-to-end tests, then drives it through
-  interview → plan → review → implement → verify and code review using the six agents above.
+  interview → plan → review → test plan → write tests → implement → targeted verify → verify and
+  code review using the agents above. The tests are decided and written before the code, by
+  agents other than the one that writes it.
   The verify stage runs the gating commands and the code review side by side, and the task is
   finished only when the commands pass and the review returns `APPROVED` — then the ticket moves
   to `done/` with its worklog and the roadmap row is deleted. At each stage boundary it rewrites
   the ticket's assignee and appends the stage's worklog entry, so an escalated task is left
   assigned to you with the reason written down.
 - **/orchestrate-quick** — the short pipeline for a task that is already well understood:
-  plan → one review → implement → verify and code review, with no interview and no review
+  plan → one review → test plan → write tests → implement → targeted verify → verify and code
+  review, with no interview and no review
   gating. Takes a task description or a roadmap/ticket path. It asks nothing: end-to-end tests
   default to no, and it reports that default.
 - **/run-roadmap** — `/orchestrate` with nobody in the loop. It never asks you anything: the **cto**

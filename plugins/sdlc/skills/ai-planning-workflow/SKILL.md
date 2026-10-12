@@ -1,6 +1,6 @@
 ---
 name: ai-planning-workflow
-description: "Feedback-driven development workflow for implementing tickets and planning features. Use when: starting work on a ticket, creating a ticket, creating an implementation plan, planning a feature, building UI that needs design agreement, requesting feedback after completing a step, marking a ticket complete. Covers the phased implementation with feedback checkpoints, design agreement for UI work, and when to start, log, and complete a ticket. The ticket, roadmap, assignee, and worklog rules themselves live in the `ticket-board` skill."
+description: "Feedback-driven development workflow for implementing tickets and planning features. Use when: starting work on a ticket, creating a ticket, creating an implementation plan, planning a feature, building UI that needs design agreement, requesting feedback after completing a step, marking a ticket complete. Covers the phased implementation with feedback checkpoints, design agreement for UI work, and when to start, log, and complete a ticket. The ticket, claim, roadmap, and worklog rules themselves live in the `ticket-board` skill."
 ---
 
 # AI Planning Workflow
@@ -27,8 +27,8 @@ has to write.
 2. Ask clarifying questions if anything is unclear — don't assume
 3. Confirm architectural decisions before starting
 4. Once the work starts, run the `ticket-board` skill's **Starting a ticket** transition: the
-   status, the assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all
-   in one tool block
+   claim, the `status` and `assigned`, the move into `work/in-progress/`, the new worklog, and the
+   roadmap row, all in one tool block
 
 ---
 
@@ -36,7 +36,7 @@ has to write.
 
 Don't plan on unchallenged assumptions. For any non-trivial feature, run a discovery pass **before** writing the plan:
 
-1. Read the PRD if it exists, the feature note the ticket's epic code names (`<project>/features/<feature>/<feature>.feature.md`), and the design docs this ticket touches — the ones in that feature's folder first, then `<project>/designs/*.design.md`, or, on an older shape, `<project>/*.design.md` or a single `<project>/design.md` — for product intent and the intended design. Note where the ticket diverges. Fall back to the repository root when there is no project. The `sdlc-structure` skill resolves the project — load it before you resolve a path.
+1. Read the PRD if it exists, the feature note the ticket's `feature` property links (`features/<feature>/<feature>.feature.md`), and the design docs this ticket touches — the ones in that feature's folder first, then `designs/*.design.md`, or, on an older shape, a project's `*.design.md` or a single `design.md` — for product intent and the intended design. Note where the ticket diverges. Fall back to the repository root when there is no framework root. The `sdlc-structure` skill resolves the framework root and the project — load it before you resolve a path.
 2. Research the feature topic — established approaches, common pitfalls, relevant libraries, UX/security conventions.
 3. Explore the codebase for what already exists and can be reused.
 4. Turn the fuzzy parts into **explicit high-level decisions** and put them to the user with concrete options and a recommended default:
@@ -54,7 +54,7 @@ Assumptions I'll make unless you say otherwise: […]
 Which options do you want?
 ```
 
-5. Record the answers in the ticket (a **Decisions** section) so the plan and every later step build on settled choices.
+5. Record the answers in the worklog's interview entry — each decision, what it beat, and each assumption confirmed — so the plan and every later step build on settled choices. The ticket says what to build and never records what happened.
 
 Skip this phase only for small, unambiguous changes with no product/UX/architecture forks.
 
@@ -154,20 +154,20 @@ When all steps are done:
 
 Tests: [summary] | Files: [list]
 
-Mark as Completed?
+Mark as done?
 ```
 
-**Never mark a ticket Complete without explicit user approval.** On approval, run the
-`ticket-board` skill's **Finishing a ticket** transition in one step: the status, the assignee
-back to `—`, the closing worklog entry, the move into `done/` with the worklog, and the task
-deleted from the roadmap.
+**Never mark a ticket `done` without explicit user approval.** On approval, run the
+`ticket-board` skill's **Finishing a ticket** transition in one step: `status` to `done`,
+`assigned` and `claimed` removed, the usage added, the closing worklog entry, the move into
+`work/done/` with the worklog, and the row deleted from the roadmap.
 
 ---
 
 ## The board is not this skill's job
 
-Where a ticket lives, how it is named and numbered, what its status field and its folder mean, what
-the roadmap holds, who the `Assignee` names, and what the worklog records — all of that is the
+Where a ticket lives, how it is named and numbered, what its `status` and its bucket mean, what
+the roadmap holds, who `assigned` and `claimed` name, and what the worklog records — all of that is the
 **`ticket-board`** skill. **Load it before you read, write, move, assign, or complete a ticket**,
 and follow it. This skill decides *when* in the workflow each of those happens; `ticket-board`
 decides *what gets written*.
@@ -177,8 +177,8 @@ Two of its rules carry every phase above, so they are worth naming here:
 - **A ticket describes WHAT, not HOW** — requirements, acceptance criteria, behaviour, and
   constraints. Never a file path, a module name, or a code-level pattern: those belong to the plan
   in Phase 2, written after the codebase is explored.
-- **A status transition writes the status field, the folder, and the roadmap row in one tool
-  block.** Phase 1 starts the ticket; Phase 4 finishes it.
+- **A status change writes `status`, `assigned`, `updatedAt`, the bucket, the roadmap row, and the
+  worklog in one tool block.** Phase 1 starts the ticket; Phase 4 finishes it.
 
 ---
 
@@ -197,7 +197,7 @@ Two of its rules carry every phase above, so they are worth naming here:
 | "Looks good, continue"        | Append a worklog entry → proceed to next step                       |
 | "Can you change X to Y?"      | Acknowledge → clarify if needed → implement → request feedback     |
 | "Why did you do it this way?" | Explain rationale → adjust if needed → request feedback            |
-| "This won't work because..."  | Mark Blocked, assignee `user` → log the blocker → propose solutions → wait |
+| "This won't work because..."  | Mark `blocked` with a `blocked_by` line → log the blocker → propose solutions → wait |
 | "Can we also add Z?"          | Assess scope → update ticket if needed → get approval for approach |
 
 ---

@@ -82,6 +82,14 @@ One pass of the workflow over one ticket, from the pick to `done` or to a stop a
 
 One step of a run, such as the plan review or the implementation. Each stage has its own agent and its own worklog entry.
 
+## Test dispute
+
+A claim by `coding` that a test, not its code, is wrong. It names the test, what is wrong with it, the evidence, and the change it proposes, and `test-planner` rules on it. It is the only way a written test changes once the code is being built.
+
+## Test plan
+
+The tests one ticket gets, decided from the specification before any code exists. Each case names the bug it catches, the input that exposes it, the expected result, and the cheapest test type that catches it. The plan also lists what goes untested and why.
+
 ## Ticket
 
 One task, named `<CODE>-<NNN>-<slug>.md`, where `<CODE>` is the code of the feature it delivers. It carries a status, sits in the bucket under `work/` that status names, and never names the repository it is built in.

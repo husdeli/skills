@@ -171,8 +171,14 @@ ruling.
 ### 3. An escalation ruling
 
 A stage hit its retry cap: the plan was still rejected after its one revision, the coding agent
-reported a blocker, or verification or the code review still failed after its one fix cycle. In an
-interactive run this stops and waits for a person. You rule instead.
+reported a blocker, the written tests still failed after two targeted fix cycles, the coding agent
+disputed a test a second time, the test planner escalated a dispute the specification does not
+settle, or verification or the code review still failed after its one fix cycle. In an interactive
+run this stops and waits for a person. You rule instead.
+
+A dispute the test planner escalated is a question about what the specification means. Answer it
+with `retry`, and put the reading you chose in `guidance`; the test planner then rules again from
+it. Never settle it by telling the coding agent to change a test.
 
 You get the stage, what it reported, what was already tried, and which rulings you have already
 given on this task.

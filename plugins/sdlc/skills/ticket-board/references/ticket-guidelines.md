@@ -6,11 +6,13 @@ Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable 
 
 ## ✅ Include
 
-- **Epic**: The epic this ticket belongs to, written as the roadmap section names it. The epic's
+- **Feature**: The `feature` property links the feature note the ticket delivers. That feature's
   code prefixes the ticket ID, and the numbering restarts at 001 inside each epic.
-- **Assignee**: Who holds the ticket right now. A new ticket is unassigned (`—`); the workflow
-  rewrites the field as the work moves, and the worklog beside the ticket records what each
-  holder decided.
+- **Priority and dependencies**: `priority`, and `depends_on` with the ID of every ticket this one
+  cannot start without.
+- **Times**: `createdAt` and `updatedAt`, both set to now. A new ticket has no `claimed` and no usage, and
+  `assigned` only when the agent planned to work on it is already known; the run writes the rest as
+  the work moves.
 - **Requirements**: What features/functionality to deliver
 - **Acceptance Criteria**: Observable outcomes and behaviours
 - **User Experience**: How users interact with the feature
@@ -18,9 +20,8 @@ Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable 
 - **High-Level Architecture**: Data flow, reusability principles
 - **Data Requirements**: What data needs storing/retrieval (not schema details)
 - **Testing Expectations**: What needs testing (not specific test files)
-- **Related documents**: The PRD area, the design docs, the goal, and the sibling tickets, in the
-  `related:` frontmatter property. The body holds no Related section. The `sdlc-structure` skill
-  holds the rule.
+- **Related documents**: The design docs the ticket builds, in the `related:` frontmatter
+  property. The body holds no Related section. The `sdlc-structure` skill holds the rule.
 
 ---
 
@@ -33,7 +34,7 @@ Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable 
 - Data schema details
 - Code-level details (imports, hooks, syntax)
 
-Implementation decisions belong in the plan created during Phase 2, after codebase exploration.
+Implementation decisions belong in the plan written after the codebase is explored.
 
 ---
 

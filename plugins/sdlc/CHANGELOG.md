@@ -7,7 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Tests come before the code, and from someone other than the coder.** `/orchestrate`,
+  `/orchestrate-quick`, and `/run-roadmap` gain four stages between the plan review and the full
+  verification:
+  - **Test plan** — the new **`test-planner`** agent drafts the cases from the ticket, the design
+    docs, and the decisions before it sees the plan, then attaches them to the interfaces the
+    approved plan exposes. Each case names the bug it catches and takes the cheapest type that
+    catches it, and the plan lists what goes untested and why. Coverage is never a reason, and a
+    plan with no case skips the test stages.
+  - **Write tests** — the new **`test-writer`** agent writes exactly the planned tests and proves
+    each fails because the behavior is missing. The orchestrator fingerprints every file it wrote.
+  - **Implement** — `coding` builds until the written tests pass and never changes a test. A
+    changed test file goes back to be restored. A test it believes is wrong becomes a **test
+    dispute**, and `test-planner` rules on it: `upheld`, `revised`, or `escalate`.
+  - **Targeted verify** — a fresh `verify` runs only the written tests and the existing tests of
+    the changed files. It passes to the full verification and code review, or goes back to
+    `coding`.
+  - New caps: two targeted fix cycles, and one dispute round per ticket.
+- **`verify`** has a targeted scope. **`implementation-planner`** plans no test cases and names
+  each work item's interface instead. **`code-reviewer`** judges the tests against the test plan.
+  **`cto`** rules on the new caps. The workflow design, the glossary (**Test plan**, **Test
+  dispute**), `agent-pipeline`, and the Codex role table describe the new stages.
+
 ### Changed
+
+- **The skills follow the SDLC framework design in `designs/`.** The structure is no longer one
+  project folder. It is a **framework root** that holds the registry, the glossary, every feature,
+  and every ticket, with the projects under `projects/`.
+  - **`sdlc-structure`** describes the framework root and its tree. It resolves the framework root
+    by `sdlc.json` and then the project. It adds the project note (`type: project`, with a
+    `backlog`, `in progress`, or `done` status). The registry is now `repositories`, where each
+    entry has a `path`, an optional `projects` list, and an optional `what` line. A work root
+    that lists `projects` is changed only while working on one of those projects. Properties are
+    frontmatter in every destination, and only the link form changes outside a vault. An
+    older-shape table maps every older value onto the current one.
+  - **`ticket-board`** describes `work/` and its `backlog/`, `in-progress/`, and `done/` buckets,
+    and the bucket follows the status.
+    - The statuses are `backlog`, `in progress`, `blocked`, `review`, and `done`, with the
+      transitions the ticket design allows.
+    - A ticket carries `feature`, `assigned` (`coding-2`), `claimed` (`orchestrate-2`),
+      `blocked_by`, `createdAt`, `updatedAt`, and the usage properties `timing`, `tokens`, and
+      `cost`.
+    - The claim rules decide which ticket is ready. Every stop leaves the ticket `blocked` with a
+      reason, and only the orchestrator writes the board.
+    - The roadmap sits in each project's folder. The ticket template no longer lives in `work/`.
+  - **`feature`** puts features at the framework root. A feature note carries `name`, `code`,
+    `projects`, `status` (`backlog`, `in progress`, `done`), `goals`, and `personas`. `area`,
+    `customer_facing`, `shipped`, `non_goals`, and the Open work section are gone.
+  - **`glossary`** describes the one glossary at the framework root, with `type: glossary`
+    frontmatter, the heading rules, and the escaped pipe inside a table.
+  - **`prd`** describes `prd.md` beside the project note, with `type: prd`. The PRD is optional,
+    and a project holds at most one.
+  - **`design-doc`**, **`diagrams`**, **`product-intent`**, **`business-plan`**,
+    **`ai-planning-workflow`**, **`agent-pipeline`**, and **`frontend-design`** now use the new
+    paths and status words. The Codex entry points describe the same things.
 
 - **`product-docs` is now `sdlc-structure`, and it holds the whole structure the plugin creates.**
   The skill used to say where the documents live. It now also says what the docs root holds:

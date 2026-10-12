@@ -48,7 +48,7 @@ Evaluate the plan against every item below. Read the referenced files to confirm
    - **`clean-tanstack-start`** for any TanStack Start server code — flag a server-only module reachable from a client file, a secret in a client-importable config, a planned `await import()` of a server function (whatever the bundle-size argument), auth left to the calling route's `beforeLoad`, and `Cache-Control: public` on an identity-dependent response.
    A work item whose direction would force a violation is a **major** issue.
 9. **Risk coverage** — Are edge cases, error handling, and potential issues addressed?
-10. **Verification** — Are the verification steps sufficient to confirm the task is done?
+10. **Verification** — Are the verification commands the project's real ones, and does every work item a caller reaches name its *Interface*, so tests have a place to attach? Do not ask for test cases: a test planner decides them from the specification after this review. A plan that lists test cases or adds an "add tests" work item is a **minor** issue.
 11. **Scope** — Is the plan doing too much (scope creep) or too little?
 
 ## Output Format

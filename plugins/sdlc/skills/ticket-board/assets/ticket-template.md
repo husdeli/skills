@@ -1,20 +1,15 @@
 ---
+feature: "[[<feature-name>.feature]]"
+status: backlog
+priority: Critical | High | Medium | Low
+depends_on: []
+createdAt: YYYY-MM-DDTHH:mm
+updatedAt: YYYY-MM-DDTHH:mm
 related:
-  - ../../prd.md#<area-heading-anchor>
-  - <SIBLING-ID>-<slug>.md
+  - "[[<subject>.design]]"
 ---
 
-# [EPIC-XXX] Ticket Title
-
-**Epic**: EPIC — <epic name, as the roadmap section names it>  
-**Feature**: `features/<feature>/<feature>.feature.md` — the feature this epic delivers  
-**Status**: Not Started | In Progress | Blocked | Review | Completed  
-**Assignee**: — | <agent or command name> | user  
-**Priority**: Critical | High | Medium | Low  
-**Depends on**: — | <IDs of the tickets this one cannot start without, comma separated>  
-**Effort**: XS | S | M | L | XL  
-**Category**: feature | bug | enhancement | tech-debt | docs  
-**Created**: YYYY-MM-DD
+# [<CODE>-<NNN>] Ticket Title
 
 ## Description
 
@@ -27,16 +22,10 @@ related:
 
 ## Implementation Steps
 
-Describe WHAT needs to happen (outcomes, behaviour), not HOW. Implementation details are deferred to Phase 2.
+Describe WHAT needs to happen (outcomes, behaviour), not HOW. Implementation details are deferred to the plan.
 
 1. **Step 1**: [Outcome-focused description]
 2. **Step 2**: [Outcome-focused description]
-
-## Decisions
-
-High-level choices settled in the interview stage (before planning). Each is a fixed constraint for the plan.
-
-- **[Decision]**: [chosen option] — [one-line rationale]
 
 ## Technical Notes
 

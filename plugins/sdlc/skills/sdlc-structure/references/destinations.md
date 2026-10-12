@@ -1,212 +1,170 @@
-# Destinations and the vault shape
+# Properties, links, and the vault shape
 
-The three places a project can sit, and how a document is written in each.
+How every document writes its properties and its links, the three places a framework root can sit,
+and how a ticket and its worklog move.
 
 ## The three destinations
 
-| `kind` | Project | What changes |
+| `kind` | Framework root | What changes |
 | --- | --- | --- |
-| `repo` | `.sdlc/` at the repository root | Nothing — this is the default shape every rule is written for. |
-| `folder` | Any folder outside the repository | Only the path. The documents are written exactly as in `repo`. |
-| `vault` | A folder inside an Obsidian vault | The path, **and** the document conventions below. |
+| `vault` | A folder inside an Obsidian vault | Nothing — this is the shape every rule is written for |
+| `folder` | Any folder outside the repository | The links: a relative path instead of a wikilink |
+| `repo` | `.sdlc/` at the repository root | The links, as in `folder`, and the folder name starts with a dot |
 
 A path is inside an **Obsidian vault** when that path, or one of its parent directories, holds a
-`.obsidian/` folder. Check for it by walking up from the project.
+`.obsidian/` folder. Check for it by walking up from the framework root.
 
-`vault` is the destination the setup entry point recommends for a new project, because the
-documents then stay readable outside the repository and out of every branch and diff. `repo` stays
-the shape every rule below is written for, and the one every command falls back to when no pointer
-file exists.
+`vault` is the destination the setup entry point recommends, because the documents then stay
+readable outside the repository and out of every branch and diff. `repo` is what every command
+falls back to when no pointer file exists.
 
-## Writing into a vault
+**No name in a vault starts with a dot.** Obsidian hides dot-folders and dot-files, so a `.sdlc/`
+folder inside a vault is invisible. **The vault root is a valid framework root**: a vault kept for
+the framework needs no folder inside it. Use a folder inside the vault when the vault root already
+holds notes of its own. The setup entry point settles which of the two it is.
 
-Obsidian reads the project as notes. Four things change, and nothing else does — the sections,
-the headings, and the words of every document stay the same.
+## Properties are frontmatter, everywhere
 
-### Folder and file names
+**Every property a document carries is YAML frontmatter, in every destination.** The body never
+repeats a property as a `**Field**: value` line, and a command that changes a property rewrites the
+frontmatter — there is no second copy to keep in step.
 
-- **No name in the project starts with a dot.** Obsidian hides dot-folders and dot-files, so a
-  `.sdlc/` folder inside a vault is invisible. The project folder is named after the product
-  (`Acme/`), and `product/`, `goals/`, `non-goals/`, `personas/`, `problems/`, `metrics/`,
-  `features/`, `designs/`, `diagrams/`, `tickets/`, `todo/`, `in-progress/`, `done/`, `business/`,
-  and `competitors/` keep their names.
-- **The vault root is a valid project.** A vault kept for one product needs no folder inside
-  it, and a folder named after the vault (`sdlc-obsidian/sdlc-obsidian/`) helps nobody. Use a
-  product-named folder inside the vault instead when the vault root already holds notes of its
-  own, so `prd.md` does not land among them. The setup entry point settles which of the two it
-  is; every other command takes the project from `.sdlc.json` and never second-guesses it.
-- File names are unchanged: `prd.md`, `glossary.md`, `roadmap.md`, `checkout.feature.md`,
-  `checkout.design.md`, `AUTH-001-user-login.md`.
+- **`type` names the kind of document** — `project`, `prd`, `glossary`, `goal`, `non-goal`,
+  `persona`, `problem`, `metric`, `feature`, `design`, `roadmap`, `worklog`, `business-plan`, or
+  `competitor`. A ticket carries none; its name and its bucket make it a ticket.
+- **`tags` holds one entry, `sdlc/<type>`**, so the whole structure is one search. A ticket
+  carries none.
+- **`updated` is the date a document last changed**, `YYYY-MM-DD`, on the kinds whose skill lists
+  it — the glossary, the PRD, the roadmap, a design doc, and the business plan. The project note,
+  the feature note, and the worklog carry none. A ticket carries `createdAt` and `updatedAt`
+  instead; the `ticket-board` skill holds them.
+- **Each kind adds its own properties.** The skill that governs the kind holds them: `feature` for
+  the feature note, `ticket-board` for the ticket, the roadmap, and the worklog, `product-intent`
+  for the five product notes, `design-doc` for the design doc, and so on.
+- **Leave a property out when it has no value**, unless its skill says to write it empty.
 
-### Frontmatter properties
+## Links
 
-Obsidian renders YAML frontmatter as properties, which is what makes a ticket queryable. In a
-vault, **every field the document would print under its title moves into frontmatter instead**,
-with the same value, and it is not repeated in the body.
+**In a vault, a reference from one document to another is a wikilink** — the file name without its
+`.md` extension, in double brackets:
 
-The key is the field name in lower case, with `Last updated` as the one exception:
-
-| Field in the body | Property |
-| --- | --- |
-| `**Status**: In Progress` | `status: In Progress` |
-| `**Assignee**: coding` | `assignee: coding` — left empty when the value is `—` |
-| `**Epic**: AUTH` | `epic: AUTH` |
-| `**Feature**: …` | `feature:` — a wikilink, quoted |
-| `**Priority**: High` | `priority: High` |
-| `**Depends on**: AUTH-001, AUTH-004` | `depends_on:` — a list of bare IDs, one per line; `[]` when there are none |
-| `**Effort**: M` | `effort: M` |
-| `**Category**: feature` | `category: feature` |
-| `**Created**: 2026-09-10` | `created: 2026-09-10` |
-| `**Code**: CHECKOUT` | `code: CHECKOUT` |
-| `**Target**: 500 by 2027-03` | `target: 500 by 2027-03` |
-| `**Area**: PAYMENTS` | `area: PAYMENTS` |
-| `**Last updated**: 2026-09-10` | `updated: 2026-09-10` |
-| `**Product**: Acme` | `product: Acme` |
-
-`related:` is not in this table because it is frontmatter in every destination. See
-[Related documents are a frontmatter property](ownership.md#related-documents-are-a-frontmatter-property).
-
-**`depends_on` holds bare IDs, not wikilinks** — the one place in a vault where a reference to
-another document is not a link. Three reasons: the ID is what the board cites everywhere else, a
-ticket's slug can be corrected without editing every ticket that waits on it, and a query matches
-an ID exactly. The clickable link to that sibling is already in `related:`, so the vault loses no
-navigation. Write `depends_on: []` when a ticket waits on nothing.
-
-Every document also carries two properties the plugin adds:
-
-- **`type`** — `prd`, `glossary`, `goal`, `non-goal`, `persona`, `problem`, `metric`, `feature`,
-  `design`, `roadmap`, `ticket`, `worklog`, `business-plan`, or `competitor`.
-- **`tags`** — one entry, `sdlc/<type>`, so the whole structure is one search.
-
-A ticket adds `id` (`AUTH-001`), a design doc adds `subject` (`checkout`), and a worklog adds
-`ticket` — the wikilink to the ticket it belongs to. A feature adds `code` (`CHECKOUT`), `area`,
-`customer_facing`, `shipped`, `goals`, `personas`, and `non_goals`; the **`feature`** skill holds
-what each one means. Each of the five notes under `product/` carries its own fields, and the
-**`product-intent`** skill holds those.
-
-**The property is the record.** When a command sets a ticket's status, it rewrites the
-frontmatter `status` property — there is no `**Status**` line in the body to keep in step with
-it. The status values are unchanged: `Not Started`, `In Progress`, `Blocked`, `Review`,
-`Completed`.
-
-### Links
-
-Inside a vault, a reference from one document in the project to another is a **wikilink** —
-the file name without its `.md` extension, in double brackets:
-
-- `[[AUTH-001-user-login]]`, not `` `AUTH-001-user-login.md` ``
-- `[[prd]]`, not `../prd.md`
-- `[[checkout.design]]`, not `checkout.design.md`
+- `[[CHECKOUT-001-saved-card]]`, not `` `CHECKOUT-001-saved-card.md` ``
 - `[[checkout.feature]]`, not `features/checkout/checkout.feature.md`
+- `[[checkout.design]]`, not `checkout.design.md`
+- `[[glossary#Work root]]`, not `glossary.md#work-root`
 
-Obsidian resolves a wikilink by name, which is why a ticket keeps its links when it moves
-between the status folders.
+Obsidian resolves a wikilink by name, which is why a ticket keeps its links when it moves between
+buckets.
 
-- **Quote a wikilink in a frontmatter property**: `related:` takes `"[[prd]]"`, because bare
+- **Quote a wikilink in a frontmatter property**: `feature: "[[checkout.feature]]"`, because bare
   brackets start a YAML list. In the body, write the wikilink plain.
-- **Qualify an ambiguous name.** When the vault holds more than one product folder, name the
-  folder and keep the display text: `[[Acme/prd|prd]]`.
+- **Escape the pipe inside a table**: `[[glossary#Bucket\|buckets]]`. An unescaped pipe ends the
+  cell.
+- **Qualify a name two projects share.** A project's `prd` and `roadmap` are named the same in
+  every project, so a link from outside the project names the folder and keeps the display text:
+  `[[projects/acme-billing/prd|prd]]`. A link from inside the project's own folder needs no path.
 
-**Only documents in the project become wikilinks.** A file path in the code, a command name, a
+**In a `folder` or a `repo`, a reference is a relative path** from the document to its target:
+`../../features/checkout/checkout.feature.md`, `../glossary.md#work-root`. A ticket is named by its
+file name alone, because its path changes as it moves.
+
+**Only documents in the framework root become links.** A file path in the code, a command name, a
 library, and an external URL stay exactly as they are written elsewhere.
 
-### Moving and tracking files
-
-- **Move a ticket with `git mv` only when the file sits inside a git working tree.** A vault is
-  usually not one — use a plain `mv` there, and do not report history as preserved.
-- **Move a ticket's worklog with it.** `AUTH-001-user-login.worklog.md` sits in the same folder
-  as `AUTH-001-user-login.md` and follows it into `done/`, in the same step.
-- **Write a `.gitkeep` into an empty folder only when the project sits inside a git working
-  tree.** Git does not track an empty directory; a vault does not need the file, and Obsidian
-  shows it as clutter.
-- **Moving a document out of the repository loses its git history.** Say so before you offer
-  such a move, and never make it without an explicit yes.
+**`depends_on` holds bare IDs, not links** — the one place a reference to another document is not a
+link. The ID is what the board cites everywhere else, a ticket's slug can be corrected without
+editing every ticket that waits on it, and a query matches an ID exactly.
 
 ## One ticket, two destinations
 
-In the repository:
-
-```markdown
----
-related:
-  - ../../prd.md#authentication-auth
-  - AUTH-002-session-timeout.md
----
-
-# [AUTH-001] User login
-
-**Epic**: AUTH — Authentication
-**Feature**: `features/auth/auth.feature.md`
-**Status**: In Progress
-**Assignee**: coding
-**Priority**: High
-**Depends on**: —
-**Effort**: M
-**Category**: feature
-**Created**: 2026-09-10
-
-## Description
-…
-```
-
 In a vault:
 
 ```markdown
 ---
-type: ticket
-id: AUTH-001
-epic: AUTH — Authentication
-feature: "[[auth.feature]]"
-status: In Progress
-assignee: coding
+feature: "[[checkout.feature]]"
+status: in progress
 priority: High
-depends_on: []
-effort: M
-category: feature
-created: 2026-09-10
+depends_on:
+  - CHECKOUT-001
+assigned: coding-2
+claimed: orchestrate-2
+createdAt: 2026-10-07T09:15
+updatedAt: 2026-10-09T14:32
 related:
-  - "[[prd#Authentication `AUTH`|AUTH]]"
-  - "[[AUTH-002-session-timeout]]"
-tags:
-  - sdlc/ticket
+  - "[[checkout.design]]"
 ---
 
-# [AUTH-001] User login
+# [CHECKOUT-002] Saved card
 
 ## Description
 …
 ```
 
-Same ticket, same sections, same words. Only the fields and the links are shaped for the
-destination that holds them. In both, the related documents are the `related:` property.
-
-## The worklog, in both destinations
-
-A ticket that work has started on has a worklog beside it — `AUTH-001-user-login.worklog.md`,
-in the ticket's folder, moving with it. The `ticket-board` skill holds what goes in it.
-Only its header changes by destination.
-
-In the repository:
+In a `repo` or a `folder`:
 
 ```markdown
-# [AUTH-001] User login — worklog
+---
+feature: ../../features/checkout/checkout.feature.md
+status: in progress
+priority: High
+depends_on:
+  - CHECKOUT-001
+assigned: coding-2
+claimed: orchestrate-2
+createdAt: 2026-10-07T09:15
+updatedAt: 2026-10-09T14:32
+related:
+  - ../../features/checkout/checkout.design.md
+---
 
-**Ticket**: `AUTH-001-user-login.md`
+# [CHECKOUT-002] Saved card
 ```
 
-In a vault:
+Same ticket, same properties, same sections. Only the links are shaped for the destination.
+
+## The worklog header
+
+A ticket that work has started on has a worklog beside it — `CHECKOUT-002-saved-card.worklog.md`,
+in the ticket's bucket, moving with it. The `ticket-board` skill holds what goes in it.
 
 ```markdown
 ---
 type: worklog
-id: AUTH-001
-ticket: "[[AUTH-001-user-login]]"
+ticket: "[[CHECKOUT-002-saved-card]]"
 tags:
   - sdlc/worklog
 ---
 
-# [AUTH-001] User login — worklog
+# [CHECKOUT-002] Saved card — worklog
 ```
 
-The entries under the header are the same in both. A worklog carries no `status` and no
-`assignee`: the ticket beside it holds those, and the worklog holds what happened.
+Outside a vault, `ticket` is the ticket's file name, `CHECKOUT-002-saved-card.md`. A worklog carries
+no `status` and no `assigned`: the ticket beside it holds those, and the worklog holds what happened.
+
+## Moving and tracking files
+
+- **Move a ticket with `git mv` only when the file sits inside a git working tree.** A vault is
+  usually not one — use a plain `mv` there, and do not report history as preserved.
+- **Move a ticket's worklog with it**, in the same step.
+- **Write a `.gitkeep` into an empty folder only when the framework root sits inside a git working
+  tree.** Git does not track an empty directory; a vault does not need the file.
+- **Moving a document out of the repository loses its git history.** Say so before you offer such
+  a move, and never make it without an explicit yes.
+
+## Older property values
+
+A document written before the current shape is read with this mapping, and rewritten into the
+current form the next time a command writes it:
+
+| Older | Current |
+| --- | --- |
+| A `**Field**: value` line under the title | The same field as a frontmatter property |
+| `**Last updated**:` | `updated` |
+| Ticket `Not Started`, `In Progress`, `Blocked`, `Review`, `Completed` | `backlog`, `in progress`, `blocked`, `review`, `done` |
+| Ticket `**Assignee**:` or `assignee` | `assigned`, with the run number: `coding-2`. `user` and `—` mean no value |
+| Ticket `**Created**:` or `created` | `createdAt`, at `T00:00` when only the date is known |
+| Ticket `type`, `id`, `epic`, `tags`, `effort`, `category` | Nothing; the name, the bucket, and `feature` carry them |
+| Ticket `**Depends on**:` | `depends_on` |
+| Feature `Planned`, `In Progress`, `Shipped` | `backlog`, `in progress`, `done` |
+| Registry `repos` | `repositories` |
+| `tickets/todo/` | `work/backlog/` |

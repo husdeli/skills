@@ -1,169 +1,151 @@
 ---
 name: feature
-description: "Rules for the feature — the entity that names one thing a customer can do, holds its design docs in its own folder, the project's features/<feature>/, carries the epic code that numbers its tickets, and is the row every capability table and every feature reference points at. INVOKE THIS SKILL before you create, rename, read, or retire a feature, before you write a design doc that belongs to one, before you open an epic on the roadmap, and before you list what the product can do. Enforces one feature per folder, one index note per feature, a code that is the epic code, and a status verified against the code."
+description: "Rules for the feature — the entity that names one thing a customer can do, kept as a folder under the framework root's features/<feature-name>/ with its feature note and the design docs it owns, carrying the epic code that numbers its tickets and the projects it relates to. INVOKE THIS SKILL before you create, rename, read, or retire a feature, before you write a design doc that belongs to one, before you open an epic on a roadmap, and before you list what a product can do. Enforces one feature per folder, one feature note per feature, a code that is the epic code, at least one project per feature, and a status verified against the code."
 ---
 
 # feature skill
 
-A **feature** is one thing a customer can do. It is the unit the product is described in, the
-work is grouped by, and the plan is sold on, so it has one home and one record:
+A **feature** is one thing a customer can do. It is the unit the product is described in, the work
+is grouped by, and the plan is sold on, so it has one home and one record:
 
 ```
-<project>/features/checkout/
-  checkout.feature.md        the index — what a customer can do, and the state of it
-  checkout.design.md         how it works
-  payment-retry.design.md    a second subject inside the same feature
+<framework root>/features/checkout/
+├── checkout.feature.md        the feature note
+├── checkout.design.md         how it works
+└── payment-retry.design.md    a second subject inside the same feature
 ```
 
-**The `sdlc-structure` skill resolves the project** — load it before you resolve any path below.
-It also holds what a vault changes: the fields become frontmatter properties, and a reference
-becomes a wikilink.
+**The `sdlc-structure` skill resolves the framework root** — load it before you resolve any path
+below. It also holds how properties and links are written in each destination.
 
 Three skills hold what sits around a feature: the **`design-doc`** skill for the design docs in its
 folder, the **`ticket-board`** skill for the epic and the tickets its code numbers, and the
 **`glossary`** skill for every term the feature names.
 
-## One feature, one folder, one index
+## One feature, one folder, one note
 
-- **The folder is the feature**, named in kebab-case after the feature itself: `checkout/`,
-  `saved-searches/`, `team-invites/`. Singular where that reads naturally.
-- **The index is `<feature>.feature.md`**, named after the folder it sits in. Every feature note
-  has a unique name, so a reference never needs qualifying.
-- **Every design doc that belongs to one feature sits in that feature's folder.** A design doc
-  that underpins every feature stays in `<project>/designs/` — the `design-doc` skill holds
-  which is which.
-- **A feature with no design doc yet is still a feature.** The folder holds the index alone until
-  someone specifies how the feature works.
-- **Nothing else goes in the folder.** Diagrams stay in `<project>/diagrams/`, tickets stay in
-  `<project>/tickets/`.
+| Path | Responsible for | Never holds |
+| --- | --- | --- |
+| `features/<feature-name>/` | The feature note, and every design doc that belongs to this feature alone | A diagram, a ticket, a worklog, or another feature's design doc |
+| `features/<feature-name>/<feature-name>.feature.md` | Naming the feature, saying what a customer can do with it, carrying its code, projects, and status, and linking its design docs | How the feature works, a task, a price, or a repository path |
 
-## The code is the epic code
+- **`features/` sits at the framework root, not in a project.** A feature names the projects it
+  relates to, and one feature may serve several.
+- **`<feature-name>` is kebab-case, in the product's own words**: `checkout/`, `saved-searches/`,
+  `team-invites/`. It is unique within the framework root, and the folder name and the feature
+  note's name always match.
+- **The feature note is `<feature-name>.feature.md`.** The `.feature` suffix keeps its name unique
+  in a vault, so `[[checkout.feature]]` never needs a path.
+- **A design doc that every feature depends on stays in `designs/`.** Only a design doc that
+  belongs to one feature sits in that feature's folder; the `design-doc` skill holds which is
+  which.
+- **A feature with no design doc is still a feature.** Its folder holds the feature note alone
+  until someone specifies how it works.
 
-A feature carries a short uppercase **code** — two to eight letters, taken from the product's own
-vocabulary — and that code is the epic code that prefixes every ticket under it: `CHECKOUT-001`,
-`CHECKOUT-002`. One code, one feature, one epic. The `ticket-board` skill holds how the code
-numbers a ticket and how the roadmap groups by it.
+## The feature note
 
-- **The code is unique in the project**, and it never means two things.
-- **The code may repeat a PRD area anchor** when the feature fills that whole area. Usually it does
-  not: an area holds several features.
-- **A feature is opened before its first ticket.** The code exists because the feature exists, not
-  because a ticket needed a prefix.
-- **Never renumber or recode a feature that has tickets.** The code is how the board, the branches,
-  and the reviews cite the work. A rename of the display name is free; a change of code is not.
-
-## The index
+**The frontmatter `type` must be `feature`.** That property is what marks the note as a feature
+note: a `<feature-name>.feature.md` with another `type` is not one, and a note with `type: feature`
+outside `features/<feature-name>/` is not one either.
 
 ```markdown
 ---
 type: feature
 name: Checkout
 code: CHECKOUT
-area: PAYMENTS
-status: Planned | In Progress | Shipped
-customer_facing: true
-shipped: 2026-08-14
+projects:
+  - acme-billing
+status: backlog
 goals:
   - "[[self-hosted-first.goal]]"
 personas:
   - "[[solo-operator.persona]]"
-non_goals: []
-updated: 2026-09-28
 tags:
   - sdlc/feature
 ---
-
 # Checkout
 
-<Two or three sentences: what a customer can do, and the one fact that separates this feature
-from the one nearest to it. Never what the document covers.>
-
-## Designs
+A customer pays for an order in one step, with a saved card or a new one.
 
 - [[checkout.design]] — how an order is taken and paid
 - [[payment-retry.design]] — what happens when a payment fails
-
-## Open work
-
-<The Dataview query below, in a vault. The roadmap section, everywhere else.>
 ```
 
 | Property | What it holds |
 | --- | --- |
-| `type` | `feature`, always. It is what every query filters on. |
-| `name` | The feature's display name, in the product's own words. |
-| `code` | The uppercase epic code. Unique in the project. |
-| `area` | The PRD area anchor this feature sits under. Empty when the PRD names no area for it. |
-| `status` | `Planned`, `In Progress`, or `Shipped`. Nothing else. |
-| `customer_facing` | `true` when a customer can name the thing. `false` keeps it out of every capability table. |
-| `shipped` | The date the feature reached `Shipped`. Empty until then, and never cleared afterwards. |
-| `goals` | The goal notes this feature advances. One is usual; none means nobody can say why it is being built. |
-| `personas` | The persona notes this feature serves. |
-| `non_goals` | The non-goal notes this feature comes up against. Usually empty — a feature that crosses one is a decision to make, not a line to write. |
-| `updated` | The date the note last changed. |
+| `type` | `feature`, always. |
+| `name` | Required. The feature's display name, in the words a customer would use. |
+| `code` | Required. The epic code: two to eight uppercase letters, unique within the framework root. It prefixes every ticket ID under the feature. |
+| `projects` | Required, at least one. The projects the feature relates to, each by the `name` in its project note. |
+| `status` | `backlog`, `in progress`, or `done`. See [Status is verified, never assumed](#status-is-verified-never-assumed). |
+| `goals` | Links to the goal notes the feature advances. |
+| `personas` | Links to the persona notes the feature serves. |
+| `tags` | `sdlc/feature`. |
 
-The last three link notes the **`product-intent`** skill governs. Load it before you set them: the
-link is the citation, and the reason behind each note stays in that note.
+`goals` and `personas` link product notes the **`product-intent`** skill governs. The note links them
+and never restates them; load that skill before you set them.
 
-In a `repo` or `folder` destination the properties become `**Field**: value` lines under the
-title, exactly as `sdlc-structure` describes for every other document.
+**The body is short.** One or two sentences saying what a customer can do, then one line per design
+doc. A feature with no design doc yet has no links. The PRD says why; the design docs say how.
 
-**The body is short.** Two or three sentences, the list of designs, and the open work. The index
-is a **pointer with a name on it**, not a place to describe the product twice.
+**The sentences say one thing no other document can**: what a customer can do, in the words they
+would use. Two tests before you keep a sentence. **Could it be pasted into the PRD without looking
+out of place?** Then it is the PRD's — delete it here. **Does it say how something works?** Then it
+is the design doc's — delete it here.
 
-Every neighbouring fact is already carried by a property or a link in this note — the `area`, the
-`goals`, the `personas`, the list of designs, the query of open work. The `sdlc-structure` ownership
-table says which document holds each one.
+## The code is the epic code
 
-**The two or three sentences say one thing none of those documents can**: what a customer can do,
-in the words they would use, and the one fact that separates this feature from the one nearest to
-it. Write them so a reader who has read the PRD still learns something, and a reader who has not
-still knows what the feature is.
+One code, one feature, one epic. The `ticket-board` skill holds how the code numbers a ticket and
+how a roadmap groups by it.
 
-Two tests before you keep a sentence. **Could it be pasted into the PRD area without looking out of
-place?** Then it is the area's sentence — delete it here. **Does it say how something works?** Then
-it is the design doc's — delete it here.
+- **The code is unique in the framework root**, and it never means two things.
+- **A feature is created before its first ticket.** Its code exists because the feature exists; a
+  ticket never mints a code.
+- **The code never changes once the feature has a ticket.** The tickets, branches, and reviews cite
+  the work by it. The `name` may change freely.
 
 ## Status is verified, never assumed
 
-**A feature is `Shipped` only when the work root holds it.** The roadmap can lag the code, and the
-code can lag the roadmap. Before you write or trust a `Shipped` status, read the work root for the
-feature: the routes, the modules, or the screens a customer would use. Check the board second.
-
-| Status | What is true |
+| `status` | What is true |
 | --- | --- |
-| `Planned` | The feature is described. No part of it is in the work root. |
-| `In Progress` | Part of it is in the work root, or a ticket for it is in `in-progress/`. |
-| `Shipped` | A customer can use the whole feature in the work root today. |
+| `backlog` | The feature is planned, and no work has started |
+| `in progress` | The feature is being built: part of it is in a work root, or one of its tickets has started |
+| `done` | A customer can use the whole feature in a work root today |
 
-A feature that is partly usable is `In Progress`, not `Shipped`. When the evidence disagrees with
-the note, report the disagreement and fix the note in the same step — never quote a status you did
-not check.
+**A feature is `done` only when a work root holds it.** The roadmap can lag the code, and the code
+can lag the roadmap. Before you write or trust `done`, read the work roots for the feature: the
+routes, the modules, or the screens a customer would use. Check the board second.
 
-## The roadmap shrinks; the register does not
+A feature that is partly usable is `in progress`, not `done`. When the evidence disagrees with the
+note, report the disagreement and fix the note in the same step — never quote a status you did not
+check.
 
-The roadmap holds the work that is left, so an epic's section is deleted when its last row is gone.
-**The feature note stays.** It moves to `status: Shipped`, takes its `shipped` date, and becomes
-the record that the product has this feature at all.
+**A feature note on an older shape** reads `Planned` as `backlog`, `In Progress` as `in progress`,
+and `Shipped` as `done`. Properties the current note does not carry — `area`, `customer_facing`,
+`shipped`, `non_goals`, `updated` — are read and left alone until a command rewrites the note.
 
-That is the division: `features/` says what the product *is*, `roadmap.md` says what is *left*, and
-`tickets/done/` says what *happened*. A feature is deleted from `features/` only when the product
-stops doing the thing — and then its design docs go with it.
+## The roadmap shrinks; `features/` does not
+
+A roadmap holds the work that is left, so an epic's section is deleted when its last ticket is done.
+**The feature note stays**, at `status: done`, so `features/` lists everything the products do.
+
+That is the division: `features/` says what the products *are*, each project's `roadmap.md` says what
+is *left*, and `work/done/` says what *happened*. A feature is deleted only when the product stops
+doing the thing — and then its design docs go with it.
 
 ## Reference a feature
 
-Point at the index note. Never restate what it says.
+Point at the feature note. Never restate what it says.
 
 | Where | The reference |
 | --- | --- |
 | A vault document | `[[checkout.feature]]`, or `[[checkout.feature\|Checkout]]` |
-| A `repo` or `folder` document | `features/checkout/checkout.feature.md`, relative to the document |
+| A `repo` or `folder` document | The path relative to the document, such as `../../features/checkout/checkout.feature.md` from a ticket |
 | A roadmap epic section | `**Feature**: [[checkout.feature]]` under the epic's sentence |
-| A ticket | Its `feature` property. `related:` holds the PRD area, not the feature again |
+| A ticket | Its `feature` property |
 | A design doc's `related:` property | The feature it belongs to, plus its sibling designs |
-| A capability table | One row per feature, generated by the query below |
 
-Prose a person reads outside the project carries no link — a chat reply, a commit message, a
+Prose a person reads outside the framework root carries no link — a chat reply, a commit message, a
 review verdict. Name the feature there, plainly.
 
 ## List the features
@@ -175,75 +157,55 @@ listed with no edit to the listing document:
 ```dataview
 TABLE WITHOUT ID
   file.link AS "Feature",
-  area AS "Area",
-  status AS "State",
-  shipped AS "Since"
-FROM "<project, relative to the vault root>/features"
-WHERE type = "feature" AND customer_facing = true
+  code AS "Code",
+  status AS "Status"
+FROM "<framework root, relative to the vault root>/features"
+WHERE type = "feature" AND contains(projects, "acme-billing")
 SORT status ASC, name ASC
 ```
 ````
 
-The `FROM` path is relative to the vault root, the folder that holds `.obsidian/`. When the docs
-root is the vault root, the path is `features`.
+Drop the `contains(projects, …)` clause to list every feature in the framework root. The `FROM` path
+is relative to the vault root, the folder that holds `.obsidian/`; when the framework root is the
+vault root, the path is `features`.
 
-The query needs the Dataview community plugin. Check the vault's list of enabled community plugins
-for `dataview`. When it is missing, keep the query, and tell the user to install and enable
-Dataview, since the block shows as plain code until then.
+The query needs the Dataview community plugin. Check the vault's enabled community plugins for
+`dataview`; when it is missing, keep the query and tell the user to install and enable Dataview.
 
 **In a `repo` or `folder` destination there is no Dataview.** Write the same columns as a Markdown
-table with a relative link per feature, and rewrite the table whenever a feature's status changes.
-
-The **`Open work`** section of a feature's own index lists its tickets the same way:
-
-````markdown
-```dataview
-TABLE WITHOUT ID
-  file.link AS "Ticket",
-  status AS "Status",
-  assignee AS "Assignee"
-FROM "<project, relative to the vault root>/tickets"
-WHERE type = "ticket" AND startswith(id, "CHECKOUT-") AND status != "Completed"
-SORT id ASC
-```
-````
-
-Outside a vault, that section points at the roadmap section instead: "Open work: the `CHECKOUT`
-section of `roadmap.md`."
+table with a relative link per feature, and rewrite it whenever a feature's status changes.
 
 ## Create a feature
 
 1. **Settle the name and the code.** Take both from the product's own vocabulary — the PRD, the
    glossary, the words the user uses. Load the `glossary` skill when the feature coins a term.
-2. **Check it does not exist.** List `<project>/features/`, and grep the project for the code.
-   A feature that already exists is updated in place, never opened twice.
-3. **Find the goal it advances.** List `<project>/product/goals/` and cite the one this feature
-   is being built for. When no goal fits, say so before you open the feature: either the product
-   gained a goal nobody wrote down, or the feature is not worth building. Cite the personas it
-   serves in the same step.
-4. **Write the folder and the index.** Nothing else. A design doc is written when someone
-   specifies how the feature works, and the `design-doc` skill governs it.
-5. **Check the PRD covers the area**, and set `area` to its anchor. Do not add the feature to the
-   PRD as a line item: the area's prose already covers it, or the area is missing and `/prd` writes
-   it as prose.
-6. **Open the epic on the roadmap** when there is work to do, with `**Feature**:` linking the
-   index. The `ticket-board` skill holds the rest.
+2. **Check it does not exist.** List `features/`, and grep the framework root for the code. A feature
+   that already exists is updated in place, never created twice.
+3. **Settle its projects.** Name every project the feature relates to, by the `name` in its project
+   note. A feature with no project is not a feature yet.
+4. **Find the goal it advances.** List the `product/goals/` of each of its projects and cite the one
+   this feature is being built for. When no goal fits, say so before you create the feature: either
+   the product gained a goal nobody wrote down, or the feature is not worth building. Cite the
+   personas it serves in the same step.
+5. **Write the folder and the feature note**, at `status: backlog`. Nothing else. A design doc is
+   written when someone specifies how the feature works.
+6. **Open the epic on each project's roadmap** when there is work to do, with `**Feature**:` linking
+   the note. The `ticket-board` skill holds the rest.
 
 ## Choosing what is a feature
 
-A feature is **what a customer would name**. It is not a layer, a service, a refactor, or a
-release.
+A feature is **what a customer would name**. It is not a layer, a service, a refactor, or a release.
 
 - **Checkout**, **Saved searches**, **Team invites** — features. A customer asks for each by name.
 - **The app shell**, **the auth model**, **the event queue** — not features. They underpin every
   feature, so they are cross-cutting design docs in `designs/`.
-- **A migration, an upgrade, or a cleanup** — not a feature. It is an epic with no feature note, or
-  work inside the feature it changes.
+- **A migration, an upgrade, or a cleanup** — work inside the feature it changes. When it changes no
+  single feature, it still needs a feature note, because every ticket needs a code and only a
+  feature mints one; name it for what it gives the product, such as `platform-upgrades`.
 
-A feature that no customer sees but that the board still groups work under — a platform epic, a
-developer tool — gets its note with `customer_facing: false`. It keeps its folder and its code, and
-it stays out of every capability table.
+**Split a feature** when its note needs "and" to say what a customer can do, or when two parts of it
+ship on different dates to different customers. **Merge two** when neither can be used without the
+other.
 
-**Split a feature** when its index needs "and" to say what a customer can do, or when two parts of
-it ship on different dates to different customers. **Merge two** when neither can be used without
-the other.
+**A feature is deleted only when the product stops doing the thing**, and its design docs are
+deleted with it.

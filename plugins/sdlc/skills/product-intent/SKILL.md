@@ -22,7 +22,8 @@ a life of its own — it is met, dropped, deferred, or measured. So each one is 
 line per note. Sections 1, 5, and 6 stay the PRD's own prose — an overview, the product areas, and
 the cross-cutting qualities are narrative, and narrative does not decompose.
 
-**The `sdlc-structure` skill resolves the project** and holds the table of which document owns which
+**The `sdlc-structure` skill resolves the framework root and the project** — `<project>/` below
+is the project folder — and holds the table of which document owns which
 fact — load it before you resolve any path below. The **`prd`** skill holds the document that
 composes these notes, the **`feature`** skill holds the feature that cites them, and the
 **`glossary`** skill holds every term they name.
@@ -58,8 +59,8 @@ not as a tree of individually-IDed micro-requirements.
 - **No note cites a ticket, a roadmap row, or a file in the code.** They point at notes, and the
   work points at them.
 
-In a `repo` or `folder` destination the properties become `**Field**: value` lines under the title,
-and a wikilink becomes a relative path — `sdlc-structure` holds that mapping for every document.
+The properties are frontmatter in every destination. Outside a vault a wikilink becomes a relative
+path — `sdlc-structure` holds that mapping for every document.
 
 ## The goal
 
@@ -228,9 +229,8 @@ apply the same way.>
 | Where | The citation |
 | --- | --- |
 | The PRD's list sections | One line per note: the link, then the statement in a few words |
-| A feature index | The `goals`, `non_goals`, and `personas` properties |
+| A feature note | The `goals` and `personas` properties |
 | A design doc | The goal or the quality it holds to, in its `related:` property |
-| A ticket | The goal the task advances, in its `related:` property |
 | The business plan | The persona a segment is, and the metric a milestone proves |
 
 - **A citation carries enough of the note to read past it.** `[[self-hosted-first.goal]] — the
@@ -292,9 +292,9 @@ deleted note is a broken link and a citation left pointing at a live one is a li
 2. **Carry the reason across.** The non-goal's `## Why` holds what the thing costs, and that cost
    does not disappear when the product agrees to pay it — it is what the work has to include. Put it
    in the goal's `## Why`, beside why the product wants it.
-3. **Repoint every citation** at the goal: a feature's `non_goals` (move it to `goals`), a competitor
+3. **Repoint every citation** at the goal: a feature's `goals`, a competitor
    note's `provides`, a business-plan gap, any design doc or ticket that links the note. Search the
-   project for the note's name; a wikilink is the only way anything refers to it.
+   framework root for the note's name; a wikilink is the only way anything refers to it.
 4. **Delete the non-goal note**, and remove its line from the PRD's non-goals list. The history is
    in version control, which is where a superseded decision belongs.
 5. **Say in the goal where it came from** — one clause naming the date the product changed its mind.

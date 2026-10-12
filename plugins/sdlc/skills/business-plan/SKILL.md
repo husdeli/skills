@@ -11,9 +11,10 @@ PRD already says what the product does. The plan links the PRD for that and neve
 
 Load four skills before you read or write anything:
 
-- **`sdlc-structure`**: resolve the project, and follow its vault conventions (frontmatter
-  properties, wikilinks, no dot-folders).
-- **`feature`**: the register in `features/` is what section 2 lists, and it holds the status
+- **`sdlc-structure`**: resolve the framework root and the project, and follow its conventions
+  (frontmatter properties, wikilinks in a vault, no dot-folders).
+- **`feature`**: the features in the framework root's `features/` that name this project are what
+  section 2 lists, and it holds the status
   vocabulary and the query the capability table is built from.
 - **`product-intent`**: the personas section 3 sells to, and the metrics section 12 proves, are
   notes under `product/`. The plan links them and adds only the commercial half.
@@ -62,7 +63,7 @@ business plan somewhere else, move it into `business/` with the user's yes, and 
    the same two or three inputs, and say which inputs to replace with measured values, and when.
 6. **Name the point where the plan changes course.** A dated threshold, two measurable conditions,
    and the options that follow. A plan with no such point cannot fail, so it cannot guide.
-7. **Verify the product state in the code.** A feature is `Shipped` only when the work root holds
+7. **Verify the product state in the code.** A feature is `done` only when a work root holds
    it. The feature note, the PRD, and the roadmap can all lag the code. Read the work root before
    you quote a status, and correct the feature note in the same step when the two disagree — the
    **`feature`** skill holds that check.
@@ -156,8 +157,8 @@ tags:
 - **`checked`** is the date the pricing and sources were read. A note older than 90 days is stale:
   refresh it before the plan quotes it.
 
-In a `repo` or `folder` destination, the frontmatter fields become `**Field**: value` lines under
-the title, as `sdlc-structure` describes.
+The properties are frontmatter in every destination. Outside a vault a wikilink becomes a relative
+path, as `sdlc-structure` describes.
 
 **Done when** every competitor has a note, every note has a `checked` date and at least one
 source, and no price in any note comes from memory.
@@ -229,11 +230,9 @@ a new feature appears in the plan with no edit to the plan. In a vault, that is 
 ```dataview
 TABLE WITHOUT ID
   file.link AS "Feature",
-  area AS "Area",
-  status AS "State",
-  shipped AS "Since"
-FROM "<project, relative to the vault root>/features"
-WHERE type = "feature" AND customer_facing = true
+  status AS "State"
+FROM "<framework root, relative to the vault root>/features"
+WHERE type = "feature" AND contains(projects, "<project name>")
 SORT status ASC, name ASC
 ```
 ````
@@ -242,8 +241,8 @@ The `FROM` path is relative to the vault root, as the competitor query below exp
 `repo` or `folder` destination** there is no Dataview: write the same columns as a Markdown table
 with a relative link per feature, and rewrite it whenever a feature's status changes.
 
-- **`customer_facing: false` keeps a feature out of this table.** A platform epic is work, not a
-  capability a customer buys.
+- **Only the project's features are listed.** The query keeps the features whose `projects` names
+  this project; a feature that serves another project belongs in that project's plan.
 - **Never type a capability that has no feature note.** When the product does something the
   register does not list, open the feature — the **`feature`** skill says how — and let the query
   pick it up.

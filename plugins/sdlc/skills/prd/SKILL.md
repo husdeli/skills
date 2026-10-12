@@ -1,22 +1,31 @@
 ---
 name: prd
-description: "Create or update a product requirements document as the project's prd.md — .sdlc/prd.md by default, or prd.md in the project .sdlc.json points at, such as one in an Obsidian vault. Use when: asked to write a PRD, draft or revise product requirements, document a new product or feature set, update an existing PRD, or maintain a living spec."
+description: "Create or update a product requirements document as a project's prd.md — the file beside the project note in projects/<project-name>/, or in the framework root when it holds one project directly. Use when: asked to write a PRD, draft or revise product requirements, document a new product or feature set, update an existing PRD, or maintain a living spec."
 ---
 
 # PRD Skill
 
 Write or update a product requirements document following the structure and style below.
 
-**Where it lives.** The PRD is `<project>/prd.md`, alongside `glossary.md`, `roadmap.md`, the
-`product/` folder, the `features/` folder, the `designs/` folder, and the `tickets/` folder. **Load the `sdlc-structure` skill and resolve the
-project as it says**, before you read or write anything. Create the folder if it is missing. When the project already keeps
-a PRD at the root (`prd.md`/`PRD.md`), update that file in place instead — one PRD per
-project, never two.
+**Where it lives.** The PRD is `prd.md`, directly in the project folder beside the project note —
+`projects/<project-name>/prd.md`, or `prd.md` in the framework root when it holds one project
+directly — and never in a subfolder. **Load the `sdlc-structure` skill and resolve the framework
+root and the project as it says**, before you read or write anything.
 
-When `kind` is `vault`, load the **`sdlc-structure`** skill as well: the PRD's `Status`,
-`Last updated`, and `Product` fields become frontmatter properties there. In every destination,
-the PRD lists the design docs it relates to in a `related:` frontmatter property, never in its
-body. It never lists the business plan, because the plan links the PRD and not the reverse.
+| Path | Responsible for | Never holds |
+| --- | --- | --- |
+| `<project-name>/prd.md` | What the product does and why, assembled from the project's product notes | A feature list, a ticket, a design decision, a price, or a repository path |
+
+- **The frontmatter `type` is `prd`.** That property is what marks the note as the PRD. A note with
+  `type: prd` anywhere else, or a `prd.md` with another `type`, is not the project's PRD.
+- **A project holds at most one PRD.** When the project already keeps one, update it in place — one
+  PRD per project, never two.
+- **The PRD is optional.** A project with no `prd.md` still works: its features, design docs, and
+  tickets stand on their own. A command that needs a PRD and finds none says so and names `/prd`; it
+  never writes one on its own.
+- **Its properties are frontmatter**: `type`, `status`, `product`, `updated`, and `tags`. The PRD is
+  the highest document, so it carries no `related:` list: a design doc, a feature, and the business
+  plan link the PRD, and it links none of them back.
 
 A PRD describes **what the product does and why** — the requirements, from the user's point of view. It is not an implementation plan, a project tracker, or a technical design. Keep it durable: it stays accurate as tickets come and go and as the implementation is rewritten underneath it.
 
@@ -24,7 +33,7 @@ A PRD is read end to end by people who were not in the room. Load the **`technic
 
 **A diagram goes in `diagrams/`, never inline.** When a product area or a user flow needs a picture, load the **`diagrams`** skill and follow it. The PRD's product-only rules still hold inside the picture: no mechanism, no implementation name.
 
-**The PRD composes five kinds of note; it does not contain them.** A goal, a non-goal, a persona, a problem, and a success metric are each their own note under `<project>/product/`, because a feature, a design doc, a ticket, and the business plan all point at them, and each one has a state of its own. **Load the `product-intent` skill** and follow it for every one you write or change. Sections 2, 3, 4, and 7 of this document are one line per note. Sections 1, 5, and 6 are the PRD's own prose, and they stay prose.
+**The PRD composes five kinds of note; it does not contain them.** A goal, a non-goal, a persona, a problem, and a success metric are each their own note under the project's `product/`, because a feature, a design doc, a ticket, and the business plan all point at them, and each one has a state of its own. **Load the `product-intent` skill** and follow it for every one you write or change. Sections 2, 3, 4, and 7 of this document are one line per note. Sections 1, 5, and 6 are the PRD's own prose, and they stay prose.
 
 **Each term is defined in the glossary, not in the PRD.** Load the **`glossary`** skill and follow it: it holds the entry shape, the link form, and the rule that whoever coins a term writes its entry in the same step. The PRD states the requirement and never repeats a definition.
 
@@ -58,9 +67,9 @@ Two rules govern how the behavior sections read:
 
 Give each subsection **one stable area-level anchor** — a short uppercase code in the heading (e.g. `### Social platforms & publishing \`SOCIAL\``) — so other specs and tickets can cite the area. That is the granularity of traceability: one code per product area, never one per sentence. Keep a code stable as its area's prose evolves; add a new code only for a genuinely new area.
 
-**An area is not a feature.** An area is a handful of paragraphs describing one part of the product; a **feature** is one thing a customer can do, and several of them usually sit inside one area. Each feature has its own note in `<project>/features/`, which carries the area's anchor code in its `area` property and holds the design docs and the tickets for that feature. The **`feature`** skill governs those notes. The PRD never becomes a list of them: it keeps telling the area's story in prose, and the register in `features/` is where the inventory lives. When the PRD names a part of the product that has no feature note, open the feature rather than decomposing the area into line items.
+**An area is not a feature.** An area is a handful of paragraphs describing one part of the product; a **feature** is one thing a customer can do, and several of them usually sit inside one area. Each feature has its own note in the framework root's `features/`, which names this project in its `projects` property and holds the design docs for that feature. The **`feature`** skill governs those notes. The PRD never becomes a list of them: it keeps telling the area's story in prose, and the register in `features/` is where the inventory lives. When the PRD names a part of the product that has no feature note, open the feature rather than decomposing the area into line items.
 
-**The area says how the parts hold together; the feature says what one customer can do.** That is the line between the two, and it is what keeps them from repeating each other. An area paragraph that could be cut and pasted into a feature note is written at the wrong altitude — raise it until it says something no single feature could say. A feature that needs a paragraph of its area repeated to make sense is a feature whose note should link the anchor instead.
+**The area says how the parts hold together; the feature says what one customer can do.** That is the line between the two, and it is what keeps them from repeating each other. An area paragraph that could be cut and pasted into a feature note is written at the wrong altitude — raise it until it says something no single feature could say. A feature that needs a paragraph of its area repeated to make sense is a feature whose note should link the area instead.
 
 **Positive framing — say what the product does.** State behavior affirmatively: describe what happens, not what doesn't, and don't define a requirement by contrast with a rejected design. A guarantee that is really about restraint gets phrased as the positive behavior that holds — "content stays on the device until the user publishes", not "content is never sent to the server without publishing"; "every output stays editable", not "rendering is never a one-way door". Drop asides like "not a separate subsystem", "no built-in deck", "rather than an ad-hoc poll" — they describe an absent alternative, not the product. (Section 3's *non-goals* are the one exception: they scope what the product isn't building **yet**, which is a scope statement, not a behavior description.)
 
@@ -69,13 +78,15 @@ Give each subsection **one stable area-level anchor** — a short uppercase code
 Use the exact section order below. Keep prose tight — every sentence must add information.
 
 ```
-# Product Requirements Document
-
-**Status**: Draft | Living document | Final
-**Last updated**: <date>
-**Product**: <name or TBD> — <one-line description>
-
 ---
+type: prd
+status: Draft | Living document | Final
+product: <name or TBD> — <one-line description>
+updated: <date>
+tags:
+  - sdlc/prd
+---
+# Product Requirements Document
 
 ## 1. Overview
 
@@ -130,12 +141,12 @@ Bullet list. Concrete unresolved product decisions that block design or implemen
 
 - **Edit in place; keep it whole.** The PRD is a living document, not an append log. Fold changes into the existing sections — no "changes" or "revisions" section.
 - **State the new requirement as the current truth.** Rewrite the affected passage so it reads as if it were always the target. Do not narrate the change ("previously X, now Y", "supersedes …", "revised") — that history lives in version control.
-- **Keep area names and anchors stable.** When an area's behavior evolves, revise the prose in place under its existing heading so inbound references stay valid. Add a new subsection only for a genuinely new product area. If a behavior is dropped, remove it and reconcile anything that referenced it — including the `area` property of every feature note that cites the anchor.
+- **Keep area names and anchors stable.** When an area's behavior evolves, revise the prose in place under its existing heading so inbound references stay valid. Add a new subsection only for a genuinely new product area. If a behavior is dropped, remove it and reconcile anything that referenced it — including every design doc and ticket that cites the anchor.
 - **Keep the feature register in step.** A new part of the product earns a feature note; a dropped one has its note retired. The `feature` skill holds both.
 - **Change a goal, a non-goal, a persona, a problem, or a metric in its note**, never in the PRD's list line. The line carries a few words of the note; when those words change, update both, and when the note's status changes, the line appears or disappears. A dropped goal keeps its note, because a feature may still cite what the product stopped committing to. A non-goal the product adopted is deleted instead, and every citation of it is repointed at the goal in the same change — the `product-intent` skill holds that procedure.
 - **Keep the whole document consistent.** Reflect the change everywhere it lands — overview, goals, personas, related areas, success metrics, open questions — so no two sections disagree.
 - **Keep the glossary in step.** The `glossary` skill says what an added, renamed, or dropped term costs — do that in the same run.
-- **Bump `Last updated`** and revisit `Status`.
+- **Bump `updated`** and revisit `status`.
 - **Retire resolved open questions.** Delete them from section 8 rather than marking them resolved in place.
 - **Fix drift while you're there.** Strip any ticket, code, technology, or migration references you encounter, and rewrite atomic-checklist or negatively-framed passages into cohesive, positive prose.
 

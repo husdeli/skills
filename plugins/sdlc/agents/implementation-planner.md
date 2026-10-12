@@ -65,6 +65,7 @@ Return a plan in this exact structure:
 
 **1. [Title]**
 - Area: [files or modules to create/modify — paths, not symbol signatures]
+- Interface: [the module, endpoint, component, or command a caller uses to reach this behavior — where a test attaches. "internal" when nothing outside the item calls it]
 - Intent: [what must be true when this item is done, in behavior terms]
 - Direction: [the approach — the pattern to follow, the existing code to mirror, the library API to use, the constraint to honor]
 - Done when: [observable outcome the coding agent can check]
@@ -74,8 +75,8 @@ Return a plan in this exact structure:
 - ...
 
 ### Verification
-- [How to verify each acceptance criterion is met]
 - [Exact commands to run: tests, lint, typecheck]
+- [Any acceptance criterion no automated test can check, and how a person confirms it]
 
 ### Risks
 - [Potential issues or edge cases to watch for]
@@ -85,7 +86,7 @@ Return a plan in this exact structure:
 
 End **every** turn — scout and plan alike — with exactly **one** fenced `json` block in this
 shape, and nothing after it. The orchestrator parses it to drive the pipeline and forwards the
-context pack to the reviewer, the coding agent, and the verify agent so none of them re-explores
+context pack to the reviewer, the test planner, the test writer, the coding agent, and the verify agent so none of them re-explores
 the codebase:
 
 ```json
@@ -109,7 +110,7 @@ the codebase:
 
 - `workRoot` is the absolute path of the repository this plan is built in — the value you were
   given, or the one you resolved. Every other path in the pack is relative to it. The orchestrator
-  forwards this pack to the reviewer, the coding agent, and the verifier, so this field is how they
+  forwards this pack to the reviewer, the test agents, the coding agent, and the verifier, so this field is how they
   all land in the same tree.
 - `verificationCommands` are the project's actual gating commands (tests, lint, typecheck, build)
   as its scripts/configs define them — not invented ones. Write them as the repository's own
@@ -137,3 +138,4 @@ The rules that bite hardest here: one idea per work item sentence, the active vo
 - Match existing codebase conventions — do not invent new patterns.
 - If addressing review feedback, resolve every raised issue and note how in the Context section.
 - If the task is ambiguous, list your assumptions explicitly rather than guessing silently.
+- **Plan no test cases.** A test planner decides the tests from the specification, and a test writer writes them before coding starts. Your part is the *Interface* line on each work item, so the tests have a stable place to attach, and the commands in *Verification*. A work item that is only "add tests" does not belong in the plan. The one exception is infrastructure: when the `e2eDecision` is yes and the project has no end-to-end suite, add a work item that stands one up — the runner, its config, and the script — with no test in it.

@@ -41,10 +41,10 @@ Skip it, and say in one line that you skipped it, when:
 The mockup must look like it belongs to the product, so learn the product first.
 
 - Read the PRD for what the screen is for and who uses it. Read the matching
-  the screen's design doc — `<project>/features/<feature>/<subject>.design.md` when the screen
-  belongs to a feature, `<project>/designs/<subject>.design.md` when it does not — for the states
+  the screen's design doc — `features/<feature>/<subject>.design.md` when the screen
+  belongs to a feature, `designs/<subject>.design.md` when it does not — for the states
   and rules the screen must hold. The
-  `sdlc-structure` skill resolves the project — load it before you read one.
+  `sdlc-structure` skill resolves the framework root — load it before you read one.
 - Find the design system the codebase already has: the styling approach (Tailwind, CSS
   modules, styled components), the token file or theme config, the font stack, the spacing
   scale, the color palette, the component library, and two or three existing screens.

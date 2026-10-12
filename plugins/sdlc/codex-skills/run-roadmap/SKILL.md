@@ -39,7 +39,7 @@ So two rules of the subagent protocol are lifted here, and only here:
   afterwards.
 
 Everything else the protocol says still holds: one `json` block per agent turn, one spawn per role,
-a fresh verification agent per run, and the command as the only writer of the status, the assignee,
+a fresh verification agent per run, and the command as the only writer of the status, `assigned`, `claimed`,
 the worklog, and the roadmap.
 
 ## One task, then stop

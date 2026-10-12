@@ -107,6 +107,8 @@ Use `collaboration.followup_task` for every later turn of these roles:
 
 - implementation planner
 - plan reviewer
+- test planner
+- test writer
 - coding agent
 - code reviewer
 
@@ -188,7 +190,7 @@ If a required block is missing or invalid:
 2. Ask it to return only the corrected JSON block for its previous result.
 3. Abort the stage if the second response is still missing or invalid.
 
-Do not request a JSON block after a scout or pre-read turn when its role contract says none is due.
+Do not request a JSON block after a scout, pre-read, or spec-only turn when its role contract says none is due.
 
 ## 10. Apply role and task names
 
@@ -200,10 +202,11 @@ Do not request a JSON block after a scout or pre-read turn when its role contrac
 | Normal reviewer | `plan-reviewer.md` | `plan_reviewer` |
 | Correctness reviewer | `plan-reviewer.md` | `plan_reviewer_correctness` |
 | Codebase-fit reviewer | `plan-reviewer.md` | `plan_reviewer_codebase_fit` |
+| Test planner | `test-planner.md` | `test_planner` |
+| Test writer | `test-writer.md` | `test_writer` |
 | Coding agent | `coding.md` | `coding` |
 | Code reviewer | `code-reviewer.md` | `code_reviewer` |
-| First verification run | `verify.md` | `verify_1` |
-| Second verification run | `verify.md` | `verify_2` |
+| Each verification run, targeted or full | `verify.md` | `verify_1`, `verify_2`, … in run order |
 
 Add a short lens instruction to each high-risk reviewer's stage input.
 Do not change the shared plan-reviewer contract.
