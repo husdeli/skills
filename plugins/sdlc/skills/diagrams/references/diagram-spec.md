@@ -44,7 +44,9 @@ python3 <plugin>/skills/diagrams/scripts/excalidraw_md.py validate ../diagrams/c
 | `notes` | Free text at a position: `text`, `x`, `y`, `fontSize`. |
 
 A `\n` inside a label wraps it. A node keeps its own `x`/`y` when you set them, so one spec may mix
-an automatic layout with a few placed nodes.
+an automatic layout with a few placed nodes. A `width` or `height` too small for the label is
+raised to fit it — a diamond needs about twice its label's width — because Excalidraw would
+otherwise wrap the label and grow the shape over its neighbours when the drawing opens.
 
 ## The layouts
 

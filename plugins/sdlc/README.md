@@ -262,12 +262,13 @@ One `--add-dir` per repository — without it the session can read the board but
 Inside a session already open, `/add-dir <path>` does the same. Then `/orchestrate`, `/whats-next`,
 `/plan`, and the rest work exactly as they do inside a repository, over every repository at once.
 
-**A ticket never names its repository.** The run works out where a task is built, when it picks the
-task: from the design doc the ticket cites, the ticket itself, the epic, each registry entry's
-`what` line, and, when that is not enough, the code already in each candidate tree. It asks you when
-the evidence leaves it open — and the `cto` agent answers instead in an unattended run. The choice
-lands in the worklog beside the ticket, with the evidence that settled it, so a task built two weeks
-ago still says which tree it landed in.
+**A ticket names its repositories by registry code**, in `repositories`. `/plan` writes them when
+the answer is clear. When a run picks a ticket whose field is empty, the **`repo-resolver`** agent
+works them out — from the design doc the ticket cites, the ticket itself, each registry entry's
+`what` line, its dependencies' repositories, and the code already in each candidate tree — and the
+run writes them onto the ticket, with the evidence in the worklog, so no later run resolves them
+again. When the evidence leaves it open, an interactive run asks you; an unattended run stops and
+names the candidates.
 
 From there the run is per repository: that repository's `AGENTS.md`, its test suite, its code review,
 its commit, its git history. A task that genuinely has to change two repositories at once does each
@@ -279,47 +280,59 @@ command behaves exactly as it did — the registry is read only when the session
 ## Running the roadmap unattended
 
 Every other command in this plugin stops and asks you something. `/run-roadmap` does not, because it
-is built for the case where you are not there: the **cto** agent answers in your place, the task is
-committed when it passes, and a launcher script starts the next one in a fresh session.
+is built for the case where you are not there: the **cto** agent answers in your place, each ticket
+is committed on a branch of the run's own when it passes, and a launcher script starts the next one
+in a fresh session. `diagrams/run-roadmap.excalidraw.md` draws the whole loop.
 
 ```shell
 # from the repository you want built
-plugins/sdlc/scripts/run-roadmap.sh --max-tasks 5
-plugins/sdlc/scripts/run-roadmap.sh --roadmap docs/roadmap.md --keep-going --yes
+plugins/sdlc/scripts/run-roadmap.sh --max 5
+plugins/sdlc/scripts/run-roadmap.sh --run 3 --yes        # resume run-roadmap-3
 
 # or from the vault, over every repository in the registry
-cd ~/Vaults/Personal/Acme && ~/Projects/skills/plugins/sdlc/scripts/run-roadmap.sh --max-tasks 5
+cd ~/Vaults/Personal/Acme && ~/Projects/skills/plugins/sdlc/scripts/run-roadmap.sh --max 5
 plugins/sdlc/scripts/run-roadmap.sh --project ~/Vaults/Personal/Acme --yes
 ```
 
-**Run it from the project and it drives every repository the registry names.** It grants the
-session each one with `--add-dir`, checks every tree is clean before it starts and between tasks,
-commits each task in whichever repository that task landed in, and reports the commit range per
-repository at the end.
+**A roadmap run, `run-roadmap-<n>`, owns a branch and a worktree of each repository.** The worktree
+sits beside the repository at `<repository>-worktrees/run-roadmap-<n>`, on branch
+`run-roadmap-<n>`, and every ticket of the run is built and committed there. Your checkout is never
+touched, so it may hold your own uncommitted work while the run goes on. The documents — the
+ticket, its worklog, the roadmap — get their own commit in the framework root when that is a git
+tree.
 
-**One task per session** is what makes a long roadmap possible: the script calls
-`claude -p "/sdlc:run-roadmap"` once per task, and each task starts with a clean context and ends
-with its own commit. The command prints one `RUN-ROADMAP-RESULT` line, the script reads it, and the
-roadmap itself is the loop counter — the run ends when the last row is gone.
+**It claims a ticket together with its dependency cluster** — every ticket the selected one depends
+on that is not done — and builds the cluster dependencies first, so a second run never starts work
+the first is still building towards. A claim another run took sends the run back to select again;
+three lost in a row ends it.
 
-**What stops a run:**
+**One ticket per session** is what makes a long roadmap possible: the script calls
+`claude -p "/sdlc:run-roadmap --run run-roadmap-<n>"` once per ticket, and each ticket starts with a
+clean context and ends with its own commit. The command prints one `RUN-ROADMAP-RESULT` line, the
+script reads it, and the roadmap itself is the loop counter — the run ends when the last row is gone.
 
-| It stops when | Because |
+**What ends a run:**
+
+| It ends when | Because |
 | --- | --- |
-| The roadmap has no task whose dependencies are satisfied | There is nothing to build |
-| The CTO hands a decision back | Money, credentials, anything irreversible, the security model, a legal call, or a PRD contradiction it cannot settle |
-| A stage runs out of rulings | One ruling per stage, two per task. A third is a person's problem |
+| The roadmap has no ticket left | The roadmap is done — exit 0 |
+| `--max` tickets were built | You asked for that many — exit 0 |
+| Tickets are left and none can be selected | Each waits on another run's claim, a block, or a missing ID — a person has to look |
+| The CTO hands a decision back, or rules `defer` or `stop-run` | Money, credentials, anything irreversible, the security model, a legal call, or a PRD contradiction it cannot settle |
+| A ticket does not complete | The rest of its cluster depends on it. Its code is discarded from the worktree; its ticket and worklog are kept |
+| A stage runs out of rulings | One ruling per stage, two per ticket. A third is a person's problem |
 | An agent returns nothing usable | A dead agent is not a thing to retry around |
-| A tree is dirty before it starts, or a commit is rejected | Every task commits with `git add -A`, so the ground has to be clean — in every registered repository |
+| Another run took the claim three times in a row, or a worktree cannot be made | The ground is wrong |
+| A commit is rejected, or a ticket leaves its worktree dirty | The next ticket must not inherit it |
 | A registered repository is missing or is not a git tree | The registry is machine-local, so it can point at a path this machine does not have |
-| A task runs past `--timeout` | The task and everything it started are killed, and the run stops |
+| A ticket runs past `--timeout` | The ticket and everything it started are killed, and the run stops |
 
-**Before the first run:** be on a branch you are willing to throw away, in every repository the run
-can touch. The script checks that each one is in git with a clean tree, and it commits to the branch
-each one is on — one commit per task, never a
-push. It runs with `--permission-mode bypassPermissions`, because a permission prompt in a headless
-session is a dead run, so the tasks it builds get your full tool access without asking. Read
-`--help` first, and read `git log` after.
+Every end releases the run's claims and prints how to resume it with `--run <n>`.
+
+**Before the first run:** know that it commits without asking — on the run branch only, never a
+push, never a merge. It runs with `--permission-mode bypassPermissions`, because a permission prompt
+in a headless session is a dead run, so the tickets it builds get your full tool access without
+asking. Read `--help` first, and read the run branch after; merge what you keep.
 
 **What you read afterwards** is the worklog beside each ticket in `done/`. Every CTO answer is in
 there — the decision, what it beat, and the cost it accepted — because a run nobody watched is only
@@ -471,6 +484,10 @@ what a ticket is, and why changing how a status transition works is one edit rat
   correctness, scope, the plugin's skills, the codebase's conventions, error handling, tests,
   and secrets, and confirms every issue in the file before reporting it. Writes no code.
   Verification answers "does it pass?"; this answers "is it the right code, and all of it?".
+- **repo-resolver** — fills in a ticket's `repositories` when a run picks a ticket that has none. It
+  reads the ticket, its design docs, the registry, and the candidate repositories' code, and returns
+  the registry codes with the evidence for each — or says the evidence leaves it open. Writes nothing;
+  the run writes its answer onto the ticket.
 - **test-planner** — decides which tests a change gets before any code exists. It drafts the
   cases from the ticket, the design docs, and the decisions before it sees the plan, keeps only
   the cases that catch a bug the change could ship, picks the cheapest test type for each, and
@@ -549,19 +566,20 @@ what a ticket is, and why changing how a status transition works is one edit rat
 - **/run-roadmap** — `/orchestrate` with nobody in the loop. It never asks you anything: the **cto**
   agent picks the task and calls the end-to-end question, the interview always runs and the CTO
   settles its decisions, and a stage that hits its cap gets a CTO ruling — retry once with guidance,
-  narrow the task, defer it, or end the run — instead of stopping to wait for you. The finished task
-  is committed on the branch you are on, and nothing is pushed. One invocation is one task, and it
-  ends with a machine-readable result line, so
-  [`scripts/run-roadmap.sh`](scripts/run-roadmap.sh) can loop it over a whole roadmap in a fresh
-  session per task:
+  narrow the task, defer it, or end the run — instead of stopping to wait for you. It claims the
+  ticket with its dependency cluster, builds in a run worktree on branch `run-roadmap-<n>` beside
+  each repository, and commits the code there and the documents in the framework root; nothing is
+  pushed, and your checkout is never touched. One invocation is one ticket, and it ends with a
+  machine-readable result line, so [`scripts/run-roadmap.sh`](scripts/run-roadmap.sh) can loop it
+  over a whole roadmap in a fresh session per ticket:
 
   ```shell
-  plugins/sdlc/scripts/run-roadmap.sh --max-tasks 5
+  plugins/sdlc/scripts/run-roadmap.sh --max 5
   ```
 
-  The script refuses to start outside git or on a dirty tree, kills a task that runs too long,
-  stops the moment the CTO hands something back, and prints one line per task at the end with the
-  commit each one produced. Read `--help` before the first run, and read the commits after it.
+  The script refuses to start outside git, kills a ticket that runs too long, ends the run the
+  moment a person is needed, and prints one line per ticket at the end with the commit each one
+  produced and how to resume. Read `--help` before the first run, and read the run branch after it.
 - **/code** — hands your request straight to the **coding** agent, which loads the coding skills
   itself. One agent, no planner, no reviewer, no verify agent: it finds the files, writes the
   change, runs a targeted self-check, and the command reports what it did and what nobody ran.
@@ -605,7 +623,7 @@ Use these equivalents in a Codex prompt:
 | `/setup [product]` | `$sdlc:setup [product]` |
 | `/orchestrate [roadmap]` | `$sdlc:orchestrate [roadmap]` |
 | `/orchestrate-quick [task]` | `$sdlc:orchestrate-quick [task]` |
-| `/run-roadmap [roadmap]` | `$sdlc:run-roadmap [roadmap]` |
+| `/run-roadmap [--run run-roadmap-<n>] [--final] [roadmap]` | `$sdlc:run-roadmap [roadmap]` |
 | `/code [request]` | `$sdlc:code [request]` |
 | `/review [target]` | `$sdlc:review [target]` |
 | `/plan [request]` | `$sdlc:plan [request]` |

@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **`/run-roadmap` runs as a roadmap run, `run-roadmap-<n>`, built in worktrees of its own.** The
+  flow follows `diagrams/run-roadmap.excalidraw.md` and `workflow.design.md` section 6.1:
+  - It **claims a ticket's dependency cluster** — the ticket and every unfinished ticket it depends
+    on — reads every claim back, and builds the cluster dependencies first. A claim lost to another
+    run sends it back to select; three in a row end the run.
+  - It builds and commits in a **run worktree** at `<repository>-worktrees/run-roadmap-<n>`, on
+    branch `run-roadmap-<n>`, in each work root the ticket and its direct dependencies name. The
+    person's checkout is never touched, so a dirty checkout no longer blocks a run.
+  - The **documents get their own commit** in the framework root, when it is a git tree.
+  - **Any ticket that does not complete ends the run**, a `defer` included, and every end releases
+    the run's claims and says how to resume.
+- **`scripts/run-roadmap.sh` 2.0.0** names the run, passes `--run` and, on the last ticket,
+  `--final` to every session, grants each repository's worktree folder with `--add-dir`, checks the
+  run worktrees between tickets, and reports the run branch. New options `--max` (`--max-tasks` still
+  works) and `--run N` to resume. `--keep-going` and `--allow-dirty` are gone; passing them warns.
+  Exit 3 now covers every end that needs a person, including tickets left that none can select.
+- **A ticket names its repositories**, as registry codes in a new `repositories` property,
+  reversing the rule that a ticket never names its repository. `/plan` writes it when the answer is
+  clear. When a run picks a ticket whose field is empty or names a code the registry lacks, the new
+  **`repo-resolver`** agent works it out and the run writes it onto the ticket, so no later run
+  resolves it again. An answer the evidence leaves open goes to the person in `/orchestrate` and
+  `/orchestrate-quick`, and ends a `/run-roadmap` run for a person. The `cto` no longer answers a
+  `work-root` question.
+- **Glossary**: new **Dependency cluster**, **Roadmap run**, and **Run worktree**; **Claim** covers a
+  cluster claim.
+
+### Fixed
+
+- **The diagram builder sizes each shape to fit its label** — a diamond needs about twice its
+  label's width — so Excalidraw no longer wraps a label and grows the shape over its neighbours.
+- **`excalidraw_md.py validate`** no longer rejects a drawing in which two labels share a line,
+  such as two `yes` arrows.
+
 ### Added
 
 - **Tests come before the code, and from someone other than the coder.** `/orchestrate`,

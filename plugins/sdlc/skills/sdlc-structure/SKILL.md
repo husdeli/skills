@@ -44,8 +44,8 @@ Every later path in the run resolves against what it gives you.
 - **Every term is defined once, in the framework root's `glossary.md`.** A document links the
   entry at the term's first use instead of defining it again.
 - **Only the setup entry point moves the structure, or writes the pointer file or the registry.**
-- **A ticket never names its repository.** The run resolves the work root when it starts the ticket
-  and records it in the worklog.
+- **A ticket names its repositories by registry code**, in `repositories`. When the field is empty,
+  the run has the `repo-resolver` agent fill it before the ticket starts.
 
 ## Where the rest lives
 

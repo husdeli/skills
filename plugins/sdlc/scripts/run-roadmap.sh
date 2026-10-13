@@ -2,27 +2,28 @@
 #
 # run-roadmap.sh — drive a whole roadmap with no person in the loop.
 #
-# One task per Claude session: the script calls `claude -p "/sdlc:run-roadmap"` in a loop, reads the
-# RUN-ROADMAP-RESULT line that command prints, and decides whether to start another task. A fresh
-# session per task is the point — a long roadmap never runs out of context, and each task lands as
-# its own commit.
+# One roadmap run, one ticket per Claude session: the script names the run `run-roadmap-<n>`, calls
+# `claude -p "/sdlc:run-roadmap --run run-roadmap-<n>"` in a loop, reads the RUN-ROADMAP-RESULT line
+# that command prints, and decides whether to start another ticket. A fresh session per ticket is
+# the point — a long roadmap never runs out of context, and each ticket lands as its own commit on
+# the run branch, in a run worktree beside each repository. Your own checkout is never touched.
 #
 # The command answers every question with the `cto` agent, so nothing in this loop waits for input.
-# It stops on its own when the roadmap is empty, when the CTO hands a decision back to a person, or
-# when an agent dies.
+# It stops on its own when the roadmap is done, when --max is reached, and whenever a person is
+# needed: a hand-back, a stopped ticket, a lost claim, a worktree it cannot make, or a dead agent.
 #
-#   ./run-roadmap.sh --max-tasks 5
-#   ./run-roadmap.sh --roadmap docs/roadmap.md --keep-going --yes
+#   ./run-roadmap.sh --max 5
+#   ./run-roadmap.sh --run 3 --yes                              # resume run-roadmap-3
 #   ./run-roadmap.sh --project ~/Vaults/Personal/Acme          # one board, several repositories
 #
 # Run it from the repository you want built, or from the project — in your Obsidian vault, holding
-# the roadmap — when one board drives several repositories. In that shape the
-# script reads sdlc.json for the repositories, gives the session access to each one, and checks
-# every tree between tasks. Use --help for every option.
+# the roadmap — when one board drives several repositories. In that shape the script reads
+# sdlc.json for the repositories, gives the session access to each one and to its worktrees, and
+# checks every run worktree between tickets. Use --help for every option.
 
 set -uo pipefail
 
-VERSION="1.1.0"
+VERSION="2.0.0"
 
 # ---------------------------------------------------------------------------- defaults
 
@@ -31,13 +32,13 @@ ROADMAP=""
 PROJECT_DIR=""               # set by --project, or detected from the working directory
 MODE=""                      # repo (cwd is the code) or vault (cwd is the project)
 WORK_ROOTS=""                # one absolute repository path per line
-MAX_TASKS=0                  # 0 = until the roadmap is empty
+MAX_TASKS=0                  # 0 = until the roadmap is done
+RUN_NAME=""                  # run-roadmap-<n>; set by --run, or the lowest free number
+FINAL=0                      # 1 while the session about to start is the run's last
 PERMISSION_MODE="bypassPermissions"
 MODEL=""
 LOG_DIR=""
 TIMEOUT=5400                 # per task, seconds. 0 = no limit
-KEEP_GOING=0
-ALLOW_DIRTY=0
 ASSUME_YES=0
 DRY_RUN=0
 QUIET=0
@@ -72,50 +73,54 @@ USAGE
   run-roadmap.sh [options]
 
 WHAT IT DOES
-  Calls `claude -p "/sdlc:run-roadmap"` once per roadmap task, in a fresh session each time. That
-  command picks the next task, has the `cto` agent answer every question a person would normally
-  answer, drives plan -> review -> implement -> verify -> code review, commits the task, and prints
-  one RUN-ROADMAP-RESULT line. This script reads that line and starts the next task, or stops.
+  Starts one roadmap run, run-roadmap-<n>, and calls `claude -p "/sdlc:run-roadmap --run ..."`
+  once per ticket, in a fresh session each time. That command selects the next ticket, claims its
+  dependency cluster, makes a run worktree on branch run-roadmap-<n> beside each repository the
+  ticket changes, has the `cto` agent answer every question a person would normally answer, drives
+  plan -> review -> tests -> implement -> verify -> code review, commits the code on the run
+  branch and the documents in the framework root, and prints one RUN-ROADMAP-RESULT line. This
+  script reads that line and starts the next ticket, or stops.
 
 WHERE YOU RUN IT
   From a code repository, and it builds that repository.
-  From a project — in your vault, holding roadmap.md, tickets/ and sdlc.json — and it
-  builds every repository sdlc.json names, one task at a time, each task committed in whichever
-  repository it landed in. The session is given access to each of them with --add-dir.
+  From a project — in your vault, holding the roadmap, work/ and sdlc.json — and it builds every
+  repository sdlc.json names, one ticket at a time. The session is given access to each repository
+  and to its <repository>-worktrees/ folder with --add-dir.
 
 OPTIONS
-  --max-tasks N        Stop after N tasks. Default: 0, meaning until the roadmap is empty.
+  --max N              Stop after N tickets. Default: 0, meaning until the roadmap is done.
+                       --max-tasks is the same option.
+  --run N              Resume run-roadmap-N: reuse its branch and worktrees, and claim afresh.
+                       Default: a new run, numbered with the lowest number no claim, branch, or
+                       worktree uses.
   --roadmap PATH       Roadmap file to pass to the command. Default: the project's own roadmap.
-  --project PATH       The project holding the roadmap, the tickets, and sdlc.json — in your
-                       Obsidian vault. Runs the loop from there, over every repository
-                       sdlc.json names. Default: detected from the working directory.
+  --project PATH       The project holding the roadmap, work/, and sdlc.json — in your Obsidian
+                       vault. Runs the loop from there, over every repository sdlc.json names.
+                       Default: detected from the working directory.
   --model NAME         Model for the main session (the agents pick their own). Default: your config.
   --permission-mode M  Claude permission mode. Default: bypassPermissions, which is what an
                        unattended run needs — a prompt in a headless session is a dead run.
-  --timeout SECONDS    Kill a task that runs longer than this. Default: 5400. 0 disables it.
-  --log-dir DIR        Where the per-task logs go. Default: a timestamped folder under TMPDIR.
-                       It must sit outside the repository, or be git-ignored: each task commits
-                       with 'git add -A' and would otherwise commit the logs.
-  --keep-going         Carry on to the next task when one is deferred or handed back.
-                       Without it, anything other than a completed task stops the run.
-  --allow-dirty        Do not require a clean working tree before starting.
+  --timeout SECONDS    Kill a ticket that runs longer than this. Default: 5400. 0 disables it.
+  --log-dir DIR        Where the per-ticket logs go. Default: a timestamped folder under TMPDIR.
   --command NAME       Slash command to run. Default: /sdlc:run-roadmap.
   --yes, -y            Skip the confirmation prompt. Required on a non-interactive shell.
-  --dry-run            Print the command for the first task and exit.
+  --dry-run            Print the command for the first ticket and exit.
   --quiet, -q          Only print the final summary.
   --version            Print the version and exit.
   --help, -h           Print this help and exit.
 
 BEFORE YOU RUN IT
-  This writes code and commits it without asking. It commits to the branch each repository is on
-  and never pushes. Be on branches you are happy to throw away, with clean trees, and read the
-  commits afterwards — a CTO agent made every product decision in them.
+  This writes code and commits it without asking — on the branch run-roadmap-<n>, in a worktree at
+  <repository>-worktrees/run-roadmap-<n> beside each repository. It never touches your checkout,
+  never pushes, and never merges. Read the branch afterwards and merge what you keep — a CTO agent
+  made every product decision in it.
 
 EXIT CODES
-  0  The roadmap is empty, or --max-tasks was reached.
-  1  Preflight failed: no claude, no git, a dirty tree, an unreadable registry, or a bad option.
-  3  The run stopped early: a hand-back, an abort, or a blocked task.
-  4  A task produced no result line, or timed out.
+  0  The roadmap is done, or --max was reached.
+  1  Preflight failed: no claude, no git, an unreadable registry, or a bad option.
+  3  A person is needed: a hand-back, a stopped ticket, nothing selectable, a lost claim, a
+     worktree that could not be made, an abort, or a ticket that left its worktree dirty.
+  4  A ticket produced no result line, or timed out.
 EOF
 }
 
@@ -123,7 +128,8 @@ EOF
 
 while [ $# -gt 0 ]; do
   case "$1" in
-    --max-tasks)       MAX_TASKS="${2:-}"; shift 2 ;;
+    --max|--max-tasks) MAX_TASKS="${2:-}"; shift 2 ;;
+    --run)             RUN_NAME="${2:-}"; shift 2 ;;
     --roadmap)         ROADMAP="${2:-}"; shift 2 ;;
     --project)         PROJECT_DIR="${2:-}"; shift 2 ;;
     --model)           MODEL="${2:-}"; shift 2 ;;
@@ -131,8 +137,8 @@ while [ $# -gt 0 ]; do
     --timeout)         TIMEOUT="${2:-}"; shift 2 ;;
     --log-dir)         LOG_DIR="${2:-}"; shift 2 ;;
     --command)         COMMAND="${2:-}"; shift 2 ;;
-    --keep-going)      KEEP_GOING=1; shift ;;
-    --allow-dirty)     ALLOW_DIRTY=1; shift ;;
+    --keep-going|--allow-dirty)
+                       warn "$1 is gone: a stopped ticket ends the run, and the run never builds in your checkout"; shift ;;
     -y|--yes)          ASSUME_YES=1; shift ;;
     --dry-run)         DRY_RUN=1; shift ;;
     -q|--quiet)        QUIET=1; shift ;;
@@ -142,7 +148,14 @@ while [ $# -gt 0 ]; do
   esac
 done
 
-case "$MAX_TASKS" in ''|*[!0-9]*) die "--max-tasks needs a whole number" 1 ;; esac
+case "$MAX_TASKS" in ''|*[!0-9]*) die "--max needs a whole number" 1 ;; esac
+case "$RUN_NAME" in
+  "") ;;
+  run-roadmap-[1-9]*) ;;
+  [1-9]*) RUN_NAME="run-roadmap-$RUN_NAME" ;;
+  *) die "--run needs a run number, such as 3 or run-roadmap-3" 1 ;;
+esac
+case "$RUN_NAME" in ''|run-roadmap-[1-9]|run-roadmap-[1-9]*[0-9]) ;; *) die "--run needs a run number" 1 ;; esac
 case "$TIMEOUT"   in ''|*[!0-9]*) die "--timeout needs a whole number of seconds" 1 ;; esac
 
 # ---------------------------------------------------------------------------- preflight
@@ -159,10 +172,10 @@ expand_tilde() {
   esac
 }
 
-# is_project_dir <dir> — a project holds the board: sdlc.json, or a roadmap beside tickets/.
+# is_project_dir <dir> — a project holds the board: sdlc.json, or a roadmap beside work/.
 is_project_dir() {
   [ -f "$1/sdlc.json" ] && return 0
-  { [ -f "$1/roadmap.md" ] || [ -f "$1/prd.md" ]; } && [ -d "$1/tickets" ] && return 0
+  { [ -f "$1/roadmap.md" ] || [ -f "$1/prd.md" ]; } && { [ -d "$1/work" ] || [ -d "$1/tickets" ]; } && return 0
   return 1
 }
 
@@ -195,7 +208,7 @@ if [ -n "$PROJECT_DIR" ]; then
   [ -d "$PROJECT_DIR" ] || die "--project is not a directory: $PROJECT_DIR" 1
   PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)"
   is_project_dir "$PROJECT_DIR" \
-    || die "$PROJECT_DIR holds no board — expected sdlc.json, or roadmap.md beside tickets/.
+    || die "$PROJECT_DIR holds no board — expected sdlc.json, or roadmap.md beside work/.
 Run /setup there first." 1
   MODE="vault"
 elif is_project_dir "$PWD" && ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
@@ -221,7 +234,7 @@ built in, so the registry names it." 1
 The registry is machine-local — run /setup on this machine." 1
     wr="$(cd "$wr" && pwd)"
     git -C "$wr" rev-parse --is-inside-work-tree >/dev/null 2>&1 \
-      || die "not a git work tree: $wr. Every task is committed, so this needs git." 1
+      || die "not a git work tree: $wr. Every ticket is committed on a run branch, so this needs git." 1
     resolved="${resolved}${wr}
 "
   done <<EOF
@@ -238,37 +251,58 @@ want built, or from your project — or pass --project." 1
 "
 fi
 
-# dirty_roots — prints every work root with uncommitted changes.
-dirty_roots() {
+RUN_ROOT="${PROJECT_DIR:-$REPO_ROOT}"
+
+# worktree_of <repository> — where the run's worktree of that repository sits.
+worktree_of() {
+  printf '%s/%s-worktrees/%s' "$(dirname "$1")" "$(basename "$1")" "$RUN_NAME"
+}
+
+# run_number_taken <n> — a claim, a branch, or a worktree already uses run-roadmap-<n>.
+run_number_taken() {
+  grep -rqs --include='*.md' "^claimed: run-roadmap-$1\$" "$RUN_ROOT" && return 0
   while IFS= read -r wr; do
     [ -n "$wr" ] || continue
-    [ -n "$(git -C "$wr" status --porcelain 2>/dev/null)" ] && printf '%s\n' "$wr"
+    git -C "$wr" show-ref --verify --quiet "refs/heads/run-roadmap-$1" && return 0
+    [ -e "$(dirname "$wr")/$(basename "$wr")-worktrees/run-roadmap-$1" ] && return 0
+  done <<EOF
+$WORK_ROOTS
+EOF
+  return 1
+}
+
+if [ -z "$RUN_NAME" ]; then
+  n=1
+  while run_number_taken "$n"; do n=$((n + 1)); done
+  RUN_NAME="run-roadmap-$n"
+fi
+
+# dirty_worktrees — prints every run worktree with uncommitted changes.
+dirty_worktrees() {
+  while IFS= read -r wr; do
+    [ -n "$wr" ] || continue
+    wt="$(worktree_of "$wr")"
+    [ -d "$wt" ] || continue
+    [ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] && printf '%s\n' "$wt"
   done <<EOF
 $WORK_ROOTS
 EOF
   return 0
 }
 
-if [ "$ALLOW_DIRTY" -eq 0 ]; then
-  DIRTY="$(dirty_roots)"
-  if [ -n "$DIRTY" ]; then
-    printf '%s\n' "${C_RED}error:${C_RESET} a working tree is not clean." >&2
-    while IFS= read -r wr; do
-      [ -n "$wr" ] || continue
-      printf '\n%s\n' "  $wr" >&2
-      git -C "$wr" status --short >&2
-    done <<EOF
-$DIRTY
-EOF
-    printf '%s\n' "Each task is committed with 'git add -A', so these changes would land in it." >&2
-    printf '%s\n' "Commit or stash them, or pass --allow-dirty." >&2
-    exit 1
-  fi
-fi
+DIRTY="$(dirty_worktrees)"
+[ -z "$DIRTY" ] || die "a run worktree of $RUN_NAME holds uncommitted work — a ticket neither committed
+nor discarded it. Look at it before resuming:
+$DIRTY" 1
 
-RUN_ROOT="${PROJECT_DIR:-$REPO_ROOT}"
-BRANCH="$(git -C "$(printf '%s' "$WORK_ROOTS" | head -n 1)" rev-parse --abbrev-ref HEAD 2>/dev/null || printf 'DETACHED')"
-START_COMMIT="$(git -C "$(printf '%s' "$WORK_ROOTS" | head -n 1)" rev-parse --short HEAD 2>/dev/null || printf 'none')"
+# Each repository's worktree folder has to exist for the session to be granted it.
+[ "$DRY_RUN" -eq 1 ] || while IFS= read -r wr; do
+  [ -n "$wr" ] || continue
+  mkdir -p "$(dirname "$(worktree_of "$wr")")" \
+    || die "cannot create the worktree folder beside $wr" 1
+done <<EOF
+$WORK_ROOTS
+EOF
 
 if [ -z "$LOG_DIR" ]; then
   LOG_DIR="${TMPDIR:-/tmp}/sdlc-run-roadmap/$(basename "$RUN_ROOT")-$(date -u '+%Y%m%dT%H%M%SZ')"
@@ -276,28 +310,15 @@ fi
 mkdir -p "$LOG_DIR" || die "cannot create the log directory: $LOG_DIR" 1
 LOG_DIR="$(cd "$LOG_DIR" && pwd)"
 
-# A log directory inside a repository would be swept into a task's own commit by `git add -A`.
-while IFS= read -r wr; do
-  [ -n "$wr" ] || continue
-  case "$LOG_DIR/" in
-    "$wr"/*)
-      git -C "$wr" check-ignore -q "$LOG_DIR" 2>/dev/null \
-        || die "the log directory sits inside a repository and git does not ignore it:
-       $LOG_DIR
-Each task commits with 'git add -A', so the logs would land in it. Add the path to .gitignore,
-or pass --log-dir with a path outside $wr." 1
-      ;;
-  esac
-done <<EOF
-$WORK_ROOTS
-EOF
-
-# The starting commit of every repository, so the summary can report what each one gained.
+# Where the run branch of every repository starts, so the summary can report what each one gained:
+# its tip on a resume, or the commit the branch will be made from.
 START_COMMITS="$LOG_DIR/.start-commits"
 : >"$START_COMMITS"
 while IFS= read -r wr; do
   [ -n "$wr" ] || continue
-  printf '%s\t%s\n' "$wr" "$(git -C "$wr" rev-parse --short HEAD 2>/dev/null || printf 'none')" >>"$START_COMMITS"
+  start="$(git -C "$wr" rev-parse --short "refs/heads/$RUN_NAME" 2>/dev/null \
+           || git -C "$wr" rev-parse --short HEAD 2>/dev/null || printf 'none')"
+  printf '%s\t%s\n' "$wr" "$start" >>"$START_COMMITS"
 done <<EOF
 $WORK_ROOTS
 EOF
@@ -307,27 +328,30 @@ printf 'task\toutcome\ttaskId\tcommit\tremaining\treason\n' >"$SUMMARY"
 # ---------------------------------------------------------------------------- the command line
 
 build_prompt() {
-  if [ -n "$ROADMAP" ]; then printf '%s %s' "$COMMAND" "$ROADMAP"; else printf '%s' "$COMMAND"; fi
+  printf '%s --run %s' "$COMMAND" "$RUN_NAME"
+  [ "$FINAL" -eq 1 ] && printf ' --final'
+  [ -n "$ROADMAP" ] && printf ' %s' "$ROADMAP"
+  return 0
 }
 
 claude_argv() {
   # Prints one argument per line, so the caller can read them without word splitting.
   printf '%s\n' "claude" "-p" "$(build_prompt)" "--permission-mode" "$PERMISSION_MODE"
   [ -n "$MODEL" ] && printf '%s\n' "--model" "$MODEL"
-  # The session starts in the project, so every repository it writes to has to be granted.
-  if [ "$MODE" = "vault" ]; then
-    while IFS= read -r wr; do
-      [ -n "$wr" ] || continue
-      printf '%s\n' "--add-dir" "$wr"
-    done <<EOF
+  # The session writes to each run worktree, beside its repository, and in the project's case reads
+  # the repository itself, so every one has to be granted.
+  while IFS= read -r wr; do
+    [ -n "$wr" ] || continue
+    [ "$MODE" = "vault" ] && printf '%s\n' "--add-dir" "$wr"
+    printf '%s\n' "--add-dir" "$(dirname "$(worktree_of "$wr")")"
+  done <<EOF
 $WORK_ROOTS
 EOF
-  fi
   return 0
 }
 
 if [ "$DRY_RUN" -eq 1 ]; then
-  info "would run, once per task, until the roadmap is empty:"
+  info "would run, once per ticket, until the roadmap is done:"
   claude_argv | sed 's/^/    /'
   info "logs would go to $LOG_DIR"
   exit 0
@@ -344,14 +368,14 @@ ${C_BOLD}An autonomous run is about to start.${C_RESET}
 
   board             ${PROJECT_DIR:-$REPO_ROOT}
   repositories      $(printf '%s' "$WORK_ROOTS" | sed '/^$/d' | paste -sd ', ' - 2>/dev/null || printf '%s' "$WORK_ROOTS")
-  branch            $BRANCH (at $START_COMMIT)
+  run               $RUN_NAME — branch and worktree of that name beside each repository
   permission mode   $PERMISSION_MODE
-  tasks             $([ "$MAX_TASKS" -eq 0 ] && printf 'until the roadmap is empty' || printf '%s at most' "$MAX_TASKS")
+  tickets           $([ "$MAX_TASKS" -eq 0 ] && printf 'until the roadmap is done' || printf '%s at most' "$MAX_TASKS")
   logs              $LOG_DIR
 
-It writes code, runs your test suite, and commits one commit per finished task, in whichever
-repository that task landed in, on the branch each one is on.
-A ${C_BOLD}cto${C_RESET} agent makes every product decision instead of you. Nothing is pushed.
+It writes code, runs your test suite, and commits one commit per finished ticket on the run
+branch, in a run worktree beside each repository the ticket changes. Your checkout is not touched.
+A ${C_BOLD}cto${C_RESET} agent makes every product decision instead of you. Nothing is pushed or merged.
 EOF
   printf 'Type yes to start: '
   read -r reply
@@ -374,7 +398,8 @@ on_interrupt() {
   trap - INT TERM
   printf '\n%s\n' "${C_YELLOW}interrupted${C_RESET} — stopping the task that is running" >&2
   [ -n "$CURRENT_TASK_PID" ] && stop_tree "$CURRENT_TASK_PID"
-  printf '%s\n' "Logs are in $LOG_DIR. A repository may hold a half-built task — check each one." >&2
+  printf '%s\n' "Logs are in $LOG_DIR. A run worktree may hold a half-built ticket, and its claims stay" >&2
+  printf '%s\n' "on the board — check both before you resume with --run ${RUN_NAME#run-roadmap-}." >&2
   exit 130
 }
 trap on_interrupt INT TERM
@@ -449,18 +474,20 @@ json_field() {
 
 # ---------------------------------------------------------------------------- the loop
 
-info "starting on branch $BRANCH at $START_COMMIT · $(printf '%s' "$WORK_ROOTS" | sed '/^$/d' | wc -l | tr -d ' ') repositor$(printf '%s' "$WORK_ROOTS" | sed '/^$/d' | wc -l | tr -d ' ' | sed 's/^1$/y/;s/^[0-9]*$/ies/') · logs in $LOG_DIR"
+info "starting $RUN_NAME · $(printf '%s' "$WORK_ROOTS" | sed '/^$/d' | wc -l | tr -d ' ') repositor$(printf '%s' "$WORK_ROOTS" | sed '/^$/d' | wc -l | tr -d ' ' | sed 's/^1$/y/;s/^[0-9]*$/ies/') · logs in $LOG_DIR"
 RUN_START="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
 iteration=0
 last_remaining=""
 
 while :; do
   if [ "$MAX_TASKS" -gt 0 ] && [ "$iteration" -ge "$MAX_TASKS" ]; then
-    STOP_REASON="reached --max-tasks $MAX_TASKS"
+    STOP_REASON="reached --max $MAX_TASKS"
     break
   fi
 
   iteration=$((iteration + 1))
+  FINAL=0
+  [ "$MAX_TASKS" -gt 0 ] && [ "$iteration" -ge "$MAX_TASKS" ] && FINAL=1
   task_log="$LOG_DIR/task-$(printf '%02d' "$iteration").log"
   info "task $iteration — $(date -u '+%H:%M:%SZ')"
 
@@ -507,25 +534,15 @@ while :; do
       ;;
   esac
 
-  # The command decides whether another task should start; the flags can only be more cautious.
-  if [ "$next_action" = "stop" ]; then
+  # The command decides whether another ticket should start. Anything but a completed ticket ends the
+  # run; only a roadmap with nothing left in it ends it cleanly.
+  if [ "$next_action" = "stop" ] || [ "$outcome" != "completed" ]; then
     STOP_REASON="the command said stop after ${outcome:-unknown}${reason:+: $reason}"
-    case "$outcome" in
-      completed|no-work) EXIT_CODE=0 ;;
-      *)                 EXIT_CODE=3 ;;
-    esac
-    if [ "$KEEP_GOING" -eq 1 ] && [ "$outcome" = "handed-back" ]; then
-      warn "--keep-going: carrying on past the hand-back"
-      STOP_REASON=""
+    if [ "$outcome" = "completed" ] || { [ "$outcome" = "no-work" ] && [ "$remaining" = "0" ]; }; then
       EXIT_CODE=0
     else
-      break
+      EXIT_CODE=3
     fi
-  fi
-
-  if [ "$outcome" != "completed" ] && [ "$outcome" != "deferred" ] && [ "$KEEP_GOING" -eq 0 ]; then
-    STOP_REASON="task $iteration ended as $outcome${reason:+: $reason}"
-    EXIT_CODE=3
     break
   fi
 
@@ -543,10 +560,10 @@ while :; do
     break
   fi
 
-  # A dirty tree here means a task neither committed nor reverted its work — in any repository.
-  DIRTY="$(dirty_roots)"
+  # A dirty worktree here means a ticket neither committed nor discarded its work.
+  DIRTY="$(dirty_worktrees)"
   if [ -n "$DIRTY" ]; then
-    STOP_REASON="task $iteration left uncommitted changes in $(printf '%s' "$DIRTY" | tr '\n' ' ')— stopping so they are not swallowed by the next task"
+    STOP_REASON="ticket $iteration left uncommitted changes in $(printf '%s' "$DIRTY" | tr '\n' ' ')— stopping so they are not swallowed by the next ticket"
     EXIT_CODE=3
     break
   fi
@@ -558,8 +575,8 @@ COMMITS=0
 REPO_LINES=""
 while IFS=$(printf '\t') read -r wr start; do
   [ -n "$wr" ] || continue
-  end="$(git -C "$wr" rev-parse --short HEAD 2>/dev/null || printf 'none')"
-  n="$(git -C "$wr" rev-list --count "${start}..HEAD" 2>/dev/null || printf '0')"
+  end="$(git -C "$wr" rev-parse --short "refs/heads/$RUN_NAME" 2>/dev/null || printf '%s' "$start")"
+  n="$(git -C "$wr" rev-list --count "${start}..${end}" 2>/dev/null || printf '0')"
   COMMITS=$((COMMITS + n))
   REPO_LINES="${REPO_LINES}$(basename "$wr")|${start}..${end}|${n} commits|$wr
 "
@@ -570,6 +587,7 @@ done <"$START_COMMITS"
   printf '  started        %s\n' "$RUN_START"
   printf '  finished       %s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
   printf '  board          %s\n' "${PROJECT_DIR:-$REPO_ROOT}"
+  printf '  run            %s\n' "$RUN_NAME"
   printf '  commits        %s\n' "$COMMITS"
   printf '%s' "$REPO_LINES" | while IFS='|' read -r name range n path; do
     [ -n "$name" ] && printf '  %-14s %s · %s · %s\n' "$name" "$range" "$n" "$path"
@@ -588,10 +606,13 @@ done <"$START_COMMITS"
   fi
   printf '\n'
   if [ "$COMMITS" != "0" ]; then
-    printf '%s\n' "  Review what it built, per repository:"
+    printf '%s\n' "  Review what it built on $RUN_NAME, per repository, and merge what you keep:"
     printf '%s' "$REPO_LINES" | while IFS='|' read -r name range n path; do
       [ -n "$path" ] && printf '%s\n' "    git -C $path log --oneline $range"
     done
+  fi
+  if [ "$EXIT_CODE" -ne 0 ]; then
+    printf '%s\n' "  Resume after a person has looked: $0 --run ${RUN_NAME#run-roadmap-}"
   fi
 } | { [ "$QUIET" -eq 1 ] && cat >&2 || cat; }
 

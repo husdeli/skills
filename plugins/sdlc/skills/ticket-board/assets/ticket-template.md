@@ -2,6 +2,7 @@
 feature: "[[<feature-name>.feature]]"
 status: backlog
 priority: Critical | High | Medium | Low
+repositories: []
 depends_on: []
 createdAt: YYYY-MM-DDTHH:mm
 updatedAt: YYYY-MM-DDTHH:mm

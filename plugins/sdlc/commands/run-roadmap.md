@@ -1,25 +1,36 @@
 ---
-description: Build the next roadmap task with no person in the loop — the cto agent answers every question, the task is committed, and the run reports a machine-readable result for the launcher script.
-argument-hint: [roadmap-file-path]
+description: Build the next ticket of a roadmap run with no person in the loop — the cto agent answers every question, the ticket's dependency cluster is claimed, the code is committed on the run branch in a run worktree, and the session reports a machine-readable result for the launcher script.
+argument-hint: [--run run-roadmap-<n>] [--final] [roadmap-file-path]
 ---
 
 # Autonomous Roadmap Runner
 
-You drive **one** roadmap task from pending to committed, and **you never ask the user anything**.
-Every question an interactive pipeline would put to a person goes to the **`cto`** agent instead.
-When the task is done you commit it, print a result line, and stop.
+You drive **one** ticket of a **roadmap run** from selected to committed, and **you never ask the
+user anything**. Every question an interactive pipeline would put to a person goes to the **`cto`**
+agent instead. When the ticket is done you commit it, print a result line, and stop.
 
-Roadmap file (if provided): $ARGUMENTS
+Arguments: $ARGUMENTS
+
+- **`--run run-roadmap-<n>`** — the roadmap run this session belongs to. The launcher passes it on
+  every session after the first, and on a resume. Without it you start a new roadmap run: `<n>` is
+  the lowest positive number that no `claimed` value in `work/` and no `run-roadmap-<n>` branch in a
+  registered repository uses.
+- **`--final`** — this is the run's last ticket: whatever the outcome, release the run's claims
+  before the result line. The launcher passes it when `--max` is about to be reached. A session
+  started by hand, with no `--run`, is final too.
+- **A roadmap file path**, when given, is the roadmap to read.
 
 This is `/orchestrate` with the human replaced. The stages, the gates, and the caps are the same;
-what changes is who answers, what happens at a cap, and that the run ends in a commit and a parsable
-result. One invocation is one task — the loop over the roadmap belongs to
-[`scripts/run-roadmap.sh`](../scripts/run-roadmap.sh), which starts a fresh session per task so a
-long roadmap never runs out of context.
+what changes is who answers, what is claimed, where the code is built, what happens at a cap, and
+that the session ends in commits and a parsable result. One invocation is one ticket — the loop
+over the roadmap belongs to [`scripts/run-roadmap.sh`](../scripts/run-roadmap.sh), which starts a
+fresh session per ticket so a long roadmap never runs out of context. The design is
+`designs/workflow.design.md`, section 6.1, and `diagrams/run-roadmap.excalidraw.md` draws it.
 
 **Nobody is watching this run.** That is the one fact that shapes every rule below: no
-`AskUserQuestion`, a hard cap on every cycle, a commit per task so `git log` is the audit trail, and
-a hand-back that stops the run whenever the decision belongs to a person.
+`AskUserQuestion`, a hard cap on every cycle, a commit per ticket on a branch of its own so
+`git log` is the audit trail, and a hand-back that ends the run whenever the decision belongs to a
+person.
 
 ## The rules live in four skills — load each one before the stage that needs it
 
@@ -35,29 +46,25 @@ Each name may be namespaced here — `sdlc:sdlc-structure`, `sdlc:ticket-board`,
 skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
 spawn prompt: the agents load their own.
 
-**The documents sit in the project** — `prd.md`, `glossary.md`, `features/<feature>/`,
-`designs/<subject>.design.md`,
-`roadmap.md`, and `tickets/<status>/<ID>-*.md`, with a worklog beside a ticket in flight.
-`sdlc-structure` resolves the project, and every `.sdlc/…` path below means `<project>/…`.
+**The documents sit in the framework root** — the glossary, the features and their design docs,
+each project's `roadmap.md`, and the tickets in `work/<bucket>/`, with a worklog beside a ticket in
+flight. `sdlc-structure` resolves the framework root and the project; `ticket-board` holds the
+buckets.
 
-**The code sits in the work root** — the repository this task is built in. A run started inside a
-repository builds there and nothing changes. A run started in the vault — the recommended shape,
-where one board drives several repositories — has the project as its working directory, resolves
-the work root per task, and reaches into a repository somewhere else. `sdlc-structure` holds the
-resolution rule. What is this command's:
+**The code sits in a run worktree** — never in the person's checkout. A roadmap run owns one branch,
+`run-roadmap-<n>`, and one git worktree of each work root it changes, at
+`<parent of the repository>/<repository name>-worktrees/run-roadmap-<n>`. Stage 1.5 creates them
+once and every later ticket of the run reuses them. What follows from that:
 
-- **The work root is resolved in Stage 1.5**, after the CTO picks the task and before the ticket is
-  started. The ticket names no repository, so the evidence is the feature, the design doc, the ticket, the epic,
-  and the registry's `what` lines.
-- **Nobody is here to break a tie.** When the evidence leaves it open, the `cto` agent answers —
-  request `work-root` — and that answer counts against the same ruling budget as every other.
-- **Every git call names the repository**: `git -C <work root> …`. Every build, test, and package
-  manager command runs as `cd <work root> && …`. A bare `npm test` runs in the vault and proves
+- **The person's checkout is never touched**, and an uncommitted change in it is not part of the run:
+  the worktree starts from the checkout's current commit.
+- **Every git call names the worktree**: `git -C <worktree> …`. Every build, test, and package
+  manager command runs as `cd <worktree> && …`. A bare `npm test` runs in the vault and proves
   nothing.
-- **Every agent prompt carries the work root as an absolute path**, and the planner carries it in
-  the context pack as `workRoot`.
-- **The commit belongs to the work root.** The project is usually no git tree, so the ticket move
-  and the roadmap edit are not part of it — Stage 9 holds both cases.
+- **Every agent prompt carries the worktree as an absolute path, as the work root**, and the planner
+  carries it in the context pack as `workRoot`. No agent is told about the person's checkout.
+- **The code commit belongs to the run branch; the documents commit belongs to the framework root**,
+  when the framework root is a git tree. Stage 9 holds both.
 
 ## The one rule that makes this command different
 
@@ -69,14 +76,14 @@ Every question goes to the `cto` agent, which answers in the user's place:
 
 | What `/orchestrate` asks the user | Who answers here |
 | --- | --- |
-| Which candidate task to build | `cto`, request `task-selection` |
+| Which candidate ticket to build — or that it cannot run | `cto`, request `task-selection` |
 | Whether the task gets end-to-end tests | `cto`, in the same `task-selection` answer |
-| Which repository the task is built in | `cto`, request `work-root` — only when the evidence left it open |
 | The interviewer's open decisions and assumptions | `cto`, request `decisions` |
 | Nothing — it stops and escalates | `cto`, request `escalation` |
 
 When the CTO sets `handBack: true`, **that** is the moment a person is needed. Stop, run
-`ticket-board`'s *Stopping without finishing* transition, and report the outcome `handed-back`. Do
+`ticket-board`'s *Stopping without finishing* transition once a ticket has started, and report the
+outcome `handed-back`. Do
 not try to answer a handed-back question yourself.
 
 ## Architecture: the interactive shell, driven by an agent
@@ -84,9 +91,9 @@ not try to answer a handed-back question yourself.
 ```
   YOU (main loop)
   ─────────────────────────
-  preflight ─► read roadmap ─► collect candidates ─►
-
-  Agent(cto) ─► task + e2e call ─► start the ticket ─►
+  preflight ─► select: a ticket this run claims, else the candidates ─► Agent(cto) pick + e2e
+  ─► claim the dependency cluster ─► read back  (lost ─► select again, 3× ─► blocked)
+  ─► identify the work roots ─► run worktree per work root (once per run) ─► start the ticket ─►
 
   ┌ Agent(feature-interviewer) ─► brief ─┐  concurrent
   └ Agent(planner) "SCOUT ONLY" ─► pack ─┤
@@ -108,7 +115,8 @@ not try to answer a handed-back question yourself.
                    └ Agent(code-reviewer)┤
         ▲                                │ FAILED or CHANGES_REQUESTED
         └── SendMessage(coding) ◄─────────┘  (fix ×1 ─► then SendMessage(cto, escalation))
-  finish the ticket ─► commit ─► report + RUN-ROADMAP-RESULT
+  finish the ticket ─► commit the code (run branch) ─► commit the documents (framework root)
+  ─► report + RUN-ROADMAP-RESULT
 ```
 
 ### Which agents are persistent
@@ -129,7 +137,8 @@ An unattended run with a soft cap is an unattended run that never ends. Apply th
 
 | Cap | Value | What happens at the cap |
 | --- | --- | --- |
-| Tasks per invocation | **1** | Print the result line and stop. The script starts the next task |
+| Tickets per invocation | **1** | Print the result line and stop. The script starts the next ticket |
+| Claim attempts lost in a row | **3** | Outcome `blocked` — another run keeps taking the same tickets |
 | Plan revisions | **1** | Ask the CTO for an `escalation` ruling |
 | Targeted fix cycles, a restored test file included | **2** | Ask the CTO for an `escalation` ruling |
 | Test dispute rounds | **1** | A second dispute, or a dispute the test planner escalated, asks the CTO for an `escalation` ruling |
@@ -172,110 +181,141 @@ wrote it: the decision, what it beat, and the cost it accepted.
 `ticket-board`'s *Stopping without finishing* transition, so the next session reads the worklog and
 learns where the task stopped and why. Then they all run Stage 9's **keep the record, discard the
 code** procedure, whatever stage they stopped at — an unattended run must never leave half-built code
-in the tree for the next task to commit.
+in the run worktree for the next ticket to commit.
 
 ## Workflow
 
-### 0. Preflight — refuse to start on ground you cannot commit from
+### 0. Preflight — refuse to start on ground you cannot build on
 Check these first, in one parallel Bash batch, and stop before you spawn anything if one fails:
 
-- **The project and its roadmap exist.** Resolve the project with `sdlc-structure`. With no roadmap
+- **The framework root and its roadmap exist.** Resolve them with `sdlc-structure`. With no roadmap
   anywhere, outcome `blocked`, naming `/setup`.
-- **Every candidate work root is a git work tree with nothing uncommitted in it.** Which repository
-  this task lands in is not known yet, so check them all: `git -C <path> rev-parse
-  --is-inside-work-tree` and `git -C <path> status --porcelain`, one pair per entry in the
-  project's registry, in one parallel batch. In a repo-rooted run that is the session's own repository,
-  and the registry is not read. Without git there is no per-task commit and no audit trail; with a
-  dirty tree the task's `git add -A` would swallow changes it did not make. Either one is outcome
-  `blocked`, naming the repository and what is wrong with it.
-- **Every registered repository is reachable from this session.** A path that does not exist, or
-  that this session cannot write to, is outcome `blocked` — name it, and name the fix: restart as
-  `claude --add-dir <work root>`. An unattended run cannot grant itself access.
+- **Every registered repository is a git work tree.** `git -C <path> rev-parse
+  --is-inside-work-tree`, one per entry in the registry, in one batch. In a repo-rooted run that is
+  the session's own repository, and the registry is not read. Without git there is no run branch and
+  no audit trail: outcome `blocked`, naming the repository. **A dirty checkout is not a failure** —
+  the run builds in its own worktree, from the checkout's last commit.
+- **Every registered repository, and the folder its worktrees go in, is reachable from this
+  session.** A path that does not exist or that this session cannot write to is outcome `blocked` —
+  name it, and name the fix: restart with `--add-dir` for it. An unattended run cannot grant itself
+  access.
+- **The run's own worktrees, when they exist, are clean.** `git -C <worktree> status --porcelain`
+  for each one a `--run` already made. Work left there is a ticket that neither committed nor
+  discarded: outcome `blocked`, naming the worktree.
 
 Report a `blocked` preflight in two lines and print the result line. Do not try to fix the ground.
 
-### 1. Read the roadmap, collect the candidates, and let the CTO pick
+### 1. Select the next ticket — can it run?
 `ticket-board` holds the roadmap's shape — one `## <CODE> — <epic name>` section per epic, one row
-per task, and what an epic's `**Note**:` line and a `Depends on` cell mean. Each table is kept
-sorted by priority, with a `Depends on` cell overriding priority, so reading a table top to bottom
-already reads it in the order it should be built.
+per ticket, and what an epic's `**Note**:` line and a `Depends on` cell mean — and how a roadmap
+run selects. Reading a table top to bottom reads it in the order it should be built.
 
-- **Read every epic section**, not just the first: a dependency may name a task in another epic.
-- **Collect every candidate** — every task that is **pending** with **all dependencies satisfied**
-  — preserving the table's order, so the first candidate in the list is the highest-priority one
-  that is actually ready.
-- **The row does not say what the task delivers — its ticket does.** Open the ticket of every
-  candidate and take its description, acceptance criteria, and **priority** from there.
-- **The ticket is the record.** When a row's `Priority`, `Status`, or `Depends on` disagrees with
-  the ticket you just opened, correct the row and re-sort the epic's table when that moved it —
-  then build the candidate list from the corrected order, so the CTO picks against what the tickets
-  actually say. A ticket's `Depends on` field is the dependency graph; the row shows the part of it
-  that is not finished. Fix only the rows whose tickets you read, and record what you corrected in
-  the opening worklog entry. `ticket-board` holds the rule.
-- **In an unattended run, rebuild the whole file first.** Nobody is there to notice a stale row, so
-  run `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --project <project>` before you collect
-  the candidates, and put what it reported into the opening worklog entry. Skip it when `python3` is
-  missing, and say so in the report. This is the one command that rebuilds without asking, because
-  asking is what it is built not to do.
-- **No candidate at all** → outcome `no-work`. Say whether the roadmap is empty, or every pending
-  task waits on something, and print the result line. Never invent a task.
+- **In an unattended run, rebuild the roadmap first.** Nobody is there to notice a stale row, so run
+  `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --project <project>` and put what it reported into
+  the opening worklog entry. Skip it when `python3` is missing, and say so in the report.
+- **A ticket this run already claims comes first.** Find every ticket whose `claimed` is this run's
+  name and that is not `done`. When there is one, the cluster is already chosen: skip the CTO and
+  the claim, and go to Stage 1.5 with the first of them whose `depends_on` is all `done`. The
+  end-to-end decision is the one the run's opening entry for that cluster recorded.
+- **Otherwise collect every candidate**, preserving the table's order: a ticket not `done`, with no
+  claim, whose dependency cluster — the ticket and every ticket it depends on, directly or through
+  another, that is not `done` — holds no ticket another run claims and no ticket `blocked` on
+  something outside the cluster. **Read every epic section**: a dependency may sit in another epic.
+- **The ticket is the record.** Open the ticket of every candidate and take its description,
+  acceptance criteria, priority, and `depends_on` from there. Correct a row that disagrees, as
+  `ticket-board` says, and record what you corrected in the opening worklog entry.
+- **No ticket left on the roadmap** → outcome `no-work`, `remaining` 0: the roadmap is done.
+  **Tickets left and no candidate** → outcome `no-work` with the tickets left in `remaining`, and say
+  what each waits on — another run's claim, a block, a missing ID. A person has to unblock it. Never
+  invent a ticket.
 
-Then spawn the CTO — **once**, and keep its id for the whole run:
+Then spawn the CTO — **once**, and keep its id for the whole session:
 
 ```
 Agent(subagent_type: "sdlc:cto", model: "opus",
       prompt: "Request: task-selection. You are answering in place of the user in an autonomous
                run — no person will be asked anything.
-               Pick the next task to build, and call the end-to-end question."
-              + the candidate list (ID, title, priority, epic, description, acceptance criteria, Depends on)
+               Pick the next ticket to build, and call the end-to-end question. Hand the pick back
+               when every candidate needs a decision only a person can make."
+              + the candidate list (ID, title, priority, epic, description, acceptance criteria,
+                Depends on, and the cluster each one would claim)
               + any epic **Note**: lines
-              + "Remaining on the roadmap: <N> tasks across <K> epics.")
+              + "Remaining on the roadmap: <N> tickets across <K> epics.")
 ```
 
 It returns one `json` block with `taskId`, `rationale`, `e2e`, `skipped`, and the hand-back fields —
 the shape is in the agent definition, do not restate it.
 
-- `handBack: true` → outcome `handed-back`. Nothing has started, so there is no ticket to stop:
-  report the reason and print the result line.
+- `handBack: true` → **it cannot run**: outcome `handed-back`. Nothing has started, so there is no
+  ticket to stop: report the reason and print the result line.
 - A `taskId` that is not a candidate → ask **once** for a candidate ID. A second bad answer is
   `aborted` at stage `selection`.
-- A non-empty `skipped` → carry each skipped task and its reason into the report, so a person can
-  fix the ticket. Change nothing about those tasks.
-- **Carry `e2e` forward as the `e2eDecision`**, the exact string the CTO returned. It goes in the
-  Decisions block, in the opening worklog entry, and as one line in the Stage 2 scout prompt.
+- A non-empty `skipped` → carry each skipped ticket and its reason into the report, so a person can
+  fix it. Change nothing about those tickets.
+- **Confirm automatically.** Where `/orchestrate` asks the person to confirm the pick, the CTO's pick
+  stands. **Carry `e2e` forward as the `e2eDecision`**, the exact string the CTO returned.
 
-Track the stages with the task/todo tools, so the task's log shows live progress.
+Track the stages with the task/todo tools, so the session's log shows live progress.
 
-### 1.5 Resolve the work root
-Resolve it as `sdlc-structure` says, before anything is written and before any agent is spawned. One
-entry in the registry answers it outright; several mean reading the feature and the design doc the ticket cites, the
-ticket itself, the epic, and each entry's `what` line, and then looking inside the candidate
-repositories for the code the task names.
+### 1.2 Claim the dependency cluster — is the claim held?
+Write `claimed: <run name>` on **every** ticket of the selected ticket's cluster, in one tool block,
+then read every one back in the next. `ticket-board` holds the claim's rules.
 
-**When the evidence still leaves it open, ask the CTO — never guess:**
+- **Every claim reads back as this run's** → held. Go to Stage 1.5.
+- **Any one reads back as another run's** → lost. Remove the claims this attempt wrote, in one tool
+  block, and go back to Stage 1 with the candidates collected again. Resume the same CTO, and tell it
+  which ticket was lost.
+- **Lost three times in a row** → outcome `blocked`: another run keeps taking the same tickets, and a
+  person has to look. Release nothing else — this attempt's claims are already removed.
+
+**The ticket to build** is the cluster's first ticket, in dependency order, whose `depends_on` is all
+`done` — the selected ticket itself only when it depends on nothing unfinished. Every later session
+of this run builds the next one, until the cluster is done.
+
+### 1.5 Identify the work roots, and create a run worktree in each
+**The work roots are the `repositories` of the ticket to build and of its direct dependencies**,
+by registry code. When the ticket's field is empty, or names a code the registry lacks, spawn the
+resolver as `sdlc-structure` says:
 
 ```
-Agent(subagent_type: "sdlc:cto", …resume the id from Stage 1…)
-SendMessage(ctoId, "Request: work-root. Which repository is this task built in?"
-                 + the ticket, its acceptance criteria, and its epic
-                 + one line per candidate: code, path, and the registry's `what`
-                 + what you already ruled out, and why)
+Agent(subagent_type: "sdlc:repo-resolver", model: "sonnet",
+      prompt: the ticket + its feature note and design docs + one line per registry entry
+              (code, absolute path, what, projects) + each dependency's repositories)
 ```
 
-It answers with one `workRoot` code, or with two when the task genuinely spans both. A
-`handBack: true` here is outcome `handed-back` before the ticket starts, exactly as in Stage 1. This
-ruling counts against the per-task budget like any other.
+- **`settled: true`** → its codes are the ticket's work roots. Write them onto the ticket's
+  `repositories` in the Stage 2 Starting a ticket tool block, and its evidence into the opening
+  worklog entry.
+- **`settled: false`** → outcome `handed-back`: nobody is here to choose, and building in the wrong
+  repository costs the whole pipeline. Report the candidates it named, so a person can fill
+  `repositories` and resume. Release the cluster's claims first, as every end does.
+- Silent after one re-ask → `aborted` at stage `repositories`.
 
-Then confirm the chosen repository is clean — `git -C <work root> status --porcelain` — even though
-preflight checked it: a run that took minutes to pick a task may have found a tree that changed
-under it. A dirty tree here is outcome `blocked`.
+Never ask the CTO which repository, and never fall back to every registered repository.
+
+**Then make sure a run worktree exists in each**, at
+`<parent of the repository>/<repository name>-worktrees/run-roadmap-<n>`:
+
+- **It exists** (`git -C <repository> worktree list` names it) → reuse it. Earlier tickets of the run
+  are already committed on its branch.
+- **The branch exists without a worktree** — a resumed run → `git -C <repository> worktree add
+  <path> run-roadmap-<n>`.
+- **Neither exists** → `git -C <repository> worktree add -b run-roadmap-<n> <path> HEAD`, from the
+  checkout's current commit.
+
+A worktree that cannot be created — the path is taken, the branch is checked out elsewhere, the
+folder is not writable — is outcome `blocked`, naming the repository and git's error. **Remove this
+run's claims on the whole cluster first**, as every end does. A worktree that exists but is not clean
+is `blocked` the same way.
 
 ### 2. Start the ticket, then interview and scout concurrently
-Run `ticket-board`'s **Starting a ticket** transition yourself, with the edits in one tool block.
-Two values are this command's: the **assignee** is `feature-interviewer, implementation-planner`, and
-the **opening worklog entry** is `run-roadmap · start` — the task, what it delivers, the work root
-and the evidence that settled it, the `e2eDecision`, and the line that this is an autonomous run
-whose decisions come from the `cto` agent.
+**Pick up the ticket to build**: run `ticket-board`'s **Starting a ticket** transition yourself,
+with the edits in one tool block. The claim is already written, so it stays. Two values are this
+command's: the **assignee** is `feature-interviewer, implementation-planner`, and the **opening
+worklog entry** is `<run name> · start` — the ticket, what it delivers, the cluster it belongs to,
+every run worktree with its branch and the evidence that settled each work root, the
+`e2eDecision`, and the line that this is an autonomous run whose decisions come from the `cto`
+agent.
 
 Then issue **both `Agent` calls in one tool block**:
 
@@ -517,8 +557,8 @@ Append the `cto · ruling` worklog entry for every ruling, whatever it says, the
 | --- | --- |
 | `retry` | One more cycle at that stage, with the CTO's `guidance` in the message to the agent that owns it. The stage's cap is now spent — a second failure is `handed-back` |
 | `rescope` | `SendMessage` the planner or the coding agent with the narrowed task, finish it, and in the Stage 8 edit **add the dropped part to the roadmap** as a new pending task with its own ticket, per `ticket-board`. Say what came out, in the report and the worklog |
-| `defer` | Outcome `deferred`. Run *Stopping without finishing*, then Stage 9's **keep the record, discard the code** procedure. The next task starts from a clean tree, and the ticket keeps everything that was learned |
-| `stop-run` | Outcome `stop-run`. The same as `deferred` for this ticket, and the result line tells the script not to start another task |
+| `defer` | Outcome `deferred`. Run *Stopping without finishing*, then Stage 9's **keep the record, discard the code** procedure. The ticket keeps everything that was learned, and the roadmap run ends: the rest of its cluster depends on this ticket |
+| `stop-run` | Outcome `stop-run`. The same as `deferred` for this ticket |
 | `handBack: true` | Outcome `handed-back`, whatever the ruling field says. A person decides |
 
 ### 8. Finish the ticket (only on success)
@@ -527,55 +567,57 @@ the closing worklog entries, the move into `done/`, and the roadmap row deleted.
 closing entry is `run-roadmap · done`, and the worklog also takes the verification and code-review
 entries.
 
-Do this **before** the commit. When the project sits inside the work root's git tree, the ticket
-move and the roadmap edit then land in the task's own commit. When it does not — a vault, or a folder
-outside the repository — the documents are already saved and the commit below covers the code alone.
+Do this **before** the commits, so the documents commit in Stage 9 holds the ticket in `done/`.
+The ticket's claim goes with it — the rest of the cluster keeps this run's claim.
 
 Never finish the ticket unless verification passed **and** the code review returned `APPROVED`.
 
-### 9. Commit the task
-One commit per finished task, so `git log` holds the run as a sequence of changes a person can read.
+### 9. Commit the code, then the documents
+One code commit per finished ticket on the run branch, so `git log run-roadmap-<n>` holds the run as
+a sequence of changes a person can read and merge.
 
-1. `git -C <work root> add -A`, then one commit in the same repository. The tree was clean at
-   preflight, so everything staged belongs to this task: the code, and — when the project sits
-   inside this tree — the ticket in its new folder, the worklog, and the roadmap edit.
-2. **Match that repository's own commit convention.** Read `git -C <work root> log --oneline -20`
-   and follow what is there — a Conventional Commits prefix, a ticket ID in the subject, whatever
-   the repository does. With no discernible convention, use `<ID>: <title>`. Two work roots may hold
-   two different conventions; each commit follows the one in its own tree.
+**Commit the code on the run's branch**, in every run worktree the ticket changed:
+
+1. `git -C <worktree> add -A`, then one commit. The worktree was clean when the ticket started, so
+   everything staged belongs to this ticket.
+2. **Match that repository's own commit convention.** Read `git -C <worktree> log --oneline -20` and
+   follow what is there — a Conventional Commits prefix, a ticket ID in the subject, whatever the
+   repository does. With no discernible convention, use `<ID>: <title>`.
 3. The body is three or four lines: what landed, the decision the CTO made that shaped it, and the
-   verification result. `technical-writing` governs it.
-4. **Never push, never branch, never amend, and never touch a commit that was already there.** The
-   run adds commits to the current branch and nothing else.
-5. A commit that fails — a hook rejects it, or there is nothing to commit — is outcome `blocked`.
-   Say what the hook said, and leave the tree as it is for a person to look at. Do not retry with
-   `--no-verify`.
-6. **A project that is its own git tree gets its own commit**, in its own repository, with the same
-   subject. A project in a vault is no git tree: nothing to commit, and nothing to report but the
-   files written.
-7. **A task that spanned two work roots gets one commit in each**, same subject, each body naming the
-   other repository. Report both shas.
+   verification result. `technical-writing` governs it. A ticket that changed two worktrees gets one
+   commit in each, same subject, each body naming the other repository.
+4. **Never push, never merge, never amend, and never touch a commit that was already there.**
+5. A commit that fails — a hook rejects it — is outcome `blocked`. Say what the hook said, and leave
+   the worktree as it is for a person to look at. Do not retry with `--no-verify`.
 
-**Keep the record, discard the code** — the exit every unfinished task takes: `deferred`,
-`stop-run`, `handed-back`, and `aborted` alike, once a ticket has been started. Half-built code must
-not be committed, the ticket's record must survive, and the next invocation has to start from a clean
-tree. That is three requirements and one order of operations:
+**Commit the documents in the framework root**, when it is a git tree: `git -C <framework root> add`
+the ticket, its worklog, every roadmap the ticket's row was in, and any ticket Stage 8 corrected —
+those paths only, because the person may have their own changes there — then one commit with the
+code commit's subject. A framework root in a vault that is no git tree has nothing to commit: the
+files are saved, and the report says so.
+
+**Keep the record, discard the code** — the exit every unfinished ticket takes: `deferred`,
+`stop-run`, `handed-back`, `aborted`, and a `blocked` commit's ticket once a person has looked.
+Half-built code must not be committed, the ticket's record must survive, and the next session has
+to start from a clean worktree:
 
 1. Write the *Stopping without finishing* edits first — the status, the assignee `user`, and the
    outcome worklog entry.
-2. **Stage only the record**: `git -C <work root> add <project>` and the ticket's own path —
-   only when the project sits inside that tree. A project in a vault is already saved and is
-   never staged.
-3. `git -C <work root> checkout -- .` then `git -C <work root> clean -fd`. Both leave staged content
-   alone, so this discards exactly the code and keeps exactly the record. Run the pair in every work
-   root the task touched.
-4. Commit it, with a subject naming the task and the outcome — `<ID>: deferred by cto` — and the
-   CTO's reason in the body. A person reading `git log` sees why the run stopped here.
-5. Confirm the tree is clean with `git -C <work root> status --porcelain`. It has to be empty; the script stops the
-   whole run when a task leaves work behind.
+2. **Release the run's claims** on every ticket of the cluster that is not `done`, in the same tool
+   block. Every end of a roadmap run does this.
+3. `git -C <worktree> reset --hard` then `git -C <worktree> clean -fd`, in every run worktree the
+   ticket touched. The worktree is the run's own, so this discards exactly the ticket's code and
+   nothing of the person's.
+4. Commit the documents in the framework root, as above, with a subject naming the ticket and the
+   outcome — `<ID>: deferred by cto` — and the CTO's reason in the body.
+5. Confirm every worktree is clean with `git -C <worktree> status --porcelain`. The script ends the
+   run when a ticket leaves work behind.
 
-Say plainly in the report that the code was discarded and the record kept, so nobody goes looking for
-a half-finished branch.
+**On `--final`**, release the run's claims the same way after a completed ticket too, so no claim
+outlives the run.
+
+Say plainly in the report that the code was discarded and the record kept, and that the branch and
+the worktrees stay for the resume.
 
 ### 10. Report, then print the result line
 The report is short — a person reads a hundred of these in a log, not one on a screen:
@@ -591,19 +633,21 @@ The report is short — a person reads a hundred of these in a log, not one on a
 - [x] Implementation — [N] files, written tests pass ([0–2] targeted fix cycles)
 - [x] Verification — passed ([the commands], or: [what was skipped and why])
 - [x] Code review — approved
-- [x] Work root — [code] `[absolute path]`
-- [x] Commit — [sha] [subject]
+- [x] Run — [run name] · branch `run-roadmap-<n>` · cluster [IDs, done and left]
+- [x] Run worktrees — [code] `[absolute path]`, one per line
+- [x] Commits — code [sha] [subject]; documents [sha], or: the framework root is no git tree
 - [x] Status — ticket Completed and moved to `done/`, roadmap row deleted
 
 [Two or three lines: what shipped, and the decision that shaped it.]
 [Any skipped candidate and its reason. Any recommendation nobody acted on.]
+[How to resume: `run-roadmap.sh --run <n>`, and what the resume will build first.]
 ```
 
 Then, as the **last line of your final message and nothing after it**, print exactly one result line.
 The launcher script parses it to decide whether to start another task:
 
 ```
-RUN-ROADMAP-RESULT {"outcome":"completed","taskId":"AUTH-002","commit":"a1b2c3d","workRoots":["/Users/me/Projects/acme-api"],"remaining":4,"nextAction":"continue","reason":""}
+RUN-ROADMAP-RESULT {"outcome":"completed","run":"run-roadmap-3","taskId":"AUTH-002","commit":"a1b2c3d","workRoots":["/Users/me/Projects/acme-api-worktrees/run-roadmap-3"],"remaining":4,"nextAction":"continue","reason":""}
 ```
 
 One line, valid compact JSON, no code fence, no text after it. The fields:
@@ -611,10 +655,11 @@ One line, valid compact JSON, no code fence, no text after it. The fields:
 | Field | Value |
 | --- | --- |
 | `outcome` | `completed`, `deferred`, `handed-back`, `aborted`, `stop-run`, `no-work`, or `blocked` |
-| `taskId` | The task this invocation worked on, or `""` when none was started |
-| `commit` | The short sha, or `""` when nothing was committed. Two repositories give two shas, joined by a comma |
-| `workRoots` | Every repository this invocation wrote to, as absolute paths. `[]` when none was started. The script checks these trees between tasks |
-| `remaining` | Tasks left on the roadmap **after** this invocation, counted from the file you just wrote |
+| `run` | The roadmap run's name, `run-roadmap-<n>`. The script passes it to the next session |
+| `taskId` | The ticket this invocation worked on, or `""` when none was started |
+| `commit` | The code commit's short sha, or `""` when nothing was committed. Two worktrees give two shas, joined by a comma |
+| `workRoots` | Every run worktree this invocation wrote to, as absolute paths. `[]` when none was started. The script checks these trees between tickets |
+| `remaining` | Tickets left on the roadmap **after** this invocation, counted from the file you just wrote |
 | `nextAction` | `continue` or `stop` |
 | `reason` | One short sentence on a non-`completed` outcome, `""` otherwise. No newline, no quote character |
 
@@ -622,13 +667,13 @@ One line, valid compact JSON, no code fence, no text after it. The fields:
 
 | Outcome | What happened | `nextAction` |
 | --- | --- | --- |
-| `completed` | The task shipped and was committed | `continue`, or `stop` when `remaining` is 0 |
-| `deferred` | The CTO ruled `defer`; the ticket waits for a person | `continue` — the roadmap has other work |
+| `completed` | The ticket shipped and was committed on the run branch | `continue`, or `stop` when `remaining` is 0 or this session is `--final` |
+| `deferred` | The CTO ruled `defer`; the ticket waits for a person | `stop` |
 | `handed-back` | The CTO set `handBack`, or a cap ran out of rulings | `stop` |
 | `aborted` | An agent returned nothing usable after one retry | `stop` |
 | `stop-run` | The CTO ruled that the run must end | `stop` |
-| `no-work` | No pending task has its dependencies satisfied | `stop` |
-| `blocked` | Preflight or the commit failed — the ground is wrong | `stop` |
+| `no-work` | No ticket left (`remaining` 0), or tickets left and none can be selected | `stop` |
+| `blocked` | Preflight, the claim, a worktree, or a commit failed — the ground is wrong | `stop` |
 
 `technical-writing` governs the report. **It does not govern the result line**, which is data: keep the
 keys, the order, and the spelling exactly as above.
@@ -636,7 +681,7 @@ keys, the order, and the spelling exactly as above.
 ## Rules
 The four skills carry the rules they own. What is this command's own:
 
-- **One task per invocation.** Never loop over the roadmap in one session. The script does that.
+- **One ticket per invocation.** Never loop over the roadmap in one session. The script does that.
 - **Never call `AskUserQuestion`, and never write a sentence that waits for an answer.** Ask the
   CTO, or hand back.
 - **The CTO decides; you execute and record.** Never answer a product question yourself, and never
@@ -646,13 +691,14 @@ The four skills carry the rules they own. What is this command's own:
 - **Tests before code, and the coder never touches them.** A test changes only by a `revised` ruling
   from the test planner. The CTO settles what the specification means; it never tells the coding
   agent to change a test.
-- **Resolve the work root before the ticket starts**, record it in the worklog, pass it to every agent, and name it in the result line. Never let an agent infer which repository it is working in.
+- **Claim the whole cluster before anything else is written**, and release it at every end.
+- **Build only in the run worktrees.** Create them before the ticket starts, record them in the worklog, pass them to every agent as the work root, and name them in the result line. Never let an agent infer which repository it is working in, and never write to the person's checkout.
 - **You write the status, the assignee, the worklog, the roadmap, and the commit.** No agent writes
   any of them.
 - **Never finish a task unless verification passed and the code review approved.**
-- **One commit per task, on the current branch. Never push.**
-- **A clean tree in, a clean tree out.** A finished task is committed; an unfinished one keeps its
-  record and discards its code, by Stage 9's procedure. Either way the next invocation starts on a
-  clean tree, because the script stops the run when it does not.
+- **One code commit per ticket, on the run branch; one documents commit in the framework root. Never push, never merge.**
+- **A clean worktree in, a clean worktree out.** A finished ticket is committed; an unfinished one
+  keeps its record and discards its code, by Stage 9's procedure, and the run ends. Either way the
+  next invocation starts on a clean worktree, because the script stops the run when it does not.
 - **The result line is the interface.** Print it on every path, including a preflight failure, and
   print nothing after it.

@@ -1,6 +1,6 @@
 ---
 name: cto
-description: Stands in for the user in an autonomous run — picks which roadmap task to build next, says which repository it is built in when the evidence leaves that open, settles the open decisions a feature interview raised, calls the end-to-end question, and rules on a pipeline that hit its retry cap. Use when `/run-roadmap` reaches a point where an interactive pipeline would ask a person. Returns a decision only — writes no file and no code.
+description: Stands in for the user in an autonomous run — picks which roadmap task to build next, settles the open decisions a feature interview raised, calls the end-to-end question, and rules on a pipeline that hit its retry cap. Use when `/run-roadmap` reaches a point where an interactive pipeline would ask a person. Returns a decision only — writes no file and no code.
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch, Skill
 model: opus
 ---
@@ -102,37 +102,6 @@ each with its ID, title, priority, epic, description, and acceptance criteria, i
 
 `e2e` is exactly one of `"yes, critical path only"` or `"no — unit and integration only"` — the
 command carries the string through to the planner. `skipped` is `[]` when you rejected nothing.
-
-### 1.5 The work root
-
-You get this only when the product is built from several repositories and the evidence did not
-settle which one the task lands in. You get the ticket, its acceptance criteria, its epic, one line
-per candidate repository — its code, its path, and what the registry says belongs in it — and what
-the command already ruled out.
-
-- **The code that already exists decides it.** The repository holding the module, the route, or the
-  screen the task changes is the repository the task lands in. Look before you answer: list the
-  candidate's top level, and grep it for what the ticket names.
-- **One repository is the answer.** Name two only when the acceptance criteria cannot all be met in
-  one — a contract that has to change on both sides in the same step. Say so explicitly when you do,
-  because it costs a commit, a verification, and a review in each.
-- **Say which evidence settled it**, in one line. That line goes into the worklog and is the only
-  record of why the task was built where it was.
-- **Hand back** when no candidate fits the task at all. That means the registry is missing a
-  repository, and a person has to add it.
-
-```json
-{
-  "request": "work-root",
-  "workRoots": [""],
-  "rationale": "",
-  "handBack": false,
-  "handBackReason": ""
-}
-```
-
-`workRoots` holds repository codes exactly as the registry spells them — one, or two when the task
-genuinely spans both.
 
 ### 2. Open decisions
 
@@ -255,7 +224,7 @@ exact.
 - **Never ask a question back.** There is nobody to answer it. Decide, or hand back.
 - **Write no file.** Not the ticket, not the worklog, not the roadmap, not code. The command is the
   only writer.
-- **Answer only what you were asked.** A work-root turn does not settle the approach; a task-selection turn does not settle the architecture; a
+- **Answer only what you were asked.** A task-selection turn does not settle the architecture; a
   decisions turn does not re-pick the task.
 - **Never approve your own way past a gate.** You do not overrule a failing test, a review verdict,
   or an architecture rule — those are not product decisions. Rule on what happens next instead.

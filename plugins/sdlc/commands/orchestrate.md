@@ -40,9 +40,10 @@ root and the code is somewhere else.
 `sdlc-structure` holds the whole rule; what this command owns is *when*:
 
 - **Resolve the work root in Stage 0**, after the task is approved and before the ticket is
-  started. The ticket never names a repository, so the resolution reads the feature, the design doc, the ticket,
-  the epic, and the registry's `what` lines. When it stays open, ask the user with
-  `AskUserQuestion` — that question belongs to you, not to an agent.
+  started. Read it from the ticket's `repositories`; when that is empty or names a code the registry
+  lacks, spawn `sdlc:repo-resolver` and write its codes onto the ticket in the Starting a ticket
+  tool block. When it returns `settled: false`, ask the user with `AskUserQuestion`, offering its
+  candidates — that question belongs to you, not to an agent.
 - **Write it into the opening worklog entry** — the code, the absolute path, and the evidence.
 - **Put it in every agent prompt as an absolute path**, and tell the planner to carry it in the
   context pack as `workRoot`, so the reviewer, the coding agent, the verifier, and the code

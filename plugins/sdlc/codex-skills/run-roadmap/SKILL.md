@@ -1,6 +1,6 @@
 ---
 name: run-roadmap
-description: Build the next roadmap task with no person in the loop — a CTO agent answers every question, the task is committed, and the run reports a machine-readable result. Use when a user asks for an autonomous or unattended roadmap run, or invokes `$run-roadmap` as the Codex equivalent of `/run-roadmap`.
+description: Build the next ticket of a roadmap run with no person in the loop — a CTO agent answers every question, the ticket's dependency cluster is claimed, the code is committed on the run branch in a run worktree, and the session reports a machine-readable result. Use when a user asks for an autonomous or unattended roadmap run, or invokes `$run-roadmap` as the Codex equivalent of `/run-roadmap`.
 ---
 
 # Run Roadmap
@@ -48,12 +48,13 @@ One invocation is one task, whatever the runtime. Print the command's `RUN-ROADM
 the last line of the final message, and stop.
 
 The unattended loop over a whole roadmap is a Claude Code script —
-[`scripts/run-roadmap.sh`](../../scripts/run-roadmap.sh), which calls
-`claude -p "/sdlc:run-roadmap"` once per task, from a repository or from the project that drives
-several. Codex has no equivalent launcher in this plugin: in a Codex session, invoke `$run-roadmap`
-again for the next task.
+[`scripts/run-roadmap.sh`](../../scripts/run-roadmap.sh), which names a roadmap run and calls
+`claude -p "/sdlc:run-roadmap --run run-roadmap-<n>"` once per ticket, from a repository or from the
+project that drives several. Codex has no equivalent launcher in this plugin: in a Codex session,
+invoke `$run-roadmap --run run-roadmap-<n>` again for the next ticket of the same run, with the name
+the previous result line printed.
 
-**A run started in the project** builds each task in the repository the command resolves — the
-work root. Codex has no `--add-dir`: the session reaches a repository the way that runtime does, so
-check you can write to the work root before Stage 2, and stop with outcome `blocked` when you
-cannot.
+**Every ticket is built in a run worktree** beside its repository, at
+`<repository>-worktrees/run-roadmap-<n>`, never in the checkout. Codex has no `--add-dir`: the
+session reaches those folders the way that runtime does, so check you can write to each one before
+Stage 1.5, and stop with outcome `blocked` when you cannot.

@@ -197,6 +197,7 @@ Do not request a JSON block after a scout, pre-read, or spec-only turn when its 
 | Workflow role | Role file | First task name |
 | --- | --- | --- |
 | CTO (`$run-roadmap` only) | `cto.md` | `cto` |
+| Repository resolver, when a ticket's `repositories` is empty | `repo-resolver.md` | `repo_resolver` |
 | Feature interviewer | `feature-interviewer.md` | `feature_interviewer` |
 | Implementation planner | `implementation-planner.md` | `implementation_planner` |
 | Normal reviewer | `plan-reviewer.md` | `plan_reviewer` |

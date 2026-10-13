@@ -1,7 +1,7 @@
 ---
 type: design
 subject: workflow
-updated: 2026-10-12
+updated: 2026-10-13
 tags:
   - sdlc/design
 related:
@@ -83,12 +83,12 @@ The ticket, the feature note its `feature` property links, and the design docs t
 
 **Start.** The orchestrator writes its [[glossary#Claim|claim]], resolves the work root, and confirms it can write there. Then it starts the ticket in one step: `status`, `assigned`, the move to `in-progress/`, the roadmap row, and the worklog. The opening entry names the ticket, the work root with the evidence that settled it, and the end-to-end decision. A resumed ticket keeps its worklog, and the entry is appended.
 
-The work root is resolved from the registry:
+The work roots come from the ticket's `repositories`, which names them by registry code:
 
-1. The candidates are every registry entry whose `projects` names a project of the ticket's feature, and every entry with no `projects`.
-2. One candidate is the work root.
-3. Several candidates are narrowed by evidence: the design docs, the ticket's text, and which tree already holds the code the ticket changes.
-4. When the evidence leaves it open, the answerer chooses. The orchestrator never guesses.
+1. Codes the registry has are the work roots.
+2. An empty field, or a code the registry lacks, starts the `repo-resolver` agent. It narrows the registry's candidates by evidence — the design docs, the ticket's text, its dependencies' `repositories`, and which tree already holds the code the ticket changes — and returns the codes.
+3. A settled answer is written onto the ticket in the Start step, so no later run resolves it again.
+4. When the evidence leaves it open, the answerer chooses among the candidates; an autonomous run has no answerer for this and ends for a person. The orchestrator never guesses.
 
 **Interview and scout.** Two agents start at once. The interviewer reads the documents and the code, and returns the open decisions. The planner surveys the same code, researches current practice, returns the context pack, and waits. The answerer settles every decision in one round. The interview entry records each decision, what it beat, and each assumption confirmed.
 
@@ -145,9 +145,10 @@ The claim stops two runs from building the same ticket at once.
 - **The claim is `<command>-<n>`**: `orchestrate-2`. `<n>` is the lowest positive number no other claim in `work/` uses.
 - **The run's agents carry the same number.** `coding-2` works for `orchestrate-2`, so `assigned` names the run as well as the role.
 - **The claim is written first and read back.** A run that reads back another run's claim drops the ticket and picks again.
+- **A roadmap run claims the whole dependency cluster**, on every ticket at once, and reads every one back. It holds those claims across its sessions until each ticket is `done` or the run ends; see 6.1 The roadmap run.
 - **A claimed ticket is never ready for another run.**
-- **One work root holds one build at a time.** A run whose work root another claimed `in progress` or `review` ticket holds releases its claim and picks again. Two builds in one tree would each check the other's changes.
-- **Every exit removes the claim**: finish, escalation, and abort.
+- **One checkout holds one build at a time.** A run whose work root another claimed `in progress` or `review` ticket holds releases its claim and picks again. Two builds in one tree would each check the other's changes. A run worktree is a checkout of its own, so a roadmap run never waits on another run's work root.
+- **Every exit removes the claim**: finish, escalation, and abort. A roadmap run's end removes the claims on every ticket of its cluster that is not `done`.
 
 **Weakness:** a file cannot hold a lock, so the read-back narrows the race without closing it. A run that dies without exiting leaves its claim for a person to remove.
 
@@ -169,16 +170,43 @@ The claim stops two runs from building the same ticket at once.
 
 |                       | Interactive                            | Autonomous                                      | Quick                       |
 | --------------------- | -------------------------------------- | ----------------------------------------------- | --------------------------- |
-| Started by            | A person, one ticket per command       | A launcher loop, one fresh session per ticket   | A person                    |
+| Started by            | A person, one ticket per command       | A [[glossary#Roadmap run\|roadmap run]], one fresh session per ticket | A person      |
 | Answerer              | The person                             | `cto`                                           | The person                  |
 | Interview             | Skipped for a ticket with no product, design, or architecture fork | Always                  | Never                       |
 | Plan review           | Gated; see 3.2 Gates                   | Gated                                           | Always, one reviewer        |
 | Test plan and tests   | Always                                 | Always                                          | Always                      |
 | At a cap              | Escalation                             | A `cto` ruling, then escalation                 | Escalation                  |
-| Finished code         | Left uncommitted for the person        | One commit per ticket in each work root         | Left uncommitted            |
-| A stopped ticket's code | Left in the work root                | Discarded; the ticket and worklog are kept      | Left in the work root       |
+| Claimed               | The ticket                             | Its [[glossary#Dependency cluster\|dependency cluster]] | The ticket          |
+| Builds in             | The work root                          | A [[glossary#Run worktree\|run worktree]] of each work root | The work root    |
+| Finished code         | Left uncommitted for the person        | One commit per ticket on the run branch         | Left uncommitted            |
+| A stopped ticket's code | Left in the work root                | Discarded from the run worktree; the ticket and worklog are kept | Left in the work root |
+| After a stopped ticket | —                                     | The roadmap run ends                            | —                           |
 
-**An autonomous run starts only on a work root with no uncommitted change**, so its commit holds exactly one ticket. The commit follows the work root's own convention. The run never pushes, branches, or amends. A commit a hook rejects stops the ticket as `blocked`, with the hook's reason in `blocked_by`.
+### 6.1 The roadmap run
+
+An autonomous run is one ticket of a roadmap run. The launcher starts a fresh session per ticket, so a long roadmap never runs out of context, and the roadmap run carries one name, `run-roadmap-<n>`, across every session. `<n>` is the lowest positive number that no claim in `work/` and no branch in a registered work root uses.
+
+![[run-roadmap.excalidraw]]
+*The roadmap run: selecting and claiming a ticket with its dependency cluster, a claim lost to another run, a run worktree per work root, the orchestration pipeline as one step, the two commits, and every end that needs a person.*
+
+| Step                          | What happens                                                                                                  | When it fails                                    |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Select the next ticket        | A ticket the roadmap run already claims comes first. Otherwise the orchestrator lists the candidates in roadmap order: every ticket not `done`, unclaimed, whose cluster holds no ticket another run claims and no ticket `blocked` on something other than a cluster ticket | No ticket left on the roadmap: the run ends, roadmap done. Tickets left and no candidate: the run ends for a person |
+| Can it run                    | `cto` picks one candidate and calls the end-to-end question, or hands the pick back                           | A hand-back ends the run for a person            |
+| Confirm                       | Automatic. Nobody is asked; the `cto`'s pick stands                                                           | —                                                |
+| Claim its dependency cluster  | The run writes its claim on every ticket of the cluster and reads every one back. A ticket the run already claims keeps its claim | Another run's claim read back: the run releases what it wrote and selects again. Lost three times in a row, the run ends for a person |
+| Identify the work roots       | The `repositories` of the ticket to build and of its direct dependencies. A ticket with none gets them from the `repo-resolver` agent, written onto it, as in 3.1 Start | The agent cannot settle them: the run ends for a person, naming the candidates |
+| Create a run worktree         | One per work root, on branch `run-roadmap-<n>` from that work root's current commit, made once and reused by every later ticket of the run | The run ends for a person, naming the work root and the git error |
+| Pick up the ticket            | The cluster's first ticket whose dependencies are all `done` — the selected ticket itself only when it depends on nothing unfinished. Start as in 3.1 | —                                                |
+| Run the orchestration pipeline | Interview to Verify and code review, as in 3.1, in the run worktrees                                         | Not completed: the ticket stops as in 5. States, its code is discarded from the run worktrees, and the run ends for a person |
+| Commit the code               | One commit per run worktree the ticket changed, on the run branch, following that work root's own convention  | A rejected commit stops the ticket as `blocked`, with the hook's reason in `blocked_by` |
+| Commit the documents          | One commit in the framework root holding the ticket, its worklog, and the roadmap edit, when the framework root is a git tree | As for the code                                  |
+| `--max` reached               | The launcher counts tickets. Under the limit, the next session selects again                                  | At the limit, the run ends                       |
+
+- **Every end reports what happened and how to resume the run.** It releases the claims on every ticket of the cluster that is not `done`, and keeps the branch and the run worktrees. Resuming starts the same roadmap run again by its name; it reuses the branch and the worktrees and claims afresh.
+- **The person's checkout is never touched.** A run worktree starts from the work root's current commit, so an uncommitted change in the checkout is not part of it, and the run builds in its worktree alone.
+- **The run never pushes, merges, or amends.** A person reviews the run branch and merges it.
+- **A run worktree is clean between tickets.** A finished ticket is committed and a stopped one is discarded, so the next ticket starts from the last commit. A worktree left dirty ends the run.
 
 **A `cto` ruling** is one of five:
 

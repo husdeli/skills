@@ -1,6 +1,6 @@
 ---
 name: ticket-board
-description: "Rules for the ticket board this plugin drives — the `work/` folder and its three buckets, how a ticket is named and numbered within the epic of the feature it delivers, the properties it carries (`status`, `assigned`, `claimed`, `blocked_by`, its times and its usage), the transitions between its statuses, the claim that stops two runs building one ticket, each project's roadmap of the work that is left, and the worklog that records what was decided while a ticket was built. INVOKE THIS SKILL before you read, write, move, assign, claim, or finish a ticket, before you add or delete a roadmap row, and before you write a worklog entry. Enforces one status record per ticket, a bucket that always matches the status, one claim per ticket, a roadmap that only shrinks or gets corrected, one writer for the ticket and its worklog, and one step per status change."
+description: "Rules for the ticket board this plugin drives — the `work/` folder and its three buckets, how a ticket is named and numbered within the epic of the feature it delivers, the properties it carries (`status`, `repositories`, `assigned`, `claimed`, `blocked_by`, its times and its usage), the transitions between its statuses, the claim that stops two runs building one ticket, each project's roadmap of the work that is left, and the worklog that records what was decided while a ticket was built. INVOKE THIS SKILL before you read, write, move, assign, claim, or finish a ticket, before you add or delete a roadmap row, and before you write a worklog entry. Enforces one status record per ticket, a bucket that always matches the status, one claim per ticket, a roadmap that only shrinks or gets corrected, one writer for the ticket and its worklog, and one step per status change."
 ---
 
 # ticket-board skill
@@ -78,6 +78,8 @@ tickets already in flight; name the setup entry point as the way to migrate.
 feature: "[[checkout.feature]]"
 status: in progress
 priority: High
+repositories:
+  - api
 depends_on:
   - CHECKOUT-001
 assigned: coding-2
@@ -97,6 +99,7 @@ related:
 | `feature` | Required. A link to the feature note of the feature the ticket delivers. That note's `code` is the `<CODE>` the ticket's name starts with; a ticket whose `feature` and name disagree is not a valid ticket. |
 | `status` | Required. Where the work stands; see [States and transitions](#states-and-transitions). |
 | `priority` | Required. `Critical`, `High`, `Medium`, or `Low`. The roadmap sorts by it, so roadmap order is priority order. |
+| `repositories` | The registry codes of the work roots the ticket is built in: `[api]`. Empty until it is known — the run fills it with the `repo-resolver` agent before the ticket starts. `sdlc-structure` holds the rule. |
 | `depends_on` | The IDs of every ticket this one cannot start without, as bare IDs. `[]` when there are none. |
 | `assigned` | The agent that works on the ticket now, or is planned to, by its name: `coding-2`. See [Who holds the ticket](#who-holds-the-ticket). |
 | `claimed` | The run that holds the ticket: `orchestrate-2`. See [The claim](#the-claim). |
@@ -183,7 +186,7 @@ as well as the role. A session doing the work itself names its command the same 
 
 ## The claim
 
-**`claimed` names the run that holds the ticket**, as `<command>-<n>`: `orchestrate-2`. It is a
+**`claimed` names the run that holds the ticket**, as `<command>-<n>`: `orchestrate-2`, `run-roadmap-3`. It is a
 guardrail, not an assignment: a ticket can be claimed before anyone knows which agent will work on
 it, and `claimed` may be set at any status except `done`.
 
@@ -192,10 +195,15 @@ it, and `claimed` may be set at any status except `done`.
 - **The claim is written first and read back.** A run that reads back another run's claim drops the
   ticket and picks again.
 - **A claimed ticket is never ready for another run.**
-- **One work root holds one build at a time.** A run whose work root another claimed `in progress`
+- **A roadmap run claims the whole dependency cluster** — the ticket and every ticket it depends on,
+  directly or through another, that is not `done` — writing every claim and reading every one back.
+  One claim read back as another run's releases every claim this attempt wrote. It keeps the claims
+  across its sessions until each ticket is `done` or the run ends.
+- **One checkout holds one build at a time.** A run whose work root another claimed `in progress`
   or `review` ticket holds releases its claim and picks again. Two builds in one tree would each
-  check the other's changes.
-- **Every exit removes the claim**: finish, escalation, and abort.
+  check the other's changes. A roadmap run builds in run worktrees of its own, so this never stops it.
+- **Every exit removes the claim**: finish, escalation, and abort. A roadmap run's end removes the
+  claims on every ticket of its cluster that is not `done`.
 
 A file cannot hold a lock, so the read-back narrows the race without closing it. A run that dies
 without exiting leaves its claim for a person to remove.
@@ -230,6 +238,11 @@ A run lists the ready tickets in roadmap order, which is priority order. **A tic
 A ticket of a project whose note says `done` is never offered, and one whose note says `backlog` is
 offered only when the project is named. An ID in `depends_on` that no ticket carries is not
 satisfied: the ticket stays not ready, and the report names the missing ID.
+
+**A roadmap run selects by cluster instead.** A ticket it already claims comes first, and the first of
+those whose dependencies are all `done` is the one it builds. Otherwise it may select a ticket whose
+dependencies are not `done`, when none of them is claimed by another run or `blocked` on something
+outside the cluster, and it builds the cluster dependencies first. `/run-roadmap` holds the steps.
 
 ## The roadmap holds the work that is left
 
@@ -351,8 +364,8 @@ own entries name the orchestrator's claim: `orchestrate-2 · start`, `orchestrat
 
 - **Decisions and outcomes only** — what was chosen, and what it beat. One line each.
 - **The opening entry names the ticket, the work root with the evidence that settled it, and the
-  end-to-end decision.** The ticket carries no repository, so this entry is the only record of where
-  it was built. `sdlc-structure` holds how the work root is resolved.
+  end-to-end decision.** The ticket's `repositories` says where it was built; this entry says why.
+  `sdlc-structure` holds how the work root is resolved.
 - **Only what a later reader cannot get elsewhere.** Never the plan in full, never code, never a
   restatement of the ticket, and never pasted command output — name the command and its result.
 - **A stage that decided nothing still gets one line**: what ran, and what came back.
@@ -374,7 +387,7 @@ one tool block. Never spread a status change across turns, and never delegate on
 ### Starting a ticket
 
 1. **Claim it** — write `claimed`, read it back, and drop the ticket if another run's claim is
-   there. Resolve the work root and confirm the session can write to it; a run that cannot stops
+   there. A ticket this run already claims — a roadmap run's cluster — keeps its claim. Resolve the work root and confirm the session can write to it; a run that cannot stops
    here, removes its claim, and writes nothing else.
 2. **`status`** → `in progress`, **`assigned`** → the first agent, **`updatedAt`** → now. Remove
    `blocked_by` when the ticket resumes from `blocked`.

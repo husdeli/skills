@@ -203,12 +203,22 @@ def layer_of_each_node(nodes: list[dict], edges: list[dict]) -> dict[str, int]:
     return layer
 
 
+def fitting_size(node: dict) -> tuple[float, float]:
+    """The smallest shape whose label Excalidraw will not wrap or grow it for."""
+    text_width, text_height = text_size(node.get("label", ""))
+    shape = node.get("shape", "rectangle")
+    if shape == "diamond":  # the label gets half the width and half the height
+        return max(200, 2 * (text_width + 24)), max(90, 2 * (text_height + 20))
+    if shape == "ellipse":  # the label gets the inscribed rectangle
+        return max(180, (text_width + 24) * 1.42), max(70, (text_height + 20) * 1.42)
+    return max(160, text_width + 48), max(60, text_height + 30)
+
+
 def place(nodes: list[dict], edges: list[dict], layout: str) -> None:
     for node in nodes:
-        label = node.get("label", "")
-        width, _ = text_size(label)
-        node.setdefault("width", max(160, width + 48))
-        node.setdefault("height", 60 + (label.count("\n") * 26))
+        width, height = fitting_size(node)
+        node["width"] = max(node.get("width", 0), width)
+        node["height"] = max(node.get("height", 0), height)
 
     unplaced = [node for node in nodes if "x" not in node or "y" not in node]
     if not unplaced:
@@ -449,8 +459,7 @@ def validate(text: str) -> list[str]:
     if indices != sorted(indices):
         problems.append("the 'index' values are not in ascending order")
 
-    mirrored = dict(re.findall(r"^(.*) \^([A-Za-z0-9]{1,})$", text, re.M))
-    by_ref = {ref: raw for raw, ref in mirrored.items()}
+    by_ref = {ref: raw for raw, ref in re.findall(r"^(.*) \^([A-Za-z0-9]{1,})$", text, re.M)}
     for element in elements:
         if element.get("type") != "text":
             continue

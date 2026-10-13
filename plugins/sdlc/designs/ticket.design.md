@@ -1,7 +1,7 @@
 ---
 type: design
 subject: ticket
-updated: 2026-10-09
+updated: 2026-10-13
 tags:
   - sdlc/design
 related:
@@ -27,6 +27,8 @@ This doc defines one [[glossary#Ticket|ticket]]: its name, the properties it car
 ---
 feature: "[[checkout.feature]]"
 status: in progress
+repositories:
+  - api
 assigned: coding-1
 claimed: orchestrate-1
 createdAt: 2026-10-07T09:15
@@ -39,8 +41,9 @@ cost: 4.12
 
 - **`feature` links the [[feature.design#2. The feature note|feature note]] of the feature the ticket delivers**: required. That note's `code` is the `<CODE>` the ticket's name starts with; a ticket whose `feature` and name disagree is not a valid ticket.
 - **`status` is where the work stands**: required; see 3. States.
+- **`repositories` names the [[glossary#Work root|work roots]] the ticket is built in**, by their [[glossary#Registry|registry]] codes, never paths. Planning writes it when the evidence settles it; otherwise the run that picks the ticket has the `repo-resolver` agent fill it before the ticket starts, and every later run reads it. See [[workflow.design#3.1 Behavior|Workflow]].
 - **`assigned` names the agent that works on the ticket now, or is planned to**, by that agent's name.
-- **`claimed` names the orchestration agent that holds the ticket**, by that agent's name. It is a guardrail, not an assignment: a ticket can be claimed before anyone knows which agent will work on it.
+- **`claimed` names the [[glossary#Run|run]] that holds the ticket**, as `orchestrate-1` or `run-roadmap-3`. It is a guardrail, not an assignment: a ticket can be claimed before anyone knows which agent will work on it. A [[glossary#Roadmap run|roadmap run]] claims every ticket of a [[glossary#Dependency cluster|dependency cluster]] at once, so a ticket may carry a claim long before it is started; see [[workflow.design#4. Claims|Workflow]].
 - **`createdAt` is when the ticket was created**: required. It is set once, in the step that creates the ticket, and never changes.
 - **`updatedAt` is when the ticket last changed**: required. It equals `createdAt` on a new ticket, and every step that changes the ticket rewrites it.
 

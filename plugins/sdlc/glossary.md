@@ -1,6 +1,6 @@
 ---
 type: glossary
-updated: 2026-10-09
+updated: 2026-10-13
 tags:
   - sdlc/glossary
 ---
@@ -12,11 +12,15 @@ One of the three folders inside `work/` — `backlog/`, `in-progress/`, and `don
 
 ## Claim
 
-The `claimed` property on a ticket, naming the run that holds it, such as `orchestrate-2`. A claimed ticket is never picked by another run; the claim guards the ticket, while `assigned` names the agent working on it.
+The `claimed` property on a ticket, naming the run that holds it, such as `orchestrate-2` or `run-roadmap-3`. A claimed ticket is never picked by another run; the claim guards the ticket, while `assigned` names the agent working on it. A roadmap run claims a whole dependency cluster at once.
 
 ## Context pack
 
 What the planner gathers before it plans: the work root, the relevant files, the conventions, and the exact check commands. The orchestrator hands it to every later agent, so none of them explores the code again.
+
+## Dependency cluster
+
+A ticket together with every ticket it depends on, directly or through another ticket, that is not `done`. A roadmap run claims the cluster at once and builds it dependencies first, so no other run starts a ticket the cluster is still building towards.
 
 ## Design doc
 
@@ -74,9 +78,17 @@ One product and every document about it. Its documents sit in `projects/<project
 
 `roadmap.md`, the work that is left, with one section per epic and one row per ticket. It only shrinks: a row is deleted when its ticket is done.
 
+## Roadmap run
+
+One launch of the autonomous loop, named `run-roadmap-<n>`. It builds one ticket after another, each in a fresh session and each as its own run, until one of its ends. It owns one claim name, one run branch, and one run worktree per work root it changes.
+
 ## Run
 
 One pass of the workflow over one ticket, from the pick to `done` or to a stop as `blocked`. Each run has a number, shared by its claim and its agents.
+
+## Run worktree
+
+A git worktree of one work root, made for one roadmap run on its own branch `run-roadmap-<n>`, beside the repository at `<repository>-worktrees/run-roadmap-<n>`. The roadmap run builds and commits there, so the person's checkout is never touched; a person reviews the branch and merges it.
 
 ## Stage
 
@@ -92,7 +104,7 @@ The tests one ticket gets, decided from the specification before any code exists
 
 ## Ticket
 
-One task, named `<CODE>-<NNN>-<slug>.md`, where `<CODE>` is the code of the feature it delivers. It carries a status, sits in the bucket under `work/` that status names, and never names the repository it is built in.
+One task, named `<CODE>-<NNN>-<slug>.md`, where `<CODE>` is the code of the feature it delivers. It carries a status, sits in the bucket under `work/` that status names, and names the work roots it is built in by their registry codes.
 
 ## Work folder
 
