@@ -301,9 +301,10 @@ touched, so it may hold your own uncommitted work while the run goes on. The doc
 ticket, its worklog, the roadmap — get their own commit in the framework root when that is a git
 tree.
 
-**It claims a ticket together with its dependency cluster** — every ticket the selected one depends
-on that is not done — and builds the cluster dependencies first, so a second run never starts work
-the first is still building towards. A claim another run took sends the run back to select again;
+**It works one feature at a time.** It selects a feature and claims its dependency cluster — every
+ticket of the feature that is not done, and every unfinished ticket they depend on in another
+feature — then builds those tickets in dependency order, one per session, before it selects the
+next feature. A second run never starts work the first is still building towards. A claim another run took sends the run back to select again;
 three lost in a row ends it.
 
 **One ticket per session** is what makes a long roadmap possible: the script calls
@@ -319,7 +320,7 @@ script reads it, and the roadmap itself is the loop counter — the run ends whe
 | `--max` tickets were built | You asked for that many — exit 0 |
 | Tickets are left and none can be selected | Each waits on another run's claim, a block, or a missing ID — a person has to look |
 | The CTO hands a decision back, or rules `defer` or `stop-run` | Money, credentials, anything irreversible, the security model, a legal call, or a PRD contradiction it cannot settle |
-| A ticket does not complete | The rest of its cluster depends on it. Its code is discarded from the worktree; its ticket and worklog are kept |
+| A ticket does not complete | A person decides how its feature goes on. Its code is discarded from the worktree; its ticket and worklog are kept |
 | A stage runs out of rulings | One ruling per stage, two per ticket. A third is a person's problem |
 | An agent returns nothing usable | A dead agent is not a thing to retry around |
 | Another run took the claim three times in a row, or a worktree cannot be made | The ground is wrong |
@@ -564,10 +565,10 @@ what a ticket is, and why changing how a status transition works is one edit rat
   gating. Takes a task description or a roadmap/ticket path. It asks nothing: end-to-end tests
   default to no, and it reports that default.
 - **/run-roadmap** — `/orchestrate` with nobody in the loop. It never asks you anything: the **cto**
-  agent picks the task and calls the end-to-end question, the interview always runs and the CTO
+  agent picks the feature and calls the end-to-end question, the interview always runs and the CTO
   settles its decisions, and a stage that hits its cap gets a CTO ruling — retry once with guidance,
-  narrow the task, defer it, or end the run — instead of stopping to wait for you. It claims the
-  ticket with its dependency cluster, builds in a run worktree on branch `run-roadmap-<n>` beside
+  narrow the task, defer it, or end the run — instead of stopping to wait for you. It works one
+  feature at a time, claims the feature's dependency cluster, builds in a run worktree on branch `run-roadmap-<n>` beside
   each repository, and commits the code there and the documents in the framework root; nothing is
   pushed, and your checkout is never touched. One invocation is one ticket, and it ends with a
   machine-readable result line, so [`scripts/run-roadmap.sh`](scripts/run-roadmap.sh) can loop it

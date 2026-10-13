@@ -195,8 +195,9 @@ it, and `claimed` may be set at any status except `done`.
 - **The claim is written first and read back.** A run that reads back another run's claim drops the
   ticket and picks again.
 - **A claimed ticket is never ready for another run.**
-- **A roadmap run claims the whole dependency cluster** — the ticket and every ticket it depends on,
-  directly or through another, that is not `done` — writing every claim and reading every one back.
+- **A roadmap run claims a feature's whole dependency cluster** — every ticket of the feature that
+  is not `done`, and every ticket those depend on, directly or through another, that is not `done`,
+  in any feature — writing every claim and reading every one back.
   One claim read back as another run's releases every claim this attempt wrote. It keeps the claims
   across its sessions until each ticket is `done` or the run ends.
 - **One checkout holds one build at a time.** A run whose work root another claimed `in progress`
@@ -239,10 +240,11 @@ A ticket of a project whose note says `done` is never offered, and one whose not
 offered only when the project is named. An ID in `depends_on` that no ticket carries is not
 satisfied: the ticket stays not ready, and the report names the missing ID.
 
-**A roadmap run selects by cluster instead.** A ticket it already claims comes first, and the first of
-those whose dependencies are all `done` is the one it builds. Otherwise it may select a ticket whose
-dependencies are not `done`, when none of them is claimed by another run or `blocked` on something
-outside the cluster, and it builds the cluster dependencies first. `/run-roadmap` holds the steps.
+**A roadmap run selects a feature instead**, and builds it one ticket at a time. A feature it
+already claims comes first, and the first of its claimed tickets whose dependencies are all `done` is
+the one it builds. Otherwise it may select a feature whose tickets are not ready, when no ticket of
+the feature's dependency cluster is claimed by another run or `blocked` on something outside the
+cluster, and it builds the cluster in dependency order. `/run-roadmap` holds the steps.
 
 ## The roadmap holds the work that is left
 
@@ -387,7 +389,7 @@ one tool block. Never spread a status change across turns, and never delegate on
 ### Starting a ticket
 
 1. **Claim it** — write `claimed`, read it back, and drop the ticket if another run's claim is
-   there. A ticket this run already claims — a roadmap run's cluster — keeps its claim. Resolve the work root and confirm the session can write to it; a run that cannot stops
+   there. A ticket this run already claims — a roadmap run's feature cluster — keeps its claim. Resolve the work root and confirm the session can write to it; a run that cannot stops
    here, removes its claim, and writes nothing else.
 2. **`status`** → `in progress`, **`assigned`** → the first agent, **`updatedAt`** → now. Remove
    `blocked_by` when the ticket resumes from `blocked`.

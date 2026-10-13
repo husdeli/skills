@@ -1,12 +1,14 @@
 ---
-description: Build the next ticket of a roadmap run with no person in the loop — the cto agent answers every question, the ticket's dependency cluster is claimed, the code is committed on the run branch in a run worktree, and the session reports a machine-readable result for the launcher script.
+description: Build the next ticket of a roadmap run with no person in the loop — the run works one feature at a time, the cto agent answers every question, the feature's dependency cluster is claimed, the code is committed on the run branch in a run worktree, and the session reports a machine-readable result for the launcher script.
 argument-hint: [--run run-roadmap-<n>] [--final] [roadmap-file-path]
 ---
 
 # Autonomous Roadmap Runner
 
 You drive **one** ticket of a **roadmap run** from selected to committed, and **you never ask the
-user anything**. Every question an interactive pipeline would put to a person goes to the **`cto`**
+user anything**. A roadmap run works **one feature at a time**: it selects a feature, claims every
+ticket that feature still needs, and builds them one per session until the feature is done — then it
+selects the next feature. Every question an interactive pipeline would put to a person goes to the **`cto`**
 agent instead. When the ticket is done you commit it, print a result line, and stop.
 
 Arguments: $ARGUMENTS
@@ -22,8 +24,8 @@ Arguments: $ARGUMENTS
 
 This is `/orchestrate` with the human replaced. The stages, the gates, and the caps are the same;
 what changes is who answers, what is claimed, where the code is built, what happens at a cap, and
-that the session ends in commits and a parsable result. One invocation is one ticket — the loop
-over the roadmap belongs to [`scripts/run-roadmap.sh`](../scripts/run-roadmap.sh), which starts a
+that the session ends in commits and a parsable result. One invocation is one ticket of the
+feature the run holds — the loop over the feature's tickets and over the roadmap belongs to [`scripts/run-roadmap.sh`](../scripts/run-roadmap.sh), which starts a
 fresh session per ticket so a long roadmap never runs out of context. The design is
 `designs/workflow.design.md`, section 6.1, and `diagrams/run-roadmap.excalidraw.md` draws it.
 
@@ -76,8 +78,8 @@ Every question goes to the `cto` agent, which answers in the user's place:
 
 | What `/orchestrate` asks the user | Who answers here |
 | --- | --- |
-| Which candidate ticket to build — or that it cannot run | `cto`, request `task-selection` |
-| Whether the task gets end-to-end tests | `cto`, in the same `task-selection` answer |
+| Which candidate ticket to build — or that it cannot run | `cto`, request `feature-selection`, which picks a feature instead |
+| Whether the task gets end-to-end tests | `cto`, in the same `feature-selection` answer, once for the feature |
 | The interviewer's open decisions and assumptions | `cto`, request `decisions` |
 | Nothing — it stops and escalates | `cto`, request `escalation` |
 
@@ -91,9 +93,9 @@ not try to answer a handed-back question yourself.
 ```
   YOU (main loop)
   ─────────────────────────
-  preflight ─► select: a ticket this run claims, else the candidates ─► Agent(cto) pick + e2e
-  ─► claim the dependency cluster ─► read back  (lost ─► select again, 3× ─► blocked)
-  ─► identify the work roots ─► run worktree per work root (once per run) ─► start the ticket ─►
+  preflight ─► select: a feature this run claims, else the candidate features ─► Agent(cto) pick + e2e
+  ─► claim the feature's dependency cluster ─► read back  (lost ─► select again, 3× ─► blocked)
+  ─► choose the feature's next ticket ─► identify the work roots ─► run worktree per work root (once per run) ─► start the ticket ─►
 
   ┌ Agent(feature-interviewer) ─► brief ─┐  concurrent
   └ Agent(planner) "SCOUT ONLY" ─► pack ─┤
@@ -205,72 +207,77 @@ Check these first, in one parallel Bash batch, and stop before you spawn anythin
 
 Report a `blocked` preflight in two lines and print the result line. Do not try to fix the ground.
 
-### 1. Select the next ticket — can it run?
+### 1. Select the next feature — can it run?
 `ticket-board` holds the roadmap's shape — one `## <CODE> — <epic name>` section per epic, one row
 per ticket, and what an epic's `**Note**:` line and a `Depends on` cell mean — and how a roadmap
-run selects. Reading a table top to bottom reads it in the order it should be built.
+run selects. An epic is the tickets of one feature, so **a feature on the roadmap is its epic
+section**. Reading a table top to bottom reads it in the order it should be built.
 
 - **In an unattended run, rebuild the roadmap first.** Nobody is there to notice a stale row, so run
   `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --project <project>` and put what it reported into
   the opening worklog entry. Skip it when `python3` is missing, and say so in the report.
-- **A ticket this run already claims comes first.** Find every ticket whose `claimed` is this run's
-  name and that is not `done`. When there is one, the cluster is already chosen: skip the CTO and
-  the claim, and go to Stage 1.5 with the first of them whose `depends_on` is all `done`. The
-  end-to-end decision is the one the run's opening entry for that cluster recorded.
-- **Otherwise collect every candidate**, preserving the table's order: a ticket not `done`, with no
-  claim, whose dependency cluster — the ticket and every ticket it depends on, directly or through
-  another, that is not `done` — holds no ticket another run claims and no ticket `blocked` on
-  something outside the cluster. **Read every epic section**: a dependency may sit in another epic.
-- **The ticket is the record.** Open the ticket of every candidate and take its description,
-  acceptance criteria, priority, and `depends_on` from there. Correct a row that disagrees, as
-  `ticket-board` says, and record what you corrected in the opening worklog entry.
+- **A feature this run already claims comes first.** Find every ticket whose `claimed` is this run's
+  name and that is not `done`. When there is one, the run is in the middle of a feature: skip the
+  CTO and the claim, and go to Stage 1.3. The end-to-end decision is the one the run's opening entry
+  for that feature recorded.
+- **Otherwise collect every candidate feature**, in roadmap order: an epic section with at least one
+  ticket that is not `done`, whose **dependency cluster** — every ticket of the feature that is not
+  `done`, and every ticket those depend on, directly or through another, that is not `done`, in any
+  feature — holds no ticket another run claims and no ticket `blocked` on something outside the
+  cluster. **Read every epic section**: a dependency may sit in another feature.
+- **The ticket is the record.** Open every ticket of each candidate's cluster and take its
+  description, acceptance criteria, priority, and `depends_on` from there. Correct a row that
+  disagrees, as `ticket-board` says, and record what you corrected in the opening worklog entry.
 - **No ticket left on the roadmap** → outcome `no-work`, `remaining` 0: the roadmap is done.
-  **Tickets left and no candidate** → outcome `no-work` with the tickets left in `remaining`, and say
-  what each waits on — another run's claim, a block, a missing ID. A person has to unblock it. Never
-  invent a ticket.
+  **Tickets left and no candidate feature** → outcome `no-work` with the tickets left in
+  `remaining`, and say what each feature waits on — another run's claim, a block, a missing ID. A
+  person has to unblock it. Never invent a ticket.
 
 Then spawn the CTO — **once**, and keep its id for the whole session:
 
 ```
 Agent(subagent_type: "sdlc:cto", model: "opus",
-      prompt: "Request: task-selection. You are answering in place of the user in an autonomous
+      prompt: "Request: feature-selection. You are answering in place of the user in an autonomous
                run — no person will be asked anything.
-               Pick the next ticket to build, and call the end-to-end question. Hand the pick back
-               when every candidate needs a decision only a person can make."
-              + the candidate list (ID, title, priority, epic, description, acceptance criteria,
-                Depends on, and the cluster each one would claim)
-              + any epic **Note**: lines
-              + "Remaining on the roadmap: <N> tickets across <K> epics.")
+               Pick the next feature to build, and call the end-to-end question for it. Hand the
+               pick back when every candidate needs a decision only a person can make."
+              + the candidate features in roadmap order — for each: the code, the feature name, any
+                epic **Note**: line, and every ticket of its cluster (ID, title, priority, feature,
+                description, acceptance criteria, Depends on)
+              + "Remaining on the roadmap: <N> tickets across <K> features.")
 ```
 
-It returns one `json` block with `taskId`, `rationale`, `e2e`, `skipped`, and the hand-back fields —
-the shape is in the agent definition, do not restate it.
+It returns one `json` block with `featureCode`, `rationale`, `e2e`, `skipped`, and the hand-back
+fields — the shape is in the agent definition, do not restate it.
 
 - `handBack: true` → **it cannot run**: outcome `handed-back`. Nothing has started, so there is no
   ticket to stop: report the reason and print the result line.
-- A `taskId` that is not a candidate → ask **once** for a candidate ID. A second bad answer is
-  `aborted` at stage `selection`.
-- A non-empty `skipped` → carry each skipped ticket and its reason into the report, so a person can
-  fix it. Change nothing about those tickets.
+- A `featureCode` that is not a candidate → ask **once** for a candidate code. A second bad answer
+  is `aborted` at stage `selection`.
+- A non-empty `skipped` → carry each skipped feature and its reason into the report, so a person can
+  fix it. Change nothing about its tickets.
 - **Confirm automatically.** Where `/orchestrate` asks the person to confirm the pick, the CTO's pick
-  stands. **Carry `e2e` forward as the `e2eDecision`**, the exact string the CTO returned.
+  stands. **Carry `e2e` forward as the `e2eDecision`**, the exact string the CTO returned. It holds
+  for every ticket of the feature.
 
 Track the stages with the task/todo tools, so the session's log shows live progress.
 
-### 1.2 Claim the dependency cluster — is the claim held?
-Write `claimed: <run name>` on **every** ticket of the selected ticket's cluster, in one tool block,
+### 1.2 Claim the feature's dependency cluster — is the claim held?
+Write `claimed: <run name>` on **every** ticket of the selected feature's cluster, in one tool block,
 then read every one back in the next. `ticket-board` holds the claim's rules.
 
-- **Every claim reads back as this run's** → held. Go to Stage 1.5.
+- **Every claim reads back as this run's** → held. Go to Stage 1.3.
 - **Any one reads back as another run's** → lost. Remove the claims this attempt wrote, in one tool
   block, and go back to Stage 1 with the candidates collected again. Resume the same CTO, and tell it
-  which ticket was lost.
+  which ticket of which feature was lost.
 - **Lost three times in a row** → outcome `blocked`: another run keeps taking the same tickets, and a
   person has to look. Release nothing else — this attempt's claims are already removed.
 
+### 1.3 Choose the feature's next ticket
 **The ticket to build** is the cluster's first ticket, in dependency order, whose `depends_on` is all
-`done` — the selected ticket itself only when it depends on nothing unfinished. Every later session
-of this run builds the next one, until the cluster is done.
+`done`; between two such tickets, the one higher on the roadmap. A dependency in another feature
+therefore comes before the feature's own tickets that need it. Every later session of this run
+builds the next one, until the cluster is done — then Stage 1 selects the next feature.
 
 ### 1.5 Identify the work roots, and create a run worktree in each
 **The work roots are the `repositories` of the ticket to build and of its direct dependencies**,
@@ -312,7 +319,8 @@ is `blocked` the same way.
 **Pick up the ticket to build**: run `ticket-board`'s **Starting a ticket** transition yourself,
 with the edits in one tool block. The claim is already written, so it stays. Two values are this
 command's: the **assignee** is `feature-interviewer, implementation-planner`, and the **opening
-worklog entry** is `<run name> · start` — the ticket, what it delivers, the cluster it belongs to,
+worklog entry** is `<run name> · start` — the ticket, what it delivers, the feature the run holds
+and the cluster it belongs to,
 every run worktree with its branch and the evidence that settled each work root, the
 `e2eDecision`, and the line that this is an autonomous run whose decisions come from the `cto`
 agent.
@@ -557,7 +565,7 @@ Append the `cto · ruling` worklog entry for every ruling, whatever it says, the
 | --- | --- |
 | `retry` | One more cycle at that stage, with the CTO's `guidance` in the message to the agent that owns it. The stage's cap is now spent — a second failure is `handed-back` |
 | `rescope` | `SendMessage` the planner or the coding agent with the narrowed task, finish it, and in the Stage 8 edit **add the dropped part to the roadmap** as a new pending task with its own ticket, per `ticket-board`. Say what came out, in the report and the worklog |
-| `defer` | Outcome `deferred`. Run *Stopping without finishing*, then Stage 9's **keep the record, discard the code** procedure. The ticket keeps everything that was learned, and the roadmap run ends: the rest of its cluster depends on this ticket |
+| `defer` | Outcome `deferred`. Run *Stopping without finishing*, then Stage 9's **keep the record, discard the code** procedure. The ticket keeps everything that was learned, and the roadmap run ends: a person decides how the feature goes on without it |
 | `stop-run` | Outcome `stop-run`. The same as `deferred` for this ticket |
 | `handBack: true` | Outcome `handed-back`, whatever the ruling field says. A person decides |
 
@@ -633,21 +641,21 @@ The report is short — a person reads a hundred of these in a log, not one on a
 - [x] Implementation — [N] files, written tests pass ([0–2] targeted fix cycles)
 - [x] Verification — passed ([the commands], or: [what was skipped and why])
 - [x] Code review — approved
-- [x] Run — [run name] · branch `run-roadmap-<n>` · cluster [IDs, done and left]
+- [x] Run — [run name] · branch `run-roadmap-<n>` · feature [CODE] · cluster [IDs, done and left]
 - [x] Run worktrees — [code] `[absolute path]`, one per line
 - [x] Commits — code [sha] [subject]; documents [sha], or: the framework root is no git tree
 - [x] Status — ticket Completed and moved to `done/`, roadmap row deleted
 
 [Two or three lines: what shipped, and the decision that shaped it.]
 [Any skipped candidate and its reason. Any recommendation nobody acted on.]
-[How to resume: `run-roadmap.sh --run <n>`, and what the resume will build first.]
+[How to resume: `run-roadmap.sh --run <n>`, and what the resume will build first — the feature's next ticket, or the next feature when this one is done.]
 ```
 
 Then, as the **last line of your final message and nothing after it**, print exactly one result line.
 The launcher script parses it to decide whether to start another task:
 
 ```
-RUN-ROADMAP-RESULT {"outcome":"completed","run":"run-roadmap-3","taskId":"AUTH-002","commit":"a1b2c3d","workRoots":["/Users/me/Projects/acme-api-worktrees/run-roadmap-3"],"remaining":4,"nextAction":"continue","reason":""}
+RUN-ROADMAP-RESULT {"outcome":"completed","run":"run-roadmap-3","feature":"AUTH","taskId":"AUTH-002","commit":"a1b2c3d","workRoots":["/Users/me/Projects/acme-api-worktrees/run-roadmap-3"],"remaining":4,"nextAction":"continue","reason":""}
 ```
 
 One line, valid compact JSON, no code fence, no text after it. The fields:
@@ -656,7 +664,8 @@ One line, valid compact JSON, no code fence, no text after it. The fields:
 | --- | --- |
 | `outcome` | `completed`, `deferred`, `handed-back`, `aborted`, `stop-run`, `no-work`, or `blocked` |
 | `run` | The roadmap run's name, `run-roadmap-<n>`. The script passes it to the next session |
-| `taskId` | The ticket this invocation worked on, or `""` when none was started |
+| `feature` | The code of the feature the run holds, or `""` when none was selected |
+| `taskId` | The ticket this invocation worked on, or `""` when none was started. It may belong to another feature, as a dependency of the one the run holds |
 | `commit` | The code commit's short sha, or `""` when nothing was committed. Two worktrees give two shas, joined by a comma |
 | `workRoots` | Every run worktree this invocation wrote to, as absolute paths. `[]` when none was started. The script checks these trees between tickets |
 | `remaining` | Tickets left on the roadmap **after** this invocation, counted from the file you just wrote |
@@ -691,7 +700,7 @@ The four skills carry the rules they own. What is this command's own:
 - **Tests before code, and the coder never touches them.** A test changes only by a `revised` ruling
   from the test planner. The CTO settles what the specification means; it never tells the coding
   agent to change a test.
-- **Claim the whole cluster before anything else is written**, and release it at every end.
+- **Work one feature at a time.** Claim its whole cluster before anything else is written, build every ticket of it before selecting another feature, and release the claims at every end.
 - **Build only in the run worktrees.** Create them before the ticket starts, record them in the worklog, pass them to every agent as the work root, and name them in the result line. Never let an agent infer which repository it is working in, and never write to the person's checkout.
 - **You write the status, the assignee, the worklog, the roadmap, and the commit.** No agent writes
   any of them.

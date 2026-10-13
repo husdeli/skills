@@ -23,7 +23,7 @@
 
 set -uo pipefail
 
-VERSION="2.0.0"
+VERSION="2.1.0"
 
 # ---------------------------------------------------------------------------- defaults
 
@@ -74,12 +74,14 @@ USAGE
 
 WHAT IT DOES
   Starts one roadmap run, run-roadmap-<n>, and calls `claude -p "/sdlc:run-roadmap --run ..."`
-  once per ticket, in a fresh session each time. That command selects the next ticket, claims its
-  dependency cluster, makes a run worktree on branch run-roadmap-<n> beside each repository the
+  once per ticket, in a fresh session each time. The run works one feature at a time: that command
+  selects the next feature, claims every ticket it still needs with their dependencies, builds the
+  feature's next ticket, makes a run worktree on branch run-roadmap-<n> beside each repository the
   ticket changes, has the `cto` agent answer every question a person would normally answer, drives
   plan -> review -> tests -> implement -> verify -> code review, commits the code on the run
   branch and the documents in the framework root, and prints one RUN-ROADMAP-RESULT line. This
-  script reads that line and starts the next ticket, or stops.
+  script reads that line and starts the next ticket — of the same feature until it is done, then of
+  the next feature — or stops.
 
 WHERE YOU RUN IT
   From a code repository, and it builds that repository.
@@ -323,7 +325,7 @@ done <<EOF
 $WORK_ROOTS
 EOF
 SUMMARY="$LOG_DIR/summary.tsv"
-printf 'task\toutcome\ttaskId\tcommit\tremaining\treason\n' >"$SUMMARY"
+printf 'task\toutcome\tfeature\ttaskId\tcommit\tremaining\treason\n' >"$SUMMARY"
 
 # ---------------------------------------------------------------------------- the command line
 
@@ -504,26 +506,27 @@ while :; do
   fi
 
   if [ -z "$payload" ]; then
-    printf '%s\t%s\t\t\t\t%s\n' "$iteration" "no-result" "claude exited $claude_status" >>"$SUMMARY"
+    printf '%s\t%s\t\t\t\t\t%s\n' "$iteration" "no-result" "claude exited $claude_status" >>"$SUMMARY"
     STOP_REASON="task $iteration printed no RUN-ROADMAP-RESULT line (claude exited $claude_status) — see $task_log"
     EXIT_CODE=4
     break
   fi
 
   outcome="$(json_field "$payload" outcome)"
+  feature="$(json_field "$payload" feature)"
   task_id="$(json_field "$payload" taskId)"
   commit="$(json_field "$payload" commit)"
   remaining="$(json_field "$payload" remaining)"
   next_action="$(json_field "$payload" nextAction)"
   reason="$(json_field "$payload" reason)"
 
-  printf '%s\t%s\t%s\t%s\t%s\t%s\n' \
-    "$iteration" "${outcome:-unknown}" "$task_id" "$commit" "$remaining" "$reason" >>"$SUMMARY"
+  printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
+    "$iteration" "${outcome:-unknown}" "$feature" "$task_id" "$commit" "$remaining" "$reason" >>"$SUMMARY"
 
   case "$outcome" in
     completed)
       TASKS_DONE=$((TASKS_DONE + 1))
-      ok "$task_id done${commit:+ · $commit}${remaining:+ · $remaining left}"
+      ok "$task_id done${feature:+ (feature $feature)}${commit:+ · $commit}${remaining:+ · $remaining left}"
       ;;
     deferred)
       TASKS_DEFERRED=$((TASKS_DEFERRED + 1))

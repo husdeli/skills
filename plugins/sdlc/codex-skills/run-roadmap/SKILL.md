@@ -1,6 +1,6 @@
 ---
 name: run-roadmap
-description: Build the next ticket of a roadmap run with no person in the loop — a CTO agent answers every question, the ticket's dependency cluster is claimed, the code is committed on the run branch in a run worktree, and the session reports a machine-readable result. Use when a user asks for an autonomous or unattended roadmap run, or invokes `$run-roadmap` as the Codex equivalent of `/run-roadmap`.
+description: Build the next ticket of a roadmap run with no person in the loop — the run works one feature at a time, a CTO agent answers every question, the feature's dependency cluster is claimed, the code is committed on the run branch in a run worktree, and the session reports a machine-readable result. Use when a user asks for an autonomous or unattended roadmap run, or invokes `$run-roadmap` as the Codex equivalent of `/run-roadmap`.
 ---
 
 # Run Roadmap
@@ -26,7 +26,7 @@ Claude ones. It changes no gate and no cap.
 ## Invoking this skill is the approval
 
 `$orchestrate` asks the user which task to build. **This skill does not.** Invoking it authorizes the
-`cto` agent to pick the task, settle every open decision, and rule on every escalation, and it
+`cto` agent to pick the feature, settle every open decision, and rule on every escalation, and it
 authorizes the command to commit the finished task. That is what the user asked for.
 
 So two rules of the subagent protocol are lifted here, and only here:
@@ -34,7 +34,7 @@ So two rules of the subagent protocol are lifted here, and only here:
 - **Never ask the user anything** — no user-input tool, and no turn that ends waiting for an answer.
   Every question goes to the `cto` agent, spawned from `agents/cto.md` as task name `cto`, resumed
   with `followup_task` for every later question in the run.
-- **The CTO chooses on the user's behalf**, including the task and the end-to-end call. The command
+- **The CTO chooses on the user's behalf**, including the feature and the end-to-end call. The command
   records each answer in the ticket and the worklog, which is what makes an unattended run readable
   afterwards.
 
@@ -51,7 +51,7 @@ The unattended loop over a whole roadmap is a Claude Code script —
 [`scripts/run-roadmap.sh`](../../scripts/run-roadmap.sh), which names a roadmap run and calls
 `claude -p "/sdlc:run-roadmap --run run-roadmap-<n>"` once per ticket, from a repository or from the
 project that drives several. Codex has no equivalent launcher in this plugin: in a Codex session,
-invoke `$run-roadmap --run run-roadmap-<n>` again for the next ticket of the same run, with the name
+invoke `$run-roadmap --run run-roadmap-<n>` again for the next ticket of the same run — the next one of the feature it holds, or of the next feature — with the name
 the previous result line printed.
 
 **Every ticket is built in a run worktree** beside its repository, at

@@ -12,7 +12,7 @@ One of the three folders inside `work/` — `backlog/`, `in-progress/`, and `don
 
 ## Claim
 
-The `claimed` property on a ticket, naming the run that holds it, such as `orchestrate-2` or `run-roadmap-3`. A claimed ticket is never picked by another run; the claim guards the ticket, while `assigned` names the agent working on it. A roadmap run claims a whole dependency cluster at once.
+The `claimed` property on a ticket, naming the run that holds it, such as `orchestrate-2` or `run-roadmap-3`. A claimed ticket is never picked by another run; the claim guards the ticket, while `assigned` names the agent working on it. A roadmap run claims a feature's whole dependency cluster at once.
 
 ## Context pack
 
@@ -20,7 +20,7 @@ What the planner gathers before it plans: the work root, the relevant files, the
 
 ## Dependency cluster
 
-A ticket together with every ticket it depends on, directly or through another ticket, that is not `done`. A roadmap run claims the cluster at once and builds it dependencies first, so no other run starts a ticket the cluster is still building towards.
+What a roadmap run claims when it selects a feature: every ticket of the feature that is not `done`, together with every ticket those depend on, directly or through another ticket, that is not `done` — in any feature. The run claims the cluster at once and builds it in dependency order, so no other run starts a ticket the feature is still building towards.
 
 ## Design doc
 
@@ -80,7 +80,7 @@ One product and every document about it. Its documents sit in `projects/<project
 
 ## Roadmap run
 
-One launch of the autonomous loop, named `run-roadmap-<n>`. It builds one ticket after another, each in a fresh session and each as its own run, until one of its ends. It owns one claim name, one run branch, and one run worktree per work root it changes.
+One launch of the autonomous loop, named `run-roadmap-<n>`. It works one feature at a time: it selects a feature, claims its dependency cluster, and builds its tickets one after another, each in a fresh session and each as its own run, then selects the next feature, until one of its ends. It owns one claim name, one run branch, and one run worktree per work root it changes.
 
 ## Run
 

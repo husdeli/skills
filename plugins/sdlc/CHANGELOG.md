@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A roadmap run works one feature at a time.** `/run-roadmap` selects a feature instead of a
+  ticket. It claims the feature's dependency cluster: every unfinished ticket of the feature, and
+  every unfinished ticket in another feature that those depend on. It then builds them in dependency
+  order, one ticket per session, and selects the next feature only once the cluster is done.
+  - The `cto` agent's `task-selection` request is now `feature-selection`, returning `featureCode`.
+    It calls the end-to-end question once for the whole feature.
+  - The result line gains a `feature` field. `scripts/run-roadmap.sh` 2.1.0 records it in
+    `summary.tsv` as a new column after `outcome`, and prints it for each finished ticket.
+  - `--max` still counts tickets, and every feature's commits still go on the one run branch.
+  - The glossary's **Dependency cluster** and **Roadmap run** now describe the feature-based claim.
 - **`/run-roadmap` runs as a roadmap run, `run-roadmap-<n>`, built in worktrees of its own.** The
   flow follows `diagrams/run-roadmap.excalidraw.md` and `workflow.design.md` section 6.1:
   - It **claims a ticket's dependency cluster** — the ticket and every unfinished ticket it depends
