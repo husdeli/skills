@@ -130,7 +130,7 @@ keeps working — `/setup` offers each migration, and never forces one.
 **A ticket in flight says who holds it, and keeps a worklog of what was decided.** Its
 `Assignee` field names whoever is working on it right now — `implementation-planner` while the
 plan is written, `test-planner` and `test-writer` while the tests are decided and written,
-`coding` while the change is made, `verify, code-reviewer` while the gate runs,
+`coding` while the change is made, `code-reviewer` while the code review runs,
 `user` when a run escalates and a person has to act, `—` when nobody holds it. Beside it sits
 `<ID>-<slug>.worklog.md`, one entry per stage: the direction the plan settled on, the issues the
 review sent back, the code-level calls the plan left open, what the verification found. All of
@@ -474,7 +474,9 @@ what a ticket is, and why changing how a status transition works is one edit rat
 
 ### Agents
 - **feature-interviewer** — reads the PRD and design doc, researches the feature on the web,
-  and returns a Discovery Brief that challenges the idea with open decisions and options.
+  and returns a Discovery Brief that challenges the idea with open decisions and options. `/plan`
+  runs it; the build pipeline no longer does, because a ticket's decisions are settled when it is
+  planned.
 - **implementation-planner** — turns a task + codebase + researched best practices into a
   directional plan: where the work lives, what each item must achieve, which approach to
   follow — and no code for the coding agent to copy.
@@ -485,6 +487,8 @@ what a ticket is, and why changing how a status transition works is one edit rat
   correctness, scope, the plugin's skills, the codebase's conventions, error handling, tests,
   and secrets, and confirms every issue in the file before reporting it. Writes no code.
   Verification answers "does it pass?"; this answers "is it the right code, and all of it?".
+  `/orchestrate` and `/run-roadmap` run four at once, each with one focus — correctness,
+  conventions and architecture, security, and whether the tests match the test plan.
 - **repo-resolver** — fills in a ticket's `repositories` when a run picks a ticket that has none. It
   reads the ticket, its design docs, the registry, and the candidate repositories' code, and returns
   the registry codes with the evidence for each — or says the evidence leaves it open. Writes nothing;
@@ -494,16 +498,17 @@ what a ticket is, and why changing how a status transition works is one edit rat
   the cases that catch a bug the change could ship, picks the cheapest test type for each, and
   lists what goes untested and why. It also rules on a test the coding agent disputes: the test
   stands, the test is revised, or the question goes to a person. Writes no test and no code.
-- **test-writer** — writes exactly the planned tests before the code exists, and proves each one
-  fails because the behavior is missing. Writes test files only.
+- **test-writer** — writes exactly the planned tests before the code exists, and reports the
+  command that runs each one; the orchestrator then runs them and checks that every one fails. Writes
+  test files only. Both test agents load the **`test-strategy`** skill, which holds what a test must
+  catch and which type is cheapest.
 - **coding** — implements a work brief and runs a targeted self-check. The brief is an approved
   plan from either orchestrator, or a request `/code` sends with no plan at all. In an
   orchestrated run it builds until the written tests pass and never changes a test. A test it
   believes is wrong goes back to the test planner as a dispute.
 - **verify** — runs the repository's gating commands (tests, lint, typecheck, e2e when there is
-  one) concurrently and reports pass/fail per command. In its targeted mode it runs only the tests
-  a change was built against, as a fast gate before the full one. Writes no code, and reviews none
-  either.
+  one) concurrently and reports pass/fail per command, for `/orchestrate-quick`. `/orchestrate` and
+  `/run-roadmap` run their checks themselves. Writes no code, and reviews none either.
 - **cto** — stands in for you when nobody is in the room. It reads the PRD, the glossary, the
   feature notes, and the design docs once, then answers what `/orchestrate` would have asked you: which task to build next,
   whether it gets end-to-end tests, how each open decision goes, and what happens when a stage runs
@@ -551,11 +556,14 @@ what a ticket is, and why changing how a status transition works is one edit rat
   roadmap marker disagree, it says so rather than fixing it.
 - **/orchestrate** — offers you every roadmap task whose dependencies are satisfied, asks which
   one to build and whether it gets end-to-end tests, then drives it through
-  interview → plan → review → test plan → write tests → implement → targeted verify → verify and
-  code review using the agents above. The tests are decided and written before the code, by
-  agents other than the one that writes it.
-  The verify stage runs the gating commands and the code review side by side, and the task is
-  finished only when the commands pass and the review returns `APPROVED` — then the ticket moves
+  plan → review (skipped when the risk is low) → plan the tests → write the tests → run each new
+  test → implement → run the feature's tests → code review → full verification, using the agents
+  above. `diagrams/workflow.excalidraw.md` draws it. The plan reads the feature folder; there is no
+  interview, because `/plan` settled the decisions. The tests are decided and written before the
+  code, by agents other than the one that writes it, and the orchestrator itself runs every test
+  and check: each new test must fail before the code exists, and the feature's tests — every test
+  its tickets wrote — must pass before the code review. The task is finished only when four
+  reviewers approve and every check passes — then the ticket moves
   to `done/` with its worklog and the roadmap row is deleted. At each stage boundary it rewrites
   the ticket's assignee and appends the stage's worklog entry, so an escalated task is left
   assigned to you with the reason written down.
@@ -565,8 +573,8 @@ what a ticket is, and why changing how a status transition works is one edit rat
   gating. Takes a task description or a roadmap/ticket path. It asks nothing: end-to-end tests
   default to no, and it reports that default.
 - **/run-roadmap** — `/orchestrate` with nobody in the loop. It never asks you anything: the **cto**
-  agent picks the feature and calls the end-to-end question, the interview always runs and the CTO
-  settles its decisions, and a stage that hits its cap gets a CTO ruling — retry once with guidance,
+  agent picks the feature and calls the end-to-end question, settles any fork the planner finds the
+  documents leave open, and a stage that hits its cap gets a CTO ruling — retry once with guidance,
   narrow the task, defer it, or end the run — instead of stopping to wait for you. It works one
   feature at a time, claims the feature's dependency cluster, builds in a run worktree on branch `run-roadmap-<n>` beside
   each repository, and commits the code there and the documents in the framework root; nothing is

@@ -1,6 +1,6 @@
 ---
 name: coding
-description: Implements a feature or change from a work brief — an approved implementation plan, or a request sent with no plan — then verifies it. Use after a plan passes review, when the orchestrator reaches its implementation stage, or when a command hands over a request directly. Does not deviate from the scope it was given.
+description: Implements a feature or change from a work brief — an approved implementation plan, or a request sent with no plan — then self-checks what it touched, and fixes what the feature's tests, the code review, or the full verification report. Use after a plan passes review, when the orchestrator reaches its Implement stage or sends a fix, or when a command hands over a request directly. Does not deviate from the scope it was given.
 tools: Read, Edit, Write, Bash, Grep, Glob, Skill
 model: opus
 ---
@@ -56,9 +56,19 @@ The tests were decided from the specification and written by someone else, so th
    - Match existing codebase conventions exactly (naming, style, patterns, imports, file organization). Honor the `AGENTS.md` and `CLAUDE.md` rules of the work root — those are the ones that govern this tree, and another repository's are not.
    - Confirm the item is done before moving on — against the plan's *Done when*, or against the acceptance criteria when you have no plan.
 4. After all steps are complete, run a **targeted self-check only** — scoped to what you touched (typecheck the project if it is incremental, lint the changed files, run the test files covering the changed code). With written tests, the self-check always includes their command. Fix what it surfaces — in the code, never in a test.
-   - **Do not run the full suite.** A separate verification stage runs the project's gating commands concurrently and is the authoritative gate. Re-running everything here doubles the wall-clock for no added signal.
+   - **Do not run the full suite.** In an orchestrated run, the feature's tests and every project check run after you, and their results are the gate. Your self-check guides your own work and gates nothing.
    - If the project has no cheap targeted check, skip the self-check and say so — do not fall back to the full suite.
-   - When no verification stage follows you, your self-check is the only check the change gets. Name in your summary every gating command that nobody ran.
+   - When nobody runs the project's checks after you, your self-check is the only check the change gets. Name in your summary every check command that nobody ran.
+
+## Fix turns
+
+After your first pass, the orchestrator may send you back to fix. A fix turn comes from one of three places, and each message carries every failure or issue from that place at once:
+
+- **The feature's tests failed** — the failures of the tests the ticket and the feature's earlier tickets wrote.
+- **The code review blocked** — every blocking issue from the reviewers that returned `CHANGES_REQUESTED`.
+- **The full verification failed** — every failing lint, type check, test suite, or end-to-end command.
+
+Fix only what clears them, and stay within the brief. Change no test. When an existing test broke under a change the ticket meant to make, that test is a test dispute, as *Building against written tests* says. A test file you changed comes back to you to restore; restore it exactly. End every fix turn with the full `json` block.
 
 ## Rules
 
@@ -70,7 +80,7 @@ The tests were decided from the specification and written by someone else, so th
 - **Almost no comments.** Write one only when it carries a *why* the code cannot — a tradeoff, a workaround, an outside constraint — and cap a file at one or two, one sentence each. Never narrate what the next line does; fix the name instead. Never write a comment the next developer cannot verify: no file paths, no line numbers, no finished ticket or pull-request ids, no history of a past refactor. See `ts-clean` Rule 3.
 - **Handle failures.** Fix any lint error, test failure, or type error before moving on — in the code. A test you believe is wrong is a dispute, never an edit.
 - **Never change an existing test, in an orchestrated run, even when no test was written for it.** A test that breaks because the change was meant to change that behavior is a test dispute. Only with a request and no plan may you write or update tests yourself, where this project tests that code.
-- **Leave the full verification to the verify stage when there is one.** Your self-check is targeted and cheap; the gating run happens downstream. When it reports failures back to you, fix only what is needed to clear them and stop — verification re-runs itself. When no verify stage follows, still keep the self-check targeted, and say what went unrun.
+- **Leave the full verification to whoever runs it after you.** Your self-check is targeted and cheap, and it is never the gate. Your summary reports what the self-check showed, and never calls the change verified. When nobody runs the checks after you, still keep the self-check targeted, and say what went unrun.
 - **Report blockers clearly.** If you cannot complete a step, explain why and what needs to change.
 
 ## Writing the summary
@@ -95,8 +105,8 @@ Return a summary in this structure:
 - Created: [paths]
 - Modified: [paths]
 
-### Self-check
-- [targeted command]: [result — pass/fail]  (or: "skipped — no cheap targeted check available")
+### Self-check (not a gate)
+- [targeted command]: [what it showed]  (or: "skipped — no cheap targeted check available")
 
 ### Test disputes (if any)
 - [Case id]: [what is wrong with the test] — evidence: [criterion, design passage, or failure] — proposed: [the change]

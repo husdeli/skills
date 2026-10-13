@@ -40,7 +40,7 @@ The folder a session starts in. It holds the registry and the glossary, and it m
 
 ## Gate
 
-A fixed rule that decides whether a run goes on, such as the plan-review skip gate or the rule that finishes a ticket. A gate is applied mechanically, from the numbers and verdicts the agents report.
+A fixed rule that decides whether a run goes on, such as the plan-review skip gate or the rule that finishes a ticket. A gate is applied mechanically, from the numbers and verdicts the agents report and the results of the checks the orchestrator runs.
 
 ## Glossary
 
@@ -48,7 +48,7 @@ A fixed rule that decides whether a run goes on, such as the plan-review skip ga
 
 ## Orchestrator
 
-The session that drives one run: it picks the ticket, starts the agents, and settles every gate. It is the only writer of the ticket, the worklog, and the roadmap; an agent reports to it and writes no document.
+The session that drives one run: it picks the ticket, starts the agents, runs every test and check itself, and settles every gate. It is the only writer of the ticket, the worklog, and the roadmap; an agent reports to it and writes no document.
 
 ## Pointer file
 
@@ -92,11 +92,11 @@ A git worktree of one work root, made for one roadmap run on its own branch `run
 
 ## Stage
 
-One step of a run, such as the plan review or the implementation. Each stage has its own agent and its own worklog entry.
+One step of a run, such as the plan review or the implementation. An agentic stage has its own agent; a deterministic one, such as running the feature's tests, is a command the orchestrator runs. Each stage has its own worklog entry.
 
 ## Test dispute
 
-A claim by `coding` that a test, not its code, is wrong. It names the test, what is wrong with it, the evidence, and the change it proposes, and `test-planner` rules on it. It is the only way a written test changes once the code is being built.
+A claim by `coding` that a test, not its code, is wrong — a test defect. It names the test, what is wrong with it, the evidence, and the change it proposes, and `test-planner` rules on it. It is the only way a written test changes once the code is being built.
 
 ## Test plan
 

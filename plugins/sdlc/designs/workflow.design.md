@@ -18,45 +18,53 @@ The workflow turns one planned [[glossary#Ticket|ticket]] into code that has bee
 ## 1. Foundations
 
 - **One run drives one ticket.** The next ticket is the next run.
-- **The [[glossary#Orchestrator|orchestrator]] is the only writer.** It alone writes the ticket, its [[glossary#Worklog|worklog]], and the [[glossary#Roadmap|roadmap]]. Every agent reports to it and writes no document.
+- **The decisions are made before the run.** Planning interviews the person and writes each settled choice into the ticket's `Decisions`, the feature, and its design docs. The run reads them; it holds no interview.
+- **The [[glossary#Orchestrator|orchestrator]] is the only writer.** It alone writes the ticket, its [[glossary#Worklog|worklog]], and the [[glossary#Roadmap|roadmap]]. Every agent reports to it and writes no document, and the orchestrator records each report in the worklog — so the worklog knows every test the ticket wrote.
 - **A status change is one step.** The orchestrator rewrites `status`, `assigned`, and `updatedAt`, moves the file to its [[glossary#Bucket|bucket]], and edits the roadmap together.
 - **Every agent works in the [[glossary#Work root|work root]] it is given.** The orchestrator resolves it once, before the first agent starts, and passes it to each agent as an absolute path.
+- **A check is a command, not a judgment.** The orchestrator runs every test and every project check itself and reads the result. No agent reports a check as passed.
 - **[[glossary#Gate|Gates]] and caps are mechanical.** A threshold is a number, a cap of one means one, and no run adds a cycle because the next one looks close.
-- **A ticket is `done` only when verification passed and the code review approved.** A passing suite alone never finishes a ticket.
-- **Tests come before the code, from the specification, and from someone other than the coder.** One agent decides what to test, another writes the tests, and only then does `coding` build. The code is done when it passes tests it could not shape.
-- **A test earns its place by the bug it catches.** The [[glossary#Test plan|test plan]] holds the fewest tests that catch the bugs this change could ship, each of the cheapest type that catches it. Coverage is never a reason to write one.
+- **A ticket is `done` only when the feature's tests pass, every code reviewer approves, and every project check passes.** A passing suite alone never finishes a ticket.
+- **Tests come before the code, from the specification, and from someone other than the coder.** One agent decides what to test, another writes the tests, the orchestrator proves each one fails, and only then does `coding` build. The code is done when it passes tests it could not shape.
+- **A test earns its place by the bug it catches.** The [[glossary#Test plan|test plan]] holds the fewest tests that catch the bugs this change could ship, each of the cheapest type that catches it. Coverage is never a reason to write one. The `test-strategy` skill holds these rules, and both test agents load it.
 
 ## 2. Parts
 
 ### 2.1 Structure
 
 ![[workflow.excalidraw]]
-*The stages of one run in order, the status the ticket holds in each, and the loops a run may take: a plan revision, a test dispute, a targeted fix, and a fix after verify and code review.*
+*The stages of one run in order — which are deterministic steps the orchestrator runs and which are agents — what the plan reads, the skill both test agents load, and the loops a run may take: a plan revision, a test that does not fail, a test defect, and a fix after the feature's tests, the code review, or the full verification.*
 
 A run is one orchestrator and the agents it drives. Questions go to the **answerer**: the person in an interactive run, the `cto` agent in an autonomous one.
 
 | Agent                    | [[glossary#Stage\|Stage]]   | Answers                                                       | Returns                                                                  |
 | ------------------------ | --------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `feature-interviewer`    | Interview                   | What must be decided before planning                          | Open decisions, each with options and a recommendation                   |
-| `implementation-planner` | Plan                        | How the ticket is built                                       | A [[glossary#Context pack\|context pack]], then the plan and its risk profile |
-| `plan-reviewer`          | Plan review                 | Does the plan meet every acceptance criterion and fit the code | `APPROVED` or `CHANGES_REQUESTED`, with issues                           |
-| `test-planner`           | Test plan, test dispute     | Which bugs could this change ship, and which fewest, cheapest tests catch them | The test cases, each with the bug it catches and its type, and what goes untested and why; a ruling on each disputed test |
-| `test-writer`            | Write tests                 | Writes the planned tests before the code exists               | The test files, the command that runs them, and proof that each test fails for the expected reason |
-| `coding`                 | Implement                   | Builds the approved plan until the written tests pass         | The files changed, the calls it made, any blocker, and any [[glossary#Test dispute\|test dispute]] |
-| `verify`                 | Targeted verify, Verify     | Does the change pass the tests it was built against, then the project's checks | Pass, fail, or skipped, per check                                        |
-| `code-reviewer`          | Code review                 | Is the change the right code, and all of it                   | `APPROVED` or `CHANGES_REQUESTED`, with issues                           |
+| `implementation-planner` | Plan, revise the plan       | How the ticket is built, from the feature folder and the code | A [[glossary#Context pack\|context pack]] with the project's check commands, then the plan and its risk profile |
+| `plan-reviewer`          | Review the plan             | Does the plan meet every acceptance criterion and fit the code | `APPROVED` or `CHANGES_REQUESTED`, with issues                           |
+| `test-planner`           | Plan the tests, test defect | Which bugs could this change ship, and which fewest, cheapest tests catch them | The test cases, each with the bug it catches and its type, and what goes untested and why; a ruling on each disputed test |
+| `test-writer`            | Write the tests             | Writes the planned tests before the code exists               | The test files, and the command that runs each case                      |
+| `coding`                 | Implement, fix              | Builds the approved plan until the tests pass                 | The files changed, the calls it made, any blocker, and any [[glossary#Test dispute\|test dispute]] |
+| `code-reviewer`          | Code review                 | Is the change the right code, judged from one focus           | `APPROVED` or `CHANGES_REQUESTED`, with issues                           |
 | `cto`                    | Any question, autonomous only | The call a person would make                                | A decision, what it beat, and the cost it accepted                       |
 
+- **The code review is four `code-reviewer` agents at once, one per focus**, on every ticket:
+
+  | Focus          | Judges                                                                              |
+  | -------------- | ----------------------------------------------------------------------------------- |
+  | `correctness`  | Bugs, edge cases, and whether every acceptance criterion is met                      |
+  | `conventions`  | Fit with the codebase, its architecture, and the plugin's coding skills              |
+  | `security`     | Authentication, input handling, secrets, and injection                               |
+  | `tests`        | Whether the tests match the test plan and catch the bugs it named                    |
+
 - **Every agent ends its reply with one machine-readable result block.** The orchestrator drives the run from that block alone. It asks once for a missing or malformed block; a second miss aborts the run.
-- **Each role starts once per run and is resumed for every later turn.** A resumed agent keeps what it read, so the orchestrator sends only what changed.
-- **`verify` starts fresh for every check.** A result from before a fix proves nothing about the code after it.
-- **Only `verify` runs the project's checks.** `coding` checks only what it touched, `test-writer` runs only the tests it wrote, and `code-reviewer` runs no checks.
-- **Only `test-writer` writes the ticket's tests, and `coding` never changes them.** A test `coding` believes is wrong becomes a test dispute, which `test-planner` rules on. `coding` never weakens, skips, or deletes a test to get past it.
-- **`test-planner` reads the specification before the plan.** It derives the cases from the ticket's criteria, the design docs, and the decisions, and reads the plan only to learn where each test attaches. Cases drawn from the plan would test what the code does, not what it must do.
+- **Each role starts once per run and is resumed for every later turn.** A resumed agent keeps what it read, so the orchestrator sends only what changed. Each review focus is its own role.
+- **Only the orchestrator runs the project's checks.** `coding` checks only what it touched, `test-writer` runs only the tests it wrote, and no reviewer runs a check.
+- **Only `test-writer` writes the ticket's tests, and `coding` never changes them.** A test `coding` believes is wrong becomes a test dispute — a test defect — which `test-planner` rules on. `coding` never weakens, skips, or deletes a test to get past it.
+- **`test-planner` reads the specification before the plan.** It derives the cases from the ticket's criteria, its decisions, and the design docs, and reads the plan only to learn where each test attaches. Cases drawn from the plan would test what the code does, not what it must do.
 
 ### 2.2 What a run reads
 
-The ticket, the feature note its `feature` property links, and the design docs that feature lists. The PRD of the feature's project, when the project has one. The worklog, when the ticket resumes from `blocked`. The [[glossary#Registry|registry]], to resolve the work root.
+The ticket, with its `Decisions`. The feature folder its `feature` property links: the feature note and the design docs it lists, and the solution designs in `designs/` that underpin every feature. The PRD of the feature's project, when the project has one. The worklogs of the feature's other tickets, for the tests the feature already has. The worklog, when the ticket resumes from `blocked`. The [[glossary#Registry|registry]], to resolve the work root.
 
 ## 3. The run
 
@@ -65,16 +73,17 @@ The ticket, the feature note its `feature` property links, and the design docs t
 | Stage                  | `status`      | `assigned`                   | Worklog entry when it lands                              |
 | ---------------------- | ------------- | ---------------------------- | -------------------------------------------------------- |
 | Pick                   | `backlog`     | unchanged                    | none                                                     |
-| Start                  | `in progress` | `feature-interviewer-<n>`    | `<orchestrator> · start`                                 |
-| Interview and scout    | `in progress` | `feature-interviewer-<n>`    | `feature-interviewer · interview`                        |
+| Start                  | `in progress` | `implementation-planner-<n>` | `<orchestrator> · start`                                 |
 | Plan                   | `in progress` | `implementation-planner-<n>` | `implementation-planner · plan`                          |
-| Plan review            | `in progress` | `plan-reviewer-<n>`          | `plan-reviewer · plan review`                            |
-| Test plan              | `in progress` | `test-planner-<n>`           | `test-planner · test plan`                               |
-| Write tests            | `in progress` | `test-writer-<n>`            | `test-writer · tests`                                    |
+| Review the plan        | `in progress` | `plan-reviewer-<n>`          | `plan-reviewer · plan review`                            |
+| Plan the tests         | `in progress` | `test-planner-<n>`           | `test-planner · test plan`                               |
+| Write the tests        | `in progress` | `test-writer-<n>`            | `test-writer · tests`                                    |
+| Run each new test      | `in progress` | `test-writer-<n>`            | `<orchestrator> · new tests`                             |
 | Implement              | `in progress` | `coding-<n>`                 | `coding · implement`                                     |
-| Test dispute           | `in progress` | `test-planner-<n>`           | `test-planner · test dispute`                            |
-| Targeted verify        | `in progress` | `verify-<n>`                 | `verify · targeted`                                      |
-| Verify and code review | `review`      | `code-reviewer-<n>`          | `verify · verification`, then `code-reviewer · code review` |
+| Run the feature's tests | `in progress` | `coding-<n>`                | `<orchestrator> · feature tests`                         |
+| Test defect            | `in progress` | `test-planner-<n>`           | `test-planner · test dispute`                            |
+| Code review            | `review`      | `code-reviewer-<n>`          | `code-reviewer · code review`, one per focus             |
+| Run full verification  | `review`      | `coding-<n>` while it fixes  | `<orchestrator> · verification`                          |
 | Finish                 | `done`        | removed                      | `<orchestrator> · done`                                  |
 
 `<n>` is the run's number; see 4. Claims.
@@ -90,31 +99,33 @@ The work roots come from the ticket's `repositories`, which names them by regist
 3. A settled answer is written onto the ticket in the Start step, so no later run resolves it again.
 4. When the evidence leaves it open, the answerer chooses among the candidates; an autonomous run has no answerer for this and ends for a person. The orchestrator never guesses.
 
-**Interview and scout.** Two agents start at once. The interviewer reads the documents and the code, and returns the open decisions. The planner surveys the same code, researches current practice, returns the context pack, and waits. The answerer settles every decision in one round. The interview entry records each decision, what it beat, and each assumption confirmed.
+**Plan.** The planner reads the feature folder — the ticket and its decisions, the feature note, the design docs, the solution designs, and the PRD — then surveys the code and researches current practice. It returns the context pack, with the project's check commands, and the plan with a risk profile: the files touched, whether it adds a dependency or a public interface, and whether a command can check every acceptance criterion. The ticket's decisions are fixed constraints. A fork the documents leave open goes to the answerer in one round, and the answers are recorded; a fork the answerer cannot settle sends the ticket back to planning, as an escalation. The plan itself is kept nowhere. The plan entry records the direction it took, the approach it turned down, and any answer the answerer gave.
 
-**Plan.** The planner receives the decisions as fixed constraints and writes the plan from what it already read. It returns the plan with a risk profile: the files touched, whether it adds a dependency or a public interface, and whether a command can check every acceptance criterion. The plan itself is kept nowhere. The plan entry records the direction it took and the approach it turned down.
+**Review the plan.** The risk gate in 3.2 Gates decides whether a review runs: a low-risk plan goes straight to Plan the tests. The reviewer reads the context pack while the plan is still being written. On `CHANGES_REQUESTED`, the planner revises once and the same reviewer reviews again. A second `CHANGES_REQUESTED` is an escalation.
 
-**Plan review.** The review gate in 3.2 Gates decides whether a review runs. The reviewer reads the context pack while the plan is still being written. On `CHANGES_REQUESTED`, the planner revises once and the same reviewer reviews again. A second `CHANGES_REQUESTED` is an escalation.
+**Plan the tests.** `test-planner` loads the `test-strategy` skill. It starts when the planner starts, and works from the specification alone while the plan is written and reviewed: the ticket's criteria and decisions, the design docs, and the end-to-end decision. When the plan is approved, or its review skipped, it receives the plan and attaches each case to the public interface the plan exposes. Each case names the bug it catches, the input that exposes the bug, the expected result, and the cheapest type that catches it: unit, then integration, then end-to-end. An end-to-end case covers a critical path only, and only when the end-to-end decision says yes. The plan also lists what goes untested and why. A plan with no case — a change no test could catch failing, such as a copy edit or a config value — skips Write the tests and Run each new test, and the entry says why. The test plan entry records each case in one line and each exclusion.
 
-**Test plan.** `test-planner` starts when the decisions reach the planner, and works from the specification alone while the plan is written and reviewed: the ticket's criteria, the design docs, the decisions, and the end-to-end decision. When the plan is approved, it receives the plan and attaches each case to the public interface the plan exposes. Each case names the bug it catches, the input that exposes the bug, the expected result, and the cheapest type that catches it: unit, then integration, then end-to-end. An end-to-end case covers a critical path only, and only when the end-to-end decision says yes. The plan also lists what goes untested and why. A plan with no case — a change no test could catch failing, such as a copy edit or a config value — skips Write tests and Targeted verify, and the entry says why. The test plan entry records each case in one line and each exclusion.
+**Write the tests.** `test-writer` loads the `test-strategy` skill and writes the cases in the test plan and nothing else: no production code, and no case the plan does not hold. It may add the fixture or helper a case needs. It reports every file it changed and the command that runs each case. The orchestrator records a fingerprint of every file the writer changed, and the tests entry records the files and the commands — the record the feature's later tickets run.
 
-**Write tests.** `test-writer` writes the cases in the test plan and nothing else: no production code, and no case the plan does not hold. It may add the fixture or helper a case needs. It runs the tests and reports, per case, that each fails because the behavior is missing, and not because the test is broken. A case that already passes catches nothing. The writer sharpens it once and reports it if it still passes, unless the plan marks it as a guard on behavior that already exists. The orchestrator records a fingerprint of every file the writer changed. The tests entry records the files, the command that runs them, and each case that did not fail as expected.
+**Run each new test.** The orchestrator runs each new case by the writer's command and reads the result. **Every new test must fail**, because the behavior is missing: a case that passes catches nothing, and a case that does not run at all is broken. A case that passes or does not run goes back to `test-writer`, which sharpens or repairs it once; one that still passes is recorded and the run goes on, unless the test plan marks it as a guard on behavior that already exists. The entry records each case and how it failed. A test the writer rewrites after implementation — after a test defect — skips this check and goes straight to Run the feature's tests: the code that makes it pass now exists.
 
-**Implement.** `coding` builds the approved plan until the written tests pass, and nothing beyond it. It writes no test of its own and never changes a file `test-writer` wrote. When it lands, the orchestrator compares the fingerprints. A changed test file goes back to `coding` to restore, and that costs a targeted fix cycle. A blocker it reports is an escalation. The implement entry records the calls the plan left open.
+**Implement.** `coding` builds the approved plan until the written tests pass, and nothing beyond it. It writes no test of its own and never changes a file `test-writer` wrote. When it lands, the orchestrator compares the fingerprints. A changed test file goes back to `coding` to restore, and that costs a feature-test fix cycle. A blocker it reports is an escalation. The implement entry records the calls the plan left open.
 
-**Test dispute.** When `coding` concludes that a test, not its code, is wrong, it finishes every other work item it can, then returns a dispute instead of working around the test. The dispute names the test, what is wrong with it, the evidence, and the change it proposes. `test-planner` rules on each disputed test:
+**Run the feature's tests.** The orchestrator runs **the feature's tests**: every test file recorded in the `tests` entries of the worklogs of the feature's tickets — the ones already `done` and this one — by the commands recorded beside them. It runs no lint, no full suite, and no end-to-end test; those run in the full verification. All passing moves the ticket to Code review. Otherwise `coding` receives the failures and fixes, and the feature's tests run again. A ticket gets two fix cycles here, and a third failure is an escalation.
+
+**Test defect.** When `coding` concludes that a test, not its code, is wrong, it finishes every other work item it can, then returns a dispute instead of working around the test. The dispute names the test, what is wrong with it, the evidence, and the change it proposes. `test-planner` rules on each disputed test:
 
 | Ruling     | What happens                                                                                     |
 | ---------- | ------------------------------------------------------------------------------------------------ |
 | `upheld`   | The test stands. `coding` receives the reason and builds against it                              |
-| `revised`  | The test plan changes. `test-writer` rewrites the test, and `coding` builds against the new one  |
+| `revised`  | The test plan changes. `test-writer` rewrites the test, and the run goes to Run the feature's tests |
 | `escalate` | The dispute turns on what the specification means, which only the answerer can settle           |
 
-A dispute may come from any `coding` turn, including a fix after the full verify, when an existing test broke under a change the ticket meant to make. A ticket gets one dispute round; a second dispute is an escalation. The dispute entry records each dispute, its ruling, and the reason.
+A dispute may come from any `coding` turn, including a fix after the code review or the full verification, when an existing test broke under a change the ticket meant to make. A ticket gets one dispute round; a second dispute is an escalation. The dispute entry records each dispute, its ruling, and the reason.
 
-**Targeted verify.** A fresh `verify` runs only the tests related to the change: the unit and integration tests `test-writer` wrote, and the existing tests of the files `coding` changed when the project's runner can select them. It runs no lint, no full suite, and no end-to-end test; written end-to-end cases run in the full verify. All passing moves the ticket to Verify and code review. Otherwise `coding` receives the failures. A ticket gets two targeted fix cycles, and a third failure is an escalation.
+**Code review.** The status becomes `review`, and four `code-reviewer` agents start at once on the same change, one per focus; see 2.1 Structure. The `tests` reviewer also gets the test plan. The review passes when every reviewer approves. Otherwise the status returns to `in progress`, and `coding` receives every blocking issue in one message. After the fix the feature's tests run again, and only the reviewers that blocked review again. A second blocked review is an escalation. A minor issue becomes a recommendation and blocks nothing.
 
-**Verify and code review.** The status becomes `review`, and `verify` and `code-reviewer` start at the same time on the same change. `code-reviewer` also gets the test plan, and judges whether the tests match it. The ticket passes when every check passes and the review approves. Otherwise the status returns to `in progress`, and `coding` receives every failure and every blocking issue in one message. After the fix the status is `review` again. A fresh `verify` runs the failed checks first, and `code-reviewer` reviews again only when it had blocked. A second failure is an escalation. A skipped check is reported as skipped, never as passed. A minor review issue becomes a recommendation and blocks nothing.
+**Run full verification.** The orchestrator runs every check command in the context pack — lint, type check, the full test suite, and the end-to-end tests when the end-to-end decision says yes and the project has them — and reads each result. All passing moves the ticket to Finish. Otherwise `coding` receives every failure in one message, fixes, and the failed checks run first, then the rest. A second failure is an escalation. A check the project lacks is reported as skipped, never as passed.
 
 **Finish.** In one step, the orchestrator:
 
@@ -125,18 +136,21 @@ A dispute may come from any `coding` turn, including a fix after the full verify
 - deletes the roadmap row;
 - corrects every remaining ticket this work proved wrong.
 
+**A run ends for a person** at every escalation, and when an agent returns nothing usable after one re-ask.
+
 ### 3.2 Gates
 
 | Gate               | Rule                                                                                                          |
 | ------------------ | ------------------------------------------------------------------------------------------------------------- |
-| Plan review skip   | The review is skipped only when the plan touches at most two files, adds no dependency and no public interface, and a command can check every acceptance criterion |
+| Risk low           | The plan review is skipped only when the plan touches at most two files, adds no dependency and no public interface, and a command can check every acceptance criterion |
 | High risk          | The plan adds a public interface, adds a dependency, or touches more than five files                         |
-| Test stages skip   | Write tests and Targeted verify are skipped only when the test plan holds no case                             |
+| Test stages skip   | Write the tests and Run each new test are skipped only when the test plan holds no case                       |
+| New tests fail     | Every new case fails when the orchestrator runs it, except a case the test plan marks as a guard              |
 | Tests untouched    | Every file `test-writer` changed keeps its fingerprint after every `coding` turn                              |
-| Done               | Every check passed, and the code review returned `APPROVED`                                                   |
+| Done               | The feature's tests pass, all four code reviewers return `APPROVED`, and every check passed                   |
 
-- **A high-risk plan gets two reviewers**, one judging correctness and completeness, one judging fit with the codebase. Either one's `CHANGES_REQUESTED` sends the plan back. A high-risk change also gets the stronger model for its code review.
-- **The code review has no skip gate.** It is the last check between a change and `done`.
+- **A high-risk plan gets two plan reviewers**, one judging correctness and completeness, one judging fit with the codebase. Either one's `CHANGES_REQUESTED` sends the plan back. A high-risk change also gets the stronger model for its code review.
+- **The code review has no skip gate.** Every focus runs on every ticket.
 
 ## 4. Claims
 
@@ -172,8 +186,8 @@ The claim stops two runs from building the same ticket at once.
 | --------------------- | -------------------------------------- | ----------------------------------------------- | --------------------------- |
 | Started by            | A person, one ticket per command       | A [[glossary#Roadmap run\|roadmap run]], one fresh session per ticket | A person      |
 | Answerer              | The person                             | `cto`                                           | The person                  |
-| Interview             | Skipped for a ticket with no product, design, or architecture fork | Always                  | Never                       |
 | Plan review           | Gated; see 3.2 Gates                   | Gated                                           | Always, one reviewer        |
+| Code review           | Four reviewers, one per focus          | Four reviewers, one per focus                   | One reviewer                |
 | Test plan and tests   | Always                                 | Always                                          | Always                      |
 | At a cap              | Escalation                             | A `cto` ruling, then escalation                 | Escalation                  |
 | Claimed               | The ticket                             | A feature's [[glossary#Dependency cluster\|dependency cluster]] | The ticket  |
@@ -199,7 +213,7 @@ An autonomous run is one ticket of a roadmap run. A roadmap run works one featur
 | Identify the work roots       | The `repositories` of the ticket to build and of its direct dependencies. A ticket with none gets them from the `repo-resolver` agent, written onto it, as in 3.1 Start | The agent cannot settle them: the run ends for a person, naming the candidates |
 | Create a run worktree         | One per work root, on branch `run-roadmap-<n>` from that work root's current commit, made once and reused by every later ticket of the run | The run ends for a person, naming the work root and the git error |
 | Pick up the ticket            | Start the chosen ticket as in 3.1                                                                            | —                                                |
-| Run the orchestration pipeline | Interview to Verify and code review, as in 3.1, in the run worktrees                                         | Not completed: the ticket stops as in 5. States, its code is discarded from the run worktrees, and the run ends for a person |
+| Run the orchestration pipeline | Plan to Run full verification, as in 3.1, in the run worktrees                                         | Not completed: the ticket stops as in 5. States, its code is discarded from the run worktrees, and the run ends for a person |
 | Commit the code               | One commit per run worktree the ticket changed, on the run branch, following that work root's own convention  | A rejected commit stops the ticket as `blocked`, with the hook's reason in `blocked_by` |
 | Commit the documents          | One commit in the framework root holding the ticket, its worklog, and the roadmap edit, when the framework root is a git tree | As for the code                                  |
 | `--max` reached               | The launcher counts tickets. Under the limit, the next session continues                                     | At the limit, the run ends                       |
@@ -226,13 +240,15 @@ An autonomous run is one ticket of a roadmap run. A roadmap run works one featur
 | ------------------------------------- | ----- |
 | Tickets per run                       | 1     |
 | Plan revisions                        | 1     |
-| Targeted fix cycles, a restored test file included | 2 |
+| Sharpen rounds for a new test that does not fail | 1 |
+| Feature-test fix cycles, a restored test file included | 2 |
 | Test dispute rounds per ticket        | 1     |
-| Fix cycles after verify and code review | 1   |
+| Code review fix cycles                | 1     |
+| Full verification fix cycles          | 1     |
 | Re-asks for a missing result block, per agent turn | 1 |
 | `cto` rulings per stage               | 1     |
 | `cto` rulings per ticket              | 2     |
 
-**A ticket that changes two work roots keeps both.** Each work root gets its own verification, code review, and commit, and the ticket passes only when both pass.
+**A ticket that changes two work roots keeps both.** Each work root gets its own feature tests, code review, full verification, and commit, and the ticket passes only when both pass.
 
 **Usage accumulates across runs.** The orchestrator adds each agent's time and tokens as its turn lands. At every exit it adds the run's totals to the ticket's `timing`, `tokens`, and `cost`, so a resumed ticket's numbers cover every run.

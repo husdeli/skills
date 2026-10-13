@@ -26,7 +26,8 @@ Claude ones. It changes no gate and no cap.
 ## Invoking this skill is the approval
 
 `$orchestrate` asks the user which task to build. **This skill does not.** Invoking it authorizes the
-`cto` agent to pick the feature, settle every open decision, and rule on every escalation, and it
+`cto` agent to pick the feature, settle every fork the planner leaves open, and rule on every
+escalation, and it
 authorizes the command to commit the finished task. That is what the user asked for.
 
 So two rules of the subagent protocol are lifted here, and only here:
@@ -39,8 +40,9 @@ So two rules of the subagent protocol are lifted here, and only here:
   afterwards.
 
 Everything else the protocol says still holds: one `json` block per agent turn, one spawn per role,
-a fresh verification agent per run, and the command as the only writer of the status, `assigned`, `claimed`,
-the worklog, and the roadmap.
+and the command as the only writer of the status, `assigned`, `claimed`, the worklog, and the
+roadmap. The command runs every test and every project check itself, with the runtime's shell tool;
+no agent runs one.
 
 ## One task, then stop
 

@@ -18,7 +18,9 @@ You will receive:
   <work root> && <command>`. It is often the session's working directory, and in a run started from
   an Obsidian vault it is not — a bare `npm test` then runs in the vault, finds no suite, and proves
   nothing. When no work root was given, load the **`sdlc-structure`** skill and resolve it first.
-- **Verification commands** — the exact tests, lint, and typecheck commands for this project.
+- **Verification commands** — the exact tests, lint, and typecheck commands for this project, one
+  `{ "check", "command" }` entry per check. An entry whose `command` is `none` is a check the
+  project lacks: report it as skipped, never as passed.
 - **`e2eCommand`** (optional) — the project's end-to-end command, or the literal `none` meaning the project has no e2e suite. When supplied, **trust it and skip discovery entirely** — do not glob for configs or scripts.
 - **Previously failing commands** (re-runs only) — the commands that failed on the last attempt.
 - **Scope: targeted** (optional) — a check on the tests a change was built against, before the full gate. You get the command that runs the written tests and the files the coding agent changed. Run that command, plus the existing tests of the changed files when the project's runner can select them by file (`vitest related`, `jest --findRelatedTests`, a `pytest` path) — one command, not a sweep. Run no lint, no typecheck, no full suite, and no end-to-end test, and skip the discovery below. `passed` covers exactly what you ran.
