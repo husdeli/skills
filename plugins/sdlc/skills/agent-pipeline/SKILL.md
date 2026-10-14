@@ -11,7 +11,8 @@ this skill holds the mechanics every one of them shares.
 ## Spawn once, resume with SendMessage
 
 An agent that runs inside a loop — a planner that revises, a reviewer that re-reviews, a coding
-agent that fixes — is spawned **once**. Keep the id or name the `Agent` call returns, and resume
+agent that fixes — is spawned **once**. Two agents of one type with different jobs are two roles:
+each code-review focus is spawned once, and a re-review resumes the reviewer that blocked. Keep the id or name the `Agent` call returns, and resume
 that same agent with `SendMessage` for every later turn.
 
 **Send only what changed.** The agent still holds the plan, the files it read, the context pack,
@@ -22,12 +23,23 @@ the plan, the coding agent the failures alone.
 **Never re-spawn a role to give it new information**, and never finish an agent's work yourself in
 the main loop.
 
-## Verification is the exception
+## The orchestrator runs every check
 
-Spawn a **fresh** verification agent for every run. It is cheap, and a clean re-run with no memory
-of the previous attempt is exactly what you want from a gate: a suite that was green before the fix
-proves nothing about the code after it. On a re-run, name the previously failing commands so it
-runs those first and fails fast.
+**A check is a command, not a judgment.** The orchestrator runs every test and every project check
+itself, with Bash, in the work root, and reads the exit code and the output. No agent reports a
+check as passed: an agent's account of a run it made is a guide to its own work, never the gate.
+
+- **A check passes when its command exits zero.** Read the output for which test or which rule
+  failed, and send those lines on to whoever fixes it.
+- **Independent checks go out as parallel Bash calls in one tool block**, so the slowest one sets
+  the wall-clock.
+- **After a fix, run the failed checks first**, and the rest only when they pass. A suite that was
+  green before the fix still runs again: it proves nothing about the code after it.
+- **A check the project lacks is skipped, never passed.** Name it, and the reason, in the report.
+
+**`/orchestrate-quick` is the one exception.** It hands its checks to a fresh `verify` agent per
+run instead of running them itself, and every rule above holds for that agent's report: exit code
+zero passes, the failed checks run first after a fix, and a missing check is skipped.
 
 ## Concurrent calls go in one tool block
 
@@ -35,7 +47,7 @@ Two agents that do not need each other's answer run at the same time — **or th
 concurrent at all**. Issue both `Agent` calls, or both `SendMessage` calls, in a single tool block.
 Two calls in two blocks are two waits.
 
-A pre-read or a scout turn that later gets discarded costs tokens, never wall-clock. Take that
+A pre-read or a spec-only turn that later gets discarded costs tokens, never wall-clock. Take that
 trade: start the read while the thing it reads about is still being written.
 
 ## Every agent ends with one JSON block
@@ -44,7 +56,7 @@ Each agent ends its reply with exactly **one** fenced ` ```json ` block, in the 
 agent definition specifies. Parse it and drive control flow from it. There is no schema
 enforcement and no background workflow — the block is the interface.
 
-**The contract lives in the agent definition. Do not restate it in a spawn prompt.** A scout, pre-read, or spec-only turn emits no block when its agent definition says none is due; do not ask for one.
+**The contract lives in the agent definition. Do not restate it in a spawn prompt.** A pre-read or spec-only turn emits no block when its agent definition says none is due; do not ask for one.
 
 When a block is missing or malformed, `SendMessage` the agent **once**, asking it to re-emit *only*
 the JSON block. A second failure is an `aborted` run.
@@ -54,7 +66,7 @@ the JSON block. A second failure is an `aborted` run.
 Durable agent behavior — the skills it loads, the conventions it follows, its output contract —
 belongs in the agent definition, where it is written once. A spawn prompt is re-paid on **every**
 spawn, so it carries only what this run's agent cannot already know: the task, the criteria, the
-context pack, the decisions, and what changed since its last turn.
+context pack, the answers to any open question, and what changed since its last turn.
 
 **The work root is one of those things.** Every agent that reads code, writes code, or runs a
 command gets the repository it works in as an absolute path, in its first message. A subagent
@@ -70,37 +82,40 @@ code are three different agents. A coder that writes its own tests, or edits the
 produces tests that describe its code rather than check it.
 
 - **`test-planner` drafts from the specification first.** Spawn it in *spec only* mode at the same
-  moment the planner gets the decisions, in the same tool block as the plan reviewer's pre-read.
-  Send it the approved plan when the plan review closes. It is persistent: it also rules on every
-  test dispute, and it keeps what it decided and why.
+  moment the planner starts, in the same tool block. Send it the plan and the context pack when the
+  plan review approves, or when the risk gate skips the review. It is persistent: it also rules on
+  every test dispute, and it keeps what it decided and why.
 - **`test-writer` is persistent** too. A `revised` ruling goes back to the same agent. When an empty test plan meant it was never spawned, spawn it then, with the revised cases, the approved plan, and the context pack.
-- **An empty test plan skips the test stages.** `cases == []` means no test is written and no
-  targeted verify runs. Record the planner's reason; do not second-guess it.
+- **An empty test plan skips the test stages.** `cases == []` means no test is written and no new
+  test is run. Record the planner's reason; do not second-guess it.
+- **Every new test fails before the code exists.** The orchestrator runs each `new` case by the
+  command the writer reported for it. A case that passes catches nothing, and a case that does not
+  run is broken: either one goes back to `test-writer` once, to sharpen or repair. A `guard` case
+  checks behavior that already exists, and is exempt.
 - **Fingerprint every file `test-writer` changed**, the moment its block lands:
   `git -C <work root> hash-object <file>…`. Compare after every `coding` turn. A file whose
   fingerprint moved goes back to `coding` with "restore this test file exactly; dispute it instead
-  of changing it", and that costs one targeted fix cycle. Take the fingerprints again after every
+  of changing it", and that costs one feature-test fix cycle. Take the fingerprints again after every
   `test-writer` turn, since a `revised` ruling changes them legitimately, and drop the ones for
   files it deleted.
 - **A test dispute goes to `test-planner`, never straight to `test-writer`.** Forward the coding
   agent's `testDisputes` as they came, with the specification passages they cite. Then act on each
-  ruling: `upheld` → `coding` gets the reason; `revised` → `test-writer` changes the test, then
-  `coding` gets the change; `escalate` → the run's escalation. When one round holds both kinds, run
-  the `test-writer` turn first, then send `coding` one message with every ruling.
+  ruling: `upheld` → `coding` gets the reason and builds against it; `revised` → `test-writer`
+  changes the test, and the feature's tests run next, with no new-test check, because the code that
+  makes it pass may already exist; `escalate` → the run's escalation. When one round holds both
+  kinds, run the `test-writer` turn first, then send `coding` one message with every ruling.
 
 ## Never duplicate the gating run
 
 - The **coding agent self-checks** what it touched, and nothing more.
-- The **test writer runs only the tests it wrote**, to prove each one fails before the code exists.
-- The **targeted verification** runs only the written tests and the existing tests of the changed
-  files. It is a fast gate before the full one, not a second full run.
-- The **verification agent** runs the project's gating commands, concurrently, once per cycle. It
-  is the authoritative gate.
+- The **test writer runs only the tests it wrote**, while it writes them.
+- The **orchestrator runs the gate**: each new test, then the feature's tests after every change to
+  the code, then the full verification — every check command the project has. It is the only gate.
 - The **code reviewer never runs the suite.** It answers a different question about the same
-  change, and it runs beside verification rather than after it.
+  change, and reads the code rather than running it.
 
-Asking two agents to run the same suite doubles the slowest block on the critical path for no added
-signal.
+Asking an agent to run the suite the orchestrator runs doubles the slowest block on the critical
+path for no added signal.
 
 ## The outcome vocabulary
 
@@ -108,15 +123,16 @@ Every pipeline ends in exactly one of three states. Use these words, and mean on
 
 | Outcome | What happened | What it does to the ticket |
 | --- | --- | --- |
-| `completed` | Every gate passed — the commands passed **and** the review returned `APPROVED`. | Finish the ticket. |
-| `escalate` | A stage hit its retry cap, an agent reported a blocker it cannot pass, or the test planner ruled that a dispute turns on what the specification means. | Stop without finishing: the ticket becomes `blocked`, with one `blocked_by` line naming what a person must decide. |
+| `completed` | Every gate passed — the tests and every check passed **and** every code reviewer returned `APPROVED`. | Finish the ticket. |
+| `escalate` | A stage hit its retry cap, an agent reported a blocker it cannot pass, the answerer could not settle an open question, or the test planner ruled that a dispute turns on what the specification means. | Stop without finishing: the ticket becomes `blocked`, with one `blocked_by` line naming what a person must decide. |
 | `aborted` | An agent returned no usable result — it died, or produced no valid JSON block after one retry. | Stop without finishing: the ticket becomes `blocked`, with one `blocked_by` line naming the stage and the agent that went silent. |
 
 **Apply each cap mechanically.** A revision cap of one means one, and a fix cap of one covers every
-defect found in that cycle together — verification failures and blocking review issues in a single
-message, not one message each. Do not improvise an extra cycle because the next one looks close.
+defect found in that cycle together — every blocking issue from every reviewer in one message, and
+every failed check in one message, not one message each. Do not improvise an extra cycle because
+the next one looks close.
 
-**Never report a skipped command as green**, and never mark work complete on a passing suite alone
+**Never report a skipped check as green**, and never mark work complete on a passing suite alone
 when a review is part of the gate.
 
 The `ticket-board` skill holds what each outcome writes to the ticket — its `status`, `assigned`,

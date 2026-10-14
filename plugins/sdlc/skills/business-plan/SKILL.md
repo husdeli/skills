@@ -203,7 +203,7 @@ holds no Related line. Section 2 already lists the features, and section 5 lists
 5. **Competition**: the competitor query below, the positioning line — the one home for what
    makes this product different, in three to five points, each naming what it beats and by what
    measure — and one paragraph on the main substitute. No per-competitor detail. A point that names
-   no competitor and no measure is a product goal: it belongs in `prd.md` §3, and the plan links it.
+   no competitor and no measure is a product goal: it belongs in the PRD's goals and non-goals, and the plan links it.
 6. **Business model**: plans, prices, limits, and the rules that shape revenue.
 7. **Unit economics**: contribution and margin per product, the blended figure, and what free
    users cost.

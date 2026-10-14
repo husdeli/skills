@@ -96,7 +96,7 @@ as Stage 2 does.
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
-The documents sit in the **project** — `prd.md`, `glossary.md`, `features/<feature>/`, `designs/<subject>.design.md`, `roadmap.md`, and `tickets/<status>/<ID>-*.md` with a worklog beside a ticket in flight. `sdlc-structure` resolves the project, and every `.sdlc/…` path below means `<project>/…`; a bare path resolves against the project first, then the work root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
+The documents sit where `sdlc-structure` lays them out: `glossary.md`, `features/<feature>/`, `designs/<subject>.design.md`, and the tickets in `work/<bucket>/<CODE>-<NNN>-<slug>.md` at the framework root, with a worklog beside a ticket in flight, and `prd.md` and `roadmap.md` in the project. `sdlc-structure` resolves both; a bare path resolves against the framework root first, then the work root. `ticket-board` says how to find a ticket and what a roadmap row and its `Depends on` cell mean.
 
 **The code sits in the work root**, which is the session's own repository in a repo-rooted run, and a repository named in the project's registry in a vault-rooted one. `sdlc-structure` holds the resolution: the ticket's `repositories`, or the `sdlc:repo-resolver` agent when that is empty, its codes written onto the ticket. This command resolves it in Stage 2, before the ticket starts, writes it into the opening worklog entry, and passes it as an absolute path in every agent prompt. Ask the user when the agent cannot settle it, and check the session can write there before you spawn anything — `/add-dir <work root>` is the fix, and no agent can apply it.
 

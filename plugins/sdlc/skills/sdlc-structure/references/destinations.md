@@ -60,6 +60,11 @@ buckets.
   brackets start a YAML list. In the body, write the wikilink plain.
 - **Escape the pipe inside a table**: `[[glossary#Bucket\|buckets]]`. An unescaped pipe ends the
   cell.
+- **Cite a section with a heading link labelled in words**:
+  `[[checkout.design#3.2 Behavior|how a declined card is retried]]`, never
+  `[[checkout.design]] §3.2`. A section number means nothing to a reader, and a `§` breaks the
+  technical-writing rule against identifiers in a sentence. A section of the same document is
+  `[[#3.2 Behavior|how a declined card is retried]]`.
 - **Qualify a name two projects share.** A project's `prd` and `roadmap` are named the same in
   every project, so a link from outside the project names the folder and keeps the display text:
   `[[projects/acme-billing/prd|prd]]`. A link from inside the project's own folder needs no path.

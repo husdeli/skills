@@ -23,12 +23,11 @@ Each name may be namespaced here — `sdlc:sdlc-structure`, `sdlc:ticket-board`,
 skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
 spawn prompt: the agents load their own.
 
-**The documents sit in the project** — `prd.md`, `glossary.md`,
-`features/<feature>/`, `designs/<subject>.design.md`, `roadmap.md`, and
-`tickets/<status>/<ID>-*.md`, with a worklog
-beside a ticket in flight. `sdlc-structure` resolves the
-project, and every `.sdlc/…` path below means `<project>/…`. When there is no project yet, work
-from whatever sits at the repository root and name `/setup` in your report.
+**The documents sit where `sdlc-structure` lays them out.** The framework root holds
+`glossary.md`, `features/<feature>/`, `designs/<subject>.design.md`, and the tickets in
+`work/<bucket>/<CODE>-<NNN>-<slug>.md`, with a worklog beside a ticket in flight. The project holds
+`prd.md` and `roadmap.md`. `sdlc-structure` resolves both. When there is no framework root yet,
+work from whatever sits at the repository root and name `/setup` in your report.
 
 ## The code sits in the work root, which is not always where you are standing
 
@@ -91,9 +90,6 @@ carries it in `assigned`: `coding-2` works for `orchestrate-2`. Your own entries
 A `test-writer · tests` entry records every file the writer changed and the command that runs each
 case. **The feature's later tickets run their tests from that record**, so it must name what is on
 disk now.
-
-**With no ticket file**, the worklog is `.sdlc/tickets/in-progress/<slug>.worklog.md`, beside the
-brief; when there is neither, there is nothing to write and you say so in the report.
 
 **Every exit writes the outcome entry and the assignee** — an escalation or an abort at any stage
 runs `ticket-board`'s *Stopping without finishing* transition, so the next session can read the
@@ -238,7 +234,7 @@ The planner reads the feature folder — the ticket and its `Decisions`, the fea
 
 - **Nothing returned** → `aborted` (stage `plan`).
 - **`openQuestions` is empty**: the turn holds the plan. Go on below.
-- **`openQuestions` is not empty**: the turn holds the context pack and no plan. Put every question to the user in **one round** of `AskUserQuestion` — up to 4 questions per call, the planner's recommendation first and labelled "(Recommended)", each option's cost in its description. Then, in **one tool block**:
+- **`openQuestions` is not empty**: the turn holds the context pack, no plan, and a `null` `riskProfile`. Put every question to the user in **one round** of `AskUserQuestion` — up to 4 questions per call, the planner's recommendation first and labelled "(Recommended)", each option's cost in its description. Then, in **one tool block**:
   - `SendMessage(plannerId, the answers + "Plan from these answers now. Re-emit your json block.")`;
   - the plan reviewer's **pre-read**, spawned as Review the plan says.
 
@@ -398,10 +394,10 @@ Each reviewer ends with a `json` block carrying `focus`, `verdict` (`APPROVED` |
 #### Run full verification
 Run **every check command in the context pack** yourself, as parallel Bash calls in one tool block, each as `cd <work root> && <command>`:
 
-- every entry of `verificationCommands` — lint, type check, and the full test suite;
+- the `command` of every entry in `verificationCommands` — one per `check`: lint, type check, and the full test suite;
 - the end-to-end suite, only when the `e2eDecision` is yes: the pack's `e2eCommand`, or the test writer's `e2eCommand` when the pack's is `"none"` because this ticket stood the suite up.
 
-A check passes when its command exits zero. **A check the project lacks** — a `"none"` command — is reported as skipped, with its reason, never as passed. A skipped end-to-end run is never presented as green.
+A check passes when its command exits zero. **A check the project lacks** — an entry whose `command` is `"none"` — is reported as skipped, with its reason, never as passed. A skipped end-to-end run is never presented as green.
 
 - **All pass** → Finish.
 - **A failure, not yet fixed** → in one tool block, set the assignee to `coding-<n>`; the `status` stays `review`. Then send **one** message carrying every failure: `SendMessage(codingId, "The full verification failed. Fix ONLY what is needed to clear these failures — stay within the approved plan, change no test, then stop." + each failing command and its error lines)`. Its reply goes through Implement's steps, so the feature's tests run first. Then run the failed checks again, and only when they pass, run the rest.

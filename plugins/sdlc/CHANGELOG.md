@@ -7,8 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.64.0] - 2026-10-15
+
+### Fixed
+
+- **`/plan`, `/whats-next`, `/setup`, and `build-roadmap.py` now use the board the rest of the
+  plugin uses**, as `ticket-board` and `sdlc-structure` define it. Before this, `/plan` wrote new
+  tickets into `tickets/todo/`, which every other command reads only as an older shape.
+  - `/plan` writes each ticket into `work/backlog/` with `status: backlog`, `feature`, `priority`,
+    `depends_on`, `createdAt`, and `updatedAt`. It writes no `Assignee`, `epic`, `type`, `id`, or
+    `tags`, and `related` holds only the design docs the ticket builds. An epic goes into the
+    roadmap of every project its feature names.
+  - `/whats-next` reads the three `work/` buckets and the `assigned`, `claimed`, and `blocked_by`
+    properties. A claimed ticket is never ready. A `blocked_by` line that is not a ticket ID is the
+    escalation that waits on a person; `user` as an assignee no longer marks one.
+  - `/setup` creates the framework root: `work/` with its three buckets, the glossary at the
+    framework root, the project note, and the registry under `repositories`. Every stub carries
+    its properties as frontmatter. It writes no `tickets/TEMPLATE.md`, and it offers to move an
+    older `tickets/` board into `work/`, rewriting each ticket's properties on the way.
+  - `scripts/build-roadmap.py` 2.0.0 finds the framework root the way every command does and
+    reads `work/`. It knows the current statuses, and still reads `Not Started` and `Completed`.
+    When a ticket's status and bucket disagree, the status wins. Each project's roadmap lists the
+    tickets whose feature names that project, and with no `--project` the script rebuilds every
+    project's roadmap. A new epic section gets its `**Feature**:` link and the feature's sentence.
+    `--project` takes a name or a folder, and the new `--root` names the framework root.
+- **The ticket template has a `Decisions` section.** `/plan`, the `implementation-planner`, and
+  the `cto` already read the ticket's `Decisions`, but the template had no such section.
+
 ### Changed
 
+- **`/plan` interviews with the `grilling` skill**, the one `/grill-me` runs, in place of one
+  `AskUserQuestion` call. The interviewer's open decisions and assumptions seed the design tree;
+  each round asks the whole frontier in prose, numbered, with a recommended answer; facts go to the
+  interviewer through `SendMessage`, not to the user; and the interview ends when the frontier is
+  empty and the user confirms. When `mattpocock-skills` is not installed, the command carries the
+  same rounds and format itself.
+- **The build pipeline of `/orchestrate` and `/run-roadmap` is redesigned**, as drawn in
+  `diagrams/workflow.excalidraw.md` and specified in `workflow.design.md` sections 1–3:
+  - **No interview.** The planner reads the feature folder itself: the ticket's `Decisions`, the
+    feature note, the design docs, the solution designs, and the PRD. A fork the documents leave
+    open comes back as `openQuestions`, which the answerer settles in one round. The interview
+    stays in `/plan`, and `diagrams/plan.excalidraw.md` is a first draft of that workflow.
+  - **The orchestrator runs every check itself.** No agent is used for the checks any more. Every
+    new test must fail before the code exists ("Run each new test", with one sharpen round). After
+    the code lands, the feature's tests run: every test file recorded in the worklogs of the
+    feature's tickets. Full verification runs last. Only `/orchestrate-quick` still uses the
+    `verify` agent.
+  - **The code review is four `code-reviewer` agents at once**, one per focus: `correctness`,
+    `conventions`, `security`, and `tests`. It runs after the feature's tests pass and before full
+    verification. After a fix, the feature's tests run again and only the reviewers that blocked
+    review again.
+  - **New `test-strategy` skill**, holding the shared testing rules that both `test-planner` and
+    `test-writer` now load.
+  - **Agent contract changes:**
+    - `implementation-planner` returns `verificationCommands` as `{ check, command }` entries, with
+      `none` for a check the project lacks, and gains `openQuestions`.
+    - `test-writer` reports each case's `command` and `observed` result.
+    - `code-reviewer` takes an optional `Focus:` and reports `focus`.
+    - The `cto`'s `decisions` request now answers the planner's open questions.
+  - **New caps:**
+    - one sharpen round for a new test that does not fail;
+    - two feature-test fix cycles;
+    - one code-review fix cycle;
+    - one full-verification fix cycle.
 - **A roadmap run works one feature at a time.** `/run-roadmap` selects a feature instead of a
   ticket. It claims the feature's dependency cluster: every unfinished ticket of the feature, and
   every unfinished ticket in another feature that those depend on. It then builds them in dependency

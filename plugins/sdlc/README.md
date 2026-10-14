@@ -39,31 +39,24 @@ scripts/                         # run-roadmap.sh, the unattended launcher
 
 ## Where your product docs live
 
-Every document the plugin reads or writes belongs to one **project** — one product and every
-document about it — and every line of code it writes sits in a **work root**, which is one code
-repository. The recommended home for the
-documents is a folder in an **Obsidian vault**, outside the repository — [the section below](#recommended-keep-them-in-an-obsidian-vault)
-says why. The in-repository option is `.sdlc/` at your repository root, which is what every command
-falls back to when nothing points elsewhere. The layout is the same wherever the project sits:
+Every document the plugin reads or writes sits under one **framework root**, which holds one or
+more **projects** — a project is one product and the documents about it — and every line of code
+it writes sits in a **work root**, which is one code repository. The recommended home for the
+framework root is a folder in an **Obsidian vault**, outside the repository —
+[the section below](#recommended-keep-them-in-an-obsidian-vault) says why. The in-repository option
+is `.sdlc/` at your repository root, which is what every command falls back to when nothing points
+elsewhere. The layout is the same wherever the framework root sits:
 
 ```
-<project>/              # a folder in your vault, or .sdlc/ in the repository
-  sdlc.json             the repositories this product is built in — machine-local,
+<framework root>/       # a folder in your vault, or .sdlc/ in the repository
+  sdlc.json             the repositories the projects are built in — machine-local,
                         gitignored, and what lets one board drive several repos
-  prd.md                product requirements — what the product does and why
-  glossary.md           the product's terms — one ## heading per term, defined once
-                        here and linked from every other document
-  roadmap.md            the work that is left, in order, grouped by epic
-  product/              the pieces the PRD is assembled from — one note each
-    goals/              self-hosted-first.goal.md
-    non-goals/          no-mobile-app.non-goal.md
-    personas/           solo-operator.persona.md
-    problems/           tools-need-a-server.problem.md
-    metrics/            weekly-active-vaults.metric.md
+  glossary.md           every term — one ## heading per term, defined once here and
+                        linked from every other document
   features/             one folder per feature — one thing a customer can do
     checkout/
-      checkout.feature.md    the index — what the customer can do, its state, and
-                             the code that numbers its tickets
+      checkout.feature.md    the feature note — what the customer can do, its
+                             status, its projects, and the code that numbers its tickets
       checkout.design.md     the design docs that belong to this feature
       payment-retry.design.md
     …
@@ -73,17 +66,32 @@ falls back to when nothing points elsewhere. The layout is the same wherever the
     …
   diagrams/
     checkout.excalidraw.md   one file per diagram, referenced by any document
-  business/
-    business-plan.md    the commercial case: who pays, unit economics, break-even
-    competitors/        one note per competitor, listed in the plan by a Dataview query
-  tickets/
-    TEMPLATE.md         copy per task, named <EPIC>-<NNN>-<slug>.md
-    todo/               AUTH-001-user-login.md
-    in-progress/        AUTH-002-session-timeout.md
-                        AUTH-002-session-timeout.worklog.md
-    done/               BILLING-001-invoice-export.md
-                        BILLING-001-invoice-export.worklog.md
+  work/                 every ticket, in the bucket its status names
+    backlog/            CHECKOUT-003-receipt-email.md
+    in-progress/        CHECKOUT-002-saved-card.md
+                        CHECKOUT-002-saved-card.worklog.md
+    done/               CHECKOUT-001-cart.md
+                        CHECKOUT-001-cart.worklog.md
+  projects/             optional — one folder per project
+    acme-billing/
+      acme-billing.md   the project note — its name, one paragraph, its status
+      prd.md            product requirements — what the product does and why
+      roadmap.md        the work left on this project, in order, grouped by epic
+      product/          the pieces the PRD is assembled from — one note each
+        goals/          self-hosted-first.goal.md
+        non-goals/      no-mobile-app.non-goal.md
+        personas/       solo-operator.persona.md
+        problems/       tools-need-a-server.problem.md
+        metrics/        weekly-active-vaults.metric.md
+      business/
+        business-plan.md   the commercial case: who pays, unit economics, break-even
+        competitors/       one note per competitor, listed in the plan by a Dataview query
 ```
+
+**A framework root with one project needs no `projects/`.** The project note, `prd.md`,
+`roadmap.md`, `product/`, and `business/` then sit beside `glossary.md`. Features and tickets
+belong to the framework root rather than to a project: a feature names the projects it serves in
+its `projects` property, and a ticket reaches its project through its feature.
 
 **A term is defined once, in `glossary.md`.** Each term is a `##` heading, and every other document
 links that heading at the term's first use instead of writing the definition a second time. Whoever
@@ -102,9 +110,9 @@ That is what makes questions answerable that no single document could answer bef
 advance one goal, which goal has nothing being built for it, which deferred non-goal is due for
 review, which metric has gone stale.
 
-**A feature is one thing a customer can do**, and it owns a folder. The index,
-`<feature>.feature.md`, says what the customer can do and whether it is `Planned`, `In Progress`,
-or `Shipped`, and it carries the uppercase code that numbers the feature's tickets — the feature
+**A feature is one thing a customer can do**, and it owns a folder. The feature note,
+`<feature>.feature.md`, says what the customer can do and whether it is `backlog`, `in progress`,
+or `done`, and it carries the uppercase code that numbers the feature's tickets — the feature
 and its epic are one thing seen from two sides. Everything that points at the feature points at
 that note: the roadmap epic, each ticket, and the business plan's table of what the product does,
 which is a Dataview query over `features/` rather than a list anyone maintains by hand. `/feature`
@@ -117,21 +125,26 @@ when it underpins every feature. `designs/overview.design.md` is the entry point
 parts of the whole solution and points at the rest.
 
 **The roadmap shrinks; the feature register does not.** An epic's section is deleted when its last
-task is done, and the feature note stays, marked `Shipped`. So `features/` is the list of what the
-product does, `roadmap.md` is the list of what is left, and `tickets/done/` is the record of what
+task is done, and the feature note stays, at `status: done`. So `features/` is the list of what
+the product does, `roadmap.md` is the list of what is left, and `work/done/` is the record of what
 happened.
 
-A ticket moves between the three status folders as the work progresses, and its `Status` field
-always names the folder it sits in. The commands move it for you: into `in-progress/` when an
-orchestrator starts the task, into `done/` when verification passes. A project that already
-keeps its design docs or its tickets in one flat folder, or that has no `features/` folder at all,
-keeps working — `/setup` offers each migration, and never forces one.
+A ticket moves between the three buckets of `work/` as the work progresses, and its `status`
+decides which one it sits in: `backlog` in `backlog/`; `in progress`, `blocked`, and `review` in
+`in-progress/`; `done` in `done/`. The commands move it for you: `/plan` writes it into
+`backlog/`, an orchestrator moves it into `in-progress/` when it starts the ticket, and into
+`done/` when the feature's tests, every code reviewer, and every project check pass. A board on
+an older shape — tickets in `tickets/todo/` or one flat folder, design docs loose in the project,
+or no `features/` folder at all — keeps working: `/setup` offers each migration, and never forces
+one.
 
 **A ticket in flight says who holds it, and keeps a worklog of what was decided.** Its
-`Assignee` field names whoever is working on it right now — `implementation-planner` while the
-plan is written, `test-planner` and `test-writer` while the tests are decided and written,
-`coding` while the change is made, `code-reviewer` while the code review runs,
-`user` when a run escalates and a person has to act, `—` when nobody holds it. Beside it sits
+`claimed` property names the run that holds it — `orchestrate-2` — so no second run builds it at
+the same time. Its `assigned` property names the agent working on it right now, with the same run
+number: `implementation-planner-2` while the plan is written, `test-planner-2` and
+`test-writer-2` while the tests are decided and written, `coding-2` while the change is made,
+`code-reviewer-2` while the code review runs. When a run stops without finishing, the ticket
+becomes `blocked`, its `blocked_by` names what a person must decide, and nobody holds it. Beside it sits
 `<ID>-<slug>.worklog.md`, one entry per stage: the direction the plan settled on, the issues the
 review sent back, the code-level calls the plan left open, what the verification found. All of
 that used to live in one session's context and vanish with it, so a task picked up a week later
@@ -150,7 +163,7 @@ acceptance criteria: those live in the ticket, so the roadmap stays a page you c
 pass.
 
 **Every cell in it comes from a ticket**, which is the record: the priority, the status, the
-outstanding blockers computed from the ticket's own `Depends on` field, and the row's very
+outstanding blockers computed from the ticket's own `depends_on` property, and the row's very
 existence. When a row and its ticket disagree, the ticket wins and the row is corrected — the
 commands that pick a task do that for the rows they read, and
 [`scripts/build-roadmap.py`](scripts/build-roadmap.py) rebuilds the whole file from the tickets:
@@ -168,7 +181,7 @@ not a mistake — the row under it is the urgent task it is holding up.
 
 When a task is finished, the orchestrator **deletes its row** instead of marking it completed,
 drops its ID from the `Depends on` cells that named it, and closes the epic once its last row
-goes. The ticket in `tickets/done/` is the record of what was built, so nothing is lost. What does
+goes. The ticket in `work/done/` is the record of what was built, so nothing is lost. What does
 get written back is a correction: when finished work changes what a remaining task has to do, that
 task's row and ticket are rewritten, and a constraint that governs a whole epic becomes one
 `**Note**:` line under it.
@@ -178,8 +191,8 @@ Every agent falls back to the repository root when a repository already keeps th
 
 ### Recommended: keep them in an Obsidian vault
 
-`/setup` asks where the project goes, and recommends a folder in an Obsidian vault outside the
-repository. Four reasons:
+`/setup` asks where the framework root goes, and recommends a folder in an Obsidian vault outside
+the repository. Four reasons:
 
 - **The documents are readable and editable without the repository**, on every device the vault
   syncs to. You can read the roadmap on a phone, and write a ticket without opening an editor.
@@ -187,7 +200,7 @@ repository. Four reasons:
   branches never conflict over the same ticket file, and a pull request carries the code alone.
   The board is the same board whatever branch you are on.
 - **Obsidian reads the board as a database.** Properties, backlinks, search, and the graph work
-  across the whole structure, so `status: In Progress` across every epic is one query.
+  across the whole structure, so `status: in progress` across every epic is one query.
 - **One vault holds every project.** The documents for all of them sit side by side, and a note
   of your own can link straight into any ticket.
 
@@ -205,25 +218,24 @@ at your repository root so every command still finds it:
 }
 ```
 
-It writes `sdlc.json` in the project in the same run — the registry naming every repository the
-product is built in, which is what lets one board drive several. Every command and agent resolves
+It writes `sdlc.json` at the framework root in the same run — the registry naming every
+repository the projects are built in, which is what lets one board drive several. Every command and agent resolves
 `.sdlc.json` before it reads anything, so `/plan`,
 `/orchestrate`, `/prd`, `/design`, and `/review` work against the vault exactly as they work
-against `.sdlc/`. A ticket still moves from `todo/` to `in-progress/` to `done/` as the
+against `.sdlc/`. A ticket still moves from `backlog/` to `in-progress/` to `done/` as the
 orchestrator builds it.
 
 Inside a vault the documents are written the way Obsidian reads them, and nothing else changes:
 
-- **No folder starts with a dot**, because Obsidian hides those. The project is named after the
-  product — or is the vault root itself, when you keep a vault for this one product and
-  point `/setup` at it.
-- **Fields become properties.** `**Status**: In Progress` under the title becomes
-  `status: In Progress` in the frontmatter, so a ticket is queryable in Bases or Dataview. The
-  property is the record the commands rewrite.
+- **No folder starts with a dot**, because Obsidian hides those. The framework root is a folder
+  named for what it holds — or is the vault root itself, when you keep a vault for the framework
+  and point `/setup` at it.
+- **Properties are frontmatter**, here and in the repository alike — `status: in progress` — so a
+  ticket is queryable in Bases or Dataview. The property is the record the commands rewrite.
 - **References become wikilinks.** The roadmap cites `[[AUTH-001-user-login]]`, a design doc cites
   `[[prd]]`, and a glossary term is cited as `[[glossary#Workspace owner]]`. Obsidian resolves them
-  by name, so backlinks and the graph work, and a link survives the ticket moving between status
-  folders.
+  by name, so backlinks and the graph work, and a link survives the ticket moving between
+  buckets.
 - **No `.gitkeep`, and no `git mv`** where git does not track the folder.
 
 The `sdlc-structure` skill holds these rules, and the plugin loads it whenever the destination is a
@@ -235,16 +247,17 @@ A product is often more than one repository — a web app and an API, a client a
 and its infrastructure. The vault is what lets one board cover all of them, because the documents
 belong to the product rather than to any one tree.
 
-**`/setup` writes two pointers**, so the pair can be driven from either end:
+**`/setup` writes the registry and a pointer file**, so the pair can be driven from either end:
 
-- **`sdlc.json` in the project** — the registry. One entry per repository: a short code, the path,
-  and one line saying what belongs in that repository. It is machine-local and gitignored, because
-  the paths exist on one machine.
+- **`sdlc.json` at the framework root** — the registry. One entry per repository: a short code,
+  the path, and one line saying what belongs in that repository. It is machine-local and
+  gitignored, because the paths exist on one machine. A ticket names the repositories it is built
+  in by these codes, in its `repositories` property.
 - **`.sdlc.json` in each repository** — the pointer back to the project, as before.
 
 ```json
 {
-  "repos": {
+  "repositories": {
     "web": { "path": "~/Projects/acme-web", "what": "TanStack Start app — every screen" },
     "api": { "path": "~/Projects/acme-api", "what": "Fastify service — the API and the jobs" }
   }
@@ -351,11 +364,12 @@ worth as much as its record.
   and when to start, log, and complete a ticket. The artifacts it works on belong to
   `ticket-board`.
 - **ticket-board** — The board itself, and the one place its rules are written: where a ticket
-  lives, the three status folders it moves through, the epic that numbers it, the roadmap that
-  holds only the work that is left, the `Assignee` field that names who holds it, and the worklog
-  that records what was decided. It also defines the three transitions — starting a ticket,
-  finishing one, and stopping without finishing — each of which writes the status field, the
-  folder, and the roadmap row in one tool block, so the three can never disagree.
+  lives, the three `work/` buckets it moves through, the epic that numbers it, the roadmap that
+  holds only the work that is left, the `assigned` property that names who holds it, the `claimed`
+  property that stops two runs building it, and the worklog that records what was decided. It also
+  defines the transitions — starting a ticket, finishing one, and stopping without finishing — each
+  of which writes the status, the bucket, and the roadmap row in one tool block, so the three can
+  never disagree.
 - **agent-pipeline** — How a command drives subagents: spawn each role once and resume it with
   `SendMessage` rather than re-spawning, keep a fresh verification agent per run, put concurrent
   calls in one tool block, parse the single JSON block every agent ends with and retry once before
@@ -413,10 +427,10 @@ worth as much as its record.
   `Deferred`, and is deleted rather than restated when the product decides to build it; a metric
   carries its last measured value and the date it was read — and the rule that a citation links the
   note and never repeats its reasoning.
-- **feature** — The feature: one thing a customer can do, with its own folder, an index note
-  that says what the customer can do and whether it is `Planned`, `In Progress`, or `Shipped`, and
+- **feature** — The feature: one thing a customer can do, with its own folder, a feature note
+  that says what the customer can do and whether it is `backlog`, `in progress`, or `done`, and
   the uppercase code that numbers its tickets — the feature and its epic are one thing. Holds how a
-  feature is chosen, named, coded, and retired, the rule that a `Shipped` status is verified
+  feature is chosen, named, coded, and retired, the rule that a `done` status is verified
   against the code and never taken from the board, and the query that turns `features/` into every
   list of what the product does.
 - **design-doc** — Create or update a design doc specifying how a solution works: the parts
@@ -519,16 +533,15 @@ what a ticket is, and why changing how a status transition works is one edit rat
   in the ticket and the worklog, which is how an unattended run stays readable afterwards.
 
 ### Commands and Codex skills
-- **/setup** — asks where the project goes — in an Obsidian vault, which it recommends, or in
-  the repository as `.sdlc/` — registers every repository the product is built in as `sdlc.json` in
-  the project, then creates it with stub files for the PRD, the glossary,
-  the design doc, the roadmap, a ticket template, the `product/` folders, the `features/`,
-  `designs/`, and `diagrams/` folders, and the `todo/`, `in-progress/`, and `done/` ticket
-  folders. An outside folder gets a `.sdlc.json` pointer file at
-  the repository root, and a vault gets the Obsidian shape: frontmatter properties, wikilinks, and no
-  dot-folders. Never overwrites an existing file, and offers to move a root-level
-  `prd.md`, `glossary.md`, `design.md`, or `tickets/` into the folder with `git mv` — including
-  sorting a flat tickets folder into the three status folders, moving loose `*.design.md` files into
+- **/setup** — asks where the framework root goes — in an Obsidian vault, which it recommends, or
+  in the repository as `.sdlc/` — registers every repository the projects are built in as
+  `sdlc.json` at the framework root, then creates it: the glossary, the project note, stub files
+  for the PRD, the design doc, and the roadmap, the `product/` folders, the `features/`,
+  `designs/`, and `diagrams/` folders, and `work/` with its `backlog/`, `in-progress/`, and `done/`
+  buckets. An outside folder gets a `.sdlc.json` pointer file at the repository root, and a vault
+  gets wikilinks and no dot-folders. Never overwrites an existing file, and offers to move a
+  root-level `prd.md`, `glossary.md`, `design.md`, or `tickets/` into the folder with `git mv` —
+  including moving an older `tickets/` board into the `work/` buckets, moving loose `*.design.md` files into
   `designs/`, and renaming a lone `design.md` to `designs/overview.design.md`. It also offers to
   **build the feature register** on a project that has none — proposing one feature per roadmap
   epic, showing you which design docs move into each feature folder and which stay cross-cutting,
@@ -540,20 +553,20 @@ what a ticket is, and why changing how a status transition works is one edit rat
   finished work — deleting the completed rows and folding each per-task detail section into the
   ticket that should hold it.
 - **/feature** — opens a feature, or keeps an existing one true: the goal it advances and the
-  personas it serves, the folder, the index note, the
+  personas it serves, the folder, the feature note, the
   code its epic and tickets take, and the status, which it checks against the code rather than the
   board. Run it before `/design` and `/plan` for anything new a customer can name.
 - **/plan** — turns a request into the documents the rest of the plugin reads: it interviews
   with the **feature-interviewer** agent, settles the open decisions with you, then updates the
   PRD, opens or updates the feature, writes the design docs, appends one roadmap row per task under its epic, and writes one
-  ticket per task into `tickets/todo/`. The detail goes in the ticket, never in the roadmap. It
+  ticket per task into `work/backlog/`. The detail goes in the ticket, never in the roadmap. It
   writes no code and sets no status past pending — `/orchestrate` takes it from there.
 - **/whats-next** — answers what can be worked on right now. It reads the roadmap and the ticket
   folders, sorts every task into in flight, ready to start, and waiting on a dependency, and
   names the one to start next. For a task in flight it names who holds it and quotes the last
   worklog entry, so a task that escalated says where it stopped. It writes nothing and moves no
-  ticket: it reports the state and hands off to `/orchestrate`. When the ticket folder and the
-  roadmap marker disagree, it says so rather than fixing it.
+  ticket: it reports the state and hands off to `/orchestrate`. When a ticket's status and its
+  roadmap row disagree, it says so rather than fixing it.
 - **/orchestrate** — offers you every roadmap task whose dependencies are satisfied, asks which
   one to build and whether it gets end-to-end tests, then drives it through
   plan → review (skipped when the risk is low) → plan the tests → write the tests → run each new

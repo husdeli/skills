@@ -8,18 +8,27 @@
 # that a task never sits above something it still depends on. Priority orders everything that is
 # not blocking something else.
 #
-#   ./build-roadmap.py                      # rebuild the tables in place
+#   ./build-roadmap.py                      # rebuild every project's tables in place
 #   ./build-roadmap.py --check              # report drift, write nothing (exit 1 when it differs)
-#   ./build-roadmap.py --project ~/Vaults/Personal/Acme
+#   ./build-roadmap.py --project acme-billing
+#   ./build-roadmap.py --project ~/Vaults/Work/projects/acme-billing
 #
-# Run it from the repository that holds the project, or from the project itself — in an Obsidian
-# vault, holding the roadmap and the tickets. The script finds the project the way every command
-# does: the `root` in a `.sdlc.json` pointer file, else a `.sdlc/` folder, else the working
-# directory when it holds `roadmap.md` and `tickets/`.
+# Run it from the framework root, from anywhere inside it, or from a code repository whose
+# `.sdlc.json` points at it. It finds the framework root the way every command does — the first
+# folder holding `sdlc.json`, else one holding `glossary.md` beside `work/` or `features/`; from a
+# repository, the `root` its `.sdlc.json` names, else its `.sdlc/` folder — and reads the tickets
+# in `work/backlog/`, `work/in-progress/`, and `work/done/`.
 #
-# What it never does: invent a task, rewrite a ticket, delete an epic's section, or decide that a
-# feature has shipped. Those need a person or a command. This script writes table rows and the
-# `Last updated` field, and reports everything else it found.
+# Each project keeps its own `roadmap.md`. A ticket belongs to every project its feature's
+# `projects` property names, so with no --project the script rebuilds every project's roadmap,
+# each from the tickets that belong to it. A framework root with no `projects/` holds one project.
+#
+# An older board still reads: `tickets/todo|in-progress|done/` or a flat `tickets/` folder, and the
+# statuses `Not Started` and `Completed`.
+#
+# What it never does: invent a task, rewrite or move a ticket, delete an epic's section, or decide
+# that a feature has shipped. Those need a person or a command. This script writes table rows, a
+# new epic's section, and the roadmap's `updated` date, and reports everything else it found.
 #
 # Exit codes: 0 nothing to fix, 1 the roadmap differs from the tickets (--check only), 2 an error
 # that stopped the rebuild.
@@ -28,26 +37,40 @@ from __future__ import annotations
 
 import argparse
 import datetime as _datetime
+import os
 import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-VERSION = "1.0.0"
+VERSION = "2.0.0"
 
 PRIORITIES = ("Critical", "High", "Medium", "Low")
 PRIORITY_RANK = {name.lower(): index for index, name in enumerate(PRIORITIES)}
 DEFAULT_PRIORITY = "Medium"
 
-# The roadmap carries three markers. `Review` is in flight, so it reads as in progress; `Completed`
-# never reaches a row, because a finished task leaves the file.
+# The roadmap carries three markers. `review` is in flight, so it reads as in progress; `done`
+# never reaches a row, because a finished ticket leaves the file.
 STATUS_MARKER = {
-    "not started": "⬜ **Pending**",
+    "backlog": "⬜ **Pending**",
     "in progress": "🚧 **In Progress**",
     "blocked": "🚫 **Blocked**",
     "review": "🚧 **In Progress**",
 }
-COMPLETED = "completed"
+DONE = "done"
+STATUSES = (*STATUS_MARKER, DONE)
+OLDER_STATUS = {"not started": "backlog", "completed": DONE}
+
+# A ticket's status is the record, and its bucket follows from it.
+BUCKET_OF_STATUS = {
+    "backlog": "backlog",
+    "in progress": "in-progress",
+    "blocked": "in-progress",
+    "review": "in-progress",
+    DONE: "done",
+}
+STATUS_OF_BUCKET = {"backlog": "backlog", "in-progress": "in progress", "done": DONE}
+OLDER_BUCKET = {"todo": "backlog"}
 
 TICKET_NAME = re.compile(r"^([A-Z][A-Z0-9]{1,7})-(\d{1,4})-(.+)\.md$")
 TITLE_LINE = re.compile(r"^#\s*\[([A-Z][A-Z0-9]{1,7}-\d{1,4})\]\s*(.+?)\s*$")
@@ -73,10 +96,12 @@ class Report:
         self.problems: list[str] = []
 
     def note(self, message: str) -> None:
-        self.notes.append(message)
+        if message not in self.notes:
+            self.notes.append(message)
 
     def problem(self, message: str) -> None:
-        self.problems.append(message)
+        if message not in self.problems:
+            self.problems.append(message)
 
     def say(self, message: str = "") -> None:
         if not self.quiet:
@@ -99,6 +124,8 @@ class Ticket:
     epic_name: str = ""
     priority_assumed: bool = False
     folder: str = ""
+    feature_ref: str = ""
+    feature: "Feature | None" = None
 
     @property
     def stem(self) -> str:
@@ -106,7 +133,7 @@ class Ticket:
 
     @property
     def is_done(self) -> bool:
-        return self.status.lower() == COMPLETED
+        return self.status == DONE
 
     @property
     def rank(self) -> int:
@@ -114,7 +141,17 @@ class Ticket:
 
     @property
     def marker(self) -> str:
-        return STATUS_MARKER.get(self.status.lower(), STATUS_MARKER["not started"])
+        return STATUS_MARKER.get(self.status, STATUS_MARKER["backlog"])
+
+
+@dataclass
+class Feature:
+    stem: str
+    path: Path
+    name: str
+    code: str
+    projects: list[str]
+    summary: str
 
 
 # ------------------------------------------------------------------------------------ parsing
@@ -167,6 +204,25 @@ def _clean_scalar(value: str) -> str:
             value = value[1:-1]
             break
     return value.strip()
+
+
+def link_target(value: object) -> str:
+    """The note name a wikilink or a relative path points at: `[[checkout.feature]]` and
+    `../../features/checkout/checkout.feature.md` both give `checkout.feature`."""
+    text = str(value or "").strip()
+    if text.startswith("[[") and text.endswith("]]"):
+        text = text[2:-2]
+    text = text.split("|", 1)[0].split("#", 1)[0].strip()
+    name = text.replace("\\", "/").rsplit("/", 1)[-1]
+    return name[:-3] if name.endswith(".md") else name
+
+
+def as_list(value: object) -> list[str]:
+    if isinstance(value, list):
+        return [str(item) for item in value if str(item).strip()]
+    if value is None or not str(value).strip():
+        return []
+    return [str(value)]
 
 
 def body_fields(lines: list[str]) -> dict[str, str]:
@@ -234,20 +290,24 @@ def read_ticket(path: Path, report: Report) -> Ticket | None:
         report.note(f"{ticket_id}: no title line, so the row takes its title from the file name")
 
     folder = path.parent.name
-    status = value_of("status")
-    if folder == "done":
-        if status and status.lower() != COMPLETED:
-            report.problem(
-                f"{ticket_id}: sits in done/ but its status says {status!r} — the folder wins, "
-                "and somebody has to fix the ticket"
-            )
-        status = "Completed"
-    if not status:
-        status = "Not Started"
-        report.note(f"{ticket_id}: no status field, so it reads as Not Started")
-    elif status.lower() not in STATUS_MARKER and status.lower() != COMPLETED:
-        report.problem(f"{ticket_id}: status {status!r} is not one the board uses — read as Not Started")
-        status = "Not Started"
+    bucket = OLDER_BUCKET.get(folder, folder)
+    from_bucket = STATUS_OF_BUCKET.get(bucket, "backlog")
+    written = value_of("status")
+    status = OLDER_STATUS.get(written.lower(), written.lower())
+    if not written:
+        status = from_bucket
+        report.note(f"{ticket_id}: no status property, so it reads as {status!r} from its folder")
+    elif status not in STATUSES:
+        report.problem(
+            f"{ticket_id}: status {written!r} is not one the board uses — read as {from_bucket!r} "
+            "from its folder"
+        )
+        status = from_bucket
+    elif bucket in STATUS_OF_BUCKET and BUCKET_OF_STATUS[status] != bucket:
+        report.problem(
+            f"{ticket_id}: its status is {status!r} but it sits in {folder}/ — the status wins, "
+            f"and the file belongs in {BUCKET_OF_STATUS[status]}/"
+        )
 
     priority = value_of("priority")
     assumed = False
@@ -275,6 +335,7 @@ def read_ticket(path: Path, report: Report) -> Ticket | None:
         epic_name=value_of("epic"),
         priority_assumed=assumed,
         folder=folder,
+        feature_ref=link_target(properties.get("feature", fields.get("feature", ""))),
     )
 
 
@@ -295,6 +356,79 @@ def collect_tickets(tickets_dir: Path, report: Report) -> dict[str, Ticket]:
             continue
         tickets[ticket.ticket_id] = ticket
     return tickets
+
+
+def collect_features(root: Path, report: Report) -> tuple[dict[str, Feature], dict[str, Feature]]:
+    """Every feature note under `features/`, by note name and by code."""
+    by_stem: dict[str, Feature] = {}
+    by_code: dict[str, Feature] = {}
+    folder = root / "features"
+    if not folder.is_dir():
+        return by_stem, by_code
+    for path in sorted(folder.glob("*/*.feature.md")):
+        try:
+            properties, body = split_frontmatter(path.read_text(encoding="utf-8"))
+        except OSError as error:
+            report.problem(f"{path.name}: cannot read it ({error.strerror})")
+            continue
+        if str(properties.get("type", "")).strip() != "feature":
+            report.note(f"{path.name}: its type is not `feature`, so it is not read as a feature note")
+            continue
+        stem = path.name[: -len(".md")]
+        code = str(properties.get("code", "")).strip()
+        title = next((line[2:].strip() for line in body if line.startswith("# ")), "")
+        summary = next(
+            (
+                line.strip()
+                for line in body
+                if line.strip() and not line.lstrip().startswith(("#", "-", "*", "|", ">"))
+            ),
+            "",
+        )
+        feature = Feature(
+            stem=stem,
+            path=path,
+            name=str(properties.get("name", "")).strip() or title or stem,
+            code=code,
+            projects=[link_target(entry) for entry in as_list(properties.get("projects"))],
+            summary=summary,
+        )
+        by_stem[stem] = feature
+        if code:
+            if code in by_code:
+                report.problem(
+                    f"{code}: two feature notes carry this code — {by_code[code].path.name} and "
+                    f"{path.name}. A code means one feature"
+                )
+            else:
+                by_code[code] = feature
+    return by_stem, by_code
+
+
+def attach_features(
+    tickets: dict[str, Ticket],
+    by_stem: dict[str, Feature],
+    by_code: dict[str, Feature],
+    report: Report,
+) -> None:
+    """Point each ticket at the feature it delivers: its `feature` property, else its code."""
+    for ticket in tickets.values():
+        feature = None
+        if ticket.feature_ref:
+            feature = by_stem.get(ticket.feature_ref)
+            if feature is None:
+                report.problem(
+                    f"{ticket.ticket_id}: its feature property points at {ticket.feature_ref}, "
+                    "and no feature note has that name"
+                )
+            elif feature.code and feature.code != ticket.code:
+                report.problem(
+                    f"{ticket.ticket_id}: its feature property names {feature.stem}, whose code is "
+                    f"{feature.code} — a ticket whose feature and name disagree is not valid"
+                )
+        if feature is None:
+            feature = by_code.get(ticket.code)
+        ticket.feature = feature
 
 
 # ------------------------------------------------------------------------------------ ordering
@@ -522,32 +656,53 @@ def bump_last_updated(roadmap: Roadmap, today: str) -> None:
             return
 
 
-# ------------------------------------------------------------------------------------ the project
+# ------------------------------------------------------------------------------------ the board
 
 
-def find_project_dir(given: str | None) -> Path | None:
-    if given:
-        root = Path(given).expanduser().resolve()
-        return root if root.is_dir() else None
+class BoardError(Exception):
+    """Something that stops the run before any roadmap is read."""
 
-    here = Path.cwd().resolve()
-    for parent in [here, *here.parents]:
-        pointer = parent / ".sdlc.json"
-        if pointer.is_file():
-            root = _project_dir_from_pointer(pointer)
-            if root:
-                return root
-        candidate = parent / ".sdlc"
-        if (candidate / "roadmap.md").is_file():
-            return candidate
-        if (parent / "roadmap.md").is_file() and (parent / "tickets").is_dir():
-            return parent
-        if (parent / ".git").exists():
+
+@dataclass
+class Project:
+    folder: Path
+    names: set[str]
+
+    @property
+    def label(self) -> str:
+        return self.folder.name
+
+
+@dataclass
+class Board:
+    root: Path
+    projects: list[Project]
+    has_projects: bool
+
+
+def find_framework_root(start: Path) -> Path | None:
+    """The first folder, from `start` up to the home directory, that is a framework root."""
+    home = Path.home().resolve()
+    for folder in [start, *start.parents]:
+        if (folder / "sdlc.json").is_file():
+            return folder
+        if (folder / "glossary.md").is_file() and (
+            (folder / "work").is_dir() or (folder / "features").is_dir()
+        ):
+            return folder
+        if folder == home:
             break
     return None
 
 
-def _project_dir_from_pointer(pointer: Path) -> Path | None:
+def find_repository_root(start: Path) -> Path | None:
+    for folder in [start, *start.parents]:
+        if any((folder / marker).exists() for marker in (".git", "package.json", "AGENTS.md", "CLAUDE.md")):
+            return folder
+    return None
+
+
+def _pointer_target(pointer: Path) -> Path | None:
     # A tiny JSON read, so a malformed pointer file cannot stop the run.
     try:
         import json
@@ -555,42 +710,188 @@ def _project_dir_from_pointer(pointer: Path) -> Path | None:
         data = json.loads(pointer.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
-    value = data.get("root")
+    value = data.get("root") if isinstance(data, dict) else None
     if not value:
         return None
     root = Path(str(value)).expanduser()
     if not root.is_absolute():
-        root = (pointer.parent / root).resolve()
+        root = pointer.parent / root
+    root = root.resolve()
     return root if root.is_dir() else None
+
+
+def find_from_working_directory() -> tuple[Path | None, Path | None]:
+    """(framework root, the folder a pointer file named), from where the script runs."""
+    here = Path.cwd().resolve()
+    root = find_framework_root(here)
+    if root:
+        return root, None
+
+    repository = find_repository_root(here)
+    if repository:
+        pointer = repository / ".sdlc.json"
+        if pointer.is_file():
+            target = _pointer_target(pointer)
+            if target:
+                return find_framework_root(target) or target, target
+        if (repository / ".sdlc").is_dir():
+            return repository / ".sdlc", None
+
+    # An older board: a folder holding the roadmap beside its tickets, with nothing above it.
+    for folder in [here, *here.parents]:
+        if (folder / "roadmap.md").is_file() and ((folder / "tickets").is_dir() or (folder / "work").is_dir()):
+            return folder, None
+        if (folder / ".git").exists():
+            break
+    return None, None
+
+
+def _looks_like_path(value: str) -> bool:
+    return "/" in value or "\\" in value or value.startswith(("~", "."))
+
+
+def make_project(folder: Path) -> Project:
+    """A project answers to its folder name and to the `name` in its project note."""
+    names = {folder.name}
+    note = folder / f"{folder.name}.md"
+    if note.is_file():
+        try:
+            properties, _ = split_frontmatter(note.read_text(encoding="utf-8"))
+        except OSError:
+            properties = {}
+        name = str(properties.get("name", "")).strip()
+        if name:
+            names.add(name)
+    return Project(folder=folder, names=names)
+
+
+def locate_board(args: argparse.Namespace) -> Board:
+    named_folder: Path | None = None
+    if args.root:
+        root = Path(args.root).expanduser().resolve()
+        if not root.is_dir():
+            raise BoardError(f"No folder at {root}")
+    elif args.project and (
+        _looks_like_path(args.project)
+        or (not find_from_working_directory()[0] and Path(args.project).expanduser().is_dir())
+    ):
+        named_folder = Path(args.project).expanduser().resolve()
+        if not named_folder.is_dir():
+            raise BoardError(f"No folder at {named_folder}")
+        root = find_framework_root(named_folder) or named_folder
+    else:
+        root, pointed = find_from_working_directory()
+        if not args.project:
+            named_folder = pointed
+        if root is None:
+            raise BoardError(
+                "No framework root found. Pass --root or --project, or run this from the framework "
+                "root or a repository whose .sdlc.json points at it.\nThe setup command creates it."
+            )
+
+    projects_dir = root / "projects"
+    has_projects = projects_dir.is_dir()
+
+    if args.project and not _looks_like_path(args.project) and named_folder is None:
+        folder = projects_dir / args.project
+        if not folder.is_dir():
+            matches = [
+                candidate
+                for candidate in (sorted(projects_dir.iterdir()) if has_projects else [])
+                if candidate.is_dir() and args.project in make_project(candidate).names
+            ]
+            if not matches:
+                raise BoardError(f"No project named {args.project!r} under {projects_dir}")
+            folder = matches[0]
+        projects = [make_project(folder)]
+    elif named_folder is not None and named_folder != root:
+        projects = [make_project(named_folder)]
+    elif has_projects:
+        projects = [
+            make_project(folder)
+            for folder in sorted(projects_dir.iterdir())
+            if folder.is_dir() and (folder / "roadmap.md").is_file()
+        ]
+        if not projects:
+            raise BoardError(f"No project under {projects_dir} has a roadmap.md yet")
+    else:
+        projects = [make_project(root)]
+
+    if args.roadmap and len(projects) > 1:
+        raise BoardError("--roadmap names one roadmap; pass --project too, to say whose it is")
+    return Board(root=root, projects=projects, has_projects=has_projects)
+
+
+def ticket_folder(board: Board, project: Project) -> tuple[Path | None, bool]:
+    """Where the tickets are, and whether they are shared by every project of the framework root."""
+    if (board.root / "work").is_dir():
+        return board.root / "work", True
+    if project.folder != board.root and (project.folder / "tickets").is_dir():
+        return project.folder / "tickets", False
+    if (board.root / "tickets").is_dir():
+        return board.root / "tickets", True
+    return None, False
+
+
+def belongs_to(ticket: Ticket, project: Project, report: Report) -> bool:
+    feature = ticket.feature
+    if feature is None:
+        report.problem(
+            f"{ticket.ticket_id}: no feature note carries the code {ticket.code}, so the ticket "
+            "is on no project's roadmap"
+        )
+        return False
+    if not feature.projects:
+        report.problem(
+            f"{feature.path.name}: its projects property is empty, so none of its tickets is on a "
+            "roadmap"
+        )
+        return False
+    return bool(project.names & set(feature.projects))
 
 
 # ------------------------------------------------------------------------------------ the run
 
 
-def build(args: argparse.Namespace) -> int:
-    report = Report(quiet=args.quiet)
+def new_section(code: str, feature: Feature | None, fallback_name: str, roadmap: Roadmap) -> Section:
+    name = (feature.name if feature else "") or fallback_name or code
+    name = name.split("—")[-1].strip() if "—" in name else name
+    section = Section(heading=f"## {code} — {name}", code=code, name=name)
+    section.lines = [""]
+    if feature:
+        if roadmap.vault:
+            link = f"[[{feature.stem}]]"
+        else:
+            link = os.path.relpath(feature.path, roadmap.path.parent).replace(os.sep, "/")
+        section.lines += [f"**Feature**: {link}", ""]
+    section.lines += [(feature.summary if feature and feature.summary else "<One sentence: what this epic delivers.>"), ""]
+    return section
 
-    project_dir = find_project_dir(args.project)
-    if project_dir is None:
-        print(
-            "No project found. Pass --project, or run this from a repository that has one.\n"
-            "The setup command creates it.",
-            file=sys.stderr,
-        )
-        return 2
 
-    roadmap_path = Path(args.roadmap).expanduser() if args.roadmap else project_dir / "roadmap.md"
-    tickets_dir = project_dir / "tickets"
+def rebuild(board: Board, project: Project, args: argparse.Namespace, report: Report) -> int:
+    """Rebuild one project's roadmap. 0 nothing to fix, 1 it differs (--check), 2 it stopped."""
+    roadmap_path = Path(args.roadmap).expanduser() if args.roadmap else project.folder / "roadmap.md"
     if not roadmap_path.is_file():
         print(f"No roadmap at {roadmap_path}", file=sys.stderr)
         return 2
-    if not tickets_dir.is_dir():
-        print(f"No tickets folder at {tickets_dir}", file=sys.stderr)
+
+    folder, shared = ticket_folder(board, project)
+    if folder is None:
+        print(f"No work/ or tickets/ folder under {board.root}", file=sys.stderr)
         return 2
 
-    tickets = collect_tickets(tickets_dir, report)
+    every_ticket = collect_tickets(folder, report)
+    by_stem, by_code = collect_features(board.root, report)
+    attach_features(every_ticket, by_stem, by_code, report)
+
+    # Every project's tickets share one board, so a roadmap lists only its own project's tickets.
+    # Dependencies still resolve against the whole board: a ticket may wait on another project's.
+    if shared and board.has_projects:
+        tickets = {tid: t for tid, t in every_ticket.items() if belongs_to(t, project, report)}
+    else:
+        tickets = every_ticket
     if not tickets:
-        print(f"No tickets found under {tickets_dir}", file=sys.stderr)
+        print(f"No tickets of {project.label} under {folder}", file=sys.stderr)
         return 2
 
     roadmap = load_roadmap(roadmap_path, args.style)
@@ -598,14 +899,14 @@ def build(args: argparse.Namespace) -> int:
     cells_now = existing_cells(roadmap)
 
     blockers = {
-        ticket.ticket_id: outstanding(ticket, tickets, report)
+        ticket.ticket_id: outstanding(ticket, every_ticket, report)
         for ticket in tickets.values()
         if not ticket.is_done
     }
 
     # A row may name a blocker its ticket does not. That happens on a board written before the
-    # ticket carried the field, and the roadmap is then the only copy of the graph. Keep those IDs
-    # in the cell, and say so, rather than dropping work nobody recorded twice.
+    # ticket carried the property, and the roadmap is then the only copy of the graph. Keep those
+    # IDs in the cell, and say so, rather than dropping work nobody recorded twice.
     for ticket_id, blocking in blockers.items():
         ticket = tickets[ticket_id]
         unrecorded = [
@@ -613,14 +914,14 @@ def build(args: argparse.Namespace) -> int:
             for dep in cells_now.get(ticket_id, [])
             if dep not in ticket.depends_on
             and dep not in blocking
-            and not (tickets.get(dep) and tickets[dep].is_done)
+            and not (every_ticket.get(dep) and every_ticket[dep].is_done)
         ]
         if unrecorded:
             blocking.extend(unrecorded)
             report.problem(
                 f"{ticket_id}: its row names {', '.join(unrecorded)} and its ticket does not. "
-                "The row keeps them, and somebody has to copy them into the ticket's Depends on "
-                "field — the roadmap is the only copy"
+                "The row keeps them, and somebody has to copy them into the ticket's depends_on "
+                "property — the roadmap is the only copy"
             )
 
     open_by_code: dict[str, list[Ticket]] = {}
@@ -637,16 +938,18 @@ def build(args: argparse.Namespace) -> int:
 
         section = sections_by_code.get(code)
         if section is None:
-            name = next((t.epic_name for t in ordered if t.epic_name), "") or code
-            name = name.split("—")[-1].strip() if "—" in name else name
-            section = Section(heading=f"## {code} — {name}", code=code, name=name)
-            section.lines = ["", "<One sentence: what this epic delivers.>", ""]
+            feature = next((t.feature for t in ordered if t.feature), None)
+            fallback = next((t.epic_name for t in ordered if t.epic_name), "")
+            section = new_section(code, feature, fallback, roadmap)
             roadmap.sections.append(section)
             sections_by_code[code] = section
-            report.note(
-                f"{code}: no section in the roadmap, so one was added. Its sentence and its "
-                "feature link still need writing"
-            )
+            if feature and feature.summary:
+                report.note(f"{code}: no section in {project.label}'s roadmap, so one was added")
+            else:
+                report.note(
+                    f"{code}: no section in {project.label}'s roadmap, so one was added. Its "
+                    "sentence still needs writing"
+                )
         replace_table(section, table)
 
     for section in roadmap.sections:
@@ -656,7 +959,7 @@ def build(args: argparse.Namespace) -> int:
             if had_rows:
                 report.note(
                     f"{section.code}: every ticket in this epic is finished, so its rows are gone. "
-                    "Closing the section and marking the feature shipped needs a check nothing "
+                    "Closing the section and setting the feature to done needs a check nothing "
                     "here can make"
                 )
 
@@ -670,6 +973,12 @@ def build(args: argparse.Namespace) -> int:
         bump_last_updated(roadmap, args.today or _datetime.date.today().isoformat())
     after = roadmap.render()
     changed = after != before
+
+    rows_total = sum(len(v) for v in open_by_code.values())
+    summary = (
+        f"{rows_total} open {_plural(rows_total, 'ticket')} "
+        f"across {len(open_by_code)} {_plural(len(open_by_code), 'epic')}."
+    )
 
     if args.check:
         report.say(f"Roadmap: {roadmap_path}")
@@ -689,23 +998,37 @@ def build(args: argparse.Namespace) -> int:
                 n=1,
             ):
                 report.say(line)
-        _print_findings(report)
-        if changed:
-            return 1
-        return 2 if report.problems and args.strict else 0
+        report.say(summary)
+        return 1 if changed else 0
 
     if changed:
         roadmap_path.write_text(after, encoding="utf-8")
         report.say(f"Rebuilt the tables in {roadmap_path}")
     else:
         report.say(f"Nothing to change in {roadmap_path}")
+    report.say(summary)
+    return 0
 
-    rows_total = sum(len(v) for v in open_by_code.values())
-    report.say(
-        f"{rows_total} open {_plural(rows_total, 'task')} "
-        f"across {len(open_by_code)} {_plural(len(open_by_code), 'epic')}."
-    )
+
+def build(args: argparse.Namespace) -> int:
+    report = Report(quiet=args.quiet)
+    try:
+        board = locate_board(args)
+    except BoardError as error:
+        print(error, file=sys.stderr)
+        return 2
+
+    results = []
+    for index, project in enumerate(board.projects):
+        if index:
+            report.say("")
+        results.append(rebuild(board, project, args, report))
+
     _print_findings(report)
+    if 2 in results:
+        return 2
+    if 1 in results:
+        return 1
     return 2 if report.problems and args.strict else 0
 
 
@@ -731,7 +1054,11 @@ def main(argv: list[str] | None = None) -> int:
         prog="build-roadmap.py",
         description="Rebuild the roadmap's tables from the tickets.",
     )
-    parser.add_argument("--project", help="the project holding roadmap.md and tickets/")
+    parser.add_argument(
+        "--project",
+        help="one project to rebuild, by its name or its folder; every project when left out",
+    )
+    parser.add_argument("--root", help="the framework root, when it cannot be found from here")
     parser.add_argument("--roadmap", help="a roadmap path, when it is not <project>/roadmap.md")
     parser.add_argument(
         "--check",
@@ -745,7 +1072,7 @@ def main(argv: list[str] | None = None) -> int:
         help="how a ticket is cited: a wikilink in a vault, a file name in a repository",
     )
     parser.add_argument("--strict", action="store_true", help="exit 2 when anything needs a person")
-    parser.add_argument("--today", help="the date to write into Last updated (YYYY-MM-DD)")
+    parser.add_argument("--today", help="the date to write into the roadmap's updated date (YYYY-MM-DD)")
     parser.add_argument("-q", "--quiet", action="store_true", help="print only errors")
     parser.add_argument("--version", action="version", version=f"build-roadmap.py {VERSION}")
     args = parser.parse_args(argv)

@@ -15,6 +15,9 @@ Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable 
   the work moves.
 - **Requirements**: What features/functionality to deliver
 - **Acceptance Criteria**: Observable outcomes and behaviours
+- **Decisions**: Each choice planning settled with the person, one line with its reason. The
+  run treats each one as a fixed constraint. This is the one place a library may be named, when
+  the person chose it.
 - **User Experience**: How users interact with the feature
 - **Business Logic**: Rules and constraints
 - **High-Level Architecture**: Data flow, reusability principles
@@ -28,7 +31,7 @@ Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable 
 ## ❌ Exclude
 
 - Specific file paths
-- Library/package names
+- Library/package names, except one the person chose, recorded under Decisions
 - Component/module names
 - Implementation patterns
 - Data schema details

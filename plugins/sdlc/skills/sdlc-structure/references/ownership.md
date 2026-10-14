@@ -14,8 +14,8 @@ disagrees with itself as soon as one copy changes.
 | What the product commits to, and what it refuses | a note in `product/goals/` or `product/non-goals/` | Link the note. A feature cites the goal it advances; the PRD lists it in one line. |
 | Who the users are, and what each one needs | a note in `product/personas/` | Link the note. The business plan adds only which of them **pays first** and what they pay for. |
 | What proves the product is working | a note in `product/metrics/` | Link the note. The measured value lives there, with the date it was read. |
-| How a product area works, as a whole | the project's `prd.md` §5 | Link the area's anchor code. A feature note never retells its area's prose. |
-| The guarantees that hold across the product | the project's `prd.md` §6 | Link the theme. |
+| How a product area works, as a whole | the PRD's section on how the product works | Link the area's anchor code. A feature note never retells its area's prose. |
+| The guarantees that hold across the product | the PRD's section on cross-cutting qualities | Link the theme. |
 | What one customer can do, and whether it ships | the feature note | Link the note. The PRD never enumerates features; the business plan queries them. |
 | How a solution is built and behaves | the design doc | Link the file. The feature note lists its designs and describes none of them. |
 | What the product costs, earns, and is worth against a competitor | the project's `business/business-plan.md` | Nothing else carries a price, a margin, or a positioning claim — the PRD is product-only. |

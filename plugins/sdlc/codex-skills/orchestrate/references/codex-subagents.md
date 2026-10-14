@@ -34,6 +34,7 @@ Apply these replacements while executing the shared command:
 | Shared command term | Codex behavior |
 | --- | --- |
 | `Agent(...)` | Call `collaboration.spawn_agent`. |
+| `Bash` calls in one tool block | Start every independent command before reading any result, and read each exit code and output yourself. |
 | `SendMessage(id, message)` | Call `collaboration.followup_task` with the saved target. |
 | Agent id or name | Save the canonical task name returned by `spawn_agent`. |
 | `AskUserQuestion` | Use the available user-input tool. Otherwise present all decisions in one message and wait. |
@@ -110,14 +111,15 @@ Use `collaboration.followup_task` for every later turn of these roles:
 - test planner
 - test writer
 - coding agent
-- code reviewer
+- code reviewer, one per focus in `$orchestrate` and `$run-roadmap`
 
 Use the canonical task name returned by the first `spawn_agent` call.
 Send only the new input that the shared command specifies.
 Do not repeat the role bootstrap, plan, context pack, or prior messages unless the command requires them.
+Each code-review focus is its own agent: a re-review goes to the reviewer that blocked, and only to it.
 
-Create a new verification agent for each verification run.
-Use a new task name for each run.
+`$orchestrate` creates no verification agent. Its main agent runs every test and every check itself with the shell tool and reads the result.
+A workflow whose command still spawns a verification agent creates a new one for each verification run, with a new task name for each run.
 
 ## 6. Wait for results
 
@@ -190,7 +192,7 @@ If a required block is missing or invalid:
 2. Ask it to return only the corrected JSON block for its previous result.
 3. Abort the stage if the second response is still missing or invalid.
 
-Do not request a JSON block after a scout, pre-read, or spec-only turn when its role contract says none is due.
+Do not request a JSON block after a pre-read or spec-only turn when its role contract says none is due.
 
 ## 10. Apply role and task names
 
@@ -198,7 +200,7 @@ Do not request a JSON block after a scout, pre-read, or spec-only turn when its 
 | --- | --- | --- |
 | CTO (`$run-roadmap` only) | `cto.md` | `cto` |
 | Repository resolver, when a ticket's `repositories` is empty | `repo-resolver.md` | `repo_resolver` |
-| Feature interviewer | `feature-interviewer.md` | `feature_interviewer` |
+| Feature interviewer (`$plan` only) | `feature-interviewer.md` | `feature_interviewer` |
 | Implementation planner | `implementation-planner.md` | `implementation_planner` |
 | Normal reviewer | `plan-reviewer.md` | `plan_reviewer` |
 | Correctness reviewer | `plan-reviewer.md` | `plan_reviewer_correctness` |
@@ -206,11 +208,16 @@ Do not request a JSON block after a scout, pre-read, or spec-only turn when its 
 | Test planner | `test-planner.md` | `test_planner` |
 | Test writer | `test-writer.md` | `test_writer` |
 | Coding agent | `coding.md` | `coding` |
-| Code reviewer | `code-reviewer.md` | `code_reviewer` |
-| Each verification run, targeted or full | `verify.md` | `verify_1`, `verify_2`, … in run order |
+| Code reviewer, in a workflow with one reviewer | `code-reviewer.md` | `code_reviewer` |
+| Correctness code reviewer | `code-reviewer.md` | `code_reviewer_correctness` |
+| Conventions code reviewer | `code-reviewer.md` | `code_reviewer_conventions` |
+| Security code reviewer | `code-reviewer.md` | `code_reviewer_security` |
+| Tests code reviewer | `code-reviewer.md` | `code_reviewer_tests` |
+| Each verification run, in a workflow whose command spawns one | `verify.md` | `verify_1`, `verify_2`, … in run order |
 
-Add a short lens instruction to each high-risk reviewer's stage input.
-Do not change the shared plan-reviewer contract.
+Add a short lens instruction to each high-risk plan reviewer's stage input.
+Start each focused code reviewer's stage input with its `Focus: <focus>` line, as the shared command writes it.
+Do not change the shared plan-reviewer or code-reviewer contract.
 
 ## 11. Handle missing collaboration tools
 

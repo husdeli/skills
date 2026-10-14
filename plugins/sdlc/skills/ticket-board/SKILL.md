@@ -168,7 +168,7 @@ stopped a ticket that had started.
 ## Who holds the ticket
 
 **`assigned` names the agent that works on the ticket now, or is planned to**, as `<role>-<n>`:
-`feature-interviewer-2`, `implementation-planner-2`, `plan-reviewer-2`, `coding-2`,
+`implementation-planner-2`, `plan-reviewer-2`, `test-planner-2`, `test-writer-2`, `coding-2`,
 `code-reviewer-2`. `<n>` is the number of the run the agent works for, so `assigned` names the run
 as well as the role. A session doing the work itself names its command the same way: `code-1`.
 

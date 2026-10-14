@@ -21,9 +21,11 @@ This is the intake path. `/prd` writes the PRD, `/design` writes the design doc,
 | **`diagrams`** | A diagram of a shape — how one is drawn, and how a document references it |
 | **`technical-writing`** | Every sentence you write, in a document or to the user |
 
-The documents sit in the **project**: `prd.md`, `glossary.md`, `features/<feature>/<feature>.feature.md`, `features/<feature>/<subject>.design.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, `roadmap.md`, and `tickets/<status>/<ID>-<slug>.md`. `sdlc-structure` resolves the project; every `.sdlc/…` path below means `<project>/…`.
+One more skill runs the interview, and it is not this plugin's: **`mattpocock-skills:grilling`**, the skill `/grill-me` hands to. Load it at Stage 3, not before — it is how you put the decisions to the user. When it is not installed, run the interview the way Stage 3 describes it: the rounds, the format, and the stop condition are all there.
 
-**A ticket names its repositories by registry code, in `repositories`** — never a path. Write the codes when the registry has one candidate, or when the design doc settles which repository holds the surface the work lands on; otherwise leave `repositories: []`, and the run that builds the ticket has the `repo-resolver` agent fill it. Either way, write the ticket's text about the product, and name the surface the work lands on in the words the design doc uses, so the resolution stays easy. When this session is vault-rooted and the code matters to the research, pass the candidate repositories to the interviewer as absolute paths, and check the session can read them. **Every ticket this command writes starts in `todo/`**, because no work has started on it. When the project keeps its design docs directly in the project or all in `designs/`, or its tickets folder is flat, write into the shape it already has.
+The documents sit where `sdlc-structure` lays them out. The **framework root** holds `glossary.md`, `features/<feature>/<feature>.feature.md`, `features/<feature>/<subject>.design.md`, `designs/<subject>.design.md`, `diagrams/<name>.excalidraw.md`, and the tickets in `work/backlog/<CODE>-<NNN>-<slug>.md`. The **project** holds `prd.md` and `roadmap.md`. `sdlc-structure` resolves both, and every path below resolves against the one that holds it.
+
+**A ticket names its repositories by registry code, in `repositories`** — never a path. Write the codes when the registry has one candidate, or when the design doc settles which repository holds the surface the work lands on; otherwise leave `repositories: []`, and the run that builds the ticket has the `repo-resolver` agent fill it. Either way, write the ticket's text about the product, and name the surface the work lands on in the words the design doc uses, so the resolution stays easy. When this session is vault-rooted and the code matters to the research, pass the candidate repositories to the interviewer as absolute paths, and check the session can read them. **Every ticket this command writes starts in `work/backlog/`**, because no work has started on it. When the framework root is on an older shape — design docs directly in the project, or tickets in `tickets/todo/` or a flat `tickets/` folder — write into the shape it already has; `sdlc-structure` says how each older shape reads, and `/setup` migrates it.
 
 ## Architecture: you write, one agent researches
 
@@ -34,7 +36,7 @@ Everything here runs **in the main loop, with you**. The documents carry the pro
   ─────────────────────────
   resolve request ─┬─ Agent(feature-interviewer) ──┐  concurrent
                    └─ read prd / design / roadmap ─┤
-  AskUserQuestion (settle decisions) ◄─────────────┘
+  grilling rounds (settle decisions) ◄─────────────┘
   change proposal ─► approval ─► PRD ─► design ─► roadmap ─► tickets ─► report
 ```
 
@@ -76,9 +78,15 @@ Agent(subagent_type: "sdlc:feature-interviewer",
 
 The brief comes back as *Understanding*, *What already exists*, *Research findings*, *Open decisions*, *Assumptions*, and *Out of scope*. Nothing returned, or no brief after one retry → report that and stop before writing any file.
 
-**Put the decisions to the user yourself** with `AskUserQuestion` — a subagent cannot ask. Batch them (up to 4 per call), lead each with the interviewer's recommended option labelled "(Recommended)", and surface the brief's assumptions for confirmation. One call, not one per decision. Zero open decisions is a good brief, not a broken one: confirm the assumptions and move on.
+**Grill the user on the decisions yourself** — a subagent cannot ask. Load the **`grilling`** skill and follow it. The brief seeds its design tree:
 
-Resume the interviewer with `SendMessage` **at most once**, and only when an answer changes the feature enough that its research no longer covers it. Never re-spawn it.
+- **Every open decision is a node**, and the interviewer's recommended option is your recommended answer. Where one decision only makes sense once another is settled, it hangs below that one.
+- **Every assumption is a node too**, put to the user for confirmation in the first round. A rejected assumption becomes a decision.
+- **Ask the whole frontier in one round**, numbered, each question with your recommended answer, in the format the skill gives: `❓ **Q1** - **<title>**: <question and its options>`, then `➡️ <recommended answer>`, a rule between questions. Wait for the answers, recompute the frontier, and ask the next round. Ask in prose, not with `AskUserQuestion`: a grilling question carries its options and its reasoning, and four short labels do not.
+- **Facts are not questions.** When a node needs a fact from the code or the documents, look it up, or send it to the interviewer with `SendMessage` — never ask the user. Ask the rest of the frontier while it runs.
+- **Stop when the frontier is empty** and the user confirms the shared understanding. Zero open decisions is a good brief, not a broken one: one round that confirms the assumptions is the whole interview.
+
+Resume the interviewer with `SendMessage` for a fact the grilling needs, or when an answer changes the feature enough that its research no longer covers it. Never re-spawn it.
 
 ### 4. Propose the change, and wait for a yes
 
@@ -99,7 +107,7 @@ One gate, before you write any file:
 | --- | --- | --- | --- | --- |
 | [CODE-NNN] | [title] | [Critical/High/Medium/Low] | [IDs or —] | [one line] |
 
-Tickets: one per row, in `.sdlc/tickets/todo/`.
+Tickets: one per row, in `work/backlog/`.
 
 Proceed? (yes / adjust / cancel)
 ```
@@ -111,7 +119,7 @@ How to break the work down:
 - **Order by dependency.** A task's dependencies sit above it, and name only other tasks that are still on the roadmap. Work that is already done is not a dependency — the roadmap holds no finished task to point at.
 - **Give each task a priority** — `Critical`, `High`, `Medium`, or `Low`. Default to `Medium` unless the request or the interview names urgency or an explicit deadline; state the default in the breakdown table so the user can adjust it before approving. This is what `ticket-board` sorts the roadmap table by.
 - **Put every task in one epic**, and name the epic before you number anything. Use the epic the request already belongs to when the roadmap has one; declare a new epic when it does not. `ticket-board` holds what an epic code looks like, how the numbering restarts inside it, where the next free number comes from, and why an existing ID is never renumbered or reused.
-- **A pending task the request changes is updated in place**, not duplicated. When the request changes work that is already finished, add a new task: the roadmap no longer holds the finished one, and its ticket in `tickets/done/` stays as it was written.
+- **A pending task the request changes is updated in place**, not duplicated. When the request changes work that is already finished, add a new task: the roadmap no longer holds the finished one, and its ticket in `work/done/` stays as it was written.
 
 Wait for approval. Adjust and re-present as many times as the user asks.
 
@@ -121,24 +129,24 @@ In this order, so each document takes its vocabulary from the one before it. Eac
 below is namespaced here (`sdlc:prd`, `sdlc:design-doc`, `sdlc:ticket-board`) — load it before you
 write the document it governs, and follow it. Do not restate its rules from memory.
 
-**PRD** — load the **`prd`** skill and follow it. Fold the request into the existing sections in place, as the current truth, and keep the document whole. It stays product-only: no ticket ID, no roadmap reference, no library name, no file path. The decisions from the interview live in the tickets, not here. Bump `Last updated`.
+**PRD** — load the **`prd`** skill and follow it. Fold the request into the existing sections in place, as the current truth, and keep the document whole. It stays product-only: no ticket ID, no roadmap reference, no library name, no file path. The decisions from the interview live in the tickets, not here. Bump `updated`.
 
-**Features** — whenever the request adds something a customer can name, or changes the state of something they already can. Load the **`feature`** skill and follow it: one folder per feature, one `<feature>.feature.md` index, and the code that feature's epic and tickets take. Open the feature **before** you write its design doc or its first ticket, so both have an owner. A request that only changes how an existing feature works updates that feature's index and opens nothing.
+**Features** — whenever the request adds something a customer can name, or changes the state of something they already can. Load the **`feature`** skill and follow it: one folder per feature, one `<feature>.feature.md` feature note, and the code that feature's epic and tickets take. Open the feature **before** you write its design doc or its first ticket, so both have an owner. A request that only changes how an existing feature works updates that feature's note and opens nothing.
 
-**Design docs** — only when the request changes how a part, a flow, or a surface works. Load the **`design-doc`** skill and follow it: one file per subject, in the feature's folder when it belongs to one feature and in `.sdlc/designs/` when it underpins every feature, the per-subject pattern (structure → behavior → states → variation and limits), the structural altitude, no tickets and no code references. Update the doc whose subject the request touches, and start a new one only for a subject that has none. Bump `Last updated` on each file you touch.
+**Design docs** — only when the request changes how a part, a flow, or a surface works. Load the **`design-doc`** skill and follow it: one file per subject, in the feature's folder when it belongs to one feature and in `designs/` when it underpins every feature, the per-subject pattern (structure → behavior → states → variation and limits), the structural altitude, no tickets and no code references. Update the doc whose subject the request touches, and start a new one only for a subject that has none. Bump `updated` on each file you touch.
 
-**Roadmap** — follow the **`ticket-board`** skill's roadmap rules: one row per task and nothing else, the row cited by ticket file name, a `Priority` cell carrying what the approved breakdown gave the task, and a `Depends on` cell holding the blockers that are not finished yet. Insert the approved rows into their epic's table at their sorted position, not appended at the bottom — `ticket-board` gives the order, in which a dependency beats priority and a blocker carries the urgency of what waits on it — with status `⬜ **Pending**`, matching the file's existing style; a new epic gets a new section at the end of the file with one sentence on what it delivers. Once every ticket is written, `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --check` confirms the rows you wrote match the tickets you wrote; run the same script without `--check` to fix them rather than re-sorting by hand. **Touch no other epic's section**, so a branch planning a different feature changes different lines. Bump `Last updated`. **Never write any status other than pending**: in-progress belongs to whoever builds the task, and a completed task is deleted from the file rather than marked.
+**Roadmap** — the epic goes in the roadmap of every project its feature's `projects` property names. Follow the **`ticket-board`** skill's roadmap rules: one row per task and nothing else, the row cited by ticket file name, a `Priority` cell carrying what the approved breakdown gave the task, and a `Depends on` cell holding the blockers that are not finished yet. Insert the approved rows into their epic's table at their sorted position, not appended at the bottom — `ticket-board` gives the order, in which a dependency beats priority and a blocker carries the urgency of what waits on it — with status `⬜ **Pending**`, matching the file's existing style; a new epic gets a new section at the end of the file, with its `**Feature**:` link and one sentence on what it delivers. Once every ticket is written, `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --check` confirms the rows you wrote match the tickets you wrote; run the same script without `--check` to fix them rather than re-sorting by hand. **Touch no other epic's section**, so a branch planning a different feature changes different lines. Bump `updated`. **Never write any status other than pending**: in-progress belongs to whoever builds the task, and a completed task is deleted from the file rather than marked.
 
-**Tickets** — copy `.sdlc/tickets/TEMPLATE.md` once per row into `.sdlc/tickets/todo/`, named `<ID>-<slug>.md`. When there is no template, use the ticket shape and the ticket guidelines from the **`ticket-board`** skill:
+**Tickets** — write one per row into `work/backlog/`, named `<CODE>-<NNN>-<slug>.md`, from the **`ticket-board`** skill's ticket template, and follow its ticket guidelines. The template lives in the skill, never in `work/`:
 
 - **What, not how.** No file paths, no component or module names, no library names, no schema detail — those are the planner's job inside `/orchestrate`.
 - **The `Decisions` section is the one exception**, and the reason this command runs an interview: record each settled choice as a fixed constraint, one line with its rationale. A library chosen in the interview is named here, and nowhere else.
 - **Acceptance criteria are observable outcomes**, and they match what the approved breakdown said the task delivers. The ticket is the only place they are written — the roadmap row does not repeat them.
-- **Status is `Not Started` and `Assignee` is `—`**, so the file goes in `todo/` and nobody holds it. `Created` is today. The `Epic` field names the epic exactly as its roadmap section does. **`Priority`** is what the approved breakdown table gave the task — the same value as its roadmap row. In a vault these five are frontmatter properties — `status`, `assignee` (left empty), `created`, `epic`, `priority` — beside `type`, `id`, and `tags`.
-- **`Depends on` is the ticket's own field, and it is where the dependency belongs.** Write every ID the approved breakdown put in that task's `Depends on` column — the `depends_on` property in a vault, a list of bare IDs; `—` and `[]` mean it waits on nothing. The roadmap row shows only the subset that is not finished yet, and it is computed from this field, so a dependency that exists only in a row is a dependency the board will lose. `sdlc-structure` holds why these are IDs and not wikilinks.
+- **The properties put the ticket at the start of the board.** `status` is `backlog`, so the file goes in `work/backlog/`. There is no `assigned` and no `claimed`, because nobody holds it. `createdAt` and `updatedAt` are both now, read with `date "+%Y-%m-%dT%H:%M"`. `feature` links the feature note whose code the ID starts with. **`priority`** is what the approved breakdown table gave the task — the same value as its roadmap row. `repositories` is as above. Every property is frontmatter, in every destination, and a ticket carries no `type`, `id`, `epic`, or `tags`: its name, its bucket, and its `feature` say those.
+- **`depends_on` is the ticket's own property, and it is where the dependency belongs.** Write every ID the approved breakdown put in that task's `Depends on` column, as a list of bare IDs; `[]` means it waits on nothing. The roadmap row shows only the subset that is not finished yet, and it is computed from this field, so a dependency that exists only in a row is a dependency the board will lose. `sdlc-structure` holds why these are IDs and not wikilinks.
 - **Write no worklog.** A ticket gets one beside it in the step that starts the work and moves it into `in-progress/`, which is an orchestrator's job, not this command's.
-- In the `related:` frontmatter property, link the PRD area the ticket serves and any sibling ticket. The ticket has no Related section in its body. The link runs ticket → PRD, never back.
-- **Never overwrite an existing ticket file.** Check every status folder for the ID before you write, because a completed ticket sits in `done/`. A name collision means the number is wrong — take the next free one in that epic.
+- **`related` links the design docs the ticket builds, and nothing else.** The feature has its own property and a dependency has `depends_on`, so neither appears here again. The ticket has no Related section in its body, and the link runs ticket → design doc, never back.
+- **Never overwrite an existing ticket file.** Check all three buckets for the ID before you write, because a finished ticket sits in `work/done/`. A name collision means the number is wrong — take the next free one in that epic.
 
 ### 6. Report
 
@@ -171,8 +179,8 @@ Do not run `/orchestrate` yourself. Name it and stop.
 - **Documents only.** No code, and no implementation plan — the planner inside `/orchestrate` decides how the work is done.
 - **Interview before you write.** Every request that reaches Stage 3 gets one; a request too small to interview was handed to `/code` in Stage 1.
 - **Never write a file before the user approves the breakdown.**
-- **Statuses stay at the start** — pending in the roadmap, `Not Started` and unassigned in the ticket, and the ticket file in `todo/`. This command never marks progress, never assigns a ticket, never writes a worklog, and never moves a ticket out of `todo/`.
-- **The link runs one way.** A ticket cites its feature and may cite a PRD area code; the PRD, the feature index, and the design doc never cite a ticket, an ID, or a roadmap row. The feature index lists open work through a query, which is not a citation.
+- **Statuses stay at the start** — pending in the roadmap, `backlog` and unassigned in the ticket, and the ticket file in `work/backlog/`. This command never marks progress, never assigns or claims a ticket, never writes a worklog, and never moves a ticket out of `work/backlog/`.
+- **The link runs one way.** A ticket cites its feature and may cite a PRD area code; the PRD, the feature note, and the design doc never cite a ticket, an ID, or a roadmap row.
 - **Reuse the product's words** from the PRD for every domain term, in every document you touch — a second name for the same thing is how two documents start disagreeing.
 - **Never renumber or overwrite** an existing row, ID, or ticket.
 - **Hand off when the request needs code rather than documents** — name `/code`, `/orchestrate-quick`, or `/orchestrate`, and why.

@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Pick one actionable roadmap task and drive it through discovery, planning, review, implementation, verification, and status updates with persistent subagents. Use for roadmap work with open product, user experience, dependency, public API, or architecture decisions, or when a user invokes `$orchestrate` as the Codex equivalent of `/orchestrate`.
+description: Pick one actionable roadmap task and drive it through planning, plan review, tests written before the code, implementation, the feature's tests, a code review from four focuses, full verification, and status updates with persistent subagents. Use for a planned roadmap ticket whose decisions its documents already hold, or when a user invokes `$orchestrate` as the Codex equivalent of `/orchestrate`.
 ---
 
 # Orchestrate
@@ -17,6 +17,8 @@ Run the full reviewed workflow with the shared orchestrate command.
 6. Run the workflow with the subagent, file, and user-input tools of the current runtime.
 
 In a Codex session, also read [the Codex subagent protocol](references/codex-subagents.md) before you create a subagent. It names the Codex tool calls and runtime terms that stand in for the Claude ones. It changes no gate and no retry limit.
+
+The main agent runs every check itself — each new test, the feature's tests, and the full verification — with the Codex shell tool, in the work root, and reads each exit code and output. No subagent's report of a passing check counts, and no verification subagent is created.
 
 ## Required roadmap approval
 

@@ -21,6 +21,13 @@ related:
 - [ ] Criterion 1
 - [ ] Criterion 2
 
+## Decisions
+
+Settled while the ticket was planned. Each is a fixed constraint the run builds within, and never
+reopens. Delete the section when planning settled nothing.
+
+- [The choice] — [why it won over the alternative]
+
 ## Implementation Steps
 
 Describe WHAT needs to happen (outcomes, behaviour), not HOW. Implementation details are deferred to the plan.
