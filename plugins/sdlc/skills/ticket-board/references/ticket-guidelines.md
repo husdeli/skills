@@ -22,7 +22,6 @@ Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable 
 - **Business Logic**: Rules and constraints
 - **High-Level Architecture**: Data flow, reusability principles
 - **Data Requirements**: What data needs storing/retrieval (not schema details)
-- **Testing Expectations**: What needs testing (not specific test files)
 - **Related documents**: The design docs the ticket builds, in the `related:` frontmatter
   property. The body holds no Related section. The `sdlc-structure` skill holds the rule.
 
@@ -36,6 +35,7 @@ Tickets describe WHAT needs to be built, not HOW. Keep them short and scannable 
 - Implementation patterns
 - Data schema details
 - Code-level details (imports, hooks, syntax)
+- Testing — what to test, test levels, manual scenarios. The test plan written during the run owns it
 
 Implementation decisions belong in the plan written after the codebase is explored.
 

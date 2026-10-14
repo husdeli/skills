@@ -44,13 +44,3 @@ Describe WHAT needs to happen (outcomes, behaviour), not HOW. Implementation det
 ### Architectural Considerations
 
 - [Data flow, caching, integrations, performance/security considerations]
-
-## Testing
-
-Unit → Integration/API → Frontend E2E (critical paths only).
-
-- **Unit**: [pure functions, services, schema validation]
-- **API**: [endpoint correctness, auth rules, error responses]
-- **E2E**: [critical paths only — omit if covered by API tests]
-- **Manual**:
-  - [ ] Scenario 1

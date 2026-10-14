@@ -454,9 +454,9 @@ lands. At every exit — finish, escalation, and abort — it adds the run's tot
 **Tickets describe WHAT, not HOW:**
 
 ✅ Include: requirements, acceptance criteria, UX description, business logic, high-level architecture,
-data needs, testing expectations
+data needs
 ❌ Exclude: specific file paths, implementation-level names, internal module structure, data layer
-details, code-level patterns
+details, code-level patterns, testing
 
 Implementation decisions belong in the plan, written after the codebase is explored. The full rules
 are in [the ticket guidelines](./references/ticket-guidelines.md).
