@@ -328,7 +328,7 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
 ```
 Its skill obligations, the rules on written tests, and the JSON contract live in the agent definition — do not restate them here; text in the agent file is free, text in this prompt is paid on every spawn.
 
-It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, and `testDisputes`. **Every coding turn** — this one, a restore, a fix after the feature's tests, the code review, or the full verification, and the turn after a ruling — goes through these steps in order:
+It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, `testDisputes`, and `notes`. **Every coding turn** — this one, a restore, a fix after the feature's tests, the code review, or the full verification, and the turn after a ruling — goes through these steps in order:
 
 1. Nothing returned → `aborted` (stage `implement`, or the stage that sent the fix).
 2. **Compare the fingerprints.** A test file that changed goes back: `SendMessage(codingId, "You changed <files>. Restore each to exactly what the test writer wrote. If a test is wrong, raise a test dispute instead.")`. That spends one feature-test fix cycle; with none left → `escalate` (stage `feature-tests`). Its reply goes through these steps again.
@@ -406,7 +406,7 @@ A check passes when its command exits zero. **A check the project lacks** — an
 The `orchestrate-<n> · verification` entry names each command and its result, each skipped check and why, and what the fix changed.
 
 #### Finish
-Run the **`ticket-board`** skill's **Finishing a ticket** transition in one step: `status` `done` with `assigned` and `claimed` removed, the usage added, the ticket and its worklog moved to `done/`, the roadmap row deleted, and the worklog entries appended — `orchestrate-<n> · verification`, then the closing `orchestrate-<n> · done`: what shipped, and each recommendation nobody acted on. A correction this run forced on a *remaining* ticket — a constraint the code review found, a dependency that turned out wrong — is rewritten in the same step.
+Run the **`ticket-board`** skill's **Finishing a ticket** transition in one step: `status` `done` with `assigned` and `claimed` removed, the usage added, the ticket and its worklog moved to `done/`, the roadmap row deleted, and the worklog entries appended — `orchestrate-<n> · verification`, then the closing `orchestrate-<n> · done`: what shipped, each recommendation nobody acted on, and each note file. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-<n>`. A correction this run forced on a *remaining* ticket — a constraint the code review found, a dependency that turned out wrong — is rewritten in the same step.
 
 **Act on the result.** Whichever it is, the entry of the stage that ended the run goes into the worklog — a run that failed is exactly the run whose record matters. `agent-pipeline` defines the three outcomes and `ticket-board` holds the transition each one writes:
 - **`completed`** → **Finishing a ticket**, as above. Keep whether the review ran, the reviewers' summaries, and the test and verification details for the report.
@@ -429,6 +429,7 @@ Report only after the files are updated.
 
 Work root: `[code]` — `[absolute path]`
 Recommendations: [each minor review issue, or "none"]
+Needs a person: [each note file and its title, or "nothing"]
 
 [Summary of what was accomplished]
 ```

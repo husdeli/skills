@@ -13,7 +13,8 @@ inside it is, and [the framework root and the registry](roots.md) say how a sess
 ├── features/                        one folder per feature
 │   └── <feature-name>/
 │       ├── <feature-name>.feature.md    the feature note
-│       └── <subject>.design.md          zero or more design docs this feature owns
+│       ├── <subject>.design.md          zero or more design docs this feature owns
+│       └── notes/                       <slug>.note.md — actions a person must take
 ├── designs/                         design docs every feature depends on
 ├── diagrams/                        <name>.excalidraw.md, one file per drawing
 ├── work/                            every ticket, in one bucket per status
@@ -44,7 +45,8 @@ project folder. Every other folder is the same.
 | --- | --- | --- |
 | `sdlc.json` | Naming every work root of every project | A requirement, a ticket, a status, or a document path |
 | `glossary.md` | Defining each term once | A requirement, a behavior, a layout, or a task |
-| `features/<feature-name>/` | The feature note, and every design doc that belongs to this feature alone | A diagram, a ticket, a worklog, or another feature's design doc |
+| `features/<feature-name>/` | The feature note, every design doc that belongs to this feature alone, and its `notes/` | A diagram, a ticket, a worklog, or another feature's design doc |
+| `features/<feature-name>/notes/` | One note per action a person must take outside the code | A task an agent can do, a TODO, or a recommendation |
 | `designs/` | The design docs every feature depends on | A design doc that belongs to one feature |
 | `diagrams/` | One file per drawing | Prose a document needs to stay complete |
 | `work/` | The three buckets, and nothing else | A ticket outside a bucket, a feature, a design doc, a roadmap, or a template |
@@ -57,7 +59,7 @@ project folder. Every other folder is the same.
   projects it relates to in its `projects` property, and a ticket reaches its project through its
   feature. One feature can serve several projects, so it sits above all of them.
 - **A file name says what kind of document it is.** The suffix — `.feature.md`, `.design.md`,
-  `.goal.md`, `.worklog.md` — names the kind, so a folder listing reads as an inventory.
+  `.goal.md`, `.note.md`, `.worklog.md` — names the kind, so a folder listing reads as an inventory.
 - **Ownership decides where a design doc sits.** A subject that belongs to one feature sits in that
   feature's folder. A subject every feature depends on sits in `designs/`. The test: would the doc
   still be needed if the feature were dropped? The `design-doc` and `feature` skills hold the rest.
@@ -95,7 +97,8 @@ The setup entry point creates the structure once, and every other command fills 
 | `/feature` | One feature folder and its feature note |
 | `/design` | One design doc, in its feature's folder or in `designs/`, and its diagrams |
 | `/plan` | Tickets in `work/backlog/` and their roadmap rows, plus any PRD, feature, or design update the request needs |
-| `/orchestrate`, `/orchestrate-quick`, `/run-roadmap` | The claim, the status transitions and bucket moves, the worklog, the usage properties, and roadmap row deletions |
+| `/orchestrate`, `/orchestrate-quick`, `/run-roadmap` | The claim, the status transitions and bucket moves, the worklog, the usage properties, roadmap row deletions, and — through `create-note.py` — the notes |
+| `/code` | The notes, through `create-note.py`, and one worklog entry when the ticket already has a worklog |
 | `/business-plan` | A project's `business/business-plan.md` and the notes in `business/competitors/` |
 
 ## How the structure grows and shrinks

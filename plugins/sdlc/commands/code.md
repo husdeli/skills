@@ -64,7 +64,7 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
                  brief. Raise a blocker only for work you genuinely cannot complete.")
 ```
 
-It ends every turn with one fenced `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, and `blockers`. Parse it as `agent-pipeline` says.
+It ends every turn with one fenced `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, and `notes`. Parse it as `agent-pipeline` says.
 
 - `aborted` — nothing returned, or no valid JSON block after the one retry → report that the agent returned no usable result, and stop.
 - Non-empty `blockers` → report them and stop. Do not fix the blocker yourself.
@@ -92,6 +92,11 @@ write no status, and touch no assignee** — this command does not own the board
 moved and assigned by the orchestrators. With no ticket, or no worklog beside it, there is nothing
 to write and nothing to say about it.
 
+**Write the notes, when the agent reported any.** A note is not the board, so this command writes
+it even though it owns no ticket: run `create-note.py` as `agent-pipeline` says, with `--run code`
+and `--ticket` when the request came from one, else `--feature` when the request names a feature.
+With neither, show the notes in full in the report.
+
 ### 6. Report
 
 The user did not see the agent's turn, so give them the outcome, not a transcript:
@@ -109,6 +114,9 @@ The user did not see the agent's turn, so give them the outcome, not a transcrip
 
 ### Design (when the change is visible)
 - Agreed mockup: [artifact URL]  (or: "skipped — [reason]")
+
+### Needs a person (if any)
+- [each note file and its title, or the note in full when none was written]
 
 ### Blockers and assumptions (if any)
 - [what blocked the agent, or what it assumed]

@@ -197,7 +197,7 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
               + test plan + testFiles + the test command  (or: "No test was written: <summary>"))
 ```
 
-It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, and `testDisputes`. Act on it in this order:
+It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, `testDisputes`, and `notes`. Act on it in this order:
 
 1. Nothing returned → `aborted` (stage `implement`).
 2. **Compare the fingerprints.** A changed test file goes back to the coding agent to restore, and that spends one Stage 5.5 fix cycle; with none left → `escalate` (stage `implement`).
@@ -272,7 +272,7 @@ Agent(subagent_type: "sdlc:verify", model: "sonnet",
   Judge its `json` block by the Stage 6 rules: passed → Stage 8; `skipped` → still go to Stage 8, and name the command and the reason in the report, never as green; failed → hand the failures to the coding agent with `SendMessage` exactly as Stage 6 does, then re-run a fresh e2e verify. **The fix cycle is one per task, shared with Stage 6** — if Stage 6 already spent it, an e2e failure is an `escalate` with stage `verify`, and the task stays `In Progress`.
 
 ### 8. Finish the ticket (only on success)
-Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block. This command's closing entry is `orchestrate-quick · done`, and the worklog also takes the verification and code-review entries and the Stage 7 end-to-end result.
+Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block. This command's closing entry is `orchestrate-quick · done`, and the worklog also takes the verification and code-review entries and the Stage 7 end-to-end result. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-quick`; with no ticket, pass the feature the task belongs to, or show the notes in the report when it has none.
 
 Never finish the ticket unless verification passed **and** the code review returned `APPROVED`. Report only after the files are updated.
 
@@ -288,6 +288,8 @@ Never finish the ticket unless verification passed **and** the code review retur
 - [x] Code review — approved ([0 or 1] fix cycle)
 - [x] End-to-end — [passed | skipped: reason | not run at your request: `<command>` | no suite in this project]
 - [x] Status — ticket marked Completed, unassigned, and moved to `done/` with its worklog; roadmap row deleted
+
+Needs a person: [each note file and its title, or "nothing"]
 
 [Summary of what was accomplished]
 ```

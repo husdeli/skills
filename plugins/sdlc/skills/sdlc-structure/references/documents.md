@@ -23,6 +23,7 @@ it holds one project directly. Every other path is relative to the framework roo
 | Roadmap | `<project>/roadmap.md` | `roadmap` | A row mirrors its ticket's status, and is deleted when the ticket is done | `ticket-board` | `/plan`, the orchestrators |
 | Feature note | `features/<feature-name>/<feature-name>.feature.md` | `feature` | `backlog`, `in progress`, `done` | `feature` | `/feature` |
 | Design doc | `features/<feature-name>/<subject>.design.md` or `designs/<subject>.design.md` | `design` | — | `design-doc` | `/design` |
+| Note | `features/<feature-name>/notes/<slug>.note.md` | `note` | `open`, `done` | `feature` | `scripts/create-note.py`, for the orchestrators and `/code`; a person sets `done` |
 | Diagram | `diagrams/<name>.excalidraw.md` | — | — | `diagrams` | whoever writes the document it illustrates |
 | Ticket | `work/<bucket>/<CODE>-<NNN>-<slug>.md` | — | `backlog`, `in progress`, `blocked`, `review`, `done` | `ticket-board` | `/plan`, the orchestrators |
 | Worklog | beside its ticket, `<CODE>-<NNN>-<slug>.worklog.md` | `worklog` | — | `ticket-board` | the orchestrator only |

@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.66.0] - 2026-10-15
+
+### Added
+
+- **Notes for a person.** When the code depends on an action no agent can take — a WAF rule in a
+  cloud console, a secret, a DNS record, a third-party setting — the coding agent now reports it
+  in a new `notes` array in its result block: `title`, `action`, `reason`, and `when`
+  (`before-release`, `after-release`, or `anytime`). A note never stops the run; work the brief
+  cannot finish without the action is still a blocker.
+- **`scripts/create-note.py` writes every note**, so no model decides a note's path, name, or
+  properties. It writes `features/<feature-name>/notes/<slug>.note.md` with `type: note`,
+  `status: open`, the feature and ticket links, and the tags `sdlc/note` and `human-required`. A
+  note whose file already exists is kept, so a fix turn or a resumed run that reports it again
+  writes nothing twice.
+- `/orchestrate`, `/orchestrate-quick`, and `/run-roadmap` run the script when the ticket
+  finishes, name each note in the closing worklog entry, and list them in the report under
+  *Needs a person*. A ticket that stops writes no note; its outcome entry names them instead.
+  `/run-roadmap` commits the new note files with the ticket's documents. `/code` runs the script
+  too, with the ticket or the feature the request names.
+- The `feature` skill, the feature design, `sdlc-structure`'s layout and document kinds, and the
+  glossary describe the `notes/` folder and the note.
+
 ## [0.65.0] - 2026-10-15
 
 ### Changed

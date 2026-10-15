@@ -495,8 +495,9 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
                 (or: "No test was written: <summary>"))
 ```
 
-It ends every turn with `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, and
-`testDisputes`. Act on **every** `coding` turn — this stage's and every later fix — in this order:
+It ends every turn with `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`,
+`testDisputes`, and `notes`. Act on **every** `coding` turn — this stage's and every later fix — in
+this order:
 
 1. Silent → `aborted` at stage `implement`.
 2. **Compare the fingerprints.** A changed test file goes back to the coding agent to restore, and
@@ -634,7 +635,9 @@ ruling, whatever it says, then act:
 ### 8. Finish the ticket (only on success)
 Run `ticket-board`'s **Finishing a ticket** transition yourself, in one tool block: the status field,
 the closing worklog entry, the move into `done/`, and the roadmap row deleted. This command's closing
-entry is `<run name> · done`.
+entry is `<run name> · done`, and it names each note file. In the same step, write the coding agent's
+latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run <run name>`. A note is
+never a reason to stop: the run goes on, and a person acts on the note later.
 
 Do this **before** the commits, so the documents commit in Stage 9 holds the ticket in `done/`.
 The ticket's claim goes with it — the rest of the cluster keeps this run's claim.
@@ -661,7 +664,8 @@ a sequence of changes a person can read and merge.
    the worktree as it is for a person to look at. Do not retry with `--no-verify`.
 
 **Commit the documents in the framework root**, when it is a git tree: `git -C <framework root> add`
-the ticket, its worklog, every roadmap the ticket's row was in, and any ticket Stage 8 corrected —
+the ticket, its worklog, every roadmap the ticket's row was in, any ticket Stage 8 corrected, and
+each note file `create-note.py` reported as `created` —
 those paths only, because the person may have their own changes there — then one commit with the
 code commit's subject. A framework root in a vault that is no git tree has nothing to commit: the
 files are saved, and the report says so.
@@ -707,6 +711,7 @@ The report is short — a person reads a hundred of these in a log, not one on a
 - [x] Run worktrees — [code] `[absolute path]`, one per line
 - [x] Commits — code [sha] [subject]; documents [sha], or: the framework root is no git tree
 - [x] Status — ticket Completed and moved to `done/`, roadmap row deleted
+- [x] Needs a person — [each note file and its title], or: nothing
 
 [Two or three lines: what shipped, and the decision that shaped it.]
 [Any skipped candidate and its reason. Any recommendation nobody acted on.]

@@ -1,6 +1,6 @@
 ---
 name: feature
-description: "Rules for the feature — the entity that names one thing a customer can do, kept as a folder under the framework root's features/<feature-name>/ with its feature note and the design docs it owns, carrying the epic code that numbers its tickets and the projects it relates to. INVOKE THIS SKILL before you create, rename, read, or retire a feature, before you write a design doc that belongs to one, before you open an epic on a roadmap, and before you list what a product can do. Enforces one feature per folder, one feature note per feature, a code that is the epic code, at least one project per feature, and a status verified against the code."
+description: "Rules for the feature — the entity that names one thing a customer can do, kept as a folder under the framework root's features/<feature-name>/ with its feature note, the design docs it owns, and the notes a person must act on, carrying the epic code that numbers its tickets and the projects it relates to. INVOKE THIS SKILL before you create, rename, read, or retire a feature, before you write a design doc that belongs to one, before you open an epic on a roadmap, and before you list what a product can do. Enforces one feature per folder, one feature note per feature, a code that is the epic code, at least one project per feature, and a status verified against the code."
 ---
 
 # feature skill
@@ -12,7 +12,8 @@ is grouped by, and the plan is sold on, so it has one home and one record:
 <framework root>/features/checkout/
 ├── checkout.feature.md        the feature note
 ├── checkout.design.md         how it works
-└── payment-retry.design.md    a second subject inside the same feature
+├── payment-retry.design.md    a second subject inside the same feature
+└── notes/                     actions a person must take, one <slug>.note.md each
 ```
 
 **The `sdlc-structure` skill resolves the framework root** — load it before you resolve any path
@@ -26,8 +27,9 @@ folder, the **`ticket-board`** skill for the epic and the tickets its code numbe
 
 | Path | Responsible for | Never holds |
 | --- | --- | --- |
-| `features/<feature-name>/` | The feature note, and every design doc that belongs to this feature alone | A diagram, a ticket, a worklog, or another feature's design doc |
+| `features/<feature-name>/` | The feature note, every design doc that belongs to this feature alone, and its `notes/` | A diagram, a ticket, a worklog, or another feature's design doc |
 | `features/<feature-name>/<feature-name>.feature.md` | Naming the feature, saying what a customer can do with it, carrying its code, projects, and status, and linking its design docs | How the feature works, a task, a price, or a repository path |
+| `features/<feature-name>/notes/<slug>.note.md` | One action a person must take outside the code for the feature to work — a cloud rule, a secret, a third-party setting | A task an agent can do, a TODO in the code, a recommendation, or a decision |
 
 - **`features/` sits at the framework root, not in a project.** A feature names the projects it
   relates to, and one feature may serve several.
@@ -92,6 +94,57 @@ doc. A feature with no design doc yet has no links. The PRD says why; the design
 would use. Two tests before you keep a sentence. **Could it be pasted into the PRD without looking
 out of place?** Then it is the PRD's — delete it here. **Does it say how something works?** Then it
 is the design doc's — delete it here.
+
+## The notes folder
+
+A **note** is one action a person has to take outside the code — a WAF rule in a cloud console, a
+secret in a vault, a DNS record, a webhook in a third-party dashboard — that the feature's code
+depends on. The coding agent reports it in its result block; the orchestrator hands it to
+`scripts/create-note.py`, and the script writes the file. **No model writes a note file**, so every
+note has the same name, properties, and body.
+
+```markdown
+---
+type: note
+feature: "[[checkout.feature]]"
+ticket: "[[CHECKOUT-004-stripe-webhooks]]"
+status: open
+when: before-release
+createdAt: 2026-10-15T11:39
+createdBy: orchestrate-3
+tags:
+  - sdlc/note
+  - human-required
+---
+
+# Allow Stripe's webhook IPs in the AWS WAF rule set
+
+## What to do
+
+In AWS WAF, add the ranges from Stripe's published webhook IP list to the `api-allow` IP set, then
+send a test webhook from the Stripe dashboard and confirm it returns 200.
+
+## Why
+
+The new `/webhooks/stripe` route sits behind WAF; without the rule every webhook gets a 403.
+```
+
+| Property | What it holds |
+| --- | --- |
+| `type` | `note`, always. |
+| `feature` | The feature whose folder holds it. |
+| `ticket` | The ticket whose run reported it. Left out when no ticket did. |
+| `status` | `open` until a person has done it, then `done`. Only a person changes it. |
+| `when` | `before-release` — production fails without it; `after-release` — it follows a release; `anytime`. |
+| `createdAt` | When the script wrote it. |
+| `createdBy` | The run that reported it: `orchestrate-3`, `orchestrate-quick`, a roadmap run's name, or `code`. |
+| `tags` | `sdlc/note` and `human-required`, so every action that waits on a person is one search. |
+
+- **The title names the file.** The script turns it into `<slug>.note.md`, and a note whose file
+  already exists is kept as it is — the same title is the same need, reported again.
+- **A person closes a note** by setting `status: done`. Nobody deletes one: it records what the
+  feature needed beyond its code.
+- **A feature that has no note has no `notes/` folder.** The script creates it with the first one.
 
 ## The code is the epic code
 

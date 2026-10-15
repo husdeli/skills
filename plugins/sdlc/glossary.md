@@ -1,6 +1,6 @@
 ---
 type: glossary
-updated: 2026-10-13
+updated: 2026-10-15
 tags:
   - sdlc/glossary
 ---
@@ -45,6 +45,10 @@ A fixed rule that decides whether a run goes on, such as the plan-review skip ga
 ## Glossary
 
 `glossary.md` at the framework root, defining every term the framework and its projects use, each once, under a heading of its own. Every other document links an entry instead of defining the term again.
+
+## Note
+
+One action a person must take outside the code for a feature to work — a cloud firewall rule, a secret, a DNS record, a third-party setting. The coding agent reports it, `scripts/create-note.py` writes it into `features/<feature-name>/notes/<slug>.note.md` tagged `human-required`, and a person closes it.
 
 ## Orchestrator
 

@@ -105,6 +105,34 @@ produces tests that describe its code rather than check it.
   makes it pass may already exist; `escalate` → the run's escalation. When one round holds both
   kinds, run the `test-writer` turn first, then send `coding` one message with every ruling.
 
+## Notes for a person are written by the script
+
+The coding agent reports actions only a person can take — a cloud firewall rule, a secret, a DNS
+record, a third-party setting — as `notes` in its block. Its latest turn holds the full list.
+**Never write a note file yourself.** The script writes every one, so its path, name, and
+properties never depend on how a run worded them:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/create-note.py" --root <framework root> \
+  --ticket <ticket file> --run <the run's claim, or the command name> <<'NOTES'
+<the `notes` array from the coding agent's latest block, as it came>
+NOTES
+```
+
+- **Run it once, when the ticket finishes**, in the same step that finishes it, so a ticket whose
+  code is discarded leaves no note behind. A run that stops instead names each note in its outcome
+  worklog entry; the run that resumes the ticket reports them again.
+- **Pass `--feature <feature-name>` instead of `--ticket`** when the work has a feature and no
+  ticket. With neither, there is no folder to write to: show the notes in the report.
+- **An empty list writes nothing; skip the call.** A missing `python3` is the same — show the notes
+  in the report, and say they were not written.
+- **It prints `created` and `existing` paths.** Name them in the closing worklog entry and in the
+  report under *Needs a person*. A note already on disk is kept as it is: the same title is the
+  same need.
+- **Exit 2 means nothing was written**, and the reason is on stderr. Fix what you passed — a wrong
+  path, the array cut short — and run it once more. A second failure goes in the report with the
+  notes in full; it never changes the outcome.
+
 ## Never duplicate the gating run
 
 - The **coding agent self-checks** what it touched, and nothing more.

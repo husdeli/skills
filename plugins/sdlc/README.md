@@ -34,7 +34,7 @@ skills/                          # shared rules and document skills, read by bot
 codex-skills/                    # Codex entry points, never loaded by Claude Code
 agents/                          # agent definitions and Codex role contracts
 commands/                        # Claude commands and shared workflow sources
-scripts/                         # run-roadmap.sh, the unattended launcher
+scripts/                         # run-roadmap.sh, the unattended launcher; build-roadmap.py; create-note.py
 ```
 
 ## Where your product docs live
@@ -59,6 +59,8 @@ elsewhere. The layout is the same wherever the framework root sits:
                              status, its projects, and the code that numbers its tickets
       checkout.design.md     the design docs that belong to this feature
       payment-retry.design.md
+      notes/                 actions only a person can take, tagged human-required
+        allow-stripe-webhook-ips-in-the-aws-waf-rule-set.note.md
     …
   designs/
     overview.design.md  the design docs that underpin every feature — an app shell,
@@ -172,6 +174,13 @@ commands that pick a task do that for the rows they read, and
 plugins/sdlc/scripts/build-roadmap.py --check    # what differs, as a diff; writes nothing
 plugins/sdlc/scripts/build-roadmap.py            # rewrite every table from the tickets
 ```
+
+**Some work needs a person after the code is done.** When the code the coding agent wrote depends
+on something no agent can do — a WAF rule in AWS, a secret, a DNS record, a webhook in a
+third-party dashboard — it reports a note in its result block. When the ticket finishes,
+[`scripts/create-note.py`](scripts/create-note.py) writes each one into the feature's `notes/`
+folder with `status: open` and the `human-required` tag, so searching that tag lists everything
+waiting on you. Set `status: done` once you have done it.
 
 **Reading a table top to bottom is reading the order to build in.** Three rules make that true: a
 task never sits above something it still depends on; a blocker carries the highest priority of

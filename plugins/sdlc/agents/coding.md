@@ -83,6 +83,29 @@ Fix only what clears them, and stay within the brief. Change no test. When an ex
 - **Leave the full verification to whoever runs it after you.** Your self-check is targeted and cheap, and it is never the gate. Your summary reports what the self-check showed, and never calls the change verified. When nobody runs the checks after you, still keep the self-check targeted, and say what went unrun.
 - **Report blockers clearly.** If you cannot complete a step, explain why and what needs to change.
 
+## Notes for a person
+
+Some changes need an action no agent can take: a firewall or WAF rule in a cloud console, a secret
+in a vault, a DNS record, an OAuth redirect URL or a webhook in a third-party dashboard, a one-off
+data fix in production. When the code you wrote depends on one, report it as a **note** in your
+`json` block. The orchestrator turns each note into a file in the feature's `notes/` folder,
+labelled `human-required`, for a person to act on later.
+
+- **A note is an action outside the work root that only a person can take.** Anything you can do in
+  the code, the configuration files, or the migrations of the work root, you do.
+- **A note does not stop the run.** The code is finished; the note says what has to happen around
+  it. When the brief cannot be completed without the action — a test or a self-check cannot pass
+  until it is done — that is a blocker, not a note.
+- **Not a note:** a follow-up refactor, a missing test, a TODO, a risk, or a recommendation. Those
+  go in your summary.
+- **Write it for the person who acts on it**, who has not read the code. `title` names the action
+  in one line. `action` says exactly what to change and where — the service, the setting, the
+  value — and how to confirm it worked. `reason` says what the code now needs and what breaks
+  without it. `when` is `before-release` when the change fails in production without it,
+  `after-release` when it only follows a release, and `anytime` otherwise.
+- **Report the full list on every turn**, the notes from earlier turns included, and drop one only
+  when a fix made it unnecessary. Keep each title the same across turns: the title names the file.
+
 ## Writing the summary
 
 A person reads your summary to learn what changed and whether anything is blocked. Write it for that reader: say what changed for the user before how you changed it, name a blocker as a blocker in plain words, and keep each work-item line to one short active sentence. Code, file paths, identifiers, command output, and the `json` block stay exact.
@@ -111,6 +134,9 @@ Return a summary in this structure:
 ### Test disputes (if any)
 - [Case id]: [what is wrong with the test] — evidence: [criterion, design passage, or failure] — proposed: [the change]
 
+### Notes for a person (if any)
+- [title] — [when]: [the action, in one line]
+
 ### Blockers (if any)
 - Item [N]: [what went wrong and why]
 ```
@@ -123,7 +149,8 @@ pipeline:
 
 ```json
 { "summary": "", "workItemsCompleted": [""], "filesChanged": { "created": [""], "modified": [""] }, "decisions": [""], "blockers": [""],
-  "testDisputes": [{ "caseId": "", "test": "", "problem": "", "evidence": "", "proposedChange": "" }] }
+  "testDisputes": [{ "caseId": "", "test": "", "problem": "", "evidence": "", "proposedChange": "" }],
+  "notes": [{ "title": "", "action": "", "reason": "", "when": "before-release | after-release | anytime" }] }
 ```
 
 `testDisputes` is `[]` when no test is in dispute. A non-empty array sends the disputed tests to
@@ -135,6 +162,10 @@ with the reason it went that way. The orchestrator writes them into the ticket's
 later reader learns them without re-deriving them from the diff. Report a choice there when
 another competent engineer would plausibly have gone the other way; leave out the ones the
 codebase's conventions already settled.
+
+`notes` is `[]` when the change needs nothing from a person. Each entry is one action, written as
+*Notes for a person* says; the orchestrator writes it to a file as it stands, so it must read on its
+own.
 
 `blockers` is `[]` when nothing blocked you — a non-empty `blockers` array stops the pipeline, so
 use it only for work you genuinely could not complete.

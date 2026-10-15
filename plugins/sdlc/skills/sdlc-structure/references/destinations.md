@@ -30,10 +30,11 @@ repeats a property as a `**Field**: value` line, and a command that changes a pr
 frontmatter — there is no second copy to keep in step.
 
 - **`type` names the kind of document** — `project`, `prd`, `glossary`, `goal`, `non-goal`,
-  `persona`, `problem`, `metric`, `feature`, `design`, `roadmap`, `worklog`, `business-plan`, or
-  `competitor`. A ticket carries none; its name and its bucket make it a ticket.
+  `persona`, `problem`, `metric`, `feature`, `design`, `note`, `roadmap`, `worklog`,
+  `business-plan`, or `competitor`. A ticket carries none; its name and its bucket make it a ticket.
 - **`tags` holds one entry, `sdlc/<type>`**, so the whole structure is one search. A ticket
-  carries none.
+  carries none. A note adds a second, `human-required`, so everything that waits on a person is
+  one search too.
 - **`updated` is the date a document last changed**, `YYYY-MM-DD`, on the kinds whose skill lists
   it — the glossary, the PRD, the roadmap, a design doc, and the business plan. The project note,
   the feature note, and the worklog carry none. A ticket carries `createdAt` and `updatedAt`

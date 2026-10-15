@@ -17,17 +17,21 @@ This doc defines the structure of one [[glossary#Feature|feature]] folder: the f
 ```
 <feature-name>/
 ├── <feature-name>.feature.md    the feature note
-└── <subject>.design.md          optional; zero or more design docs
+├── <subject>.design.md          optional; zero or more design docs
+└── notes/                       optional; <slug>.note.md, one per action a person must take
 ```
 
 | Path                                       | Responsible for                                                                                                                 | Never holds                                                     |
 | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
-| `<feature-name>/`                          | The feature note, and every [[glossary#Design doc\|design doc]] that belongs to this feature alone                              | A diagram, a ticket, a worklog, or another feature's design doc |
+| `<feature-name>/`                          | The feature note, every [[glossary#Design doc\|design doc]] that belongs to this feature alone, and its `notes/`                 | A diagram, a ticket, a worklog, or another feature's design doc |
 | `<feature-name>/<feature-name>.feature.md` | Naming the feature, saying what a customer can do with it, carrying its code, projects, and status, and linking its design docs | How the feature works, a task, a price, or a repository path    |
+| `<feature-name>/notes/<slug>.note.md`      | One [[glossary#Note\|note]]: an action a person must take outside the code for the feature to work                                 | A task an agent can do, a TODO, a recommendation, or a decision |
 
 **`<feature-name>` is kebab-case, in the product's own words**: `checkout/`, `saved-searches/`, `team-invites/`. It is unique within the framework root, and the folder name and the feature note's name always match.
 
 **The feature note is `<feature-name>.feature.md`.** The `.feature` suffix keeps its name unique in a vault, so `[[checkout.feature]]` never needs a path.
+
+**A note is written by `scripts/create-note.py`, never by a model.** The coding agent reports it, the orchestrator passes it to the script when the ticket finishes, and a person sets its `status` from `open` to `done` once the action is taken.
 
 **A design doc that every feature depends on stays in `designs/`.** Only a design doc that belongs to one feature sits in that feature's folder.
 
