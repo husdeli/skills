@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Create the product-document structure — in an Obsidian vault (recommended), or in the repository as `.sdlc/` — and register every code repository the product is built in, without overwriting existing files. Use when a user asks to set up or initialize the plugin documents, choose where the documents live, register a repository, migrate existing root documents, or invokes `$setup` as the Codex equivalent of `/setup`.
+description: Set up the SDLC framework structure for a product, in an Obsidian vault (recommended) or in the repository, and register every code repository the product is built in, without overwriting existing files. Use when a user asks to set up or initialize the plugin documents, choose where the documents live, register a repository, migrate existing root documents, or invokes `$setup` as the Codex equivalent of `/setup`.
 ---
 
 # Setup
