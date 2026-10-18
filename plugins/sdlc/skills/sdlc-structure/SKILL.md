@@ -36,7 +36,9 @@ Every later path in the run resolves against what it gives you.
 
 - **One fact, one owner.** Every other document links the owner instead of copying the fact.
 - **A link points from the detailed document to the broader one**, never back. A ticket cites its
-  feature, and a feature never cites a ticket.
+  feature and the design docs it builds. A feature never cites a ticket, and a design doc never
+  cites a ticket, a ticket code, an epic, or a roadmap row — not even to say which work produced a
+  fact.
 - **The record wins over the summary.** A ticket outranks its roadmap row. Its `status` outranks
   the bucket it sits in. The code outranks a feature's status.
 - **A document's `type` property is what makes it that kind of document.** A file with the right

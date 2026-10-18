@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.67.0] - 2026-10-18
+
+### Changed
+
+- **A design doc names no work item.** The `design-doc` skill's rule against tickets now lists
+  every form one takes — a ticket code, a link to a ticket or a worklog, an epic or its letter,
+  a roadmap row, a release phase, a milestone, a follow-up, a deliverables section — and forbids
+  attributing a fact to the work that produced it ("the limits SW-2191 set"). A PRD area code
+  stays, because it links the PRD. Editing a doc that already names a work item removes it in the
+  same edit.
+- The skill's after-drafting check searches the whole doc for the ticket-code shape, for links
+  into `work/`, and for the words *ticket*, *epic*, *phase*, *milestone*, *follow-up*, and
+  *deliverable*.
+- `sdlc-structure`'s link rule and `/plan` now name the ticket code and the epic among what a
+  design doc never cites.
+
 ## [0.66.0] - 2026-10-15
 
 ### Added

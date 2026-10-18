@@ -180,7 +180,7 @@ Do not run `/orchestrate` yourself. Name it and stop.
 - **Interview before you write.** Every request that reaches Stage 3 gets one; a request too small to interview was handed to `/code` in Stage 1.
 - **Never write a file before the user approves the breakdown.**
 - **Statuses stay at the start** — pending in the roadmap, `backlog` and unassigned in the ticket, and the ticket file in `work/backlog/`. This command never marks progress, never assigns or claims a ticket, never writes a worklog, and never moves a ticket out of `work/backlog/`.
-- **The link runs one way.** A ticket cites its feature and may cite a PRD area code; the PRD, the feature note, and the design doc never cite a ticket, an ID, or a roadmap row.
+- **The link runs one way.** A ticket cites its feature and may cite a PRD area code; the PRD, the feature note, and the design doc never cite a ticket, an ID, an epic, or a roadmap row.
 - **Reuse the product's words** from the PRD for every domain term, in every document you touch — a second name for the same thing is how two documents start disagreeing.
 - **Never renumber or overwrite** an existing row, ID, or ticket.
 - **Hand off when the request needs code rather than documents** — name `/code`, `/orchestrate-quick`, or `/orchestrate`, and why.

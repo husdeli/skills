@@ -126,14 +126,29 @@ that a term this design coins gets its entry in the same step.
    glossary, the PRD, and the goal it holds to** — the glossary for a term's definition, and
    the PRD only when it actually exists in the project; otherwise omit it. Never link to build or operations docs
    (deployment runbooks, setup guides, generated API references).
-6. **No tickets, no code references.** The doc stands on its own and stays true as the work
-   and the codebase move. Never cite a ticket, issue, PR, roadmap item, or milestone
-   (`JIRA-1234`, "per the linked issue", "shipping in phase 2"), and never point at the
-   implementation — file paths, directories, class or function names, routes, props, CSS
-   classes, config keys, or code snippets. Name every part by what it *is* in the solution,
-   not by what it is called in the source. If a fact only makes sense by pointing at a ticket
-   or a file, it is not a design fact — drop it or restate it as an observable property of
-   the solution.
+6. **No tickets, no epics, no code references.** The doc stands on its own and stays true as
+   the work and the codebase move. The link runs one way: a ticket cites the design docs it
+   builds, and a design doc never cites the work that builds it. Never name any work item:
+   - a ticket or its code (`SW-2191`, `AI-004`, `JIRA-1234`), a link to a ticket or a worklog
+     file, or "the ticket" as a place to read or record something;
+   - an epic, an epic's code or letter ("the contract Epics B/C/D build on"), a roadmap row, a
+     milestone, a release phase, or a sprint ("Phase 1 ships a read-only pull", "shipping in
+     phase 2");
+   - an issue or a PR ("per the linked issue");
+   - a follow-up, a deliverable, or a later change ("a follow-up rather than part of this
+     change", a "Deliverables" section).
+
+   Never attribute a fact to the work that produced it — "the limits SW-2191 set", "measured
+   in SW-2196", "(SW-1905)" after a feature. State the fact itself. What the solution does
+   not do yet is stated as what it does not do, never as the work that will add it. A PRD
+   area code is a link to the PRD, not a work item, and may stay.
+
+   Never point at the implementation either — file paths, directories, class or function
+   names, routes, props, CSS classes, config keys, or code snippets. Name every part by what
+   it *is* in the solution, not by what it is called in the source. If a fact only makes
+   sense by pointing at a ticket or a file, it is not a design fact — drop it or restate it as
+   an observable property of the solution. **When you edit a doc that already names a work
+   item, remove it in the same edit**, even outside the section you came to change.
 
 ## Document shape
 
@@ -279,8 +294,12 @@ and confirm with the user:
    comes out? If not, the Behavior section is incomplete.
 3. Does any line make a call a single part could change on its own — a name in the source, a
    library, a query, a hex color, a font, an exact size? Raise the altitude, or drop it.
-4. Does any line cite a ticket/issue/PR or point at the code (a path, class name, route,
-   prop)? Remove it, or restate it as an observable property.
+4. Does any line name a work item — a ticket, a ticket code, an epic, a roadmap row, a
+   phase, a milestone, an issue, a PR, or a follow-up — or point at the code (a path, class
+   name, route, prop)? Search the whole doc, not only what you wrote: for the ticket-code
+   shape `<CODE>-<NNN>`, for a link to a file in `work/`, and for the words *ticket*, *epic*,
+   *phase*, *milestone*, *follow-up*, and *deliverable*. Remove each hit, or restate it as an
+   observable property.
 5. Is any part self-contained enough to be its own `<subject>.design.md` beside this one,
    cross-referenced from here? If it is, does it belong to this feature, or to `designs/`?
 6. Are the states complete, including the failures — invalid input, a missing permission, an
