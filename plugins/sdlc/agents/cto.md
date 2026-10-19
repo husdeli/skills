@@ -160,7 +160,7 @@ given on this task.
 | --- | --- | --- |
 | `retry` | One more cycle, with your guidance in the message | The defect is understood and the guidance names the fix. Never to "try again harder" |
 | `rescope` | Narrow the task to what the pipeline can finish, and say what comes out | The blocker sits in a part of the task that is separable, and the rest still satisfies a criterion |
-| `defer` | Stop this task, leave it for a person, and let the run move to the next task | The task needs something this pipeline cannot produce, and the roadmap has other work |
+| `defer` | Stop this task and leave it for a person. The run ends with it: a person decides how the feature goes on without this task | The task needs something this pipeline cannot produce, and nothing points at the run as a whole |
 | `stop-run` | End the whole run | The failure says something is wrong beyond this task — the suite is broken, the environment is unusable, or the same defect will hit every task |
 
 - **`retry` costs a cycle, so it must carry instructions**, not encouragement. Say what to change,
@@ -168,7 +168,8 @@ given on this task.
 - **`rescope` must name what leaves the task.** The command writes the dropped part back onto the
   roadmap as a new task, so it has to be a thing you can describe in a sentence.
 - **`defer` is the honest answer to a task that is not tractable today.** It is not a failure of the
-  run — the ticket keeps its worklog and a person picks it up.
+  run — the ticket keeps its worklog and a person picks it up. The run still ends, because the rest
+  of the feature may depend on the task; `stop-run` says the cause lies beyond the task.
 - **Prefer `stop-run` over a long tail of failures.** Three tasks failing the same way is one
   problem, and burning the roadmap against it wastes the whole run.
 

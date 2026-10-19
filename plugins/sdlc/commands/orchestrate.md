@@ -175,7 +175,7 @@ The **`ticket-board`** skill holds the roadmap's shape: one `## <CODE> — <epic
 - Carry an epic's `**Note**:` line into the planner prompt as a constraint on the task.
 
 ### 2. Pick the Next Task
-Collect **every** task that is **pending** and whose **dependencies are all satisfied** — those are the candidates. `ticket-board` says when a `Depends on` cell counts as satisfied, and that a claimed ticket is never a candidate. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task.
+Collect **every** task that is **ready**, as `ticket-board` defines it — a `backlog` ticket whose **dependencies are all satisfied**, or a `blocked` ticket that is **resumable** because its `blocked_by` holds only finished IDs, or nothing — those are the candidates. `ticket-board` says when a `Depends on` cell counts as satisfied, and that a claimed ticket is never a candidate. Mark a resumable candidate as a resume in its line, and give the planner its worklog, as Start says. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task.
 
 Show the candidates first, so the user reads the detail that an option label cannot hold. List them in roadmap order — top to bottom, epic by epic. `ticket-board` keeps each epic's table sorted by priority with dependencies as a hard constraint, so roadmap order already **is** priority order; the first candidate is the highest-priority one that is actually ready.
 
@@ -209,7 +209,7 @@ Track stages with the task/todo tools so the user sees live progress.
 Every agent turn ends with one `json` block. When a block is missing or malformed, ask that agent **once** to re-emit it; a second miss is `aborted` at that stage. The stage names below are the ones an escalation or an abort reports.
 
 #### Start
-As soon as the task is approved and *before* spawning any agent, run the **`ticket-board`** skill's **Starting a ticket** transition — the claim `orchestrate-<n>` written and read back, the work root resolved as `sdlc-structure` says and checked to be writable from this session, then status, assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all in one tool block. Do it yourself with file edits; do not delegate it. A claim read back as another run's drops the ticket: say so and pick again. Two values are this command's:
+As soon as the task is approved and *before* spawning any agent, run the **`ticket-board`** skill's **Starting a ticket** transition — the claim `orchestrate-<n>` written and read back, the work root resolved as `sdlc-structure` says and checked to be writable from this session, then status, assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all in one tool block. Do it yourself with file edits; do not delegate it. A claim read back as another run's, or a checkout another run is building in, drops the ticket: say so and pick again. Two values are this command's:
 - The **assignee** is `implementation-planner-<n>`.
 - The **opening worklog entry** is `orchestrate-<n> · start`: the task you are building, what it delivers, the work root and the evidence that settled it, and the `e2eDecision`. A ticket that resumes from `blocked` keeps its worklog, and the entry is appended.
 

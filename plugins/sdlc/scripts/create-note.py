@@ -33,7 +33,7 @@ import re
 import sys
 from pathlib import Path
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 
 WHEN = ("before-release", "after-release", "anytime")
 DEFAULT_WHEN = "anytime"
@@ -60,6 +60,42 @@ def find_framework_root(start: Path) -> Path | None:
         if folder == home:
             break
     return None
+
+
+def find_repository_root(start: Path) -> Path | None:
+    for folder in [start, *start.parents]:
+        if any((folder / marker).exists() for marker in (".git", "package.json", "AGENTS.md", "CLAUDE.md")):
+            return folder
+    return None
+
+
+def pointer_target(pointer: Path) -> Path | None:
+    try:
+        data = json.loads(pointer.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    value = data.get("root") if isinstance(data, dict) else None
+    if not value:
+        return None
+    target = Path(str(value)).expanduser()
+    if not target.is_absolute():
+        target = pointer.parent / target
+    return target.resolve() if target.is_dir() else None
+
+
+def find_from_working_directory() -> Path | None:
+    """The framework root above the working directory, else the one a repository points at."""
+    here = Path.cwd().resolve()
+    root = find_framework_root(here)
+    if root:
+        return root
+    repository = find_repository_root(here)
+    if not repository:
+        return None
+    target = pointer_target(repository / ".sdlc.json") if (repository / ".sdlc.json").is_file() else None
+    if target:
+        return find_framework_root(target) or target
+    return repository / ".sdlc" if (repository / ".sdlc").is_dir() else None
 
 
 def in_vault(path: Path) -> bool:
@@ -122,12 +158,12 @@ def read_notes(raw: str) -> list[dict[str, str]]:
 
 
 def render(note: dict[str, str], feature: str, ticket: Path | None, run: str, vault: bool, now: str) -> str:
-    def link(name: str) -> str:
-        return f'"[[{name}]]"' if vault else f"{name}.md"
-
-    lines = ["---", "type: note", f"feature: {link(f'{feature}.feature')}"]
+    # Outside a vault a link is a path relative to the note; a ticket is named by its file name,
+    # because it moves between buckets.
+    feature_link = f'"[[{feature}.feature]]"' if vault else f"../{feature}.feature.md"
+    lines = ["---", "type: note", f"feature: {feature_link}"]
     if ticket:
-        lines.append(f"ticket: {link(ticket.stem)}")
+        lines.append(f'ticket: "[[{ticket.stem}]]"' if vault else f"ticket: {ticket.name}")
     lines += [
         "status: open",
         f"when: {note['when']}",
@@ -153,7 +189,7 @@ def render(note: dict[str, str], feature: str, ticket: Path | None, run: str, va
 
 
 def create(args: argparse.Namespace, raw: str) -> dict[str, list[str]]:
-    root = Path(args.root).expanduser().resolve() if args.root else find_framework_root(Path.cwd().resolve())
+    root = Path(args.root).expanduser().resolve() if args.root else find_from_working_directory()
     if not root or not root.is_dir():
         raise NoteError("no framework root: pass --root, or run from inside one")
 

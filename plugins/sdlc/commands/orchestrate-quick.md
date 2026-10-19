@@ -66,18 +66,25 @@ this pipeline:
 the file has one writer and the concurrent stage — verification beside the code review — cannot
 lose an entry. No agent writes either field.
 
-**The entry and the assignee go in one tool block**, at these boundaries:
+**`<n>` is this run's number** — the one in its claim, `orchestrate-quick-<n>`, chosen as
+`ticket-board` says. Every agent of the run carries it in `assigned`: `coding-2` works for
+`orchestrate-quick-2`. Your own entries name the claim: `orchestrate-quick-2 · start`.
 
-| Boundary | Entries to append | Assignee becomes |
+**The entry and the assignee go in one tool block**, at these boundaries. `assigned` names the one
+agent the ticket waits on; a stage that runs two at once names the one that gates it:
+
+| Boundary | Entries to append | `status` · `assigned` becomes |
 | --- | --- | --- |
-| Stage 2, starting the ticket | the worklog itself, with the `orchestrate-quick · start` entry | `implementation-planner, plan-reviewer, test-planner` |
-| Stage 4, the plan is approved | `implementation-planner · plan`, then `plan-reviewer · plan review` | `test-planner` |
-| Stage 4.5, the test plan lands | `test-planner · test plan` | `test-writer`, or `coding` when the plan holds no case |
-| Stage 4.6, the tests land | `test-writer · tests` | `coding` |
-| Stage 5, every test dispute round | `coding · test dispute`, `test-planner · test dispute`, and `test-writer · tests` when a test was revised | `coding` |
-| Stage 5, the implementation lands | `coding · implement` | `verify` for the targeted run, or `verify, code-reviewer` when the test stages were skipped |
-| Stage 5.5, the targeted run passes | `verify · targeted` | `verify, code-reviewer` |
-| Stage 8 | `verify · verification`, `code-reviewer · code review`, the Stage 7 end-to-end result, then the outcome | `—` on completion, `user` on escalate or abort |
+| Stage 2, starting the ticket | the worklog itself, with the `orchestrate-quick-<n> · start` entry | `in progress` · `implementation-planner-<n>` |
+| Stage 4, the plan is approved | `implementation-planner · plan`, then `plan-reviewer · plan review` | `test-planner-<n>` |
+| Stage 4.5, the test plan lands | `test-planner · test plan` | `test-writer-<n>`, or `coding-<n>` when the plan holds no case |
+| Stage 4.6, the tests land | `test-writer · tests` | `coding-<n>` |
+| Stage 5, every test dispute round | `coding · test dispute`, `test-planner · test dispute`, and `test-writer · tests` when a test was revised | `coding-<n>` |
+| Stage 5, the implementation lands | `coding · implement` | `verify-<n>` for the targeted run, or `review` · `code-reviewer-<n>` when the test stages were skipped |
+| Stage 5.5, the targeted run passes | `verify · targeted` | `review` · `code-reviewer-<n>` |
+| Stage 6, a fix goes out | none | `in progress` · `coding-<n>` |
+| Stage 8, finish | `verify · verification`, `code-reviewer · code review`, the Stage 7 end-to-end result, then `orchestrate-quick-<n> · done` | `done` · removed |
+| Every stop | the entry of the stage that stopped, then the outcome entry | `blocked` · removed |
 
 **Every exit writes the outcome entry and the assignee** — an escalation or an abort at any stage
 runs `ticket-board`'s *Stopping without finishing* transition, so the next session can read the
@@ -92,7 +99,7 @@ as Stage 2 does.
 `$ARGUMENTS` is either a **task description** or a **path** to a roadmap or ticket file.
 
 - **Task description** → use it as-is. Do not ask for approval; the user just gave it to you. Derive acceptance criteria from the description; if it names none and none are inferable, state the criteria you are assuming in one line and continue.
-- **Roadmap file** → read it, pick a task that is **pending** with all **dependencies satisfied** (the first in roadmap order if several qualify, reading the epic sections top to bottom — `ticket-board` keeps each table sorted by priority with dependencies as a hard constraint, so this is the highest-priority ready task), and present it in four lines — ID, title, priority, acceptance criteria — then **wait for approval**. Picking the wrong task is the one mistake this pipeline cannot verify its way out of. **The row does not say what the task delivers — its ticket does**, so open the ticket the `Ticket` cell names for the description, the criteria, and the priority. **The ticket is the record**: correct a row whose `Priority` or `Status` disagrees with the ticket you just read, re-sort the table when the priority moved it, and say in one line what you corrected. Carry an epic's `**Note**:` line into the planner prompt as a constraint on the task.
+- **Roadmap file** → read it, pick a task that is **ready**, as `ticket-board` defines it — `backlog` with all **dependencies satisfied**, or `blocked` and resumable — (the first in roadmap order if several qualify, reading the epic sections top to bottom — `ticket-board` keeps each table sorted by priority with dependencies as a hard constraint, so this is the highest-priority ready task), and present it in four lines — ID, title, priority, acceptance criteria — then **wait for approval**. Picking the wrong task is the one mistake this pipeline cannot verify its way out of. **The row does not say what the task delivers — its ticket does**, so open the ticket the `Ticket` cell names for the description, the criteria, and the priority. **The ticket is the record**: correct a row whose `Priority` or `Status` disagrees with the ticket you just read, re-sort the table when the priority moved it, and say in one line what you corrected. Carry an epic's `**Note**:` line into the planner prompt as a constraint on the task.
 - **Ticket file** → use that ticket; no approval needed.
 - **Nothing given** → ask what to build.
 
@@ -111,7 +118,7 @@ Never start a task whose dependencies are incomplete.
 Track the stages with the task/todo tools so the user sees live progress.
 
 ### 2. Resolve the work root, then start the ticket
-Resolve the work root first, as `sdlc-structure` says. Then run the **`ticket-board`** skill's **Starting a ticket** transition yourself, with the edits in one tool block. Two values are this command's: the **assignee** is `implementation-planner, plan-reviewer, test-planner`, and the **opening worklog entry** is `orchestrate-quick · start` — the task, what it delivers, the work root and the evidence that settled it, and the end-to-end default below.
+Resolve the work root first, as `sdlc-structure` says. Then run the **`ticket-board`** skill's **Starting a ticket** transition yourself, with the edits in one tool block: the claim `orchestrate-quick-<n>` written and read back first, then the rest. A claim read back as another run's, or a checkout another run is building in, drops the ticket: say so and pick again. A ticket resuming from `blocked` keeps its worklog, the entry is appended, and the planner gets the worklog's path. Two values are this command's: the **assignee** is `implementation-planner-<n>`, and the **opening worklog entry** is `orchestrate-quick-<n> · start` — the task, what it delivers, the work root and the evidence that settled it, and the end-to-end default below.
 
 With a bare task description and no board, there is no worklog to write it in: resolve the work root anyway, and name it in one line of your report.
 
@@ -158,9 +165,9 @@ One reviewer, on **sonnet**, always. Reviewing a plan against files it has alrea
 
 It ends its review turn with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues`. Nothing returned → `aborted` (stage `review`).
 
-- `APPROVED` → append the plan and plan-review worklog entries and set the assignee to `test-planner`, in one tool block, then Stage 4.5. The plan entry carries the **direction** the plan settled on and the approach it turned down — the plan markdown is not persisted anywhere, so this is the only trace it leaves. The review entry carries the verdict and the issues that forced the revision.
+- `APPROVED` → append the plan and plan-review worklog entries and set the assignee to `test-planner-<n>`, in one tool block, then Stage 4.5. The plan entry carries the **direction** the plan settled on and the approach it turned down — the plan markdown is not persisted anywhere, so this is the only trace it leaves. The review entry carries the verdict and the issues that forced the revision.
 - `CHANGES_REQUESTED`, **not yet revised**: `SendMessage(plannerId, "Revise your plan to resolve every issue below. Note in the Context section how each was addressed. Re-emit the full plan markdown + the ```json block." + issues)` — the planner holds the plan, task, and pack, so **send only the issues**. Then `SendMessage(reviewerId, "Re-review the revised plan below; the files are unchanged." + revised plan)`.
-- `CHANGES_REQUESTED`, **already revised once** → **`escalate`** (stage `review`) with the summary and remaining issues. Leave the status `In Progress`, write the outcome entry, set the assignee to `user`, and stop.
+- `CHANGES_REQUESTED`, **already revised once** → **`escalate`** (stage `review`) with the summary and remaining issues. Write the outcome entry, run `ticket-board`'s *Stopping without finishing* transition — `blocked`, with `blocked_by` naming what a person must decide, the claim and the assignee removed — and stop.
 
 ### 4.5 Test plan
 Resume the test planner with the approved plan:
@@ -172,7 +179,7 @@ SendMessage(testPlannerId, approved plan + contextPack
                             with its ```json block.")
 ```
 
-It returns a `json` block carrying `summary`, `cases`, and `untested`. Nothing returned → `aborted` (stage `test-plan`). Append the `test-planner · test plan` entry — each case in one line and each exclusion with its reason — and set the assignee to `test-writer`, in one tool block. **An empty `cases` skips Stages 4.6 and 5.5**: record the planner's reason, set the assignee to `coding`, and go to Stage 5 with no written tests.
+It returns a `json` block carrying `summary`, `cases`, and `untested`. Nothing returned → `aborted` (stage `test-plan`). Append the `test-planner · test plan` entry — each case in one line and each exclusion with its reason — and set the assignee to `test-writer-<n>`, in one tool block. **An empty `cases` skips Stages 4.6 and 5.5**: record the planner's reason, set the assignee to `coding-<n>`, and go to Stage 5 with no written tests.
 
 ### 4.6 Write tests
 Spawn **once** and keep the id:
@@ -183,7 +190,7 @@ Agent(subagent_type: "sdlc:test-writer", model: "sonnet",
               + "Write exactly these cases, prove each fails for the expected reason, and stop.")
 ```
 
-It returns a `json` block carrying `summary`, `testFiles`, `command`, `cases`, and `blockers`. Nothing returned → `aborted` (stage `write-tests`). Non-empty `blockers` → `escalate` (stage `write-tests`). **Fingerprint every path in `testFiles`**, as `agent-pipeline` says. Append the `test-writer · tests` entry — the files, the command, and each case that did not fail as expected — and set the assignee to `coding`, in one tool block.
+It returns a `json` block carrying `summary`, `testFiles`, `command`, `cases`, and `blockers`. Nothing returned → `aborted` (stage `write-tests`). Non-empty `blockers` → `escalate` (stage `write-tests`). **Fingerprint every path in `testFiles`**, as `agent-pipeline` says. Append the `test-writer · tests` entry — the files, the command, and each case that did not fail as expected — and set the assignee to `coding-<n>`, in one tool block.
 
 ### 5. Implement
 Spawn **once** and keep the id:
@@ -203,7 +210,7 @@ It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`,
 2. **Compare the fingerprints.** A changed test file goes back to the coding agent to restore, and that spends one Stage 5.5 fix cycle; with none left → `escalate` (stage `implement`).
 3. Non-empty `blockers` → `escalate` (stage `implement`) with them.
 4. Non-empty `testDisputes` → the dispute round below.
-5. Otherwise append the `coding · implement` entry — its `decisions`, which are the code-level calls the plan left open — and set the assignee to `verify`, in one tool block, then Stage 5.5. With no written tests, set it to `verify, code-reviewer` and go straight to Stage 6. **When the turn was a Stage 6 fix**, skip this step and go back to the Stage 6 re-run; a dispute raised there does not spend Stage 6's fix.
+5. Otherwise append the `coding · implement` entry — its `decisions`, which are the code-level calls the plan left open — and set the assignee to `verify-<n>`, in one tool block, then Stage 5.5. With no written tests, set the status to `review` and the assignee to `code-reviewer-<n>`, and go straight to Stage 6. **When the turn was a Stage 6 fix**, skip this step and go back to the Stage 6 re-run; a dispute raised there does not spend Stage 6's fix.
 
 **The dispute round — at most ONE per task.** `agent-pipeline` holds the route. `SendMessage(testPlannerId, "The coding agent disputes these tests. Rule on each against the specification." + testDisputes)`. A ruling of `escalate`, or a second dispute from any later coding turn → `escalate` (stage `test-dispute`): it is a question about the specification, and this pipeline asks none mid-run. On `revised`, resume the test writer with the revised cases — spawning it now if the empty plan skipped Stage 4.6 — and take the fingerprints again. Then send the coding agent every ruling in one message, and run its reply through steps 1–5. Append the three dispute entries, as the table says.
 
@@ -218,7 +225,7 @@ Agent(subagent_type: "sdlc:verify", model: "sonnet",
               + (re-runs only) "Previously failing: <failures> — run these first and fail fast.")
 ```
 
-Nothing returned → `aborted` (stage `targeted-verify`). Passed → append `verify · targeted`, set the assignee to `verify, code-reviewer`, in one tool block, then Stage 6. Failed with a cycle left → `SendMessage(codingId, "The written tests still fail. Fix the code, not the tests, then stop; a fresh targeted run follows." + failures)`, run its reply through Stage 5's steps 1–5, then a fresh targeted verify. Failed with **both cycles spent** → `escalate` (stage `targeted-verify`).
+Nothing returned → `aborted` (stage `targeted-verify`). Passed → append `verify · targeted`, set the status to `review` and the assignee to `code-reviewer-<n>`, in one tool block, then Stage 6. Failed with a cycle left → `SendMessage(codingId, "The written tests still fail. Fix the code, not the tests, then stop; a fresh targeted run follows." + failures)`, run its reply through Stage 5's steps 1–5, then a fresh targeted verify. Failed with **both cycles spent** → `escalate` (stage `targeted-verify`).
 
 ### 6. Verify and review the code — concurrent, at most one fix cycle
 Issue **both `Agent` calls in one tool block**. The verify agent is fresh every run; the code reviewer is spawned once and resumed:
@@ -248,8 +255,8 @@ One code reviewer, on **sonnet**, always — this pipeline scales nothing by ris
 Verify ends with a `json` block carrying `passed`, per-command `results` (`passed`, `skipped`, `output`), and `failures`. The reviewer ends with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues`. **Combine them into one gate:**
 - Either agent returned nothing → `aborted` (stage `verify` or `code-review`).
 - `passed == true` **and** `verdict == APPROVED` → success. If any result is `skipped`, still succeed, but name the skipped command and its reason in the report — never present a skipped e2e run as green. Minor review issues go into the report as recommendations; they do not block.
-- Anything else, **not yet fixed**: send **one** message carrying both sets of defects — `SendMessage(codingId, "Verification and code review found the following. Fix ONLY what is needed to clear them — stay within the approved plan, change no test, then stop; both will re-run." + failures + blocking review issues)`. The coding agent holds the plan and pack, so **send only the defects**. Its reply goes through Stage 5's steps 1–4, so a changed test file goes back and a dispute takes the dispute round if the task has not used it. Then re-run: **always** a fresh verify agent — the fix changed code, so a suite that was green before proves nothing now — carrying the previously failing commands so it bails early if the fix did not land. Re-review **only when the review blocked**, with `SendMessage(codeReviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary)`. When both run, issue them **in one tool block**.
-- Anything else, **already fixed once** → **`escalate`** with the remaining failures and issues. Name the stage `verify` when commands still fail, `code-review` when only the review still blocks. Append the verification and code-review entries and the outcome entry, leave the status `In Progress`, set the assignee to `user`, and stop.
+- Anything else, **not yet fixed**: set the status to `in progress` and the assignee to `coding-<n>`, then send **one** message carrying both sets of defects — `SendMessage(codingId, "Verification and code review found the following. Fix ONLY what is needed to clear them — stay within the approved plan, change no test, then stop; both will re-run." + failures + blocking review issues)`. The coding agent holds the plan and pack, so **send only the defects**. Its reply goes through Stage 5's steps 1–4, so a changed test file goes back and a dispute takes the dispute round if the task has not used it. Then re-run: **always** a fresh verify agent — the fix changed code, so a suite that was green before proves nothing now — carrying the previously failing commands so it bails early if the fix did not land. Re-review **only when the review blocked**, with `SendMessage(codeReviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary)`. When both run, issue them **in one tool block**.
+- Anything else, **already fixed once** → **`escalate`** with the remaining failures and issues. Name the stage `verify` when commands still fail, `code-review` when only the review still blocks. Append the verification and code-review entries and the outcome entry, then run `ticket-board`'s *Stopping without finishing* transition — `blocked`, with `blocked_by` naming what a person must decide, the claim and the assignee removed — and stop.
 
 ### 7. Offer the end-to-end run
 **When the test writer wrote end-to-end cases, this stage is not optional.** Ask nothing: run its `e2eCommand` with a fresh verify agent as the **Yes** branch below does, and judge it the same way. A written test never reaches `done` without having passed.
@@ -269,10 +276,10 @@ Agent(subagent_type: "sdlc:verify", model: "sonnet",
               + e2eCommand + contextPack)
 ```
 
-  Judge its `json` block by the Stage 6 rules: passed → Stage 8; `skipped` → still go to Stage 8, and name the command and the reason in the report, never as green; failed → hand the failures to the coding agent with `SendMessage` exactly as Stage 6 does, then re-run a fresh e2e verify. **The fix cycle is one per task, shared with Stage 6** — if Stage 6 already spent it, an e2e failure is an `escalate` with stage `verify`, and the task stays `In Progress`.
+  Judge its `json` block by the Stage 6 rules: passed → Stage 8; `skipped` → still go to Stage 8, and name the command and the reason in the report, never as green; failed → hand the failures to the coding agent with `SendMessage` exactly as Stage 6 does, then re-run a fresh e2e verify. **The fix cycle is one per task, shared with Stage 6** — if Stage 6 already spent it, an e2e failure is an `escalate` with stage `verify`, and the ticket stops as `blocked`, as above.
 
 ### 8. Finish the ticket (only on success)
-Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block. This command's closing entry is `orchestrate-quick · done`, and the worklog also takes the verification and code-review entries and the Stage 7 end-to-end result. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-quick`; with no ticket, pass the feature the task belongs to, or show the notes in the report when it has none.
+Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block. This command's closing entry is `orchestrate-quick-<n> · done`, and the worklog also takes the verification and code-review entries and the Stage 7 end-to-end result. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-quick-<n>`; with no ticket, pass the feature the task belongs to, or show the notes in the report when it has none.
 
 Never finish the ticket unless verification passed **and** the code review returned `APPROVED`. Report only after the files are updated.
 
@@ -287,7 +294,7 @@ Never finish the ticket unless verification passed **and** the code review retur
 - [x] Implementation — written tests pass ([0–2] targeted fix cycles); full gate verified (tests, lint, typecheck run concurrently)
 - [x] Code review — approved ([0 or 1] fix cycle)
 - [x] End-to-end — [passed | skipped: reason | not run at your request: `<command>` | no suite in this project]
-- [x] Status — ticket marked Completed, unassigned, and moved to `done/` with its worklog; roadmap row deleted
+- [x] Status — ticket `done`, unassigned, unclaimed, and moved to `done/` with its worklog; roadmap row deleted
 
 Needs a person: [each note file and its title, or "nothing"]
 

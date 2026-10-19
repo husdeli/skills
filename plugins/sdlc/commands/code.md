@@ -9,7 +9,7 @@ Hand the request below to the **`coding` agent** and report what it did. You do 
 
 Request: $ARGUMENTS
 
-This is the direct path. `/orchestrate` runs interview → plan → review → implement → verify and code review with six agents. `/orchestrate-quick` runs plan → review → implement → verify and code review with five. `/code` runs one: the coding agent, with no plan in front of it. When the change is one the user will see, you agree the design with them first, in this session, before the agent starts. Use it when the change is one the user already understands — a fix, a small feature, an addition that follows a pattern the codebase already has.
+This is the direct path. `/orchestrate` runs plan → review → test plan → tests → implement → the feature's tests → code review from four focuses → full verification. `/orchestrate-quick` runs plan → one review → test plan → tests → implement → verification and one code review. `/code` runs one: the coding agent, with no plan in front of it. When the change is one the user will see, you agree the design with them first, in this session, before the agent starts. Use it when the change is one the user already understands — a fix, a small feature, an addition that follows a pattern the codebase already has.
 
 The coding agent takes a request with no plan as one of its two input shapes, so this command needs no planner. It is also the right worker because it already loads the plugin's coding skills itself — `clean-fullstack-architecture` for any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for a component or a hook, `clean-tanstack-start` for TanStack Start server code. Do not restate those rules in the prompt.
 

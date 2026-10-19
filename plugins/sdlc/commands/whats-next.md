@@ -71,9 +71,9 @@ Put each task in exactly one bucket:
 
 | Bucket | Test |
 | --- | --- |
-| **In flight** | Its status is `in progress`, `blocked`, or `review` |
-| **Ready** | It is `backlog`, unclaimed, and every ID in its `Depends on` cell is finished |
-| **Waiting** | It is `backlog`, and claimed by a run or waiting on an ID that is not finished |
+| **In flight** | Its status is `in progress` or `review`, or it is `blocked` and claimed |
+| **Ready** | It is `backlog`, unclaimed, and every ID in its `Depends on` cell is finished — or it is `blocked`, unclaimed, and resumable: its `blocked_by` holds only finished IDs, or nothing |
+| **Waiting** | It is `backlog` and claimed or waiting on an unfinished ID, or it is `blocked` on something a person or an unfinished ticket still owes |
 
 Every row lands in one of the three. There is no done bucket, because a finished task is not in
 the file.

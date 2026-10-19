@@ -23,13 +23,14 @@
 
 set -uo pipefail
 
-VERSION="2.1.0"
+VERSION="2.2.0"
 
 # ---------------------------------------------------------------------------- defaults
 
 COMMAND="/sdlc:run-roadmap"
 ROADMAP=""
 PROJECT_DIR=""               # set by --project, or detected from the working directory
+REPO_ROOT=""                 # the repository the run builds, when it starts in one
 MODE=""                      # repo (cwd is the code) or vault (cwd is the project)
 WORK_ROOTS=""                # one absolute repository path per line
 MAX_TASKS=0                  # 0 = until the roadmap is done
@@ -85,8 +86,8 @@ WHAT IT DOES
 
 WHERE YOU RUN IT
   From a code repository, and it builds that repository.
-  From a project — in your vault, holding the roadmap, work/ and sdlc.json — and it builds every
-  repository sdlc.json names, one ticket at a time. The session is given access to each repository
+  From a framework root or a project folder under it — in your vault — and it builds every
+  repository the framework root's sdlc.json names for that project, one ticket at a time. The session is given access to each repository
   and to its <repository>-worktrees/ folder with --add-dir.
 
 OPTIONS
@@ -96,9 +97,10 @@ OPTIONS
                        Default: a new run, numbered with the lowest number no claim, branch, or
                        worktree uses.
   --roadmap PATH       Roadmap file to pass to the command. Default: the project's own roadmap.
-  --project PATH       The project holding the roadmap, work/, and sdlc.json — in your Obsidian
-                       vault. Runs the loop from there, over every repository sdlc.json names.
-                       Default: detected from the working directory.
+  --project PATH       The project folder (projects/<name>/), or a framework root holding one
+                       project — in your Obsidian vault. Runs the loop over every repository
+                       sdlc.json names for that project. Default: detected from the working
+                       directory, or from the repository's .sdlc.json pointer file.
   --model NAME         Model for the main session (the agents pick their own). Default: your config.
   --permission-mode M  Claude permission mode. Default: bypassPermissions, which is what an
                        unattended run needs — a prompt in a headless session is a dead run.
@@ -174,30 +176,76 @@ expand_tilde() {
   esac
 }
 
-# is_project_dir <dir> — a project holds the board: sdlc.json, or a roadmap beside work/.
-is_project_dir() {
-  [ -f "$1/sdlc.json" ] && return 0
-  { [ -f "$1/roadmap.md" ] || [ -f "$1/prd.md" ]; } && { [ -d "$1/work" ] || [ -d "$1/tickets" ]; } && return 0
-  return 1
+# find_framework_root <dir> — the first folder from <dir> up to the home directory that holds
+# sdlc.json, else the first that holds glossary.md beside work/ or features/. Prints nothing when
+# there is none.
+find_framework_root() {
+  d="$1"; fallback=""
+  while [ -n "$d" ]; do
+    [ -f "$d/sdlc.json" ] && { printf '%s' "$d"; return 0; }
+    [ -z "$fallback" ] && [ -f "$d/glossary.md" ] && { [ -d "$d/work" ] || [ -d "$d/features" ]; } \
+      && fallback="$d"
+    { [ "$d" = "$HOME" ] || [ "$d" = "/" ]; } && break
+    d="$(dirname "$d")"
+  done
+  printf '%s' "$fallback"
 }
 
-# registry_paths <project> — one repository path per line, from sdlc.json.
+# project_name <framework root> <dir> — the project <dir> is, by the `name` in its project note:
+# empty when <dir> is the framework root and it holds one project directly, or the only project
+# under projects/ when <dir> is the framework root and there is exactly one.
+project_name() {
+  root="$1"; dir="$2"
+  if [ "$dir" = "$root" ]; then
+    [ -d "$root/projects" ] || return 0
+    set -- "$root"/projects/*/
+    [ "$#" -eq 1 ] && [ -d "$1" ] || return 0
+    dir="${1%/}"
+  fi
+  note="$dir/$(basename "$dir").md"
+  name="$(sed -n '/^---$/,/^---$/s/^name:[[:space:]]*//p' "$note" 2>/dev/null | head -1 | tr -d "\"'")"
+  printf '%s' "${name:-$(basename "$dir")}"
+}
+
+# registry_paths <framework root> <project> — one repository path per line, from sdlc.json: every
+# repository whose `projects` names <project> or is empty. With no project, every repository.
 registry_paths() {
   reg="$1/sdlc.json"
   [ -f "$reg" ] || return 0
   if [ -n "$JQ" ]; then
-    "$JQ" -r '.repos // {} | to_entries[] | (if (.value|type) == "string" then .value else .value.path end)' \
-      "$reg" 2>/dev/null && return 0
+    "$JQ" -r --arg p "$2" '(.repositories // .repos // {}) | to_entries[]
+      | select((.value|type) == "string" or $p == "" or ((.value.projects // []) | length == 0)
+               or ((.value.projects // []) | index($p) != null))
+      | (if (.value|type) == "string" then .value else .value.path end)' "$reg" 2>/dev/null && return 0
   fi
   if command -v python3 >/dev/null 2>&1; then
-    python3 - "$reg" <<'PYEOF' 2>/dev/null && return 0
+    python3 - "$reg" "$2" <<'PYEOF' 2>/dev/null && return 0
 import json, sys
-repos = json.load(open(sys.argv[1])).get("repos", {})
-for v in repos.values():
-    print(v if isinstance(v, str) else v.get("path", ""))
+data = json.load(open(sys.argv[1]))
+project = sys.argv[2]
+for entry in (data.get("repositories") or data.get("repos") or {}).values():
+    if isinstance(entry, str):
+        print(entry)
+    elif not project or not entry.get("projects") or project in entry["projects"]:
+        print(entry.get("path", ""))
 PYEOF
   fi
   die "cannot read $reg — install jq or python3, or pass the repository as the working directory." 1
+}
+
+# pointer_root <repository> — the folder .sdlc.json names, expanded; nothing when there is none.
+pointer_root() {
+  ptr="$1/.sdlc.json"
+  [ -f "$ptr" ] || return 0
+  if [ -n "$JQ" ]; then
+    value="$("$JQ" -r '.root // empty' "$ptr" 2>/dev/null)"
+  else
+    value="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("root") or "")' "$ptr" 2>/dev/null)"
+  fi
+  [ -n "$value" ] || return 0
+  value="$(expand_tilde "$value")"
+  case "$value" in /*) ;; *) value="$1/$value" ;; esac
+  [ -d "$value" ] && (cd "$value" && pwd)
 }
 
 JQ=""
@@ -205,15 +253,20 @@ command -v jq >/dev/null 2>&1 && JQ="$(command -v jq)"
 
 # ---------------------------------------------------------------------------- which end are we at
 
+FRAMEWORK_ROOT=""          # the folder holding sdlc.json; the session reads every document under it
+PROJECT_NAME=""            # the project the run builds, by its note's `name`; empty for a lone project
+
 if [ -n "$PROJECT_DIR" ]; then
   PROJECT_DIR="$(expand_tilde "$PROJECT_DIR")"
   [ -d "$PROJECT_DIR" ] || die "--project is not a directory: $PROJECT_DIR" 1
   PROJECT_DIR="$(cd "$PROJECT_DIR" && pwd)"
-  is_project_dir "$PROJECT_DIR" \
-    || die "$PROJECT_DIR holds no board — expected sdlc.json, or roadmap.md beside work/.
+  FRAMEWORK_ROOT="$(find_framework_root "$PROJECT_DIR")"
+  [ -n "$FRAMEWORK_ROOT" ] \
+    || die "$PROJECT_DIR is in no framework root — expected sdlc.json in it or a folder above it.
 Run /setup there first." 1
   MODE="vault"
-elif is_project_dir "$PWD" && ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+elif ! git rev-parse --is-inside-work-tree >/dev/null 2>&1 \
+     && FRAMEWORK_ROOT="$(find_framework_root "$PWD")" && [ -n "$FRAMEWORK_ROOT" ]; then
   # A board inside a code repository belongs to that repository — that is a repo-rooted run.
   PROJECT_DIR="$PWD"
   MODE="vault"
@@ -222,16 +275,21 @@ else
 fi
 
 if [ "$MODE" = "vault" ]; then
+  PROJECT_NAME="$(project_name "$FRAMEWORK_ROOT" "$PROJECT_DIR")"
+  [ -n "$PROJECT_NAME" ] || [ ! -d "$FRAMEWORK_ROOT/projects" ] \
+    || die "$FRAMEWORK_ROOT holds several projects — pass --project with the one to build." 1
   cd "$PROJECT_DIR" || die "cannot enter the project" 1
-  WORK_ROOTS="$(registry_paths "$PROJECT_DIR")"
+  [ -f "$FRAMEWORK_ROOT/sdlc.json" ] \
+    || die "$FRAMEWORK_ROOT has no sdlc.json. Run /setup from each repository this product is built in." 1
+  WORK_ROOTS="$(registry_paths "$FRAMEWORK_ROOT" "$PROJECT_NAME")"
   [ -n "$WORK_ROOTS" ] \
-    || die "no repository in $PROJECT_DIR/sdlc.json. Run /setup from each repository this product is
-built in, so the registry names it." 1
+    || die "no repository in $FRAMEWORK_ROOT/sdlc.json is built for ${PROJECT_NAME:-this project}. Run
+/setup from each repository this product is built in, so the registry names it." 1
   resolved=""
   while IFS= read -r wr; do
     [ -n "$wr" ] || continue
     wr="$(expand_tilde "$wr")"
-    case "$wr" in /*) ;; *) wr="$PROJECT_DIR/$wr" ;; esac
+    case "$wr" in /*) ;; *) wr="$FRAMEWORK_ROOT/$wr" ;; esac
     [ -d "$wr" ] || die "a repository in sdlc.json does not exist here: $wr
 The registry is machine-local — run /setup on this machine." 1
     wr="$(cd "$wr" && pwd)"
@@ -251,9 +309,18 @@ want built, or from your project — or pass --project." 1
   cd "$REPO_ROOT" || die "cannot enter the repository root" 1
   WORK_ROOTS="$REPO_ROOT
 "
+  # The documents sit where the pointer file says, or in the repository's own .sdlc/.
+  pointed="$(pointer_root "$REPO_ROOT")"
+  if [ -n "$pointed" ]; then
+    FRAMEWORK_ROOT="$(find_framework_root "$pointed")"
+    FRAMEWORK_ROOT="${FRAMEWORK_ROOT:-$pointed}"
+    PROJECT_NAME="$(project_name "$FRAMEWORK_ROOT" "$pointed")"
+  elif [ -d "$REPO_ROOT/.sdlc" ]; then
+    FRAMEWORK_ROOT="$REPO_ROOT/.sdlc"
+  fi
 fi
 
-RUN_ROOT="${PROJECT_DIR:-$REPO_ROOT}"
+RUN_ROOT="${FRAMEWORK_ROOT:-$REPO_ROOT}"
 
 # worktree_of <repository> — where the run's worktree of that repository sits.
 worktree_of() {
@@ -331,6 +398,7 @@ printf 'task\toutcome\tfeature\ttaskId\tcommit\tremaining\treason\n' >"$SUMMARY"
 
 build_prompt() {
   printf '%s --run %s' "$COMMAND" "$RUN_NAME"
+  [ -n "$PROJECT_NAME" ] && printf ' --project %s' "$PROJECT_NAME"
   [ "$FINAL" -eq 1 ] && printf ' --final'
   [ -n "$ROADMAP" ] && printf ' %s' "$ROADMAP"
   return 0
@@ -342,6 +410,8 @@ claude_argv() {
   [ -n "$MODEL" ] && printf '%s\n' "--model" "$MODEL"
   # The session writes to each run worktree, beside its repository, and in the project's case reads
   # the repository itself, so every one has to be granted.
+  # A repository-rooted run whose documents sit outside it needs the framework root granted too.
+  case "$RUN_ROOT" in "$REPO_ROOT"|"$REPO_ROOT"/*) ;; *) [ "$MODE" = "repo" ] && printf '%s\n' "--add-dir" "$RUN_ROOT" ;; esac
   while IFS= read -r wr; do
     [ -n "$wr" ] || continue
     [ "$MODE" = "vault" ] && printf '%s\n' "--add-dir" "$wr"

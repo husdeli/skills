@@ -9,7 +9,7 @@ Hand the target below to the **`code-reviewer` agent** and report its verdict. T
 
 Target: $ARGUMENTS
 
-This is the code gate on its own. Both orchestrators already run it at their verify stage, so use `/review` for code that never went through one: a change `/code` made, work you wrote by hand, a branch someone else pushed, a ticket you want checked before you open a pull request.
+This is the code gate on its own. Both orchestrators already review the code with the same `code-reviewer` agent before they finish a ticket, so use `/review` for code that never went through one: a change `/code` made, work you wrote by hand, a branch someone else pushed, a ticket you want checked before you open a pull request.
 
 The reviewer reads the code itself and loads the plugin's skills itself — `clean-fullstack-architecture`, `ts-clean`, `react-clean`, `clean-tanstack-start`. Leave those rules out of the prompt: its own definition already holds them.
 

@@ -7,6 +7,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.68.0] - 2026-10-20
+
+### Fixed
+
+- **`run-roadmap.sh` 2.2.0 reads the current registry.** It reads `repositories`, and still reads
+  the older `repos`. It builds only the repositories whose `projects` name the run's project, or
+  that name none. It finds the framework root by walking up from `--project`, so a project folder
+  under `projects/` works, and it stops and asks for `--project` when the framework root holds
+  several projects. From a repository, it follows `.sdlc.json` to the documents and grants the
+  session access to them. It passes the project to `/run-roadmap`, which takes a new
+  `--project <name>` argument.
+- **`/run-roadmap` commits the code before it finishes the ticket.** A commit a hook rejects now
+  stops the ticket as `blocked`, with the hook's reason in `blocked_by`. Before, the ticket was
+  already `done` when the commit failed.
+- **`/orchestrate-quick` follows `ticket-board`.** It claims the ticket as
+  `orchestrate-quick-<n>` and writes `assigned` as `<role>-<n>`. An escalation or an abort stops
+  the ticket as `blocked`, with `blocked_by`, and no longer leaves it `In Progress` with the
+  assignee `user`.
+- **A resumable `blocked` ticket is ready.** `/orchestrate`, `/orchestrate-quick`, and
+  `/whats-next` now offer it, as `ticket-board` defines it.
+- **One checkout holds one build.** `ticket-board`'s *Starting a ticket* now checks for another
+  run's `in progress` or `review` ticket in the same work root, and drops the ticket when it finds
+  one. A roadmap run in its own worktrees skips the check.
+- **The `cto` agent's `defer` ends the run**, as `/run-roadmap` already did.
+- **`/feature` uses the current feature note**: features at the framework root, `done` instead of
+  `Shipped`, and no `shipped`, `area`, or `updated` written.
+- **`/prd` uses the current PRD rules**: frontmatter in every destination, the framework root's
+  glossary, and a repository-root `prd.md` read as an older shape.
+- **`/plan` may write the PRD**, alongside `/prd`: it creates a missing one from its stub and folds
+  in only the sections a request touches. The `prd` skill gains an *Altitude* section: the PRD
+  names the product areas and why, in a few short paragraphs each, and anything a design doc would
+  also have to say — flows, states, screens, edge cases, data — is deleted from it.
+- **Ticket IDs follow what `build-roadmap.py` reads.** A code is two to eight characters, uppercase
+  letters and digits, starting with a letter. A number is written with three digits and goes to
+  four past `999`, and an existing one-to-four-digit number is read as it is. A board on a
+  project-wide scheme such as `SW-001` keeps it. `ticket-board`, `feature`, and the ticket and
+  feature designs say so.
+- **The layout reference lists the PRD stub and the overview design stub** that `/setup` writes.
+- **`create-note.py` 1.1.0** links the feature by a relative path outside a vault, and finds the
+  framework root through `.sdlc.json` or `.sdlc/` when run from a repository.
+- `/code`, `/review`, and `feature-interviewer` describe the pipelines as they now run.
+
 ## [0.67.0] - 2026-10-18
 
 ### Changed

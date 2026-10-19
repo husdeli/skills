@@ -62,7 +62,7 @@ A customer pays for an order in one step, with a saved card or a new one.
 ```
 
 - **`name` is the feature's display name**: required, in the words a customer would use.
-- **`code` is the feature's [[glossary#Epic|epic]] code**: required, two to eight uppercase letters, and unique within the framework root. It prefixes every ticket ID under the feature.
+- **`code` is the feature's [[glossary#Epic|epic]] code**: required, two to eight characters — uppercase letters and digits, starting with a letter, and unique within the framework root. It prefixes every ticket ID under the feature.
 - **`projects` lists the projects the feature relates to**: required, at least one, each named by the `name` in its [[project-structure.design#2. The project note|project note]].
 - **`goals` and `personas` link [[glossary#Product note|product notes]]**: the goals the feature advances and the personas it serves. The note links them and never restates them.
 - **The paragraph says what a customer can do**, in one or two sentences. The PRD says why; the design docs say how.

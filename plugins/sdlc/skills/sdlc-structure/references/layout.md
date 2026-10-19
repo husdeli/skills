@@ -78,8 +78,10 @@ project folder. Every other folder is the same.
 
 The setup entry point creates the structure once, and every other command fills it.
 
-- **It writes stubs, never content.** The glossary starts as its title alone, and the project note
-  as its name and a one-paragraph placeholder. Inventing a requirement, a feature, or a goal here
+- **It writes stubs, never content.** The glossary starts as its title alone, the project note
+  as its name and a one-paragraph placeholder, the PRD as its headings and placeholder lines at
+  `status: Draft`, and `designs/overview.design.md` the same way — only when the project has no
+  design doc at all. Inventing a requirement, a feature, or a goal here
   invents a commitment nobody made.
 - **It writes the registry and the glossary every time.** Both are required in every framework
   root.
@@ -87,16 +89,17 @@ The setup entry point creates the structure once, and every other command fills 
   project's `product/` folder and its five folders. An empty folder gets a `.gitkeep` only when the
   framework root sits inside a git working tree.
 - **It never overwrites.** A file that exists is kept and reported as kept.
-- **It writes no feature, no ticket, no PRD, and no product note.** `/feature` opens a feature,
-  `/plan` writes tickets, and `/prd` writes the PRD and the notes under `product/`.
+- **It writes no feature, no ticket, and no product note, and no PRD beyond its stub.** `/feature`
+  opens a feature, `/plan` writes tickets, and `/prd` writes the PRD and the notes under
+  `product/`.
 
 | Command | What it writes |
 | --- | --- |
-| `/setup` | The structure, the registry, the glossary, the project note, and the pointer file in each repository |
+| `/setup` | The structure, the registry, the glossary, the project note, the PRD stub, the overview design stub, and the pointer file in each repository |
 | `/prd` | A project's `prd.md`, its notes under `product/`, and the glossary entries for the terms it coins |
 | `/feature` | One feature folder and its feature note |
 | `/design` | One design doc, in its feature's folder or in `designs/`, and its diagrams |
-| `/plan` | Tickets in `work/backlog/` and their roadmap rows, plus any PRD, feature, or design update the request needs |
+| `/plan` | Tickets in `work/backlog/` and their roadmap rows, plus any PRD, feature, or design update the request needs — and the PRD itself, from its stub, when the project has none |
 | `/orchestrate`, `/orchestrate-quick`, `/run-roadmap` | The claim, the status transitions and bucket moves, the worklog, the usage properties, roadmap row deletions, and — through `create-note.py` — the notes |
 | `/code` | The notes, through `create-note.py`, and one worklog entry when the ticket already has a worklog |
 | `/business-plan` | A project's `business/business-plan.md` and the notes in `business/competitors/` |

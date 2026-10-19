@@ -77,7 +77,7 @@ A customer pays for an order in one step, with a saved card or a new one.
 | --- | --- |
 | `type` | `feature`, always. |
 | `name` | Required. The feature's display name, in the words a customer would use. |
-| `code` | Required. The epic code: two to eight uppercase letters, unique within the framework root. It prefixes every ticket ID under the feature. |
+| `code` | Required. The epic code: two to eight characters — uppercase letters and digits, starting with a letter, unique within the framework root. It prefixes every ticket ID under the feature. |
 | `projects` | Required, at least one. The projects the feature relates to, each by the `name` in its project note. |
 | `status` | `backlog`, `in progress`, or `done`. See [Status is verified, never assumed](#status-is-verified-never-assumed). |
 | `goals` | Links to the goal notes the feature advances. |

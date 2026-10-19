@@ -1,6 +1,6 @@
 ---
 description: Build the next ticket of a roadmap run with no person in the loop — the run works one feature at a time, the cto agent answers every question, the feature's dependency cluster is claimed, the code is committed on the run branch in a run worktree, and the session reports a machine-readable result for the launcher script.
-argument-hint: [--run run-roadmap-<n>] [--final] [roadmap-file-path]
+argument-hint: [--run run-roadmap-<n>] [--project <name>] [--final] [roadmap-file-path]
 ---
 
 # Autonomous Roadmap Runner
@@ -17,6 +17,10 @@ Arguments: $ARGUMENTS
   every session after the first, and on a resume. Without it you start a new roadmap run: `<n>` is
   the lowest positive number that no `claimed` value in `work/` and no `run-roadmap-<n>` branch in a
   registered repository uses.
+- **`--project <name>`** — the project the run builds, by the `name` in its project note. The
+  launcher passes it whenever it knows the project; it settles the project before anything else, as
+  `sdlc-structure` resolves it. Every work root the run builds in is one the registry lists for
+  this project, or one that lists no project.
 - **`--final`** — this is the run's last ticket: whatever the outcome, release the run's claims
   before the result line. The launcher passes it when `--max` is about to be reached. A session
   started by hand, with no `--run`, is final too.
@@ -633,13 +637,17 @@ ruling, whatever it says, then act:
 | `handBack: true` | Outcome `handed-back`, whatever the ruling field says. A person decides |
 
 ### 8. Finish the ticket (only on success)
-Run `ticket-board`'s **Finishing a ticket** transition yourself, in one tool block: the status field,
+**Commit the code first**, by Stage 9's code-commit steps. A ticket is `done` only once its code is
+on the run branch: a commit a hook rejects stops the ticket here instead, as Stage 9 says, and this
+stage never runs.
+
+Then run `ticket-board`'s **Finishing a ticket** transition yourself, in one tool block: the status field,
 the closing worklog entry, the move into `done/`, and the roadmap row deleted. This command's closing
 entry is `<run name> · done`, and it names each note file. In the same step, write the coding agent's
 latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run <run name>`. A note is
 never a reason to stop: the run goes on, and a person acts on the note later.
 
-Do this **before** the commits, so the documents commit in Stage 9 holds the ticket in `done/`.
+Do this **before** the documents commit, so that commit holds the ticket in `done/`.
 The ticket's claim goes with it — the rest of the cluster keeps this run's claim.
 
 Never finish the ticket unless the feature's tests passed, **all four** code reviewers returned
@@ -660,8 +668,10 @@ a sequence of changes a person can read and merge.
    verification result. `technical-writing` governs it. A ticket that changed two worktrees gets one
    commit in each, same subject, each body naming the other repository.
 4. **Never push, never merge, never amend, and never touch a commit that was already there.**
-5. A commit that fails — a hook rejects it — is outcome `blocked`. Say what the hook said, and leave
-   the worktree as it is for a person to look at. Do not retry with `--no-verify`.
+5. A commit that fails — a hook rejects it — is outcome `blocked`. The ticket has not finished: run
+   *Stopping without finishing*, with `blocked_by` naming the hook and what it said, then commit
+   the documents. Leave the worktree as it is for a person to look at. Do not retry with
+   `--no-verify`.
 
 **Commit the documents in the framework root**, when it is a git tree: `git -C <framework root> add`
 the ticket, its worklog, every roadmap the ticket's row was in, any ticket Stage 8 corrected, and

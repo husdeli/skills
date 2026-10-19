@@ -59,8 +59,8 @@ Plan **one request per run.** When the request is really several unrelated featu
 ### 2. Check the documents exist
 
 - **No project, and no product docs at the repository root** → name `/setup` and stop. Planning into a product with no PRD invents the product instead of extending it.
-- **The project exists but one document is missing** → create that one file with the stub headings `/setup` writes, then continue.
-- **The PRD is still a stub**, with the placeholder lines unfilled → fill only the sections this request touches, and name `/prd` in your report as the way to write the rest. Do not invent a whole product around one request.
+- **The project exists but one document is missing** → create that one file with the stub headings `/setup` writes, then continue. A missing PRD is created the same way.
+- **The PRD is a stub, or was just created**, with the placeholder lines unfilled → fill only the sections this request touches, and name `/prd` in your report as the way to write the rest. Do not invent a whole product around one request.
 
 ### 3. Interview, and read the documents while it runs
 
@@ -129,7 +129,7 @@ In this order, so each document takes its vocabulary from the one before it. Eac
 below is namespaced here (`sdlc:prd`, `sdlc:design-doc`, `sdlc:ticket-board`) — load it before you
 write the document it governs, and follow it. Do not restate its rules from memory.
 
-**PRD** — load the **`prd`** skill and follow it. Fold the request into the existing sections in place, as the current truth, and keep the document whole. It stays product-only: no ticket ID, no roadmap reference, no library name, no file path. The decisions from the interview live in the tickets, not here. Bump `updated`.
+**PRD** — load the **`prd`** skill and follow it. Fold the request into the existing sections in place, as the current truth, and keep the document whole. It stays product-only: no ticket ID, no roadmap reference, no library name, no file path. **It stays high level**, as the `prd` skill's *Altitude* section says: a request usually changes what an area does for its users in a sentence or two, and everything about how it works goes into the design doc instead. When the request changes no area's purpose, the PRD gets no change. The decisions from the interview live in the tickets, not here. Bump `updated`.
 
 **Features** — whenever the request adds something a customer can name, or changes the state of something they already can. Load the **`feature`** skill and follow it: one folder per feature, one `<feature>.feature.md` feature note, and the code that feature's epic and tickets take. Open the feature **before** you write its design doc or its first ticket, so both have an owner. A request that only changes how an existing feature works updates that feature's note and opens nothing.
 

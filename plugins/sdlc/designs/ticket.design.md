@@ -17,8 +17,8 @@ This doc defines one [[glossary#Ticket|ticket]]: its name, the properties it car
 
 **A ticket is named `<CODE>-<NNN>-<slug>.md`**: `CHECKOUT-001-saved-card.md`. Its ID is `<CODE>-<NNN>`: `CHECKOUT-001`.
 
-- **`<CODE>` is the `code` of the feature the ticket delivers**, from its [[feature.design#2. The feature note|feature note]]. A ticket whose code no feature carries is not a valid ticket.
-- **`<NNN>` is three digits, and restarts at `001` in each [[glossary#Epic|epic]].** Two features planned on separate branches write into separate number spaces, so neither overwrites the other on merge.
+- **`<CODE>` is the `code` of the feature the ticket delivers**, from its [[feature.design#2. The feature note|feature note]]. A ticket whose code no feature carries is valid only on a board that keeps a project-wide scheme, such as `SW-001`: that board continues its scheme until setup migrates it, and never rewrites an ID on its own.
+- **`<NNN>` is the ticket's number in its [[glossary#Epic|epic]], and restarts at `001` in each one.** It is written with three digits, zero-padded, and goes on to four past `999`; a number of one to four digits on an existing ticket is read as it is and never renumbered. Two features planned on separate branches write into separate number spaces, so neither overwrites the other on merge.
 - **`<slug>` is kebab-case**, a few words on what the ticket delivers.
 
 ## 2. Properties

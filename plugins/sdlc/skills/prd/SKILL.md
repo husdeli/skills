@@ -21,8 +21,10 @@ root and the project as it says**, before you read or write anything.
 - **A project holds at most one PRD.** When the project already keeps one, update it in place — one
   PRD per project, never two.
 - **The PRD is optional.** A project with no `prd.md` still works: its features, design docs, and
-  tickets stand on their own. A command that needs a PRD and finds none says so and names `/prd`; it
-  never writes one on its own.
+  tickets stand on their own.
+- **`/prd` and `/plan` write it, and no other command.** `/prd` writes the whole document. `/plan`
+  creates it when it is missing and folds in what a request changes, writing only the sections the
+  request touches — never a whole product around one request.
 - **Its properties are frontmatter**: `type`, `status`, `product`, `updated`, and `tags`. The PRD is
   the highest document, so it carries no `related:` list: a design doc, a feature, and the business
   plan link the PRD, and it links none of them back.
@@ -36,6 +38,20 @@ A PRD is read end to end by people who were not in the room. Load the **`technic
 **The PRD composes five kinds of note; it does not contain them.** A goal, a non-goal, a persona, a problem, and a success metric are each their own note under the project's `product/`, because a feature, a design doc, a ticket, and the business plan all point at them, and each one has a state of its own. **Load the `product-intent` skill** and follow it for every one you write or change. Sections 2, 3, 4, and 7 of this document are one line per note. Sections 1, 5, and 6 are the PRD's own prose, and they stay prose.
 
 **Each term is defined in the glossary, not in the PRD.** Load the **`glossary`** skill and follow it: it holds the entry shape, the link form, and the rule that whoever coins a term writes its entry in the same step. The PRD states the requirement and never repeats a definition.
+
+## Altitude: high level, out of the design docs' way
+
+**The PRD is the shortest document that says what the product is and why.** It names the product
+areas and how they hold together, and stops there. Everything about how one part behaves belongs to
+a design doc: the steps of a flow, the states a thing moves through, the screens, the rules for an
+edge case, the data a part keeps. Each fact has one owner, and the PRD owns the fewest.
+
+- **A sentence a design doc would also have to say is the design doc's.** Delete it from the PRD,
+  even when no design doc holds it yet; it waits for `/design`.
+- **An area is a few short paragraphs**, not a page. When an area grows a list of behaviors, the
+  list is a design doc's.
+- **Write the PRD so a redesign leaves it true.** A change to how a part works rewrites a design
+  doc, and leaves the PRD alone unless what the product does for its users changed.
 
 ## Product-only: no tickets, no code, no commerce
 

@@ -65,9 +65,12 @@ tickets already in flight; name the setup entry point as the way to migrate.
 **A ticket is named `<CODE>-<NNN>-<slug>.md`**: `CHECKOUT-001-saved-card.md`. Its ID is
 `<CODE>-<NNN>`: `CHECKOUT-001`.
 
-- **`<CODE>` is the `code` of the feature the ticket delivers**, from its feature note. A ticket
-  whose code no feature carries is not a valid ticket.
-- **`<NNN>` is three digits, and restarts at `001` in each epic.** Two features planned on separate
+- **`<CODE>` is the `code` of the feature the ticket delivers**, from its feature note:
+  two to eight characters — uppercase letters and digits, starting with a letter. A ticket whose code no feature carries is valid only on a board that keeps a
+  project-wide scheme, as [the epic section](#every-ticket-belongs-to-an-epic-and-every-epic-delivers-one-feature) says.
+- **`<NNN>` is the ticket's number in its epic, and restarts at `001` in each epic.** Write it with
+  three digits, zero-padded; an epic past `999` goes on to four. A number of one to four digits
+  on a ticket that exists is read as it is, never renumbered. Two features planned on separate
   branches write into separate number spaces, so neither overwrites the other on merge.
 - **`<slug>` is kebab-case**, a few words on what the ticket delivers.
 
@@ -212,7 +215,7 @@ without exiting leaves its claim for a person to remove.
 ## Every ticket belongs to an epic, and every epic delivers one feature
 
 An **epic** is the group of tickets that delivers one **feature**. They share one short uppercase
-code — two to eight letters, from the feature note's `code` — and that code prefixes every ticket
+code — two to eight characters — uppercase letters and digits, starting with a letter, from the feature note's `code` — and that code prefixes every ticket
 ID under it: `CHECKOUT-001`, `CHECKOUT-002`.
 
 **The feature note is where the code comes from.** Load the **`feature`** skill before you open an
@@ -391,6 +394,10 @@ one tool block. Never spread a status change across turns, and never delegate on
 1. **Claim it** — write `claimed`, read it back, and drop the ticket if another run's claim is
    there. A ticket this run already claims — a roadmap run's feature cluster — keeps its claim. Resolve the work root and confirm the session can write to it; a run that cannot stops
    here, removes its claim, and writes nothing else.
+   **Then check the checkout is free:** list `work/in-progress/` for a ticket another run claims
+   at `in progress` or `review` whose `repositories` names the same work root. One found → remove
+   this claim, name that ticket and its run, and pick again. A roadmap run building in its own run
+   worktrees skips this check.
 2. **`status`** → `in progress`, **`assigned`** → the first agent, **`updatedAt`** → now. Remove
    `blocked_by` when the ticket resumes from `blocked`.
 3. **Move it** into `work/in-progress/`.

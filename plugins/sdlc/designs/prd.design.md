@@ -30,7 +30,8 @@ type: prd
 ## 2. Behavior
 
 - **A command finds the PRD as `prd.md` in the project folder with `type: prd`.** A note with `type: prd` anywhere else, or a `prd.md` with another `type`, is not the project's PRD.
-- **A project holds at most one PRD.** A command that needs a PRD and finds none says so and names `/prd`; it never writes one on its own.
+- **A project holds at most one PRD.** `/prd` writes it, and `/plan` creates it when it is missing and folds in the sections a request touches. No other command writes it.
+- **The PRD stays high level.** It names the product areas, what each does for its users, and why, in a few short paragraphs each. How a part behaves — its flows, states, screens, edge cases, and data — belongs to a [[glossary#Design doc|design doc]], and a sentence a design doc would also have to say is deleted from the PRD.
 
 ## 3. Variation and limits
 
