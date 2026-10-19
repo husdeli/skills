@@ -1,14 +1,22 @@
 ---
 type: glossary
-updated: 2026-10-15
+updated: 2026-10-20
 tags:
   - sdlc/glossary
 ---
 # SDLC framework — glossary
 
+## Answerer
+
+Whoever settles a question a run cannot settle from the documents: the person in `/orchestrate` and `/orchestrate-quick`, and the `cto` agent in a roadmap run. An agent surfaces the question; only the answerer decides it.
+
 ## Bucket
 
 One of the three folders inside `work/` — `backlog/`, `in-progress/`, and `done/`. Each bucket holds one or more ticket statuses; `in-progress/` holds `in progress`, `blocked`, and `review`.
+
+## Business plan
+
+`business/business-plan.md` in a project, with its competitor notes beside it: who pays, what they pay for, and how the product reaches them. It owns every price and every claim about the market, which the PRD never states.
 
 ## Claim
 
@@ -26,17 +34,41 @@ What a roadmap run claims when it selects a feature: every ticket of the feature
 
 A document that says how one solution works: the parts it is built from, how work flows through it, and how it behaves. It describes the target state, never the steps to build it, and it sits in its feature's folder or, when every feature depends on it, in `designs/`.
 
+## Destination
+
+Where a framework root sits, named by the pointer file's `kind`: `vault`, a folder in an Obsidian vault; `folder`, any other folder outside the repository; or `repo`, `.sdlc/` inside the repository. It decides how a document writes its links — a wikilink in a vault, a relative path elsewhere.
+
+## Diagram
+
+One drawing, kept as `diagrams/<name>.excalidraw.md` and referenced from any document with a one-line caption. The document stays complete without it.
+
+## End-to-end decision
+
+Whether a ticket gets end-to-end tests, settled before any agent starts: `/orchestrate` asks the person at the pick, `/orchestrate-quick` defaults to no, and a roadmap run asks the `cto` agent. The test planner plans an end-to-end case only on a yes.
+
 ## Epic
 
 The group of tickets that delivers one feature. The feature's code is the epic's code, it prefixes every ticket ID, and ticket numbering restarts at 001 in each epic.
 
 ## Feature
 
-One thing a customer can do with the product, kept as a folder under `features/` with an index note and the design docs it owns. A feature keeps its note after it ships, so `features/` lists everything the product does.
+One thing a customer can do with the product, kept as a folder under `features/` with its feature note, the design docs it owns, and its notes. A feature keeps its folder after it ships, so `features/` lists everything the product does.
+
+## Feature note
+
+`<feature-name>.feature.md`, the note at the top of a feature's folder: its name, its code, its projects, its status, and one or two sentences on what a customer can do. It links the feature's design docs and never says how the feature works.
+
+## Feature's tests
+
+Every test the tickets of one feature have written, collected from their worklogs. `/orchestrate` and a roadmap run run them after every change to the code, so a ticket cannot break what an earlier ticket of the same feature built; `/orchestrate-quick` runs only the ticket's own tests.
 
 ## Framework root
 
-The folder a session starts in. It holds the registry and the glossary, and it may hold `projects/`; when it does not, it holds one project's documents directly.
+The folder that holds the registry, the glossary, `features/`, `work/`, and every other document, and may hold `projects/`; when it does not, it holds one project's documents directly. A session finds it by walking up from where it starts, or from a repository through its pointer file.
+
+## Full verification
+
+Every check command a project has — lint, type check, the test suites, and the end-to-end suite when the end-to-end decision allows it — run by the orchestrator before a ticket finishes. A check passes when its command exits zero; a check the project lacks is skipped, never passed.
 
 ## Gate
 
@@ -46,13 +78,21 @@ A fixed rule that decides whether a run goes on, such as the plan-review skip ga
 
 `glossary.md` at the framework root, defining every term the framework and its projects use, each once, under a heading of its own. Every other document links an entry instead of defining the term again.
 
+## Implementation plan
+
+What the planner returns for one ticket: the direction, the best practices it applies, and the ordered work items, each with what done looks like. It sets direction, never code, and the worklog keeps its direction and the approach it turned down.
+
 ## Note
 
 One action a person must take outside the code for a feature to work — a cloud firewall rule, a secret, a DNS record, a third-party setting. The coding agent reports it, `scripts/create-note.py` writes it into `features/<feature-name>/notes/<slug>.note.md` tagged `human-required`, and a person closes it.
 
 ## Orchestrator
 
-The session that drives one run: it picks the ticket, starts the agents, runs every test and check itself, and settles every gate. It is the only writer of the ticket, the worklog, and the roadmap; an agent reports to it and writes no document.
+The session that drives one run: it picks the ticket, starts the agents, runs every test and check itself, and settles every gate. While the run holds a ticket, it is the only writer of that ticket, its worklog, and its roadmap row; an agent reports to it and writes no document.
+
+## Outcome
+
+How a run ends: `completed` when every gate passed, `escalate` when a stage hit its cap or a question needs a person, and `aborted` when an agent returned no usable result. Every outcome but `completed` leaves the ticket `blocked`.
 
 ## Pointer file
 
@@ -61,6 +101,10 @@ The session that drives one run: it picks the ticket, starts the agents, runs ev
 ## PRD
 
 The product requirements document, `prd.md`: what the product does and why. It is assembled from the product notes and never lists features, tickets, or prices.
+
+## Product area
+
+One subsection of the PRD's behavior section, describing in a few paragraphs how one part of the product works for its users, with a short uppercase anchor code in its heading. An area holds several features and never lists them.
 
 ## Product note
 
@@ -74,13 +118,17 @@ One product and every document about it. Its documents sit in `projects/<project
 
 `<project-name>.md`, the note that names a project in its `name` property, says in a paragraph what it is, carries its status, and links its PRD and roadmap.
 
+## Ready
+
+A ticket a run may pick: unclaimed, and either in `backlog/` with every dependency `done`, or `blocked` with nothing left in `blocked_by` but `done` tickets. A claimed ticket is never ready for another run.
+
 ## Registry
 
 `sdlc.json` at the framework root, naming every work root each project is built in and what belongs in each. It is machine-local and gitignored.
 
 ## Roadmap
 
-`roadmap.md`, the work that is left, with one section per epic and one row per ticket. It only shrinks: a row is deleted when its ticket is done.
+`roadmap.md`, the work that is left, with one section per epic and one row per open ticket. A row is added when `/plan` writes a ticket and deleted when the ticket is done, and every cell is corrected from the ticket, which is the record.
 
 ## Roadmap run
 
@@ -88,7 +136,7 @@ One launch of the autonomous loop, named `run-roadmap-<n>`. It works one feature
 
 ## Run
 
-One pass of the workflow over one ticket, from the pick to `done` or to a stop as `blocked`. Each run has a number, shared by its claim and its agents.
+One pass of an orchestrating command over one ticket, from the pick to `done` or to a stop as `blocked`. Each run has a number, shared by its claim and its agents; the runs of a roadmap run share its claim, `run-roadmap-<n>`.
 
 ## Run worktree
 
@@ -120,4 +168,4 @@ One code repository the project is built in, with its own instructions, tests, a
 
 ## Worklog
 
-The record of what was decided while a ticket was built, kept beside the ticket as `<CODE>-<NNN>-<slug>.worklog.md`. Only the orchestrating command writes it, and it names every work root the ticket changed.
+The record of what was decided while a ticket was built, kept beside the ticket as `<CODE>-<NNN>-<slug>.worklog.md`. The run that starts the ticket creates it and writes every stage's entry, and it names every work root the ticket changed; `/code` and `/review` only append to one that exists.

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The glossary matches how the plugin uses its terms.** *Feature* names the feature note, not an
+  index note. *Framework root* is found by walking up or through the pointer file, not the folder a
+  session starts in. *Orchestrator* and *Worklog* say the run is the only writer while it holds a
+  ticket, since `/plan`, `/code`, and `/review` write too. *Roadmap* gains rows from `/plan` instead
+  of only shrinking. *Run* covers the runs inside a roadmap run.
+
+### Added
+
+- **Twelve glossary entries** for terms the plugin uses without defining them: answerer, business
+  plan, destination, diagram, end-to-end decision, feature note, the feature's tests, full
+  verification, implementation plan, outcome, product area, and ready.
+
 ## [0.68.0] - 2026-10-20
 
 ### Fixed
