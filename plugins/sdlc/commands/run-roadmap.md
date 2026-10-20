@@ -592,8 +592,8 @@ high-risk test as Stage 4. Append one `code-reviewer · code review` entry per f
 Run **every check command in the context pack** yourself, in one parallel Bash batch, as
 `cd <worktree> && <command>`: the `command` of every `verificationCommands` entry — `lint`,
 `typecheck`, and `test`, the full suite — and, when the `e2eDecision` says yes, the end-to-end
-tests: the project's `e2eCommand` and the test writer's `e2eCommand`, each one that is not `"none"`
-or `""`.
+suite: the pack's `e2eCommand`, or the test writer's `e2eCommand` when the pack's is `"none"`
+because this ticket stood the suite up. Never both.
 Read each result. This pipeline runs the end-to-end suite inside the gate: there is no person at the
 end to ask, and an unattended commit must not rest on a suite nobody ran.
 
@@ -679,6 +679,10 @@ each note file `create-note.py` reported as `created` —
 those paths only, because the person may have their own changes there — then one commit with the
 code commit's subject. A framework root in a vault that is no git tree has nothing to commit: the
 files are saved, and the report says so.
+
+**A documents commit that fails is outcome `blocked`**, and the ticket stays as it is: its code
+commit has landed and its files are already written, so nothing is undone. Say what git said, leave
+the framework root's changes uncommitted for a person, and never retry with `--no-verify`.
 
 **Keep the record, discard the code** — the exit every unfinished ticket takes: `deferred`,
 `stop-run`, `handed-back`, `aborted`, and a `blocked` commit's ticket once a person has looked.

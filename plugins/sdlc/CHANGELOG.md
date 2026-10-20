@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`/run-roadmap` runs one end-to-end suite**, as `/orchestrate` does: the project's own, or the
+  one the test writer stood up when the project had none — never both.
+- **A failed documents commit in `/run-roadmap` is outcome `blocked`.** The ticket and its landed
+  code commit stay as they are, and the framework root's changes are left for a person.
+- **The roadmap-run diagram** gains the preflight step and shows the code committed before the
+  ticket finishes, with an end that needs a person for a rejected code commit and a failed
+  documents commit. **The workflow diagram's** last step finishes the ticket and writes its notes.
 - **A project is named by its project note.** `build-roadmap.py` 2.1.0 and `run-roadmap.sh` match
   a project by the `name` in a `type: project` note, and fall back to the folder name only when no
   such note exists. `build-roadmap.py` leaves a `done` project out unless it is named.
