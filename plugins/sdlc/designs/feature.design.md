@@ -52,7 +52,7 @@ tags:
 - **`feature` links the feature whose folder holds the note**, and **`ticket` links the ticket whose run reported it**. A note no ticket reported carries no `ticket`.
 - **`status` is `open` or `done`.** Only a person changes it.
 - **`when` is `before-release`, `after-release`, or `anytime`.** `before-release` means production fails without the action. A note reported with no `when` is `anytime`.
-- **`createdAt` is when the script wrote the note, and `createdBy` is the run that reported it**: `orchestrate-3`, `orchestrate-quick`, a roadmap run's name, or `code`.
+- **`createdAt` is when the script wrote the note, and `createdBy` is the run that reported it**: `orchestrate-3`, `orchestrate-quick-2`, a roadmap run's name, `code`, or `review`.
 - **`tags` holds `sdlc/note` and `human-required`**, so every action that waits on a person is one search.
 - **The body is the title, then `## What to do` and `## Why`.**
 - **The title names the file.** The script turns it into `<slug>.note.md`. A note whose file already exists is kept as it is, because the same title is the same need reported again.

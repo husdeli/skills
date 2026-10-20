@@ -202,8 +202,13 @@ project_name() {
     [ "$#" -eq 1 ] && [ -d "$1" ] || return 0
     dir="${1%/}"
   fi
+  # The project note names the project; a folder with no project note is on an older shape.
   note="$dir/$(basename "$dir").md"
-  name="$(sed -n '/^---$/,/^---$/s/^name:[[:space:]]*//p' "$note" 2>/dev/null | head -1 | tr -d "\"'")"
+  front="$(awk 'NR == 1 && $0 != "---" { exit } NR > 1 && $0 == "---" { exit } NR > 1 { print }' "$note" 2>/dev/null)"
+  name=""
+  if printf '%s\n' "$front" | grep -q '^type:[[:space:]]*project[[:space:]]*$'; then
+    name="$(printf '%s\n' "$front" | sed -n 's/^name:[[:space:]]*//p' | head -1 | tr -d "\"'")"
+  fi
   printf '%s' "${name:-$(basename "$dir")}"
 }
 

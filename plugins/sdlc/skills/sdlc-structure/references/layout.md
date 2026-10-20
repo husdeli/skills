@@ -32,7 +32,7 @@ inside it is, and [the framework root and the registry](roots.md) say how a sess
         │   ├── personas/            <slug>.persona.md
         │   ├── problems/            <slug>.problem.md
         │   └── metrics/             <slug>.metric.md
-        └── business/                business-plan.md, and competitors/<competitor>.md
+        └── business/                business-plan.md, and competitors/<slug>.md
 ```
 
 **A framework root with no `projects/` holds one project's documents directly.** The project note,
@@ -101,7 +101,7 @@ The setup entry point creates the structure once, and every other command fills 
 | `/design` | One design doc, in its feature's folder or in `designs/`, and its diagrams |
 | `/plan` | Tickets in `work/backlog/` and their roadmap rows, plus any PRD, feature, or design update the request needs — and the PRD itself, from its stub, when the project has none |
 | `/orchestrate`, `/orchestrate-quick`, `/run-roadmap` | The claim, the status transitions and bucket moves, the worklog, the usage properties, roadmap row deletions, and — through `create-note.py` — the notes |
-| `/code` | The notes, through `create-note.py`, and one worklog entry when the ticket already has a worklog |
+| `/code`, `/review` | The notes, through `create-note.py`, and one worklog entry when the ticket already has a worklog |
 | `/business-plan` | A project's `business/business-plan.md` and the notes in `business/competitors/` |
 
 ## How the structure grows and shrinks

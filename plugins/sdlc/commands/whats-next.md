@@ -72,15 +72,18 @@ Put each task in exactly one bucket:
 | Bucket | Test |
 | --- | --- |
 | **In flight** | Its status is `in progress` or `review`, or it is `blocked` and claimed |
-| **Ready** | It is `backlog`, unclaimed, and every ID in its `Depends on` cell is finished — or it is `blocked`, unclaimed, and resumable: its `blocked_by` holds only finished IDs, or nothing |
+| **Ready** | It is `backlog`, unclaimed, and every ID in its ticket's `depends_on` is finished — or it is `blocked`, unclaimed, and resumable: its `blocked_by` holds only finished IDs, or nothing |
 | **Waiting** | It is `backlog` and claimed or waiting on an unfinished ID, or it is `blocked` on something a person or an unfinished ticket still owes |
 
 Every row lands in one of the three. There is no done bucket, because a finished task is not in
 the file.
 
-Judging the buckets — `ticket-board` says when a `Depends on` cell counts as satisfied, and the
+Judging the buckets — `ticket-board` says when a dependency counts as satisfied, and the
 rest is this command's:
 
+- **Readiness comes from the ticket, not the row.** Open the ticket of every task its row shows as
+  ready, and judge it by the ticket's `depends_on`, `status`, `claimed`, and `blocked_by`; one that
+  turns out to wait moves to *Waiting*. The row decides only which tickets to open.
 - **The ticket's `status` wins over the roadmap row and over the bucket the file sits in**,
   because the ticket is the record. Report each disagreement in one line — `AUTH-002 is in
   progress in its ticket, the roadmap says pending`, `AUTH-003 is done but sits in in-progress/` —

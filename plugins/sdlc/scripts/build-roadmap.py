@@ -43,7 +43,7 @@ import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 
-VERSION = "2.0.0"
+VERSION = "2.1.0"
 
 PRIORITIES = ("Critical", "High", "Medium", "Low")
 PRIORITY_RANK = {name.lower(): index for index, name in enumerate(PRIORITIES)}
@@ -667,6 +667,7 @@ class BoardError(Exception):
 class Project:
     folder: Path
     names: set[str]
+    status: str = ""
 
     @property
     def label(self) -> str:
@@ -751,18 +752,20 @@ def _looks_like_path(value: str) -> bool:
 
 
 def make_project(folder: Path) -> Project:
-    """A project answers to its folder name and to the `name` in its project note."""
-    names = {folder.name}
+    """A project answers to the `name` in its project note. A folder with no project note — an
+    older shape — answers to its folder name instead."""
     note = folder / f"{folder.name}.md"
+    properties: dict[str, object] = {}
     if note.is_file():
         try:
             properties, _ = split_frontmatter(note.read_text(encoding="utf-8"))
         except OSError:
             properties = {}
-        name = str(properties.get("name", "")).strip()
-        if name:
-            names.add(name)
-    return Project(folder=folder, names=names)
+    if str(properties.get("type", "")).strip() != "project":
+        return Project(folder=folder, names={folder.name})
+    name = str(properties.get("name", "")).strip()
+    status = str(properties.get("status", "")).strip().lower()
+    return Project(folder=folder, names={name} if name else {folder.name}, status=status)
 
 
 def locate_board(args: argparse.Namespace) -> Board:
@@ -793,27 +796,33 @@ def locate_board(args: argparse.Namespace) -> Board:
     has_projects = projects_dir.is_dir()
 
     if args.project and not _looks_like_path(args.project) and named_folder is None:
-        folder = projects_dir / args.project
-        if not folder.is_dir():
-            matches = [
-                candidate
+        matches = [
+            project
+            for project in (
+                make_project(candidate)
                 for candidate in (sorted(projects_dir.iterdir()) if has_projects else [])
-                if candidate.is_dir() and args.project in make_project(candidate).names
-            ]
-            if not matches:
-                raise BoardError(f"No project named {args.project!r} under {projects_dir}")
-            folder = matches[0]
-        projects = [make_project(folder)]
+                if candidate.is_dir()
+            )
+            if args.project in project.names
+        ]
+        if not matches:
+            raise BoardError(f"No project named {args.project!r} under {projects_dir}")
+        projects = matches[:1]
     elif named_folder is not None and named_folder != root:
         projects = [make_project(named_folder)]
     elif has_projects:
+        # A done project is left out unless it is named.
         projects = [
-            make_project(folder)
-            for folder in sorted(projects_dir.iterdir())
-            if folder.is_dir() and (folder / "roadmap.md").is_file()
+            project
+            for project in (
+                make_project(folder)
+                for folder in sorted(projects_dir.iterdir())
+                if folder.is_dir() and (folder / "roadmap.md").is_file()
+            )
+            if project.status != "done"
         ]
         if not projects:
-            raise BoardError(f"No project under {projects_dir} has a roadmap.md yet")
+            raise BoardError(f"No project under {projects_dir} that is not done has a roadmap.md yet")
     else:
         projects = [make_project(root)]
 

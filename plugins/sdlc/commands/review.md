@@ -85,6 +85,8 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
 
 Then re-review by resuming the **same** reviewer: `SendMessage(reviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary)`. One fix cycle is the cap. When the second verdict is still `CHANGES_REQUESTED`, report what is left and stop.
 
+**Write the notes the coding agent reported**, when its latest block carries any. A note is not the board, so this command writes it: run `create-note.py` as `agent-pipeline` says, with `--run review`, and `--ticket` when the target was a ticket, else `--feature` when the target names a feature. With neither, show the notes in full. Name each note file under *Needs a person* when you report the fix.
+
 With neither the flag nor the ask, report and stop. A request to read code is a request to read it, and the user decides what happens next.
 
 ### 5. Record it on the ticket, when you reviewed one

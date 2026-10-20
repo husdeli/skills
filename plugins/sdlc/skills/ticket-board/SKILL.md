@@ -103,7 +103,7 @@ related:
 | `status` | Required. Where the work stands; see [States and transitions](#states-and-transitions). |
 | `priority` | Required. `Critical`, `High`, `Medium`, or `Low`. The roadmap sorts by it, so roadmap order is priority order. |
 | `repositories` | The registry codes of the work roots the ticket is built in: `[api]`. Empty until it is known — the run fills it with the `repo-resolver` agent before the ticket starts. `sdlc-structure` holds the rule. |
-| `depends_on` | The IDs of every ticket this one cannot start without, as bare IDs. `[]` when there are none. |
+| `depends_on` | Required. The IDs of every ticket this one cannot start without, as bare IDs. `[]` when there are none. |
 | `assigned` | The agent that works on the ticket now, or is planned to, by its name: `coding-2`. See [Who holds the ticket](#who-holds-the-ticket). |
 | `claimed` | The run that holds the ticket: `orchestrate-2`. See [The claim](#the-claim). |
 | `blocked_by` | Required while `status` is `blocked`, and absent otherwise. See [What blocks a ticket](#what-blocks-a-ticket). |
@@ -119,8 +119,9 @@ date-and-time property. Read the clock with `date "+%Y-%m-%dT%H:%M"`; never gues
 
 **A ticket no agent has worked on has no `timing`, `tokens`, or `cost`.** See [Usage](#usage).
 
-**A ticket carries no `type`, no `id`, no `epic`, and no repository.** Its name says its ID and its
-epic, its bucket makes it a ticket, and the run resolves the work root when it starts the ticket.
+**A ticket carries no `type`, no `id`, no `epic`, and no repository path.** Its name says its ID and
+its epic, its bucket makes it a ticket, and `repositories` names its work roots by registry code
+only.
 
 ### States and transitions
 

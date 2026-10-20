@@ -83,4 +83,4 @@ The [[glossary#Destination|destination]] decides the link's form:
 - **The glossary is required.** It is created with the framework root, and holds only its title until the first term is coined.
 - **A term means one thing across the whole framework.** When two projects need different meanings for one word, those are two terms, and each gets its own heading.
 - **A project folder never holds a glossary.** A second note named `glossary` makes every `[[glossary#…]]` link ambiguous, so a project's terms go in the framework's glossary.
-- **A glossary on an older shape is read where it is.** That covers a `**Last updated**:` line under the title, or a `glossary.md` inside a project folder. The next command that writes the glossary rewrites the line as the `updated` property.
+- **A glossary on an older shape is read where it is.** That covers a `**Last updated**:` line under the title, or a `glossary.md` inside a project folder. `/setup` offers to move a project's entries into the framework root's glossary and to rewrite the line as the `updated` property, and moves nothing without a yes.

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **A project is named by its project note.** `build-roadmap.py` 2.1.0 and `run-roadmap.sh` match
+  a project by the `name` in a `type: project` note, and fall back to the folder name only when no
+  such note exists. `build-roadmap.py` leaves a `done` project out unless it is named.
+- **`/whats-next` judges readiness from the ticket**, not the roadmap row's `Depends on` cell.
+- **`/review` writes the notes** its fix turn reports, as `/code` does.
+- **`/setup` moves with `git mv` only inside a git working tree** in every migration, and offers to
+  move a project's own glossary into the framework root's.
+- **The `feature` skill** names `/code` and `/review` as note writers, and leaves opening the epic
+  to `/plan`. `ticket-board` marks `depends_on` required and says a ticket carries no repository
+  *path*. Competitor notes are `<slug>.md` everywhere.
 - **The design docs describe the plugin as it runs today.** `workflow.design.md` covers
   `/orchestrate-quick`'s real differences, the notes a run writes, the `verify` and
   `feature-interviewer` agents, `/code` and `/review`, and the roadmap run's preflight, result

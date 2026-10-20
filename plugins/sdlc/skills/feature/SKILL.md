@@ -99,7 +99,7 @@ is the design doc's — delete it here.
 
 A **note** is one action a person has to take outside the code — a WAF rule in a cloud console, a
 secret in a vault, a DNS record, a webhook in a third-party dashboard — that the feature's code
-depends on. The coding agent reports it in its result block; the orchestrator hands it to
+depends on. The coding agent reports it in its result block; the orchestrator, `/code`, or `/review` hands it to
 `scripts/create-note.py`, and the script writes the file. **No model writes a note file**, so every
 note has the same name, properties, and body.
 
@@ -137,7 +137,7 @@ The new `/webhooks/stripe` route sits behind WAF; without the rule every webhook
 | `status` | `open` until a person has done it, then `done`. Only a person changes it. |
 | `when` | `before-release` — production fails without it; `after-release` — it follows a release; `anytime`. |
 | `createdAt` | When the script wrote it. |
-| `createdBy` | The run that reported it: `orchestrate-3`, `orchestrate-quick`, a roadmap run's name, or `code`. |
+| `createdBy` | The run that reported it: `orchestrate-3`, `orchestrate-quick-2`, a roadmap run's name, `code`, or `review`. |
 | `tags` | `sdlc/note` and `human-required`, so every action that waits on a person is one search. |
 
 - **The title names the file.** The script turns it into `<slug>.note.md`, and a note whose file
@@ -241,9 +241,8 @@ table with a relative link per feature, and rewrite it whenever a feature's stat
    the product gained a goal nobody wrote down, or the feature is not worth building. Cite the
    personas it serves in the same step.
 5. **Write the folder and the feature note**, at `status: backlog`. Nothing else. A design doc is
-   written when someone specifies how the feature works.
-6. **Open the epic on each project's roadmap** when there is work to do, with `**Feature**:` linking
-   the note. The `ticket-board` skill holds the rest.
+   written when someone specifies how the feature works, and the epic is opened on each project's
+   roadmap when `/plan` writes the feature's first ticket — the `ticket-board` skill holds how.
 
 ## Choosing what is a feature
 
