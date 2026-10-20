@@ -1,7 +1,7 @@
 ---
 type: design
 subject: feature
-updated: 2026-10-09
+updated: 2026-10-20
 tags:
   - sdlc/design
 related:
@@ -31,7 +31,32 @@ This doc defines the structure of one [[glossary#Feature|feature]] folder: the f
 
 **The feature note is `<feature-name>.feature.md`.** The `.feature` suffix keeps its name unique in a vault, so `[[checkout.feature]]` never needs a path.
 
-**A note is written by `scripts/create-note.py`, never by a model.** The coding agent reports it, the orchestrator passes it to the script when the ticket finishes, and a person sets its `status` from `open` to `done` once the action is taken.
+**A note is written by `scripts/create-note.py`, never by a model.** The coding agent reports it in its result, and the command that ran the agent passes it to the script: an [[glossary#Orchestrator|orchestrator]] when the ticket finishes, or `/code`. A person sets its `status` from `open` to `done` once the action is taken, and nobody deletes a note.
+
+```yaml
+---
+type: note
+feature: "[[checkout.feature]]"
+ticket: "[[CHECKOUT-004-stripe-webhooks]]"
+status: open
+when: before-release
+createdAt: 2026-10-15T11:39
+createdBy: orchestrate-3
+tags:
+  - sdlc/note
+  - human-required
+---
+# Allow Stripe's webhook IPs in the WAF rule set
+```
+
+- **`feature` links the feature whose folder holds the note**, and **`ticket` links the ticket whose run reported it**. A note no ticket reported carries no `ticket`.
+- **`status` is `open` or `done`.** Only a person changes it.
+- **`when` is `before-release`, `after-release`, or `anytime`.** `before-release` means production fails without the action. A note reported with no `when` is `anytime`.
+- **`createdAt` is when the script wrote the note, and `createdBy` is the run that reported it**: `orchestrate-3`, `orchestrate-quick`, a roadmap run's name, or `code`.
+- **`tags` holds `sdlc/note` and `human-required`**, so every action that waits on a person is one search.
+- **The body is the title, then `## What to do` and `## Why`.**
+- **The title names the file.** The script turns it into `<slug>.note.md`. A note whose file already exists is kept as it is, because the same title is the same need reported again.
+- **A feature with no note has no `notes/` folder.** The script creates it with the first note.
 
 **A design doc that every feature depends on stays in `designs/`.** Only a design doc that belongs to one feature sits in that feature's folder.
 
@@ -75,19 +100,30 @@ The feature note's `status` property:
 | Status        | Meaning                                                   |
 | ------------- | --------------------------------------------------------- |
 | `backlog`     | The feature is planned, and no work has started           |
-| `in progress` | The feature is being built                                |
+| `in progress` | The feature is being built: part of it is in a work root, or one of its tickets has started |
 | `done`        | A customer can use the whole feature in a work root today |
 
+**A status is verified against the [[glossary#Work root|work root]], never assumed.** Before a command writes or trusts `done`, it reads the work roots for the routes, modules, or screens a customer would use, and checks the board second. A feature that is partly usable is `in progress`. When the evidence disagrees with the note, the command reports the disagreement and fixes the note in the same step.
+
+**A feature note on an older shape** reads `Planned` as `backlog`, `In Progress` as `in progress`, and `Shipped` as `done`.
 
 ## 4. Behavior
 
+- **`/feature` creates a feature in five steps:**
+  1. It settles the name and the code from the product's own vocabulary: the PRD, the glossary, and the user's words.
+  2. It lists `features/` and searches the framework root for the code. A feature that already exists is updated in place.
+  3. It names every project the feature relates to.
+  4. It cites the goal the feature advances and the personas it serves, from each project's `product/goals/` and `product/personas/`. When no goal fits, it says so before it creates the feature.
+  5. It writes the folder and the feature note at `backlog`, and nothing else. `/design` writes a design doc, and `/plan` writes the tickets and opens the epic on each project's roadmap.
 - **A feature is created before its first ticket.** Its code exists because the feature exists; a ticket never mints a code.
 - **A feature exists once.** Its name and its code are each unique in the framework root, so a feature that already exists is updated in place, never created twice.
 - **A feature note stays after the feature is `done`.** The [[glossary#Roadmap|roadmap]] drops the epic when its last ticket is done, but `features/` keeps the note, so `features/` lists everything the products do.
+- **A list of features is a query over `features/`.** In a vault it is a Dataview query on `type: feature`, so a new feature appears in every list with no edit; it filters on `projects` to list one project's features. In a `repo` or `folder` destination it is a Markdown table with a relative link per feature, rewritten whenever a feature's status changes.
 
 ## 5. Variation and limits
 
 - **A feature with no design doc is still a feature.** Its folder holds the feature note alone until someone specifies how it works.
 - **A framework root with no features has an empty `features/` folder**, or none. Nothing links a feature that does not exist.
+- **An older property is read and left alone.** `area`, `customer_facing`, `shipped`, `non_goals`, and `updated` stay as they are until a command rewrites the note.
 - **The code never changes once the feature has a ticket.** The tickets, branches, and reviews cite the work by it. The `name` may change freely.
 - **A feature is deleted only when the product stops doing the thing**, and its design docs are deleted with it.

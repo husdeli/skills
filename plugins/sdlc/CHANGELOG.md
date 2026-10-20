@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The design docs describe the plugin as it runs today.** `workflow.design.md` covers
+  `/orchestrate-quick`'s real differences, the notes a run writes, the `verify` and
+  `feature-interviewer` agents, `/code` and `/review`, and the roadmap run's preflight, result
+  line, and launcher, with a caps table per command. `project-structure.design.md` gains the
+  project folder's full contents and how the framework root, the project, and the work root are
+  found. The registry, work, ticket, PRD, glossary, feature, and framework designs gain the
+  properties, rules, and older shapes the skills already enforced.
+
 ### Fixed
 
 - **The glossary matches how the plugin uses its terms.** *Feature* names the feature note, not an

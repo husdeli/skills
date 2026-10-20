@@ -1,7 +1,7 @@
 ---
 type: design
 subject: glossary
-updated: 2026-10-09
+updated: 2026-10-20
 tags:
   - sdlc/design
 related:
@@ -47,29 +47,40 @@ A document that says how one solution works. ...
 - **The entries run in alphabetical order.** A new entry goes in its place, and the entries around it do not move.
 - **An entry says what the thing is, and the one fact that separates it from the term nearest to it.** Behavior stays in a design doc, requirements stay in the PRD, and what a customer can do stays in a feature note.
 - **Only terms that matter get an entry.** A term gets one when a second document uses it, or when a reader would otherwise guess what it means. A plain English word gets none.
+- **The file holds no history.** No changelog, no "formerly", and no note of when a definition changed.
 
 ## 2. Reference
 
-**A document links the entry at the term's first use in that document**, then uses the term without a link:
+**A document links the entry at the term's first use in that document**, then uses the term without a link. Only load-bearing terms get a link: a paragraph where every noun is a link reads as though none of them mattered.
 
-| Link                            | When                                                                  |
-| ------------------------------- | --------------------------------------------------------------------- |
-| `[[glossary#Work root]]`        | The sentence uses the term exactly as the heading writes it           |
-| `[[glossary#Work root\|work roots]]` | The sentence needs another form: a plural, or a lower-case first letter |
+The [[glossary#Destination|destination]] decides the link's form:
 
-- **The link names the heading exactly as it is written**, including its capital letter. `[[glossary#work root]]` does not reach `## Work root`.
-- **The link names the file as `glossary`, with no path.** The file name is unique in the vault, so the same link resolves from every folder.
-- **Inside a table, the pipe is escaped**: `[[glossary#Bucket\|buckets]]`. An unescaped pipe ends the table cell.
+| Destination | Link | When |
+| --- | --- | --- |
+| `vault` | `[[glossary#Work root]]` | The sentence uses the term exactly as the heading writes it |
+| `vault` | `[[glossary#Work root\|work roots]]` | The sentence needs another form: a plural, or a lower-case first letter |
+| `repo`, `folder` | `[work root](../glossary.md#work-root)` | Always, as a relative path from the document to `glossary.md` |
+
+- **A wikilink names the heading exactly as it is written**, including its capital letter. `[[glossary#work root]]` does not reach `## Work root`.
+- **A wikilink names the file as `glossary`, with no path.** The file name is unique in the vault, so the same link resolves from every folder.
+- **Inside a table, the pipe in a wikilink is escaped**: `[[glossary#Bucket\|buckets]]`. An unescaped pipe ends the table cell.
+- **A relative link's anchor is the heading in lower case, with each space as a hyphen.** `## Work root` is reached as `glossary.md#work-root`, and the path climbs from the document's own folder, such as `../../glossary.md` from a feature note.
 - **A document never repeats a definition it links.** When a definition changes, the entry changes and every link stays as it is.
+- **Prose a person reads outside the framework root carries no link** — a chat reply, a commit message, a pull-request body, a review verdict, or an agent's report. It uses the glossary's term plainly.
 
 ## 3. Behavior
 
+- **A term comes from the product's own vocabulary.** The writer reads the glossary, the PRD, the feature notes, the design docs, the work root's `AGENTS.md` and `CLAUDE.md`, the tickets, and then the code, in that order.
+- **One concept has one term everywhere.** A writer never invents a synonym for a term the product already has. When the product has no term for a thing, the writer says so and proposes one plainly.
+- **The domain word leads the code symbol.** When the two differ, a document writes the domain word with the symbol beside it once, such as "the workspace owner (`OrgMember` in the code)", then keeps the domain word.
+- **An acronym is expanded at its first use**, unless the product's own documents use it bare.
 - **Whoever coins a term writes its entry**, in the same step that first uses it. A document that uses a term with no entry leaves the next writer to define it a second time.
-- **A rename changes the heading and every link to it in one step.** The step searches the framework root for `glossary#<old term>` and rewrites each match.
-- **An entry no document links is deleted**, with the prose that used the term.
+- **A rename changes the heading and every link to it in one step.** The step searches the framework root for `glossary#<old term>` and for the old lower-case anchor, and rewrites each match.
+- **An entry is deleted when no document uses its term**, together with the links and the prose that carried them.
 
 ## 4. Variation and limits
 
 - **The glossary is required.** It is created with the framework root, and holds only its title until the first term is coined.
 - **A term means one thing across the whole framework.** When two projects need different meanings for one word, those are two terms, and each gets its own heading.
 - **A project folder never holds a glossary.** A second note named `glossary` makes every `[[glossary#…]]` link ambiguous, so a project's terms go in the framework's glossary.
+- **A glossary on an older shape is read where it is.** That covers a `**Last updated**:` line under the title, or a `glossary.md` inside a project folder. The next command that writes the glossary rewrites the line as the `updated` property.
