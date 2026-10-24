@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`/plan` asks its questions with `AskUserQuestion`.** Each open decision is a question whose
+  options the user picks from, the recommended one first, each option's cost in its description;
+  the assumptions are confirmed in one question, and the change proposal's approval is one more.
+  A session without the tool still asks in prose.
 - **Auth, the database, forms, and end-to-end tests are optional layers in `web-stack`.** They are
   added only when the product needs them, and auth brings the database with it.
 

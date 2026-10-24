@@ -82,7 +82,13 @@ The brief comes back as *Understanding*, *What already exists*, *Research findin
 
 - **Every open decision is a node**, and the interviewer's recommended option is your recommended answer. Where one decision only makes sense once another is settled, it hangs below that one.
 - **Every assumption is a node too**, put to the user for confirmation in the first round. A rejected assumption becomes a decision.
-- **Ask the whole frontier in one round**, numbered, each question with your recommended answer, in the format the skill gives: `❓ **Q1** - **<title>**: <question and its options>`, then `➡️ <recommended answer>`, a rule between questions. Wait for the answers, recompute the frontier, and ask the next round. Ask in prose, not with `AskUserQuestion`: a grilling question carries its options and its reasoning, and four short labels do not.
+- **Ask the whole frontier in one round, with `AskUserQuestion`**, so the user picks an option instead of typing an answer. This replaces the prose format the `grilling` skill gives; its tree, its rounds, and its stop condition still hold.
+  - **One question per decision**, up to 4 per call. A frontier wider than 4 takes several calls in the round, the decisions the others hang on first.
+  - **2–4 options per question**, each a real answer, never "Other" — the tool adds that. Your recommended answer is the first option, its label ending in "(Recommended)". Each option's description carries what choosing it costs and what it rules out, because the label alone does not.
+  - **The question text carries the context** a person needs to choose: what the decision settles and why it is open, in a sentence or two.
+  - **The assumptions go in one question**: list them in the question text, with the options **All hold (Recommended)** and **Some need changing**. When the user picks the second, the note or the "Other" answer says which, and each one it names becomes a decision in the next round.
+  - Wait for the answers, recompute the frontier, and ask the next round.
+  - **No `AskUserQuestion` tool** (a Codex session) → ask in prose, in the format the skill gives: `❓ **Q1** - **<title>**: <question and its options>`, then `➡️ <recommended answer>`, a rule between questions.
 - **Facts are not questions.** When a node needs a fact from the code or the documents, look it up, or send it to the interviewer with `SendMessage` — never ask the user. Ask the rest of the frontier while it runs.
 - **Stop when the frontier is empty** and the user confirms the shared understanding. Zero open decisions is a good brief, not a broken one: one round that confirms the assumptions is the whole interview.
 
@@ -108,9 +114,9 @@ One gate, before you write any file:
 | [CODE-NNN] | [title] | [Critical/High/Medium/Low] | [IDs or —] | [one line] |
 
 Tickets: one per row, in `work/backlog/`.
-
-Proceed? (yes / adjust / cancel)
 ```
+
+Then ask with one `AskUserQuestion` call — "Write these documents and tickets?" — with **Proceed (Recommended)**, **Adjust** (the user says what in the note or the "Other" answer), and **Cancel**. Without the tool, end the proposal with `Proceed? (yes / adjust / cancel)` and wait.
 
 How to break the work down:
 
