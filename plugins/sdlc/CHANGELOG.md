@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`/stack install`.** Asks which optional layers the project needs, runs the new
+  `scripts/stack-install.py` for the exact install commands in the project's package manager,
+  shows them, and runs them on one yes. It skips a layer the project fills with another library,
+  reports a layer with two libraries as a conflict, and names the wiring left for `/code`.
+
+### Changed
+
+- **Auth, the database, forms, and end-to-end tests are optional layers in `web-stack`.** They are
+  added only when the product needs them, and auth brings the database with it.
+
 ## [0.70.0] - 2026-10-24
 
 ### Added

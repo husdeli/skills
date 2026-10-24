@@ -34,7 +34,7 @@ skills/                          # shared rules and document skills, read by bot
 codex-skills/                    # Codex entry points, never loaded by Claude Code
 agents/                          # agent definitions and Codex role contracts
 commands/                        # Claude commands and shared workflow sources
-scripts/                         # run-roadmap.sh, the unattended launcher; build-roadmap.py; create-note.py
+scripts/                         # run-roadmap.sh, the unattended launcher; build-roadmap.py; create-note.py; stack-install.py
 ```
 
 ## Where your product docs live
@@ -408,7 +408,7 @@ worth as much as its record.
   an identity-dependent response.
 - **web-stack** — The default stack for a web project: TanStack Start, TanStack Query,
   TanStack Form, Zod, Mantine with Tailwind CSS, Postgres through Drizzle, Better Auth, Bun,
-  Vitest, Playwright, and Biome. A library the project already uses for a layer wins over the
+  Vitest, Playwright, and Biome, with auth, the database, forms, and end-to-end tests optional. A library the project already uses for a layer wins over the
   default, the default fills an empty layer, and anything else is a decision. Also holds the
   integration rules: the cascade layer order that lets Mantine and Tailwind share a page, one
   Zod schema from the form to the server function, and committed Drizzle migrations.
@@ -655,6 +655,9 @@ what a ticket is, and why changing how a status transition works is one edit rat
 - **/stack** — reports a web repository's stack against the `web-stack` default, one row per
   layer: what the project uses, the default, and whether the layer matches, keeps the project's
   own library, is not set yet, or has two libraries in conflict. It writes nothing.
+  `/stack install` asks which optional layers the project needs — auth, database, forms,
+  end-to-end tests — runs `scripts/stack-install.py` for the exact install commands, and runs them
+  on your yes. It never replaces a library the project already chose.
 
 Use these equivalents in a Codex prompt:
 
@@ -675,7 +678,7 @@ Use these equivalents in a Codex prompt:
 | `/business-plan [target]` | `$sdlc:business-plan [target]` |
 | `/explain [target]` | `$sdlc:explain [target]` |
 | `/review-text [target] [fix]` | `$sdlc:review-text [target] [fix]` |
-| `/stack [repository]` | `$sdlc:stack [repository]` |
+| `/stack [install] [repository]` | `$sdlc:stack [install] [repository]` |
 
 Each Codex entry point lives in `codex-skills/`, and each one reads the shared source in
 `commands/` or `skills/`. Claude Code scans `skills/` only, so no Codex instruction reaches a

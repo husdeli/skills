@@ -15,7 +15,7 @@ Read the work root's `package.json` and lockfile before you name a library. For 
 | The work root | Use |
 | --- | --- |
 | Already fills the layer with a library | That library, even when it is not the default. Never migrate it unless the request asks for the migration. |
-| Does not fill the layer yet | The default from Rule 2. |
+| Does not fill the layer yet | The default from Rule 2 — for an optional layer, only once the product needs it. |
 | Needs something the default cannot do | A library choice. Raise it as a decision, with the default's limit as the reason. |
 
 - **One library per layer.** Do not add a second form library, a second component library, or a
@@ -28,21 +28,27 @@ Read the work root's `package.json` and lockfile before you name a library. For 
 
 ## Rule 2 — The default stack
 
+Core layers belong in every web project. An **optional** layer is added only when the product
+needs it — auth when it has accounts, a database when it stores data on the server, forms when it
+has more than a field or two, end-to-end tests when a critical path earns them. Never add an
+optional layer because the table lists it. `/stack install` proposes the installs and asks which
+optional layers the project needs.
+
 | Layer | Default | Notes |
 | --- | --- | --- |
 | Language | TypeScript, `strict` on | `ts-clean` governs every file. |
 | Framework | TanStack Start (React, TanStack Router file routes) | `clean-tanstack-start` governs server code, `react-clean` governs components. |
 | Server state | TanStack Query | Components reach it through feature hooks (`clean-fullstack-architecture`). |
 | Validation | Zod | One schema per input, shared by the form and the server function. |
-| Forms | TanStack Form | Validates with the Zod schema directly. |
+| Forms (optional) | TanStack Form | Validates with the Zod schema directly. |
 | UI components | Mantine | Interactive components: inputs, buttons, modals, menus, notifications. |
 | Styling | Tailwind CSS | Layout, spacing, and one-off adjustments around Mantine components. |
-| Database | Postgres | |
-| Data access | Drizzle ORM, with drizzle-kit for migrations | |
-| Auth | Better Auth, on the Drizzle adapter | |
+| Database (optional) | Postgres | Driven through `postgres` (postgres.js). |
+| Data access (optional, with the database) | Drizzle ORM, with drizzle-kit for migrations | |
+| Auth (optional) | Better Auth, on the Drizzle adapter | Brings the database with it. |
 | Runtime and packages | Bun | `bun.lock` is committed. |
 | Unit and integration tests | Vitest | |
-| End-to-end tests | Playwright | Only where the end-to-end decision allows one (`test-strategy`). |
+| End-to-end tests (optional) | Playwright | Only where the end-to-end decision allows one (`test-strategy`). |
 | Lint and format | Biome | |
 
 ## Rule 3 — Mantine and Tailwind share the page
@@ -81,6 +87,8 @@ Read the work root's `package.json` and lockfile before you name a library. For 
   adapter, never by passing a row to a client.
 
 ## Rule 5 — Data, auth, and configuration stay server-side
+
+These rules apply once the project has the optional database or auth layer.
 
 - **The Drizzle client lives in a `.server.ts` module.** Its connection string is read in a
   `.config.server.ts` module and validated at load (`ts-clean` Rule 4).
