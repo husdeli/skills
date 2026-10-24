@@ -50,6 +50,7 @@ The tests were decided from the specification and written by someone else, so th
    - **`ts-clean`** — before writing or editing any `.ts`/`.tsx` file, of any kind (service, domain module, utility, component).
    - **`react-clean`** — before writing or editing any React component, hook, or `.tsx`/`.jsx` file. Applies *on top of* `ts-clean`.
    - **`clean-tanstack-start`** — before writing or editing any TanStack Start server code: a file defining, importing, or calling a `createServerFn` server function, or any module holding DB/secret access in a Start app. Applies *on top of* `ts-clean`.
+   - **`web-stack`** — before adding a dependency, or a layer the web project does not have yet (a database, auth, forms, UI components, tests, lint). The project's existing library wins over the default; a library outside both is a blocker to report, not a choice to make.
 3. For each work item:
    - Read the files it touches to understand the current state, plus the neighbouring code that does the same job — that code carries the convention you must match. With a plan, start from its *Area* and whatever existing code the item says to mirror.
    - Implement the intent, deciding the code-level details yourself. With a plan, follow the approach its *Direction* sets.
@@ -75,7 +76,7 @@ Fix only what clears them, and stay within the brief. Change no test. When an ex
 - **Stay inside the brief.** With a plan, do not deviate from its direction: if a work item's approach is wrong, impossible, or missing, stop and report it as a blocker rather than silently substituting another approach. With a request, the approach is yours to choose and the request's scope is the boundary. Either way, code-level choices the brief left open (names, signatures, structure) are yours and are not deviations.
 - **Do not add extra work.** Implement only what the brief describes. No refactoring, no "while I'm here" changes.
 - **Follow conventions.** Reuse existing patterns, libraries, naming styles, and file organization.
-- **Obey the plugin's skills.** `clean-fullstack-architecture` for any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for any component or hook, `clean-tanstack-start` for any TanStack Start server code. Loading and following them is not optional.
+- **Obey the plugin's skills.** `clean-fullstack-architecture` for any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for any component or hook, `clean-tanstack-start` for any TanStack Start server code, `web-stack` for any new dependency or layer. Loading and following them is not optional.
 - **Write clean code.** No unused imports, no dead code, no leftover TODOs unless the brief asks for them.
 - **Almost no comments.** Write one only when it carries a *why* the code cannot — a tradeoff, a workaround, an outside constraint — and cap a file at one or two, one sentence each. Never narrate what the next line does; fix the name instead. Never write a comment the next developer cannot verify: no file paths, no line numbers, no finished ticket or pull-request ids, no history of a past refactor. See `ts-clean` Rule 3.
 - **Handle failures.** Fix any lint error, test failure, or type error before moving on — in the code. A test you believe is wrong is a dispute, never an edit.

@@ -94,6 +94,10 @@ Evaluate the change against every item your focus owns. Read the code to confirm
      - an `await import()` of a server function
      - a private server function that leaves authentication to its caller
      - `Cache-Control: public` on an identity-dependent response
+   - **`web-stack`** for any dependency the change adds. Flag:
+     - a library that is neither the project's existing choice for its layer nor the default
+     - a second library for a layer the project already fills
+     - a break of the Mantine and Tailwind rules, such as a cascade conflict fixed with `!important`
    A breach of one of these skills is a **major** issue, and **critical** when it leaks a secret or crosses a security boundary.
 6. **Convention alignment** — Does the code match the naming, style, imports, file organization, and library choices already in this codebase, and the applicable `AGENTS.md` and `CLAUDE.md` rules?
 7. **PRD, feature & design alignment** — Does the behavior the code implements match the PRD, the change's feature note, and any design doc, where those documents exist? The **`sdlc-structure`** skill resolves the project and names the older shapes to look in. Use the documents' own terms when you name a concept. The **`glossary`** skill says where those terms come from.

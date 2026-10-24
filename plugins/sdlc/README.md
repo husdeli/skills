@@ -1,7 +1,7 @@
 # sdlc
 
 Plan, review, implement, and verify a change, with clean architecture rules for TypeScript,
-React, and TanStack Start. Thirteen commands drive seven agents, and fifteen skills hold the rules they
+React, and TanStack Start. Sixteen commands drive ten agents, and twenty skills hold the rules they
 all follow. One of those commands needs nobody in the room: `/run-roadmap` puts a **cto** agent
 where the user would be and builds the roadmap unattended.
 
@@ -406,6 +406,12 @@ worth as much as its record.
   client bundle. Plus the two safety rules: every server function is its own auth boundary
   (a route `beforeLoad` guard isn't the data boundary), and no `Cache-Control: public` on
   an identity-dependent response.
+- **web-stack** — The default stack for a web project: TanStack Start, TanStack Query,
+  TanStack Form, Zod, Mantine with Tailwind CSS, Postgres through Drizzle, Better Auth, Bun,
+  Vitest, Playwright, and Biome. A library the project already uses for a layer wins over the
+  default, the default fills an empty layer, and anything else is a decision. Also holds the
+  integration rules: the cascade layer order that lets Mantine and Tailwind share a page, one
+  Zod schema from the form to the server function, and committed Drizzle migrations.
 - **technical-writing** — The standard for every text a reader works from: a brief, a plan, a
   review verdict, a report, a PRD, a design doc, a ticket, a commit message, a pull-request body.
   Context first, then the answer, then the evidence. Rules grouped the way they are used — stance
@@ -646,6 +652,9 @@ what a ticket is, and why changing how a status transition works is one edit rat
   quotes the text as it stands, and carries the sentence that replaces it. The reply ends with a
   `json` findings block a tool can consume, so the same review can drive a linter later. Add `fix`
   to apply the findings that have a replacement.
+- **/stack** — reports a web repository's stack against the `web-stack` default, one row per
+  layer: what the project uses, the default, and whether the layer matches, keeps the project's
+  own library, is not set yet, or has two libraries in conflict. It writes nothing.
 
 Use these equivalents in a Codex prompt:
 
@@ -666,6 +675,7 @@ Use these equivalents in a Codex prompt:
 | `/business-plan [target]` | `$sdlc:business-plan [target]` |
 | `/explain [target]` | `$sdlc:explain [target]` |
 | `/review-text [target] [fix]` | `$sdlc:review-text [target] [fix]` |
+| `/stack [repository]` | `$sdlc:stack [repository]` |
 
 Each Codex entry point lives in `codex-skills/`, and each one reads the shared source in
 `commands/` or `skills/`. Claude Code scans `skills/` only, so no Codex instruction reaches a

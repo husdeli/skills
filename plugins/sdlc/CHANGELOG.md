@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`web-stack` skill.** The default stack for a web project: TanStack Start, TanStack Query,
+  TanStack Form, Zod, Mantine with Tailwind CSS, Postgres through Drizzle, Better Auth, Bun,
+  Vitest, Playwright, and Biome. The project's existing library for a layer wins, the default
+  fills an empty layer, and a library outside both is a decision. It carries the integration
+  rules for Mantine and Tailwind, one Zod schema from form to server, Drizzle migrations, Better
+  Auth sessions, and Bun with Vitest.
+- **`/stack` command** (`$sdlc:stack` in Codex). Reports a repository's stack against the
+  default, one row per layer, and lists each conflict and broken integration rule. Writes nothing.
+
+### Changed
+
+- **The coding, planner, plan-reviewer, code-reviewer, and feature-interviewer agents load
+  `web-stack`** when a change adds a dependency or a layer. The interviewer treats the default for
+  an empty layer as an assumption rather than a question.
+- **`clean-fullstack-architecture`'s styling order** starts with the component library's own
+  props, then Tailwind, then CSS modules. CSS-in-JS is no longer a recommended approach, and
+  design tokens live in the component library's theme.
+- **The README's counts** now match the plugin: sixteen commands, ten agents, twenty skills.
+
 ## [0.69.0] - 2026-10-20
 
 ### Changed

@@ -466,16 +466,16 @@ Reference: [You Might Not Need an Effect](https://react.dev/learn/you-might-not-
 
 ### Styling Approach
 
-Prefer styles co-located with the component, in this order:
+Prefer styles co-located with the component, in this order. The `web-stack` skill names the component library (Mantine by default) and how it shares the page with Tailwind:
 
-1. **Tailwind CSS utility classes** — default for all styling. Apply classes directly on JSX elements. Keep conditional class logic readable with `clsx` or `cn` helpers.
-2. **CSS-in-JS** (`styled-components`, `emotion`) — when dynamic styles depend on runtime values that would make Tailwind class strings unwieldy.
-3. **Separate `.css` / `.module.css` files** — only for what the above cannot handle (complex keyframe animations, third-party component overrides, global resets).
+1. **The component library's own props** (`variant`, `color`, `size`) — for any control the library ships.
+2. **Tailwind CSS utility classes** — for layout, spacing, and elements the library has no component for. Apply classes directly on JSX elements. Keep conditional class logic readable with `clsx` or `cn` helpers.
+3. **Separate `.css` / `.module.css` files** — only for what the above cannot handle (complex keyframe animations, global resets).
 
 **Rules:**
-- Never mix all three in the same component — pick one and stay consistent within a file
-- Global styles (resets, CSS variables, font-face) live in a single top-level stylesheet (e.g. `src/styles/globals.css`)
-- Design tokens (colors, spacing, radii) are Tailwind theme values or CSS custom properties — never magic strings scattered across components
+- Pick one approach per element and stay consistent within a file
+- Global styles (resets, cascade layer order, CSS variables, font-face) live in a single top-level stylesheet (e.g. `src/styles/globals.css`)
+- Design tokens (colors, spacing, radii) are defined once in the component library's theme and reached as CSS custom properties — never magic strings scattered across components
 
 ```tsx
 // Preferred: Tailwind with cn() helper for conditional classes

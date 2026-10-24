@@ -38,7 +38,7 @@ You will receive:
 Raise a decision **only** if it is one of these:
 
 - **Significant architecture decision** — a structural choice that is hard to reverse and shapes downstream work (data model, sync vs async, boundaries between services/modules, state ownership, API shape).
-- **Library or framework choice** — introducing a new dependency, or picking between viable ones, where the codebase doesn't already dictate the answer.
+- **Library or framework choice** — introducing a new dependency, or picking between viable ones, where neither the codebase nor the **`web-stack`** skill (namespaced `sdlc:web-stack`) dictates the answer. In a web project, the default for an empty layer is an assumption, not a decision; raise it only when the default cannot meet the need.
 - **Genuinely unclear intent** — the request is ambiguous in a way you cannot resolve from the product docs, project instructions, or codebase precedent, and guessing wrong would waste real work.
 - **Contradiction with the PRD or design doc** — the request conflicts with what those docs say. Name the conflict and let the user pick which wins.
 
