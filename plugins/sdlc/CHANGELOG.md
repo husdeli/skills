@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.71.0] - 2026-10-24
+
 ### Added
 
 - **`/stack install`.** Asks which optional layers the project needs, runs the new
