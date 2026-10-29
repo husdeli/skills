@@ -485,8 +485,8 @@ export function Badge({ variant, children }: BadgeProps) {
   return (
     <span className={cn(
       'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium',
-      variant === 'success' && 'bg-success-subtle text-success',
-      variant === 'error' && 'bg-danger-subtle text-danger',
+      variant === 'success' && 'bg-bg-success-subtle text-text-success',
+      variant === 'error' && 'bg-bg-danger-subtle text-text-danger',
     )}>
       {children}
     </span>

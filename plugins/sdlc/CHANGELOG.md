@@ -25,8 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     one place. With the optional design-tokens layer that place is W3C DTCG-format JSON under
     `tokens/`, built by Style Dictionary into CSS variables, a Tailwind `@theme inline` block, the
     Mantine theme with a `cssVariablesResolver`, board data, and iOS, Android, or Flutter outputs
-    for the platforms the product ships; without it, the Mantine theme. Primitive and semantic
-    tiers, code that names only semantic tokens, committed outputs never edited by hand with a
+    for the platforms the product ships; without it, the Mantine theme. Three tiers — primitives
+    (`blue-600`, `space-4`), semantic tokens named for intent (`color.bg.surface`,
+    `color.text.muted`, `color.action.primary`), and optional component tokens
+    (`button.primary.bg`) that alias semantic ones. Code and every agent use semantic tokens only,
+    picked by name and a required `$description`, so dark mode or a second brand is a remap of
+    semantic tokens that touches no component; the generated Tailwind theme drops the default
+    palette so a primitive class does not compile. Committed outputs never edited by hand with a
     `tokens:check` that catches a stale build, no raw value or arbitrary Tailwind value, modes as
     token sets under the same names, and WCAG AA in every mode.
   - **Components.** The project's shared component first, then Mantine's, then a new shared

@@ -83,22 +83,43 @@ Not for: a count or a tag the user can remove; use Mantine's `Badge` or `Pill`.
   layout — under a `## Patterns` heading, pointing at the component or the container that holds
   it.
 
-## Rule 4 — Code reaches a token by name, never by value
+## Rule 4 — Three tiers, and code uses the semantic one
 
-- **Primitives hold values, semantic tokens hold roles.** A primitive is the raw palette and
-  scales (`color.blue.6`, `space.4`, `radius.2`). A semantic token names what a value is for
-  (`color.surface.default`, `color.text.muted`, `color.action.primary`, `space.inset.md`,
-  `radius.control`, `shadow.overlay`, `motion.duration.fast`). Code names semantic tokens only;
-  `bg-blue-600`, `theme.colors.blue[6]`, and `var(--color-blue-6)` in a component are each a
-  primitive leaking past its tier. A component token (`button.height.sm`) is for the rare value no
-  semantic token carries.
-- **Name a semantic token for its role, never its look.** `color.text.danger`, not
-  `color.red-text`.
-- **A color scale has ten steps, `0` to `9`**, because the Mantine theme takes a ten-shade tuple
-  per color.
-- **Reach tokens through the theme the code already uses.** A Mantine prop with a theme key
-  (`radius="md"`, `c="dimmed"`, `shadow="sm"`), a Tailwind utility from the theme (`bg-surface`,
-  `text-muted`, `rounded-control`, `duration-(--motion-duration-fast)`), or `var(--…)` in CSS.
+| Tier | Holds | Examples | Who reads it |
+| --- | --- | --- | --- |
+| Primitive | The raw palette and scales — what values exist | `blue-600`, `gray-50`, `space-4`, `radius-2`, `font-size-3` | Semantic tokens only |
+| Semantic | What a value is for — the intent | `color.bg.surface`, `color.text.muted`, `color.action.primary`, `color.border.danger`, `space.inset.md`, `radius.control`, `shadow.overlay`, `motion.duration.fast` | All code |
+| Component (optional) | One component's decision, as an alias of a semantic token | `button.primary.bg` → `{color.action.primary}` | That component's own theme entry or file |
+
+**Code — and every agent writing it — uses semantic tokens only.** A semantic name carries the
+intent ("muted text"), so the right token is the one whose name says what the element is, and an
+agent picks it from the name instead of guessing a shade. And theming — dark mode, a second brand
+— becomes remapping semantic tokens to other primitives, with no component touched.
+
+- **Name a semantic token for its role, never its look**, as `category.property.role`:
+  `color.text.danger`, not `color.red-text`. Repainting the brand renames no semantic token.
+- **Every semantic token has a `$description`** saying when to use it ("Secondary text: captions,
+  helper text, timestamps"). The name and the description are what an agent chooses by.
+- **Choose from the semantic set, and grow it on purpose.** Before you style an element, read the
+  semantic tokens and pick the one whose role matches. When none matches, add a semantic token —
+  named for the role, aliasing a primitive, with its description — and never reach for the
+  primitive instead.
+- **A primitive in code is a defect.** `bg-blue-600`, `c="blue.6"`, `theme.colors.blue[6]`, and
+  `var(--color-blue-600)` each skip the tier that carries intent. The generated Tailwind theme
+  holds only semantic names, so a primitive class does not compile; Mantine still needs the
+  primitive hues to build its role colors, so a primitive there is a review finding ([the token
+  pipeline](./references/token-pipeline.md)).
+- **A component token aliases a semantic token, never a primitive**, and only that component
+  reads it. Add one when a component's decision must be retunable on its own; most projects need
+  few or none.
+- **A color scale has ten steps — `50`, then `100` through `900`**, because the Mantine theme takes a
+  ten-shade tuple per color (`50` is shade 0, `900` is shade 9).
+- **Reach tokens through the theme the code already uses.** A Mantine prop with a semantic key
+  (`color="primary"`, `c="dimmed"`, `radius="control"`, `shadow="overlay"`), a Tailwind utility
+  from the semantic theme (`bg-bg-surface`, `text-text-muted`, `border-border-danger`,
+  `rounded-control`, `p-inset-md`, `duration-(--motion-duration-fast)`), or `var(--…)` in CSS. The
+  doubled word in a Tailwind color is the price of a name that says which property it is for, and
+  it makes a mismatch such as `text-bg-surface` visible at a glance.
 - **No raw value in a component or a stylesheet.** No hex, `rgb()`, or `hsl()` color, no pixel or
   rem spacing, size, or radius, no shadow, no font stack, and no duration or easing — not in a
   `style` prop, a CSS file, or an arbitrary Tailwind value (`bg-[#1e40af]`, `p-[13px]`). Only `0`,
@@ -113,7 +134,9 @@ Not for: a count or a tag the user can remove; use Mantine's `Badge` or `Pill`.
 ## Rule 5 — A mode is a token set under the same names
 
 - **Light, dark, and any brand theme are sets of semantic values under the same names.** The
-  primitives do not change between modes; the semantic tokens point at different primitives.
+  primitives do not change between modes; the semantic tokens point at different primitives. A
+  second brand is a new semantic set, and a theme change that has to edit a component means the
+  component named a primitive.
 - **The variable switches, not the component.** A component never reads the color scheme to pick
   a value (`colorScheme === 'dark' ? '#fff' : '#000'`). Mantine's `data-mantine-color-scheme`
   attribute on `<html>` is the mode's selector.
@@ -145,6 +168,8 @@ reference](./references/design-board.md)**. Read it before you set up the board 
 - [ ] No catalog component was bypassed or duplicated; project-wide defaults sit in `theme.components`.
 - [ ] A new or changed shared component has its catalog entry and its stories in the same change.
 - [ ] Code names semantic tokens only — no primitive, no raw value, no arbitrary Tailwind value.
+- [ ] Every new semantic token is named for its role and has a `$description`; every component
+      token aliases a semantic one.
 - [ ] A new value is a token in the one source; no generated file was edited by hand.
 - [ ] Each mode defines the same semantic names, and no component branches on the color scheme.
 - [ ] Every text and surface pair the change touches passes WCAG AA in every mode.

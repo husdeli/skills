@@ -98,7 +98,8 @@ Evaluate the change against every item your focus owns. Read the code to confirm
      - a new, renamed, or removed shared component without its catalog entry or its stories in the same change
      - project-wide defaults repeated at call sites, or a wrapper that only sets default props, where `theme.components` belongs
      - a raw color, spacing, size, radius, font, shadow, or timing value in a component or stylesheet, including an arbitrary Tailwind value such as `bg-[#1e40af]`
-     - a primitive token named from code, such as `bg-blue-600`
+     - a primitive token named from code, such as `bg-blue-600` or `c="blue.6"` — code uses semantic tokens only
+     - a semantic token named for its look rather than its role, or added without a `$description`, and a component token that aliases a primitive
      - a hand edit to a generated token output, or a token change committed without its rebuilt outputs
      - a token defined twice — in the Tailwind theme and the Mantine theme, or outside the token source
      - a component that branches on the color scheme to pick a value, or a text and surface pair below WCAG AA in a mode
