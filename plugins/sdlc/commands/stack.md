@@ -53,7 +53,7 @@ After the table, list only what needs action: each **conflict**, and each `web-s
 
 Run this mode only when the first word of the target is `install`. Resolve the work root as above.
 
-1. **Ask which optional layers the project needs.** One question, multi-select, listing `auth`, `database`, `forms`, `animation`, and `e2e`, each with one line on when a product needs it (`web-stack` Rule 2). Skip a layer the repository already fills, and say which ones you skipped. Ask every time — never infer the answer from the documents or the code.
+1. **Ask which optional layers the project needs.** One question, multi-select, listing `auth`, `database`, `forms`, `tokens`, `board`, `animation`, and `e2e`, each with one line on when a product needs it (`web-stack` Rule 2). Skip a layer the repository already fills, and say which ones you skipped. Ask every time — never infer the answer from the documents or the code.
 2. **Run the script** with the layers the user picked:
 
    ```
@@ -64,6 +64,6 @@ Run this mode only when the first word of the target is `install`. Resolve the w
 3. **Show the proposal.** The layer table from the report, built from the script's `layers`, then the exact `commands` and `after` lines in one code block. Say each `conflict` and each layer left as the project's own, and that nothing is added for them. A `note` the script gave goes beside its layer.
 4. **Ask once** whether to run the commands. On no, stop: the user has the commands.
 5. **On yes, run each command** in the work root (`cd <work root> && …`), in order, then each `after` line. Stop at the first command that fails, show its output, and name the commands that did not run.
-6. **Report what was installed** and what is left: the wiring the packages still need — `MantineProvider` and the cascade layer order, the PostCSS config, a `drizzle.config.ts`, the Better Auth handler and its secret, `MotionConfig reducedMotion="user"` at the root, the `test`, `lint`, `typecheck`, and `e2e` scripts in `package.json` (`web-stack` Rules 3–6). This command writes no configuration or code; name `/code` for that.
+6. **Report what was installed** and what is left: the wiring the packages still need — `MantineProvider` and the cascade layer order, the PostCSS config, a `drizzle.config.ts`, the Better Auth handler and its secret, the `style-dictionary.config.mjs`, the `tokens` and `tokens:check` scripts, and the first `tokens/` source, the `.storybook/` config and the `board` and `board:build` scripts (`/design-system board` generates them), `MotionConfig reducedMotion="user"` at the root, the `test`, `lint`, `typecheck`, and `e2e` scripts in `package.json` (`web-stack` Rules 3–6, `design-system`). This command writes no configuration or code; name `/code` for that.
 
 The script never installs a second library into a layer the project already fills, and never installs a framework. A repository with no `package.json` needs a scaffold first, such as the TanStack Start starter.

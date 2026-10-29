@@ -3,7 +3,7 @@
 # stack-install.py — propose the installs that bring a web repository up to the `web-stack` skill.
 #
 # The core layers are proposed for every repository. An optional layer — auth, database, forms,
-# animation, e2e — is proposed only when `--with` names it, because only the person knows whether the product
+# tokens, board, animation, e2e — is proposed only when `--with` names it, because only the person knows whether the product
 # needs it. A layer the repository already fills with another library is left alone: the project's
 # choice wins. Nothing is installed here; the `/stack install` command shows the commands this
 # script prints, asks once, and runs them.
@@ -89,6 +89,18 @@ LAYERS = {
         "deps": ["@tanstack/react-form"],
         "dev": [],
         "alternatives": ["react-hook-form", "formik", "react-final-form", "@conform-to/react"],
+        "optional": True,
+    },
+    "tokens": {
+        "deps": [],
+        "dev": ["style-dictionary"],
+        "alternatives": ["@terrazzo/cli", "@cobalt-ui/cli", "theo"],
+        "optional": True,
+    },
+    "board": {
+        "deps": [],
+        "dev": ["storybook", "@storybook/react-vite", "@storybook/addon-docs", "@storybook/addon-a11y"],
+        "alternatives": ["@ladle/react", "react-cosmos", "react-styleguidist"],
         "optional": True,
     },
     "animation": {

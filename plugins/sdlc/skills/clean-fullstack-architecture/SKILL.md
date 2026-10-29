@@ -475,7 +475,7 @@ Prefer styles co-located with the component, in this order. The `web-stack` skil
 **Rules:**
 - Pick one approach per element and stay consistent within a file
 - Global styles (resets, cascade layer order, CSS variables, font-face) live in a single top-level stylesheet (e.g. `src/styles/globals.css`)
-- Design tokens (colors, spacing, radii) are defined once in the component library's theme and reached as CSS custom properties — never magic strings scattered across components
+- Design tokens (colors, spacing, radii, type, shadows, motion) are defined in one place and reached by their semantic names — never magic strings scattered across components (`design-system`)
 
 ```tsx
 // Preferred: Tailwind with cn() helper for conditional classes
@@ -485,8 +485,8 @@ export function Badge({ variant, children }: BadgeProps) {
   return (
     <span className={cn(
       'inline-flex items-center rounded-full px-2 py-1 text-xs font-medium',
-      variant === 'success' && 'bg-green-100 text-green-800',
-      variant === 'error' && 'bg-red-100 text-red-800',
+      variant === 'success' && 'bg-success-subtle text-success',
+      variant === 'error' && 'bg-danger-subtle text-danger',
     )}>
       {children}
     </span>

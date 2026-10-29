@@ -92,7 +92,17 @@ Evaluate the change against every item your focus owns. Read the code to confirm
      - hand-rolled animation code — a `requestAnimationFrame` loop, a JavaScript tween, a `setTimeout` chain, or an effect that toggles a class
      - an animation on a higher rung than it needs, such as Motion where CSS or a Mantine transition does the job, or Motion with no named reason
      - a second animation library next to the project's own
-     - an animated layout property, motion that ignores reduced motion, or a duration outside the theme tokens
+     - an animated layout property, motion that ignores reduced motion, or a duration outside the `motion.*` tokens
+   - **`design-system`** for any UI, shared component, design value, style, theme, token file, or board change. Read the project's `design-system.md` catalog first. Flag:
+     - a catalog component bypassed with the Mantine component it wraps, or a new component that duplicates one the catalog lists
+     - a new, renamed, or removed shared component without its catalog entry or its stories in the same change
+     - project-wide defaults repeated at call sites, or a wrapper that only sets default props, where `theme.components` belongs
+     - a raw color, spacing, size, radius, font, shadow, or timing value in a component or stylesheet, including an arbitrary Tailwind value such as `bg-[#1e40af]`
+     - a primitive token named from code, such as `bg-blue-600`
+     - a hand edit to a generated token output, or a token change committed without its rebuilt outputs
+     - a token defined twice — in the Tailwind theme and the Mantine theme, or outside the token source
+     - a component that branches on the color scheme to pick a value, or a text and surface pair below WCAG AA in a mode
+     - a design board with a theme of its own, a hand-typed token list on it, or a story that needs a router, a query client, or the network
    - **`clean-tanstack-start`** for any TanStack Start server code. Flag:
      - a server-only module reachable from a client file
      - a secret in a client-importable config

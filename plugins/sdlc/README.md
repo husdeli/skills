@@ -1,7 +1,7 @@
 # sdlc
 
 Plan, review, implement, and verify a change, with clean architecture rules for TypeScript,
-React, and TanStack Start. Sixteen commands drive ten agents, and twenty-one skills hold the rules they
+React, and TanStack Start. Seventeen commands drive ten agents, and twenty-two skills hold the rules they
 all follow. One of those commands needs nobody in the room: `/run-roadmap` puts a **cto** agent
 where the user would be and builds the roadmap unattended.
 
@@ -400,7 +400,15 @@ worth as much as its record.
 - **react-animations** — The animation layer on top of `react-clean`: an animation climbs from
   CSS to the UI library's own transitions to the platform to Motion, stopping at the first rung
   that meets it, and Motion needs a named reason. No hand-rolled animation code, one animation
-  library, `transform` and `opacity` only, reduced motion respected, and timing from theme tokens.
+  library, `transform` and `opacity` only, reduced motion respected, and timing from motion tokens.
+- **design-system** — The UI design layer, in three parts every agent reads before it builds UI.
+  Tokens: every color, spacing, radius, type, shadow, and motion value named once — DTCG JSON
+  under `tokens/`, built by Style Dictionary into CSS variables, the Tailwind theme, the Mantine
+  theme, and native outputs — with code naming only semantic tokens and no raw value. Components:
+  the project's shared component first, Mantine's next, a new one last, each listed in the
+  `design-system.md` catalog with what it is for and when not to use it. The design board: a
+  Storybook apart from the app that shows the catalog, every token, and every shared component in
+  every state, in light and dark.
 - **clean-tanstack-start** — The TanStack Start layer on top of `ts-clean`: the
   `.functions.ts` / `.server.ts` / plain `.ts` file split, server-only modules kept out of
   anything a client file can import, configuration split the same way (client-safe values in
@@ -411,8 +419,9 @@ worth as much as its record.
   (a route `beforeLoad` guard isn't the data boundary), and no `Cache-Control: public` on
   an identity-dependent response.
 - **web-stack** — The default stack for a web project: TanStack Start, TanStack Query,
-  TanStack Form, Zod, Mantine with Tailwind CSS, Motion, Postgres through Drizzle, Better Auth,
-  Bun, Vitest, Playwright, and Biome, with auth, the database, forms, animation, and end-to-end
+  TanStack Form, Zod, Mantine with Tailwind CSS, design tokens built by Style Dictionary, a
+  Storybook design board, Motion, Postgres through Drizzle, Better Auth, Bun, Vitest, Playwright,
+  and Biome, with auth, the database, forms, design tokens, the board, animation, and end-to-end
   tests optional. A library the project already uses for a layer wins over the
   default, the default fills an empty layer, and anything else is a decision. Also holds the
   integration rules: the cascade layer order that lets Mantine and Tailwind share a page, one
@@ -661,8 +670,14 @@ what a ticket is, and why changing how a status transition works is one edit rat
   layer: what the project uses, the default, and whether the layer matches, keeps the project's
   own library, is not set yet, or has two libraries in conflict. It writes nothing.
   `/stack install` asks which optional layers the project needs — auth, database, forms,
-  animation, end-to-end tests — runs `scripts/stack-install.py` for the exact install commands, and runs them
+  design tokens, design board, animation, end-to-end tests — runs `scripts/stack-install.py` for the exact install commands, and runs them
   on your yes. It never replaces a library the project already chose.
+- **/design-system** — reports how complete a web project's design system is: one row per shared
+  component, whether the `design-system.md` catalog lists it and the board has its stories, then
+  the token source, the generated outputs, the board, and every raw value or bypassed component
+  it finds. It writes nothing. `/design-system board` has the **coding** agent generate or refresh
+  the Storybook design board — its config, the catalog and token pages, and the missing stories —
+  and draft catalog entries for you to confirm. It never deploys the board.
 
 Use these equivalents in a Codex prompt:
 
@@ -684,6 +699,7 @@ Use these equivalents in a Codex prompt:
 | `/explain [target]` | `$sdlc:explain [target]` |
 | `/review-text [target] [fix]` | `$sdlc:review-text [target] [fix]` |
 | `/stack [install] [repository]` | `$sdlc:stack [install] [repository]` |
+| `/design-system [board] [repository]` | `$sdlc:design-system [board] [repository]` |
 
 Each Codex entry point lives in `codex-skills/`, and each one reads the shared source in
 `commands/` or `skills/`. Claude Code scans `skills/` only, so no Codex instruction reaches a

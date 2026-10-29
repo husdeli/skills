@@ -61,8 +61,8 @@ pull request:
   with `motion-safe:` (or `motion-reduce:` to turn it off), and wrap Motion in
   `<MotionConfig reducedMotion="user">` at the root. A reduced-motion user still sees the end
   state, without the movement.
-- **Timing comes from tokens.** Durations and easings are named once — the Tailwind theme or the
-  Mantine theme — and every animation picks one. A bare `duration-[437ms]` is a token that was
+- **Timing comes from tokens.** Durations and easings are named once, as `motion.*` tokens
+  (`design-system` Rule 5), and every animation picks one. A bare `duration-[437ms]` is a token that was
   never named.
 - **Animation never carries meaning alone.** The state an animation shows is also visible when
   it does not run: under reduced motion, in a test, and before the JavaScript loads.

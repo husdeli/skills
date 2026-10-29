@@ -1,6 +1,6 @@
 ---
 name: react-clean
-description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, passing props down a tree, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), no prop drilling (compose instead of threading props through), and the "You Might Not Need an Effect" anti-pattern rules from react.dev. Animation rules live in the `react-animations` skill. Builds on the `ts-clean` skill — load that one too.
+description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, passing props down a tree, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), no prop drilling (compose instead of threading props through), and the "You Might Not Need an Effect" anti-pattern rules from react.dev. Animation rules live in the `react-animations` skill, and the design system — shared components, their catalog, and design values — in the `design-system` skill. Builds on the `ts-clean` skill — load that one too.
 ---
 
 # Clean React Components
@@ -193,6 +193,13 @@ a scroll effect, **load the `react-animations` skill** and follow it: CSS and th
 transitions first, a proven animation library only for what they cannot do, and never hand-rolled
 animation code.
 
+## Rule 8 — Build from the design system
+
+Before you build anything a user sees, or add or change a shared component or a design value,
+**load the `design-system` skill** and follow it: read the `design-system.md` catalog and use its
+components first, give a new shared component its catalog entry and its stories, and name a
+semantic token instead of writing a raw value.
+
 ## Checklist before finishing a component
 
 - [ ] One component in the file (or one + a tiny presentational helper).
@@ -204,4 +211,5 @@ animation code.
 - [ ] Derived data is computed during render (or `useMemo`), not stored in state and synced by an effect.
 - [ ] No prop is passed through a component that never uses it — pass-through chains replaced by composition (`children`/slots), relocated state, or context for truly global values.
 - [ ] If the component animates, the `react-animations` checklist passes too.
+- [ ] No raw color, size, radius, font, shadow, or timing value — every one names a semantic token, and no catalog component is bypassed or duplicated (`design-system`).
 - [ ] The `ts-clean` checklist also passes for this file.

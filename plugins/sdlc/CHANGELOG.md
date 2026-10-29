@@ -19,13 +19,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Animation is an optional `web-stack` layer**, defaulting to Motion. `/stack install` offers
   it, and `scripts/stack-install.py --with animation` proposes `motion` unless the project already
   has GSAP, React Spring, or `framer-motion`.
+- **`design-system` skill**, loaded by `react-clean`'s new Rule 8 — the UI design layer, in three
+  parts:
+  - **Tokens.** Every color, spacing, radius, type, shadow, and motion value is a named token in
+    one place. With the optional design-tokens layer that place is W3C DTCG-format JSON under
+    `tokens/`, built by Style Dictionary into CSS variables, a Tailwind `@theme inline` block, the
+    Mantine theme with a `cssVariablesResolver`, board data, and iOS, Android, or Flutter outputs
+    for the platforms the product ships; without it, the Mantine theme. Primitive and semantic
+    tiers, code that names only semantic tokens, committed outputs never edited by hand with a
+    `tokens:check` that catches a stale build, no raw value or arbitrary Tailwind value, modes as
+    token sets under the same names, and WCAG AA in every mode.
+  - **Components.** The project's shared component first, then Mantine's, then a new shared
+    component. Project-wide defaults go in `theme.components`, a feature component moves to the
+    top level once a second feature needs it, and every shared component is listed in a
+    `design-system.md` catalog at the work root — what it is for, and when not to use it — that
+    every agent reads before building UI.
+  - **The design board.** A Storybook apart from the app, on its own build and URL, that renders
+    the catalog, every token from the token build, and every shared component in every variant and
+    state, in light and dark, on the app's own theme. A new shared component lands with its
+    stories, and `board:build` is a check command. The token pipeline and the board setup are in
+    the skill's references.
+- **`/design-system` command.** It reports the catalog, stories, tokens, and board against the
+  skill, with every raw value and bypassed component it finds. `/design-system board` has the
+  coding agent generate or refresh the board and draft catalog entries for the user to confirm,
+  and never deploys it.
+- **Design tokens and the design board are optional `web-stack` layers**, defaulting to Style
+  Dictionary and Storybook. `/stack install` offers both: `scripts/stack-install.py --with tokens`
+  proposes `style-dictionary` unless the project has Terrazzo, Cobalt UI, or Theo, and `--with
+  board` proposes Storybook with its docs and a11y addons unless the project has Ladle, React
+  Cosmos, or Styleguidist.
 
 ### Changed
 
 - **The coding, code-reviewer, and plan-reviewer agents load `react-animations`** for any
   animation. The reviewers flag hand-rolled animation code and an animation planned on Motion
   where CSS or the UI library meets it.
-- **The README's counts** now match the plugin: twenty-one skills.
+- **The coding, code-reviewer, plan-reviewer, and implementation-planner agents load
+  `design-system`** for any UI. The planner names the catalog components each UI work item builds
+  on; the reviewers flag a bypassed or duplicated catalog component, a shared component without
+  its catalog entry and stories, a raw value or primitive token in code, a hand-edited generated
+  file, and a token defined in two themes. `frontend-design` builds mockups from the catalog.
+- **`web-stack` Rule 3 points at `design-system`**: with the layer, the Mantine and Tailwind themes
+  are both generated from the token JSON; without it, the Mantine theme stays the one place.
+  `react-animations` takes its timing from the `motion.*` tokens, and the
+  `clean-fullstack-architecture` styling example names semantic tokens instead of a raw palette.
+- **The README's counts** now match the plugin: seventeen commands and twenty-two skills.
 
 ## [0.71.0] - 2026-10-24
 

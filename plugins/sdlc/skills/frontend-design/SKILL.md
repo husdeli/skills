@@ -45,11 +45,11 @@ The mockup must look like it belongs to the product, so learn the product first.
   belongs to a feature, `designs/<subject>.design.md` when it does not — for the states
   and rules the screen must hold. The
   `sdlc-structure` skill resolves the framework root — load it before you read one.
-- Find the design system the codebase already has: the styling approach (Tailwind, CSS
-  modules, styled components), the token file or theme config, the font stack, the spacing
-  scale, the color palette, the component library, and two or three existing screens.
+- Find the design system the codebase already has. Load the `design-system` skill and read the
+  work root's `design-system.md` catalog and its design board when there is one, then the token
+  source or theme config, the styling approach, and two or three existing screens.
 - **An existing design system wins.** When the project has one, the mockup uses its tokens, its
-  components, and its spacing. Invent a new visual language only for a product that has none, or
+  catalog components by name, and its spacing. Invent a new visual language only for a product that has none, or
   when the user asks for a new direction.
 - Note what you could not find. A missing token file is a decision to raise, not to guess.
 
@@ -109,7 +109,8 @@ Once the user agrees, write down what was agreed, because the mockup is not the 
 person or agent who writes the code may never open it.
 
 - Give the implementer: the artifact URL, the states the design covers, the layout and component
-  decisions, and the tokens and existing components to build from.
+  decisions, the catalog components and tokens to build from, and any new shared component the
+  design needs, which lands with its catalog entry and its stories.
 - Update the screen's design doc — in the feature's folder, or in `designs/` — when the project keeps design docs, so the agreed
   behavior survives the session. Follow the `design-doc` skill for that file, and record the
   artifact URL in it.

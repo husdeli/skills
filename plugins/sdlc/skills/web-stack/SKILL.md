@@ -1,6 +1,6 @@
 ---
 name: web-stack
-description: "The default stack for a web project — TypeScript on TanStack Start with TanStack Query, TanStack Form, Zod, Mantine with Tailwind CSS, Motion, Postgres through Drizzle, Better Auth, Bun, Vitest, Playwright, and Biome — and the rule for when a project already chose otherwise. INVOKE THIS SKILL before you add a dependency to a web project, start a new web project or a layer it does not have yet (a database, auth, forms, UI components, tests, lint), plan or review a change that does either, or decide a library question in an interview. Enforces one library per layer, the project's existing choice over the default, the default over a new pick, no migration nobody asked for, and the integration rules that keep these libraries working together."
+description: "The default stack for a web project — TypeScript on TanStack Start with TanStack Query, TanStack Form, Zod, Mantine with Tailwind CSS, design tokens in DTCG JSON built by Style Dictionary, a Storybook design board, Motion, Postgres through Drizzle, Better Auth, Bun, Vitest, Playwright, and Biome — and the rule for when a project already chose otherwise. INVOKE THIS SKILL before you add a dependency to a web project, start a new web project or a layer it does not have yet (a database, auth, forms, UI components, design tokens, a design board, tests, lint), plan or review a change that does either, or decide a library question in an interview. Enforces one library per layer, the project's existing choice over the default, the default over a new pick, no migration nobody asked for, and the integration rules that keep these libraries working together."
 ---
 
 # Web stack
@@ -30,7 +30,9 @@ Read the work root's `package.json` and lockfile before you name a library. For 
 
 Core layers belong in every web project. An **optional** layer is added only when the product
 needs it — auth when it has accounts, a database when it stores data on the server, forms when it
-has more than a field or two, animation when CSS and Mantine cannot meet a requirement (`react-animations`), end-to-end tests when a critical path earns them. Never add an
+has more than a field or two, design tokens when the design decisions reach beyond one web app
+(a native app, a second app, or a design tool's variables — `design-system`), a design board when
+more than one person needs to see the shared components and tokens apart from the app, animation when CSS and Mantine cannot meet a requirement (`react-animations`), end-to-end tests when a critical path earns them. Never add an
 optional layer because the table lists it. `/stack install` proposes the installs and asks which
 optional layers the project needs.
 
@@ -43,6 +45,8 @@ optional layers the project needs.
 | Forms (optional) | TanStack Form | Validates with the Zod schema directly. |
 | UI components | Mantine | Interactive components: inputs, buttons, modals, menus, notifications. |
 | Styling | Tailwind CSS | Layout, spacing, and one-off adjustments around Mantine components. |
+| Design tokens (optional) | DTCG JSON under `tokens/`, built by Style Dictionary (`style-dictionary`) | Generates the CSS variables, the Tailwind theme, the Mantine theme, and native outputs (`design-system`). |
+| Design board (optional) | Storybook (`storybook`, `@storybook/react-vite`, `@storybook/addon-docs`, `@storybook/addon-a11y`) | A separate build that shows the catalog, every token, and every shared component (`design-system`). |
 | Animation (optional) | Motion (`motion`, imported from `motion/react`) | Only for what CSS, Mantine's transitions, and the platform cannot do (`react-animations`). |
 | Database (optional) | Postgres | Driven through `postgres` (postgres.js). |
 | Data access (optional, with the database) | Drizzle ORM, with drizzle-kit for migrations | |
@@ -54,7 +58,8 @@ optional layers the project needs.
 
 ## Rule 3 — Mantine and Tailwind share the page
 
-- **A Mantine component first, Tailwind around it.** Build a control from Mantine and style it
+- **The catalog's component first, then Mantine's, Tailwind around both** (`design-system`
+  Rule 2). Build a control the catalog lacks from Mantine and style it
   through its own props (`variant`, `color`, `size`, `radius`) before anything else. Use Tailwind
   for the layout around it and for elements Mantine has no component for. Never rebuild with
   Tailwind a control Mantine already ships.
@@ -67,9 +72,11 @@ optional layers the project needs.
   ```
 
   Never fix a cascade conflict with `!important`.
-- **The Mantine theme holds the design tokens.** Colors, radii, spacing, and fonts are defined
-  once in the Mantine theme. Tailwind's theme refers to the CSS variables Mantine emits
-  (`--mantine-color-*`) and never redefines a token.
+- **Design tokens live in one place** (`design-system`). With the design-tokens layer, the DTCG
+  JSON is that place and the Mantine theme and Tailwind's theme are both generated from it.
+  Without it, colors, radii, spacing, and fonts are defined once in the Mantine theme, and
+  Tailwind's theme refers to the CSS variables Mantine emits (`--mantine-color-*`). Either way,
+  Tailwind never redefines a token.
 - **Restyle a Mantine part through `classNames`.** Pass Tailwind classes to the part by name.
   Never target Mantine's internal class names from a stylesheet.
 - **The root route sets Mantine up once:** `MantineProvider` with the theme, and
@@ -105,7 +112,8 @@ These rules apply once the project has the optional database or auth layer.
 ## Rule 6 — Tooling runs through `package.json` scripts
 
 - **Run every check through a script**: `bun run test`, `bun run lint`, `bun run typecheck`, and
-  `bun run e2e`. An agent reads these scripts for the project's check commands.
+  `bun run e2e`, plus `bun run tokens:check` and `bun run board:build` when the project has those
+  layers. An agent reads these scripts for the project's check commands.
 - **`bun test` is not Vitest.** It starts Bun's own test runner. The `test` script calls `vitest`,
   so run it as `bun run test`.
 - **Biome replaces ESLint and Prettier.** One `biome.json` at the work root, and `biome check`

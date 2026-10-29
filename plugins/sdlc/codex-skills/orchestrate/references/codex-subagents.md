@@ -154,6 +154,7 @@ Use these local names for the current plugin:
 - `ts-clean`
 - `react-clean`
 - `react-animations`
+- `design-system`
 - `clean-tanstack-start`
 
 Do not depend on a Claude namespace or a `Skill` tool being present.
