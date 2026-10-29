@@ -11,7 +11,7 @@ Target: $ARGUMENTS
 
 This is the code gate on its own. Both orchestrators already review the code with the same `code-reviewer` agent before they finish a ticket, so use `/review` for code that never went through one: a change `/code` made, work you wrote by hand, a branch someone else pushed, a ticket you want checked before you open a pull request.
 
-The reviewer reads the code itself and loads the plugin's skills itself — `clean-fullstack-architecture`, `ts-clean`, `react-clean`, `clean-tanstack-start`. Leave those rules out of the prompt: its own definition already holds them.
+The reviewer reads the code itself and loads the plugin's skills itself — `clean-fullstack-architecture`, `ts-clean`, `react-clean`, `react-animations`, `clean-tanstack-start`. Leave those rules out of the prompt: its own definition already holds them.
 
 **Load two skills before you spawn anything**, namespaced here as `sdlc:<name>`: **`agent-pipeline`** for how to spawn, resume, and read the agent's JSON block, and **`technical-writing`** for the report. Add **`sdlc-structure`** and **`ticket-board`** when the target is a ticket, and **`sdlc-structure`** whenever this session is not standing in the repository that holds the code.
 

@@ -1,6 +1,6 @@
 ---
 name: react-clean
-description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, passing props down a tree, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), no prop drilling (compose instead of threading props through), and the "You Might Not Need an Effect" anti-pattern rules from react.dev. Builds on the `ts-clean` skill — load that one too.
+description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, passing props down a tree, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), no prop drilling (compose instead of threading props through), and the "You Might Not Need an Effect" anti-pattern rules from react.dev. Animation rules live in the `react-animations` skill. Builds on the `ts-clean` skill — load that one too.
 ---
 
 # Clean React Components
@@ -186,6 +186,13 @@ function Layout({ sidebar }) {
 
 Prop drilling and Rule 5's props ceiling usually appear together: a component with eight props where five are relayed downward isn't a component with too many props, it's a component that should be taking `children`.
 
+## Rule 7 — Animations follow `react-animations`
+
+Before you add or change a transition, an enter or exit effect, a layout animation, a gesture, or
+a scroll effect, **load the `react-animations` skill** and follow it: CSS and the UI library's own
+transitions first, a proven animation library only for what they cannot do, and never hand-rolled
+animation code.
+
 ## Checklist before finishing a component
 
 - [ ] One component in the file (or one + a tiny presentational helper).
@@ -196,4 +203,5 @@ Prop drilling and Rule 5's props ceiling usually appear together: a component wi
 - [ ] Every remaining effect synchronizes with an external system (passed the Rule 4 table).
 - [ ] Derived data is computed during render (or `useMemo`), not stored in state and synced by an effect.
 - [ ] No prop is passed through a component that never uses it — pass-through chains replaced by composition (`children`/slots), relocated state, or context for truly global values.
+- [ ] If the component animates, the `react-animations` checklist passes too.
 - [ ] The `ts-clean` checklist also passes for this file.

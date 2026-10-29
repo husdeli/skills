@@ -1,7 +1,7 @@
 # sdlc
 
 Plan, review, implement, and verify a change, with clean architecture rules for TypeScript,
-React, and TanStack Start. Sixteen commands drive ten agents, and twenty skills hold the rules they
+React, and TanStack Start. Sixteen commands drive ten agents, and twenty-one skills hold the rules they
 all follow. One of those commands needs nobody in the room: `/run-roadmap` puts a **cto** agent
 where the user would be and builds the roadmap unattended.
 
@@ -397,6 +397,10 @@ worth as much as its record.
   one `useEffect`, no data-layer access from components, size and props ceilings, no prop
   drilling (compose instead), and the react.dev "You Might Not Need an Effect"
   anti-patterns.
+- **react-animations** — The animation layer on top of `react-clean`: an animation climbs from
+  CSS to the UI library's own transitions to the platform to Motion, stopping at the first rung
+  that meets it, and Motion needs a named reason. No hand-rolled animation code, one animation
+  library, `transform` and `opacity` only, reduced motion respected, and timing from theme tokens.
 - **clean-tanstack-start** — The TanStack Start layer on top of `ts-clean`: the
   `.functions.ts` / `.server.ts` / plain `.ts` file split, server-only modules kept out of
   anything a client file can import, configuration split the same way (client-safe values in
@@ -407,8 +411,9 @@ worth as much as its record.
   (a route `beforeLoad` guard isn't the data boundary), and no `Cache-Control: public` on
   an identity-dependent response.
 - **web-stack** — The default stack for a web project: TanStack Start, TanStack Query,
-  TanStack Form, Zod, Mantine with Tailwind CSS, Postgres through Drizzle, Better Auth, Bun,
-  Vitest, Playwright, and Biome, with auth, the database, forms, and end-to-end tests optional. A library the project already uses for a layer wins over the
+  TanStack Form, Zod, Mantine with Tailwind CSS, Motion, Postgres through Drizzle, Better Auth,
+  Bun, Vitest, Playwright, and Biome, with auth, the database, forms, animation, and end-to-end
+  tests optional. A library the project already uses for a layer wins over the
   default, the default fills an empty layer, and anything else is a decision. Also holds the
   integration rules: the cascade layer order that lets Mantine and Tailwind share a page, one
   Zod schema from the form to the server function, and committed Drizzle migrations.
@@ -656,7 +661,7 @@ what a ticket is, and why changing how a status transition works is one edit rat
   layer: what the project uses, the default, and whether the layer matches, keeps the project's
   own library, is not set yet, or has two libraries in conflict. It writes nothing.
   `/stack install` asks which optional layers the project needs — auth, database, forms,
-  end-to-end tests — runs `scripts/stack-install.py` for the exact install commands, and runs them
+  animation, end-to-end tests — runs `scripts/stack-install.py` for the exact install commands, and runs them
   on your yes. It never replaces a library the project already chose.
 
 Use these equivalents in a Codex prompt:

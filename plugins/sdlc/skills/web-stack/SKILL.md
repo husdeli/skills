@@ -1,6 +1,6 @@
 ---
 name: web-stack
-description: "The default stack for a web project — TypeScript on TanStack Start with TanStack Query, TanStack Form, Zod, Mantine with Tailwind CSS, Postgres through Drizzle, Better Auth, Bun, Vitest, Playwright, and Biome — and the rule for when a project already chose otherwise. INVOKE THIS SKILL before you add a dependency to a web project, start a new web project or a layer it does not have yet (a database, auth, forms, UI components, tests, lint), plan or review a change that does either, or decide a library question in an interview. Enforces one library per layer, the project's existing choice over the default, the default over a new pick, no migration nobody asked for, and the integration rules that keep these libraries working together."
+description: "The default stack for a web project — TypeScript on TanStack Start with TanStack Query, TanStack Form, Zod, Mantine with Tailwind CSS, Motion, Postgres through Drizzle, Better Auth, Bun, Vitest, Playwright, and Biome — and the rule for when a project already chose otherwise. INVOKE THIS SKILL before you add a dependency to a web project, start a new web project or a layer it does not have yet (a database, auth, forms, UI components, tests, lint), plan or review a change that does either, or decide a library question in an interview. Enforces one library per layer, the project's existing choice over the default, the default over a new pick, no migration nobody asked for, and the integration rules that keep these libraries working together."
 ---
 
 # Web stack
@@ -30,7 +30,7 @@ Read the work root's `package.json` and lockfile before you name a library. For 
 
 Core layers belong in every web project. An **optional** layer is added only when the product
 needs it — auth when it has accounts, a database when it stores data on the server, forms when it
-has more than a field or two, end-to-end tests when a critical path earns them. Never add an
+has more than a field or two, animation when CSS and Mantine cannot meet a requirement (`react-animations`), end-to-end tests when a critical path earns them. Never add an
 optional layer because the table lists it. `/stack install` proposes the installs and asks which
 optional layers the project needs.
 
@@ -43,6 +43,7 @@ optional layers the project needs.
 | Forms (optional) | TanStack Form | Validates with the Zod schema directly. |
 | UI components | Mantine | Interactive components: inputs, buttons, modals, menus, notifications. |
 | Styling | Tailwind CSS | Layout, spacing, and one-off adjustments around Mantine components. |
+| Animation (optional) | Motion (`motion`, imported from `motion/react`) | Only for what CSS, Mantine's transitions, and the platform cannot do (`react-animations`). |
 | Database (optional) | Postgres | Driven through `postgres` (postgres.js). |
 | Data access (optional, with the database) | Drizzle ORM, with drizzle-kit for migrations | |
 | Auth (optional) | Better Auth, on the Drizzle adapter | Brings the database with it. |

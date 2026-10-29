@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`react-animations` skill**, loaded by `react-clean`'s new Rule 7. An animation uses
+  the lowest rung that meets it: CSS through Tailwind, then the UI library's own motion (Mantine's
+  `transitionProps`, `Transition`, `Collapse`), then the platform (view transitions through the
+  router, scroll-driven animations), then Motion — only for list exits, layout animation,
+  gestures with physics, interruptible springs, or orchestration, with the reason named. No
+  hand-rolled animation code, one animation library, `transform` and `opacity` only, reduced
+  motion respected, and timing from theme tokens.
+- **Animation is an optional `web-stack` layer**, defaulting to Motion. `/stack install` offers
+  it, and `scripts/stack-install.py --with animation` proposes `motion` unless the project already
+  has GSAP, React Spring, or `framer-motion`.
+
+### Changed
+
+- **The coding, code-reviewer, and plan-reviewer agents load `react-animations`** for any
+  animation. The reviewers flag hand-rolled animation code and an animation planned on Motion
+  where CSS or the UI library meets it.
+- **The README's counts** now match the plugin: twenty-one skills.
+
 ## [0.71.0] - 2026-10-24
 
 ### Added

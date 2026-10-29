@@ -88,6 +88,11 @@ Evaluate the change against every item your focus owns. Read the code to confirm
      - prop drilling
      - a breach of the size or props ceilings
      - each "You Might Not Need an Effect" anti-pattern
+   - **`react-animations`** for any animation. Flag:
+     - hand-rolled animation code — a `requestAnimationFrame` loop, a JavaScript tween, a `setTimeout` chain, or an effect that toggles a class
+     - an animation on a higher rung than it needs, such as Motion where CSS or a Mantine transition does the job, or Motion with no named reason
+     - a second animation library next to the project's own
+     - an animated layout property, motion that ignores reduced motion, or a duration outside the theme tokens
    - **`clean-tanstack-start`** for any TanStack Start server code. Flag:
      - a server-only module reachable from a client file
      - a secret in a client-importable config

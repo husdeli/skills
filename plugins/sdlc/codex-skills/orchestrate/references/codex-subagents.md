@@ -153,6 +153,7 @@ Use these local names for the current plugin:
 - `clean-fullstack-architecture`
 - `ts-clean`
 - `react-clean`
+- `react-animations`
 - `clean-tanstack-start`
 
 Do not depend on a Claude namespace or a `Skill` tool being present.
