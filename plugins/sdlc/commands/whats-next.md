@@ -104,8 +104,8 @@ rest is this command's:
   command that finished it was meant to delete the row.
 - **A blocked task is in flight, not waiting.** Somebody started it and hit something. Quote its
   `blocked_by` entries in their own words.
-  - **An entry that is not a ticket ID is waiting on a person** — a run escalated or aborted it,
-    and the line names what a person must decide. Say so in the lead line: it is the one thing in
+  - **An entry that is not a ticket ID is waiting on a person** — a run stopped it on `human_required`,
+    and the line names what a person must do. Say so in the lead line: it is the one thing in
     this report that needs somebody to act rather than to start something new.
   - **A ticket whose `blocked_by` holds only IDs of `done` tickets, or nothing, is resumable**,
     and `/orchestrate` resumes it. One whose entries name unfinished tickets waits on them.
@@ -169,8 +169,8 @@ End with one line, matching what you found:
 - **Something is ready** → `/orchestrate` to build it with the full pipeline,
   `/orchestrate-quick <ID>` when the task is already well understood, or `/run-roadmap` when nobody
   is going to be in the room and the `cto` agent should decide instead.
-- **A blocked ticket waits on a person** → name it first, whatever else is ready: an escalated
-  task is waiting on a decision only a person can make. Quote its `blocked_by` line, and say that
+- **A blocked ticket waits on a person** → name it first, whatever else is ready: a `human_required`
+  ticket is waiting on something only a person can do. Quote its `blocked_by` line, and say that
   deleting that line once it is settled makes the ticket resumable, and `/orchestrate` resumes it.
 - **Nothing is ready and something is in flight** → name the in-flight task and say that
   `/orchestrate` continues from where it stopped.

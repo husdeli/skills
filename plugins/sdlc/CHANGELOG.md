@@ -56,6 +56,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **No pipeline has a retry limit, and `human_required` is the only stop.** `/orchestrate`,
+  `/orchestrate-quick`, `/run-roadmap`, `/code`, and `/review` loop each gate until it passes, with
+  no count on plan revisions, planner questions, sharpen turns, fix cycles, dispute rounds, claim
+  attempts, or CTO rulings. A run stops on a question only a person can settle, a blocker, a dead
+  agent, a fix that is stuck, or wrong ground. **Breaking:**
+  - The outcomes `escalate`, `aborted`, `deferred`, `handed-back`, `stop-run`, and `blocked` become
+    `human_required`, and `no-work` now means the roadmap is empty.
+  - The CTO's `handBack` becomes `humanRequired`, its `escalation` request becomes `ruling`, and
+    its `defer` and `stop-run` rulings are gone.
+  - The test planner's `escalate` ruling becomes `spec-question`.
+  - `run-roadmap.sh --timeout` now defaults to no limit, so `--max` and `--timeout` are the only
+    bounds on what an unattended run spends.
 - **The coding, code-reviewer, and plan-reviewer agents load `react-animations`** for any
   animation. The reviewers flag hand-rolled animation code and an animation planned on Motion
   where CSS or the UI library meets it.

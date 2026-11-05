@@ -92,7 +92,7 @@ The session that drives one run: it picks the ticket, starts the agents, runs ev
 
 ## Outcome
 
-How a run ends: `completed` when every gate passed, `escalate` when a stage hit its cap or a question needs a person, and `aborted` when an agent returned no usable result. Every outcome but `completed` leaves the ticket `blocked`.
+How a run ends: `completed` when every gate passed, and `human_required` when the run cannot go on without a person. No count stops a run, so `human_required` is the only stop, and it leaves the ticket `blocked`.
 
 ## Pointer file
 

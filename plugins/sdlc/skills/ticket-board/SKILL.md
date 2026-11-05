@@ -207,7 +207,7 @@ it, and `claimed` may be set at any status except `done`.
 - **One checkout holds one build at a time.** A run whose work root another claimed `in progress`
   or `review` ticket holds releases its claim and picks again. Two builds in one tree would each
   check the other's changes. A roadmap run builds in run worktrees of its own, so this never stops it.
-- **Every exit removes the claim**: finish, escalation, and abort. A roadmap run's end removes the
+- **Every exit removes the claim**: finish and `human_required`. A roadmap run's end removes the
   claims on every ticket of its cluster that is not `done`.
 
 A file cannot hold a lock, so the read-back narrows the race without closing it. A run that dies
@@ -432,8 +432,7 @@ Every stop moves the ticket to `blocked`, so the next run can see what it waits 
 
 | Why the run stopped | `blocked_by` holds |
 | --- | --- |
-| **Escalated** — a gate failed at its cap, an agent reported a blocker, or the answerer handed it back | One line naming what a person must decide |
-| **Aborted** — an agent returned no result block after one re-ask | One line naming the stage and the agent that returned no result |
+| **`human_required`** — a person must act, as `agent-pipeline` lists | One line naming what a person must do |
 | **Waits on another ticket**, found during the run | That ticket's ID |
 
 In one step: **`status`** → `blocked`, **`blocked_by`** as above, remove **`assigned`** and
@@ -454,7 +453,7 @@ the one worklog `backlog/` may hold; the next run that starts the ticket appends
 ## Usage
 
 **Usage accumulates across runs.** The orchestrator adds each agent's time and tokens as its turn
-lands. At every exit — finish, escalation, and abort — it adds the run's totals to the ticket's
+lands. At every exit — finish and `human_required` — it adds the run's totals to the ticket's
 `timing`, `tokens`, and `cost`, so a resumed ticket's numbers cover every run.
 
 ## What goes in a ticket

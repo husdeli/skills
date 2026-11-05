@@ -1,11 +1,11 @@
 ---
 name: agent-pipeline
-description: "Rules for driving subagents from a command — spawn each role once and resume it with SendMessage, issue concurrent spawns in one tool block, parse the single fenced JSON block every agent ends with, retry a missing block once before calling the run aborted, and keep the spawn prompt thin because it is re-paid on every spawn. INVOKE THIS SKILL before you spawn a subagent from a command, and before you resume, re-review, or judge one's result. Enforces one spawn per role, no duplicated gating run, and one outcome vocabulary."
+description: "Rules for driving subagents from a command — spawn each role once and resume it with SendMessage, issue concurrent spawns in one tool block, parse the single fenced JSON block every agent ends with, ask again for a missing block, and keep the spawn prompt thin because it is re-paid on every spawn. INVOKE THIS SKILL before you spawn a subagent from a command, and before you resume, re-review, or judge one's result. Enforces one spawn per role, no duplicated gating run, no retry limit, and one stop: `human_required`."
 ---
 
 # agent-pipeline skill
 
-How a command drives subagents. The stages, the gates, and the retry caps belong to each command;
+How a command drives subagents. The stages and the gates belong to each command;
 this skill holds the mechanics every one of them shares.
 
 ## Spawn once, resume with SendMessage
@@ -58,8 +58,8 @@ enforcement and no background workflow — the block is the interface.
 
 **The contract lives in the agent definition. Do not restate it in a spawn prompt.** A pre-read or spec-only turn emits no block when its agent definition says none is due; do not ask for one.
 
-When a block is missing or malformed, `SendMessage` the agent **once**, asking it to re-emit *only*
-the JSON block. A second failure is an `aborted` run.
+When a block is missing or malformed, `SendMessage` the agent, asking it to re-emit *only*
+the JSON block. A turn that returns nothing at all is `human_required`.
 
 ## Keep the spawn prompt thin
 
@@ -90,19 +90,19 @@ produces tests that describe its code rather than check it.
   test is run. Record the planner's reason; do not second-guess it.
 - **Every new test fails before the code exists.** The orchestrator runs each `new` case by the
   command the writer reported for it. A case that passes catches nothing, and a case that does not
-  run is broken: either one goes back to `test-writer` once, to sharpen or repair. A `guard` case
+  run is broken: either one goes back to `test-writer`, to sharpen or repair. A `guard` case
   checks behavior that already exists, and is exempt.
 - **Fingerprint every file `test-writer` changed**, the moment its block lands:
   `git -C <work root> hash-object <file>…`. Compare after every `coding` turn. A file whose
   fingerprint moved goes back to `coding` with "restore this test file exactly; dispute it instead
-  of changing it", and that costs one feature-test fix cycle. Take the fingerprints again after every
+  of changing it". Take the fingerprints again after every
   `test-writer` turn, since a `revised` ruling changes them legitimately, and drop the ones for
   files it deleted.
 - **A test dispute goes to `test-planner`, never straight to `test-writer`.** Forward the coding
   agent's `testDisputes` as they came, with the specification passages they cite. Then act on each
   ruling: `upheld` → `coding` gets the reason and builds against it; `revised` → `test-writer`
   changes the test, and the feature's tests run next, with no new-test check, because the code that
-  makes it pass may already exist; `escalate` → the run's escalation. When one round holds both
+  makes it pass may already exist; `spec-question` → the answerer settles it, and with no answerer it is `human_required`. When one round holds both
   kinds, run the `test-writer` turn first, then send `coding` one message with every ruling.
 
 ## Notes for a person are written by the script
@@ -147,18 +147,22 @@ path for no added signal.
 
 ## The outcome vocabulary
 
-Every pipeline ends in exactly one of three states. Use these words, and mean only these things:
+Every pipeline ends in exactly one of two states. Use these words, and mean only these things:
 
 | Outcome | What happened | What it does to the ticket |
 | --- | --- | --- |
 | `completed` | Every gate passed — the tests and every check passed **and** every code reviewer returned `APPROVED`. | Finish the ticket. |
-| `escalate` | A stage hit its retry cap, an agent reported a blocker it cannot pass, the answerer could not settle an open question, or the test planner ruled that a dispute turns on what the specification means. | Stop without finishing: the ticket becomes `blocked`, with one `blocked_by` line naming what a person must decide. |
-| `aborted` | An agent returned no usable result — it died, or produced no valid JSON block after one retry. | Stop without finishing: the ticket becomes `blocked`, with one `blocked_by` line naming the stage and the agent that went silent. |
+| `human_required` | The run cannot go on without a person. It reports the stage and what the person must do. | Stop without finishing: the ticket becomes `blocked`, with one `blocked_by` line naming what a person must do. |
 
-**Apply each cap mechanically.** A revision cap of one means one, and a fix cap of one covers every
-defect found in that cycle together — every blocking issue from every reviewer in one message, and
-every failed check in one message, not one message each. Do not improvise an extra cycle because
-the next one looks close.
+**`human_required` is the only thing that stops a pipeline, and no count ever raises it.** No stage has a limit on revisions, fix cycles, sharpen turns, or dispute rounds: a gate loops until it passes. Raise `human_required` only when one of these is true:
+
+- **A question only a person can settle.** The answerer could not settle it, or the specification does not and there is no answerer.
+- **A blocker.** An agent reports something it cannot pass.
+- **A dead agent.** A turn returned nothing at all.
+- **Stuck.** A fix turn left the same defects as the turn before it, and the agent that owns the fix has nothing different to try. Fewer defects, or different ones, is progress: keep going.
+- **The ground is wrong.** A worktree, a commit, or the project itself is in a state the run must not repair.
+
+**One cycle still carries everything found** — every blocking issue from every reviewer in one message, and every failed check in one message, not one message each.
 
 **Never report a skipped check as green**, and never mark work complete on a passing suite alone
 when a review is part of the gate.

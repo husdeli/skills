@@ -12,7 +12,7 @@ Run one roadmap task autonomously with the shared run-roadmap command.
 1. Resolve `../../commands/run-roadmap.md` from this skill directory.
 2. Read the command file completely before changing task status or creating subagents.
 3. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
-4. Treat the shared command as the source of truth for the stages, the caps, the contracts, the
+4. Treat the shared command as the source of truth for the stages, the contracts, the
    commit, and the result line.
 5. Read every skill the command's table names, from the plugin's `skills/<name>/SKILL.md` —
    `sdlc-structure`, `ticket-board`, `agent-pipeline`, and `technical-writing` — before the stage that
@@ -21,13 +21,13 @@ Run one roadmap task autonomously with the shared run-roadmap command.
 
 In a Codex session, also read [the Codex subagent protocol](../orchestrate/references/codex-subagents.md)
 before you create a subagent. It names the Codex tool calls and runtime terms that stand in for the
-Claude ones. It changes no gate and no cap.
+Claude ones. It changes no gate.
 
 ## Invoking this skill is the approval
 
 `$orchestrate` asks the user which task to build. **This skill does not.** Invoking it authorizes the
 `cto` agent to pick the feature, settle every fork the planner leaves open, and rule on every
-escalation, and it
+stuck stage, and it
 authorizes the command to commit the finished task. That is what the user asked for.
 
 So two rules of the subagent protocol are lifted here, and only here:
@@ -59,4 +59,4 @@ the previous result line printed.
 **Every ticket is built in a run worktree** beside its repository, at
 `<repository>-worktrees/run-roadmap-<n>`, never in the checkout. Codex has no `--add-dir`: the
 session reaches those folders the way that runtime does, so check you can write to each one before
-Stage 1.5, and stop with outcome `blocked` when you cannot.
+Stage 1.5, and stop with outcome `human_required` when you cannot.

@@ -14,7 +14,7 @@ Review the requested code with the shared review command.
 3. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
 4. Read the skills the command names from the plugin's `skills/<name>/SKILL.md` — `agent-pipeline` before you create the subagent, `technical-writing` for the report, and `sdlc-structure` with `ticket-board` when the target is a ticket. Then create the code-reviewer subagent with the subagent tool of the current runtime.
 
-Treat the shared command as the source of truth for target selection, the spawn prompt, the fix cap, and the report.
+Treat the shared command as the source of truth for target selection, the spawn prompt, the fix loop, and the report.
 
 In a Codex session, also read [the Codex subagent protocol](../orchestrate/references/codex-subagents.md) before you create the subagent. It names the Codex tool calls and runtime terms that stand in for the Claude ones. It changes nothing about what the code reviewer is asked to do.
 

@@ -76,7 +76,7 @@ Agent(subagent_type: "sdlc:feature-interviewer",
 
 ...and read `glossary.md`, `prd.md`, the feature notes in `features/` this request touches, the design docs in those feature folders and in `designs/`, and `roadmap.md` yourself. You need five things the interviewer will not hand you: the product's vocabulary, the features this request touches and the codes they already own, the parts and surfaces it changes, the roadmap's epics and the numbering inside each of them, and the existing tasks the request duplicates or depends on.
 
-The brief comes back as *Understanding*, *What already exists*, *Research findings*, *Open decisions*, *Assumptions*, and *Out of scope*. Nothing returned, or no brief after one retry → report that and stop before writing any file.
+The brief comes back as *Understanding*, *What already exists*, *Research findings*, *Open decisions*, *Assumptions*, and *Out of scope*. A turn with no brief → ask again. Nothing returned → `human_required`: report that and stop before writing any file.
 
 **Grill the user on the decisions yourself** — a subagent cannot ask. Load the **`grilling`** skill and follow it. The brief seeds its design tree:
 

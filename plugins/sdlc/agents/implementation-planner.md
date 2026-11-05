@@ -45,7 +45,7 @@ You will receive:
 
 An **open question** is a fork that the ticket, its decisions, and the design docs leave open, and that the code and current practice do not settle either. It earns a question only when the choice changes what the customer gets, adds a dependency, or sets an architecture the feature's later tickets inherit. Settle every other fork yourself, and list it as an assumption in the plan's *Context*.
 
-When at least one question is open, return the context pack and every open question in one turn, and no plan. Each question carries its options, what each option costs, and your recommendation with its reason. The orchestrator puts them to the answerer in one round and sends the answers back. Plan from those answers on the next turn. There is no second round, so ask every question the first time.
+When at least one question is open, return the context pack and every open question in one turn, and no plan. Each question carries its options, what each option costs, and your recommendation with its reason. The orchestrator puts them to the answerer and sends the answers back. Plan from those answers on the next turn. Ask every question you can see at once; ask again only about what the answers opened.
 
 ## Output Format
 

@@ -70,7 +70,7 @@ Run this mode only when the first word of the target is `board`. Resolve the wor
                   <the report's gaps, by file>")
    ```
 
-   Parse its `json` block as `agent-pipeline` says. On `aborted` or non-empty `blockers`, report them and stop. When `board:build` failed, resume the agent once with the failing output; when it still fails, report what is left and stop.
+   Parse its `json` block as `agent-pipeline` says. On `human_required` or non-empty `blockers`, report them and stop. When `board:build` failed, resume the agent with the failing output until it passes; when it is stuck, as `agent-pipeline` defines it, report what is left and stop.
 4. **Show the drafted catalog entries** to the user. Each *For* and *Not for* line is a design judgment the agent inferred from code, so ask the user to confirm or correct them, and apply the corrections to `design-system.md` yourself.
 5. **Report** what the board now shows: the pages written, the stories added, the components still missing from it, and the result of `bun run board:build`. Name `bun run board` to open it locally. Deploying it is the user's decision (`design-system` Rule 6) — offer it in the last line, and never deploy it from this command.
 

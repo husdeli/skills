@@ -91,7 +91,7 @@ A `test-writer · tests` entry records every file the writer changed and the com
 case. **The feature's later tickets run their tests from that record**, so it must name what is on
 disk now.
 
-**Every exit writes the outcome entry and the assignee** — an escalation or an abort at any stage
+**Every exit writes the outcome entry and the assignee** — a `human_required` at any stage
 runs `ticket-board`'s *Stopping without finishing* transition, so the next session can read the
 worklog and learn where the task stopped.
 
@@ -106,33 +106,33 @@ This command runs entirely **in the main loop, with you**. The human-facing step
 
   ┌ Agent(planner) ─► contextPack + plan + riskProfile, or open questions ─┐  concurrent
   └ Agent(test-planner) "SPEC ONLY" ─► draft cases ────────────────────────┤
-     [questions open] AskUserQuestion (one round) ─► SendMessage(planner, answers) ─► plan
+     [questions open] AskUserQuestion ─► SendMessage(planner, answers) ─► plan
                       └ Agent(reviewer) "PRE-READ ONLY" (context pack), same tool block
   [risk low ─► skip review]  reviewer(s) ─► verdict
         ▲                                 │ CHANGES_REQUESTED
-        └── SendMessage(planner, issues) ◄┘  (revise ×1, re-review)
+        └── SendMessage(planner, issues) ◄┘  (revise and re-review until approved)
   SendMessage(test-planner, plan + pack) ─► test plan ─► [no case: skip to coding]
   Agent(test-writer) ─► tests + a command per case ─► fingerprint them
-  YOU run each new case ─► passes or does not run ─► SendMessage(test-writer)  (sharpen ×1)
+  YOU run each new case ─► passes or does not run ─► SendMessage(test-writer)  (sharpen until it fails)
   Agent(coding) ─► [fingerprints moved? ─► restore]
-        │ testDisputes ─► SendMessage(test-planner) ─► upheld / revised (test-writer) / escalate
+        │ testDisputes ─► SendMessage(test-planner) ─► upheld / revised (test-writer) / spec-question
         ▼                                              (one dispute round per ticket)
-  YOU run the feature's tests ─► fail ─► SendMessage(coding)  (fix ×2)
+  YOU run the feature's tests ─► fail ─► SendMessage(coding)  (fix until they pass)
         ▼ pass                                  status ─► review
   ┌ Agent(code-reviewer) "Focus: correctness" ┐
   ├ Agent(code-reviewer) "Focus: conventions" ┤  concurrent, every one must APPROVE
   ├ Agent(code-reviewer) "Focus: security"    ┤
   └ Agent(code-reviewer) "Focus: tests"       ┤
         ▲                                     │ CHANGES_REQUESTED
-        └── SendMessage(coding) ─► feature's tests ─► blocking reviewers only  (fix ×1)
-  YOU run full verification: lint, typecheck, full suite, e2e ─► fail ─► SendMessage(coding)  (fix ×1)
-  finish the ticket / escalate ─► report
+        └── SendMessage(coding) ─► feature's tests ─► blocking reviewers only  (fix until approved)
+  YOU run full verification: lint, typecheck, full suite, e2e ─► fail ─► SendMessage(coding)  (fix until they pass)
+  finish the ticket / human_required ─► report
 ```
 
 ### Which agents are persistent here
 The **`agent-pipeline`** skill holds the mechanics — spawn once, resume with `SendMessage`,
-concurrent calls in one tool block, the JSON block and its single retry, the test fingerprints and
-the dispute route, and the `completed` / `escalate` / `aborted` vocabulary. This command's
+concurrent calls in one tool block, the JSON block and how to ask for it again, the test fingerprints and
+the dispute route, and the `completed` / `human_required` vocabulary. This command's
 persistent roles are the **planner**, the **plan reviewer** (two ids on a high-risk plan, one per
 lens), the **test planner**, the **test writer**, the **coding agent**, and the **four code
 reviewers**. Each review focus is a role of its own: a re-review resumes the reviewer that blocked.
@@ -156,7 +156,7 @@ The planner emits a **context pack** — the work root, relevant files, key symb
 
 ## Everything you show the user goes through `technical-writing`
 
-You are the only stage that talks to the person, so `technical-writing` governs every word they see: the task you present for approval, every `AskUserQuestion` question and option label, the answers you record, the completion report, and every escalation or abort.
+You are the only stage that talks to the person, so `technical-writing` governs every word they see: the task you present for approval, every `AskUserQuestion` question and option label, the answers you record, the completion report, and every `human_required`.
 
 The agents apply it to their own output, but you are what the user actually reads — a plan that landed cleanly still fails the user if you relay it badly. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, keep an option label to one short phrase, and reuse the roadmap's and the PRD's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact. They stay exact **beside** the prose: a path, a symbol, or a snippet never goes inside a sentence, and the sentence names the thing in words instead.
 
@@ -206,7 +206,7 @@ Then put **one `AskUserQuestion` call** with **two questions** — one round tri
 ### 3. Drive the Task to Completion
 Track stages with the task/todo tools so the user sees live progress.
 
-Every agent turn ends with one `json` block. When a block is missing or malformed, ask that agent **once** to re-emit it; a second miss is `aborted` at that stage. The stage names below are the ones an escalation or an abort reports.
+Every agent turn ends with one `json` block. When a block is missing or malformed, ask that agent to re-emit it, as `agent-pipeline` says. The stage names below are the ones a `human_required` reports.
 
 #### Start
 As soon as the task is approved and *before* spawning any agent, run the **`ticket-board`** skill's **Starting a ticket** transition — the claim `orchestrate-<n>` written and read back, the work root resolved as `sdlc-structure` says and checked to be writable from this session, then status, assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all in one tool block. Do it yourself with file edits; do not delegate it. A claim read back as another run's, or a checkout another run is building in, drops the ticket: say so and pick again. Two values are this command's:
@@ -232,13 +232,13 @@ Agent(subagent_type: "sdlc:test-planner", model: "opus",
 
 The planner reads the feature folder — the ticket and its `Decisions`, the feature note, the design docs it lists, the solution designs in `designs/`, and the PRD — then surveys the code and researches current practice. Its agent definition holds that process and the JSON contract; do not restate them. Its block carries `contextPack`, `riskProfile`, and `openQuestions`.
 
-- **Nothing returned** → `aborted` (stage `plan`).
+- **Nothing returned** → `human_required` (stage `plan`).
 - **`openQuestions` is empty**: the turn holds the plan. Go on below.
 - **`openQuestions` is not empty**: the turn holds the context pack, no plan, and a `null` `riskProfile`. Put every question to the user in **one round** of `AskUserQuestion` — up to 4 questions per call, the planner's recommendation first and labelled "(Recommended)", each option's cost in its description. Then, in **one tool block**:
   - `SendMessage(plannerId, the answers + "Plan from these answers now. Re-emit your json block.")`;
   - the plan reviewer's **pre-read**, spawned as Review the plan says.
 
-  **An answer that does not settle a question is an escalation** (stage `plan`): the user picked no option, or said the documents must decide it first. The `blocked_by` line names the question, and the report names `/plan` as the place to settle it. Never ask a second round; a second turn of questions from the planner is an escalation too.
+  **An answer that does not settle a question is `human_required`** (stage `plan`): the user picked no option, or said the documents must decide it first. The `blocked_by` line names the question, and the report names `/plan` as the place to settle it. A further turn of questions from the planner gets another round, the same way.
 
 Keep the plan markdown as `plan`, and the parsed `contextPack` and `riskProfile` in hand. When the plan lands, append the `implementation-planner · plan` entry and set the assignee, in one tool block. The plan markdown is persisted nowhere else, so the entry carries the **direction** the plan settled on, the approach it turned down, and each question with the answer the user gave.
 
@@ -263,12 +263,12 @@ Agent(subagent_type: "sdlc:plan-reviewer", model: "sonnet",
 
 **Hand over the plan** with `SendMessage(reviewerId, "Review the plan below against the checklist. You have already read the context pack files; re-read only what the plan points at that you have not seen. <plan>")`. A reviewer that never pre-read gets the full first message: the ticket path + task block + acceptance criteria + the questions and their answers + plan + context pack + the work root + "Read the referenced files — do not review from the plan text alone." Two reviewers go out **in one tool block**.
 
-Every reviewer ends its review turn with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues` — shape in the agent definition, do not restate it. Merge multiple reviewers: `CHANGES_REQUESTED` if **any** reviewer requests changes; concat their issues. Nothing returned → `aborted` (stage `plan-review`).
+Every reviewer ends its review turn with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues` — shape in the agent definition, do not restate it. Merge multiple reviewers: `CHANGES_REQUESTED` if **any** reviewer requests changes; concat their issues. Nothing returned → `human_required` (stage `plan-review`).
 
-**Revision loop — at most ONE cycle:**
+**Revision loop — until the plan is approved:**
 - `APPROVED` → append the `plan-reviewer · plan review` entry and set the assignee to `test-planner-<n>`, in one tool block, then Plan the tests. The entry carries the verdict, the issues that forced a revision, and how the revision answered them.
-- `CHANGES_REQUESTED`, **not yet revised**: `SendMessage(plannerId, "Revise your plan to resolve every issue below. Note in the Context section how each was addressed. Re-emit the full plan markdown + the ```json block." + issues)` — the planner holds the plan, the ticket, and the pack, so **send only the issues**. Then re-review via `SendMessage` to the same reviewer(s): `"Re-review the revised plan below; the files are unchanged. <revised plan>"` — both in **one tool block** when there are two. Loop back to the new verdict.
-- `CHANGES_REQUESTED`, **already revised once** → **`escalate`** (stage `plan-review`) with the reviewer summary and the remaining issues.
+- `CHANGES_REQUESTED`: `SendMessage(plannerId, "Revise your plan to resolve every issue below. Note in the Context section how each was addressed. Re-emit the full plan markdown + the ```json block." + issues)` — the planner holds the plan, the ticket, and the pack, so **send only the issues**. Then re-review via `SendMessage` to the same reviewer(s): `"Re-review the revised plan below; the files are unchanged. <revised plan>"` — both in **one tool block** when there are two. Loop back to the new verdict.
+- `CHANGES_REQUESTED`, **stuck**, as `agent-pipeline` defines it → **`human_required`** (stage `plan-review`) with the reviewer summary and the remaining issues.
 
 #### Plan the tests
 Resume the test planner, spawned at Plan, with the approved plan:
@@ -280,7 +280,7 @@ SendMessage(testPlannerId, approved plan + context pack
                             with its ```json block.")
 ```
 
-It returns the test plan and a `json` block carrying `summary`, `cases` (each `new` or `guard`), and `untested`. Nothing returned → `aborted` (stage `test-plan`).
+It returns the test plan and a `json` block carrying `summary`, `cases` (each `new` or `guard`), and `untested`. Nothing returned → `human_required` (stage `test-plan`).
 
 Append the `test-planner · test plan` entry — each case in one line (its id, the bug it catches, its type) and each exclusion with its reason; the test plan is persisted nowhere else. In the same tool block, set the assignee to `test-writer-<n>`, or to `coding-<n>` when `cases` is empty. **An empty plan skips Write the tests and Run each new test**: say so in the entry with the planner's `summary`, and go to Implement with no written tests.
 
@@ -294,7 +294,7 @@ Agent(subagent_type: "sdlc:test-writer", model: "sonnet",
                  runs each case, and stop.")
 ```
 
-It ends every turn with a `json` block carrying `summary`, `testFiles`, `command`, `e2eCommand`, `cases` (each with its own `command`), and `blockers`. Nothing returned → `aborted` (stage `write-tests`). Non-empty `blockers` → `escalate` (stage `write-tests`).
+It ends every turn with a `json` block carrying `summary`, `testFiles`, `command`, `e2eCommand`, `cases` (each with its own `command`), and `blockers`. Nothing returned → `human_required` (stage `write-tests`). Non-empty `blockers` → `human_required` (stage `write-tests`).
 
 When it lands, **fingerprint every created and modified path in `testFiles`** as `agent-pipeline` says, and keep the fingerprints, the commands, and each case's command. Append the `test-writer · tests` entry — every file, the command that runs each case, and `command` and `e2eCommand` — in one tool block. The assignee stays `test-writer-<n>`.
 
@@ -310,8 +310,8 @@ Run each `new` case yourself by the command the writer reported for it — `cd <
 The writer's own `observed` value is not the gate; your run is.
 
 - Every `new` case fails → go on.
-- A case passes or does not run, **first time** → **one** message carrying every such case and its output: `SendMessage(testWriterId, "These cases did not fail when I ran them. Sharpen each one that passes so it asserts what only the new code delivers; repair each one that did not run. Report every file you changed and every case's command." + cases and output)`. Take the fingerprints again, then run those cases again.
-- After the sharpen turn, a case that **still passes** is recorded and the run goes on. A case that **still does not run** → `escalate` (stage `new-tests`): no later stage can make a broken test run.
+- A case passes or does not run → **one** message carrying every such case and its output: `SendMessage(testWriterId, "These cases did not fail when I ran them. Sharpen each one that passes so it asserts what only the new code delivers; repair each one that did not run. Report every file you changed and every case's command." + cases and output)`. Take the fingerprints again, then run those cases again, and repeat until each one fails.
+- The writer reports that a case cannot fail, because the behavior it checks already exists → the case is recorded and the run goes on. A case it cannot repair is a blocker → `human_required` (stage `new-tests`): no later stage can make a broken test run.
 
 In one tool block, append a `test-writer · tests` entry when the sharpen turn changed a file or a command, then the `orchestrate-<n> · new tests` entry — each case and how it failed, or that it still passes — and set the assignee to `coding-<n>`. Keep each case that still passes; the `tests` reviewer receives it.
 
@@ -330,9 +330,9 @@ Its skill obligations, the rules on written tests, and the JSON contract live in
 
 It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, `testDisputes`, and `notes`. **Every coding turn** — this one, a restore, a fix after the feature's tests, the code review, or the full verification, and the turn after a ruling — goes through these steps in order:
 
-1. Nothing returned → `aborted` (stage `implement`, or the stage that sent the fix).
-2. **Compare the fingerprints.** A test file that changed goes back: `SendMessage(codingId, "You changed <files>. Restore each to exactly what the test writer wrote. If a test is wrong, raise a test dispute instead.")`. That spends one feature-test fix cycle; with none left → `escalate` (stage `feature-tests`). Its reply goes through these steps again.
-3. Non-empty `blockers` → `escalate` (stage `implement`) with them.
+1. Nothing returned → `human_required` (stage `implement`, or the stage that sent the fix).
+2. **Compare the fingerprints.** A test file that changed goes back: `SendMessage(codingId, "You changed <files>. Restore each to exactly what the test writer wrote. If a test is wrong, raise a test dispute instead.")`. Its reply goes through these steps again.
+3. Non-empty `blockers` → `human_required` (stage `implement`) with them.
 4. On the **first** turn, append the `coding · implement` entry — its `decisions`, which are the code-level calls the plan left open. The assignee stays `coding-<n>`.
 5. Non-empty `testDisputes` → **Test defect**.
 6. Otherwise go to **Run the feature's tests**. A fix turn goes there too: the feature's tests run after every change to the code.
@@ -348,19 +348,19 @@ It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`,
 Run each command yourself — `cd <work root> && <command>` — in one tool block when they share no state, and read each exit code and output. This stage runs no lint, no type check, no full suite, and no end-to-end test. A feature whose tickets recorded no test has nothing to run here: say so in the entry and go on.
 
 - **All pass** → append the `orchestrate-<n> · feature tests` entry — each command, its result, and the fix cycles spent — and set `status` to `review` and the assignee to `code-reviewer-<n>`, in one tool block. Then go to the stage that comes next: Code review, or back to the stage whose fix brought you here.
-- **A failure, with a fix cycle left** → `SendMessage(codingId, "The feature's tests fail. Fix the code, not the tests, then stop; I run them again." + each failing command and its failing tests and error lines)`. Its reply goes through Implement's steps. Then run every command again, the failed ones first.
-- **A failure, both cycles spent** → `escalate` (stage `feature-tests`) with the failures. A restored test file counts as a cycle.
+- **A failure** → `SendMessage(codingId, "The feature's tests fail. Fix the code, not the tests, then stop; I run them again." + each failing command and its failing tests and error lines)`. Its reply goes through Implement's steps. Then run every command again, the failed ones first.
+- **A failure, stuck**, as `agent-pipeline` defines it → `human_required` (stage `feature-tests`) with the failures.
 
 #### Test defect
-**At most ONE dispute round per ticket.** A dispute may come from any coding turn, including a fix after the code review or the full verification, when an existing test broke under a change the ticket meant to make. A second non-empty `testDisputes`, from any turn, → `escalate` (stage `test-dispute`) with the disputes and the earlier rulings. A dispute does not spend the fix cycle of the turn that raised it. Otherwise, set the assignee to `test-planner-<n>` and send:
+A dispute may come from any coding turn, including a fix after the code review or the full verification, when an existing test broke under a change the ticket meant to make. Set the assignee to `test-planner-<n>` and send:
 
 ```
 SendMessage(testPlannerId, "The coding agent disputes these tests. Rule on each against the
                             specification." + testDisputes)
 ```
 
-It returns one `json` block carrying `rulings`, plus `plan` — the full current test plan — when any ruling is `revised`. Nothing returned → `aborted` (stage `test-dispute`). Then:
-- Any ruling `escalate` → `escalate` (stage `test-dispute`) with the planner's question. That is a question about the specification, and only the user answers it.
+It returns one `json` block carrying `rulings`, plus `plan` — the full current test plan — when any ruling is `revised`. Nothing returned → `human_required` (stage `test-dispute`). Then:
+- Any ruling `spec-question` → `human_required` (stage `test-dispute`) with the planner's question. That is a question about the specification, and only the user answers it.
 - Any ruling `revised` → `SendMessage(testWriterId, "Apply these revised cases and stop." + the revised rulings)` — spawn the test writer now if the empty plan skipped Write the tests — then take the fingerprints again. A revised test skips Run each new test: the code that makes it pass may already exist.
 - Any ruling `upheld` → **one** message to coding carrying every ruling: `SendMessage(codingId, "The test planner ruled on your disputes. Upheld tests stand — build against them. Revised tests have changed. Continue until the written tests pass." + rulings)`. Its reply goes through Implement's steps, which lead to Run the feature's tests.
 - Only `revised` rulings → go straight to Run the feature's tests. When they fail, the fix message to coding carries the rulings with the failures.
@@ -386,10 +386,10 @@ What each focus judges, the severity rules, and the JSON contract live in the ag
 
 Each reviewer ends with a `json` block carrying `focus`, `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues`. Match each block to its reviewer by `focus`. **The review passes only when all four return `APPROVED`.**
 
-- A reviewer returned nothing → `aborted` (stage `code-review`).
+- A reviewer returned nothing → `human_required` (stage `code-review`).
 - **All four `APPROVED`** → append one `code-reviewer · code review` entry per focus, naming the focus, in one tool block, then Run full verification. Keep every minor issue as a recommendation; it blocks nothing.
-- **Any `CHANGES_REQUESTED`, not yet fixed** → in one tool block, append one entry per focus and set `status` to `in progress` and the assignee to `coding-<n>`. Then send **one** message carrying every blocking issue from every reviewer: `SendMessage(codingId, "The code review found the following. Fix ONLY what is needed to clear them — stay within the approved plan, change no test, then stop." + blocking issues)`. Its reply goes through Implement's steps, so the feature's tests run again; a failure there spends that stage's remaining fix cycles. When they pass, re-review **only the reviewers that blocked**, in one tool block: `SendMessage(codeReviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary + filesChanged)`. A reviewer that approved stays approved.
-- **Any `CHANGES_REQUESTED`, already fixed once** → **`escalate`** (stage `code-review`) with the remaining issues.
+- **Any `CHANGES_REQUESTED`** → in one tool block, append one entry per focus and set `status` to `in progress` and the assignee to `coding-<n>`. Then send **one** message carrying every blocking issue from every reviewer: `SendMessage(codingId, "The code review found the following. Fix ONLY what is needed to clear them — stay within the approved plan, change no test, then stop." + blocking issues)`. Its reply goes through Implement's steps, so the feature's tests run again. When they pass, re-review **only the reviewers that blocked**, in one tool block: `SendMessage(codeReviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary + filesChanged)`. A reviewer that approved stays approved. Then act on the new verdicts.
+- **Any `CHANGES_REQUESTED`, stuck**, as `agent-pipeline` defines it → **`human_required`** (stage `code-review`) with the remaining issues.
 
 #### Run full verification
 Run **every check command in the context pack** yourself, as parallel Bash calls in one tool block, each as `cd <work root> && <command>`:
@@ -400,18 +400,17 @@ Run **every check command in the context pack** yourself, as parallel Bash calls
 A check passes when its command exits zero. **A check the project lacks** — an entry whose `command` is `"none"` — is reported as skipped, with its reason, never as passed. A skipped end-to-end run is never presented as green.
 
 - **All pass** → Finish.
-- **A failure, not yet fixed** → in one tool block, set the assignee to `coding-<n>`; the `status` stays `review`. Then send **one** message carrying every failure: `SendMessage(codingId, "The full verification failed. Fix ONLY what is needed to clear these failures — stay within the approved plan, change no test, then stop." + each failing command and its error lines)`. Its reply goes through Implement's steps, so the feature's tests run first. Then run the failed checks again, and only when they pass, run the rest.
-- **A failure, already fixed once** → `escalate` (stage `verification`) with the failures.
+- **A failure** → in one tool block, set the assignee to `coding-<n>`; the `status` stays `review`. Then send **one** message carrying every failure: `SendMessage(codingId, "The full verification failed. Fix ONLY what is needed to clear these failures — stay within the approved plan, change no test, then stop." + each failing command and its error lines)`. Its reply goes through Implement's steps, so the feature's tests run first. Then run the failed checks again, and only when they pass, run the rest.
+- **A failure, stuck**, as `agent-pipeline` defines it → `human_required` (stage `verification`) with the failures.
 
 The `orchestrate-<n> · verification` entry names each command and its result, each skipped check and why, and what the fix changed.
 
 #### Finish
 Run the **`ticket-board`** skill's **Finishing a ticket** transition in one step: `status` `done` with `assigned` and `claimed` removed, the usage added, the ticket and its worklog moved to `done/`, the roadmap row deleted, and the worklog entries appended — `orchestrate-<n> · verification`, then the closing `orchestrate-<n> · done`: what shipped, each recommendation nobody acted on, and each note file. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-<n>`. A correction this run forced on a *remaining* ticket — a constraint the code review found, a dependency that turned out wrong — is rewritten in the same step.
 
-**Act on the result.** Whichever it is, the entry of the stage that ended the run goes into the worklog — a run that failed is exactly the run whose record matters. `agent-pipeline` defines the three outcomes and `ticket-board` holds the transition each one writes:
+**Act on the result.** Whichever it is, the entry of the stage that ended the run goes into the worklog — a run that failed is exactly the run whose record matters. `agent-pipeline` defines the two outcomes and `ticket-board` holds the transition each one writes:
 - **`completed`** → **Finishing a ticket**, as above. Keep whether the review ran, the reviewers' summaries, and the test and verification details for the report.
-- **`escalate`** → **Stopping without finishing**. Surface the `stage`, the reason, and any issues, failures, or blockers for the user.
-- **`aborted`** → **Stopping without finishing**, with the outcome entry naming the stage and the agent that returned no result.
+- **`human_required`** → **Stopping without finishing**. Surface the `stage`, the reason, and any issues, failures, or blockers for the user.
 
 Report only after the files are updated.
 
@@ -419,12 +418,12 @@ Report only after the files are updated.
 ```markdown
 ## Task Complete: [ID] — [Title]
 
-- [x] Planning — approved ([0 or 1] revision; [N] open questions answered) (or: review skipped by the risk gate)
+- [x] Planning — approved ([N] revisions; [N] open questions answered) (or: review skipped by the risk gate)
 - [x] Test plan — [N] cases ([unit / integration / e2e counts]), [M] left untested on purpose (or: no case — [why])
 - [x] Tests written first — [N] failed before the code; [K] still passed after sharpening ([ids])
-- [x] Implementation — the feature's tests pass ([F] commands from [T] tickets; [0–2] fix cycles); [0 or 1] test dispute ([rulings])
-- [x] Code review — correctness, conventions, security, and tests approved ([0 or 1] fix cycle)
-- [x] Full verification — [each check]: passed (or: skipped — [reason]); [0 or 1] fix cycle
+- [x] Implementation — the feature's tests pass ([F] commands from [T] tickets; [N] fix cycles); [N] test disputes ([rulings])
+- [x] Code review — correctness, conventions, security, and tests approved ([N] fix cycles)
+- [x] Full verification — [each check]: passed (or: skipped — [reason]); [N] fix cycles
 - [x] Status — ticket `done`, unassigned, unclaimed, and moved to `done/` with its worklog; roadmap row deleted
 
 Work root: `[code]` — `[absolute path]`
@@ -435,20 +434,8 @@ Needs a person: [each note file and its title, or "nothing"]
 ```
 
 ## Failure Handling
-`agent-pipeline` holds the outcome vocabulary and `ticket-board` the **Stopping without finishing** transition. This command's caps are the ones to apply mechanically, with no improvised extra cycle:
+`agent-pipeline` holds the outcome vocabulary and the conditions for `human_required`, and `ticket-board` holds the **Stopping without finishing** transition. No stage has a retry limit: every loop runs until its gate passes or `human_required` stops it.
 
-| Cap | Value | At the cap |
-| --- | --- | --- |
-| Plan revisions | 1 | `escalate` (stage `plan-review`) |
-| Sharpen rounds for a new test that does not fail | 1 | A case that still passes is recorded and the run goes on; a case that still does not run → `escalate` (stage `new-tests`) |
-| Feature-test fix cycles, a restored test file included | 2 | `escalate` (stage `feature-tests`) |
-| Test dispute rounds | 1 | A second dispute → `escalate` (stage `test-dispute`) |
-| Code review fix cycles | 1 | `escalate` (stage `code-review`) |
-| Full verification fix cycles | 1 | `escalate` (stage `verification`) |
-| Re-asks for a missing result block, per agent turn | 1 | `aborted` at that stage |
-
-- **`escalate`** also when an open question gets no settling answer, when the test writer or the coding agent reports a blocker, and when the test planner rules a dispute `escalate`.
-- **`aborted`** when an agent returns no usable result, at any stage.
 - Never mark a task complete unless the feature's tests passed, all four code reviewers approved, **and** every check passed.
 
 ## Rules
@@ -456,10 +443,10 @@ The four skills carry the rules they own — `agent-pipeline` for the spawn-once
 - **One task at a time.** Do not execute the whole roadmap.
 - **Resolve the work root before the ticket starts**, record it in the worklog, and pass it to every agent. Never let an agent infer which repository it is working in.
 - **Load every skill in the table before the stage that needs it.** They are the rules; this file is the sequence.
-- **The decisions are made before the run.** The planner reads them from the ticket and the feature folder. A question the documents leave open goes to the user in one round, and its answer goes into the plan entry; a question the user cannot settle sends the ticket back to `/plan`.
+- **The decisions are made before the run.** The planner reads them from the ticket and the feature folder. A question the documents leave open goes to the user, and its answer goes into the plan entry; a question the user cannot settle sends the ticket back to `/plan`.
 - **You run every check.** Each new test, the feature's tests, and the full verification are commands you run and read. No agent's report of a passing check counts.
 - **The code review always runs, from four focuses.** The task passes only when all four return `APPROVED`. Only the plan review has a skip gate.
-- **Apply the gates mechanically.** The review-skip gate (≤2 files, no dep, no API, criteria auto-checkable), the high-risk test (new API/dep or >5 files), and every cap in the table are fixed thresholds.
+- **Apply the gates mechanically.** The review-skip gate (≤2 files, no dep, no API, criteria auto-checkable) and the high-risk test (new API/dep or >5 files) are fixed thresholds.
 - **Tests before code, and the coder never touches them.** The test planner drafts from the specification before it sees the plan, the test writer writes the tests before coding starts, every new test fails before the code exists, and a test file whose fingerprint moved goes back to be restored. A test is changed only by a sharpen turn or a `revised` ruling. Only an empty test plan skips the test stages.
 - **You write the status, the assignee, and the worklog** — at the boundaries in the table and at every exit. No agent writes any of them.
 - **Never proceed without approval** on the selected task, and never start a task whose dependencies are incomplete.

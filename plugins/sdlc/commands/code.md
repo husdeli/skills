@@ -66,14 +66,14 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
 
 It ends every turn with one fenced `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, and `notes`. Parse it as `agent-pipeline` says.
 
-- `aborted` — nothing returned, or no valid JSON block after the one retry → report that the agent returned no usable result, and stop.
-- Non-empty `blockers` → report them and stop. Do not fix the blocker yourself.
+- `human_required` — nothing returned → report that the agent returned no usable result, and stop.
+- Non-empty `blockers` → `human_required`: report them and stop. Do not fix the blocker yourself.
 
-### 4. Follow up at most once
+### 4. Follow up until it clears
 
 Resume it with `SendMessage(codingId, ...)`, sending only what changed — the failing output, or the missed part.
 
-Send one follow-up when its self-check failed, or when its summary shows it missed part of the request. **One follow-up is the cap.** When the second turn still does not clear it, report what is left and stop.
+Send a follow-up whenever its self-check failed, or its summary shows it missed part of the request. When it is stuck, as `agent-pipeline` defines it, that is `human_required`: report what is left and stop.
 
 ### 5. Record it on the ticket, when the request was one
 
@@ -129,7 +129,7 @@ There is **no verify stage and no code review behind this command.** The coding 
 - **The agent writes the code.** You resolve the request, agree the design when the change is visible, spawn the agent, and report.
 - **Agree the design before the code when the user will see the change.** You run that stage; the agent cannot.
 - **Keep the prompt thin.** The skills, the conventions, and the comment rules live in the agent definition.
-- **Spawn once, resume with `SendMessage`** — `agent-pipeline` holds the mechanics. One follow-up, then stop.
+- **Spawn once, resume with `SendMessage`** — `agent-pipeline` holds the mechanics. Follow up until it clears, or `human_required`.
 - **Log onto a ticket only when it already has a worklog.** Never create one, and never write a status or an assignee here.
 - **One request at a time.** Finish what was asked and stop.
 - **Report failure as failure.** A failing check or a blocker goes in the first line.

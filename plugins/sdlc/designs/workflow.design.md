@@ -23,7 +23,7 @@ The workflow turns one planned [[glossary#Ticket|ticket]] into code that has bee
 - **A status change is one step.** The orchestrator rewrites `status`, `assigned`, and `updatedAt`, moves the file to its [[glossary#Bucket|bucket]], and edits the roadmap together.
 - **Every agent works in the [[glossary#Work root|work root]] it is given.** The orchestrator resolves it once, before the first agent starts, and passes it to each agent as an absolute path.
 - **A check is a command, not a judgment.** The orchestrator runs every test and every project check itself and reads the result. No agent reports a check as passed. `/orchestrate-quick` alone hands its checks to a fresh `verify` agent, whose report is judged by the same rule; see 6. Variation and limits.
-- **[[glossary#Gate|Gates]] and caps are mechanical.** A threshold is a number, a cap of one means one, and no run adds a cycle because the next one looks close.
+- **[[glossary#Gate|Gates]] are mechanical, and no count stops a run.** A threshold is a number. A gate loops until it passes, and only `human_required` ends a run early.
 - **A ticket is `done` only when the [[glossary#Feature's tests|feature's tests]] pass, every code reviewer approves, and every project check passes.** A passing suite alone never finishes a ticket.
 - **Tests come before the code, from the specification, and from someone other than the coder.** One agent decides what to test, another writes the tests, the orchestrator proves each one fails, and only then does `coding` build. The code is done when it passes tests it could not shape.
 - **A test earns its place by the bug it catches.** The [[glossary#Test plan|test plan]] holds the fewest tests that catch the bugs this change could ship, each of the cheapest type that catches it. Coverage is never a reason to write one. The `test-strategy` skill holds these rules, and both test agents load it.
@@ -104,19 +104,19 @@ The work roots come from the ticket's `repositories`, which names them by regist
 3. A settled answer is written onto the ticket in the Start step, so no later run resolves it again.
 4. When the evidence leaves it open, the answerer chooses among the candidates; an autonomous run has no answerer for this and ends for a person. The orchestrator never guesses.
 
-**Plan.** The planner reads the feature folder — the ticket and its decisions, the feature note, the design docs, the solution designs, and the PRD — then surveys the code and researches current practice. It returns the context pack, with the project's check commands, and the plan with a risk profile: the files touched, whether it adds a dependency or a public interface, and whether a command can check every acceptance criterion. The ticket's decisions are fixed constraints. A fork the documents leave open goes to the answerer in one round, and the answers are recorded; a fork the answerer cannot settle sends the ticket back to planning, as an escalation. A second round of questions from the planner is an escalation too. The plan itself is kept nowhere. The plan entry records the direction it took, the approach it turned down, and any answer the answerer gave.
+**Plan.** The planner reads the feature folder — the ticket and its decisions, the feature note, the design docs, the solution designs, and the PRD — then surveys the code and researches current practice. It returns the context pack, with the project's check commands, and the plan with a risk profile: the files touched, whether it adds a dependency or a public interface, and whether a command can check every acceptance criterion. The ticket's decisions are fixed constraints. A fork the documents leave open goes to the answerer, and the answers are recorded; a fork the answerer cannot settle sends the ticket back to planning, as `human_required`. A further turn of questions from the planner goes to the answerer the same way. The plan itself is kept nowhere. The plan entry records the direction it took, the approach it turned down, and any answer the answerer gave.
 
-**Review the plan.** The risk gate in 3.2 Gates decides whether a review runs: a low-risk plan goes straight to Plan the tests. When the planner asked questions first, the reviewer pre-reads the context pack while the plan is being written; otherwise it receives the plan and the pack together. On `CHANGES_REQUESTED`, the planner revises once and the same reviewer reviews again. A second `CHANGES_REQUESTED` is an escalation.
+**Review the plan.** The risk gate in 3.2 Gates decides whether a review runs: a low-risk plan goes straight to Plan the tests. When the planner asked questions first, the reviewer pre-reads the context pack while the plan is being written; otherwise it receives the plan and the pack together. On `CHANGES_REQUESTED`, the planner revises and the same reviewer reviews again, until the plan is approved or the revision is stuck.
 
 **Plan the tests.** `test-planner` loads the `test-strategy` skill. It starts when the planner starts, and works from the specification alone while the plan is written and reviewed: the ticket's criteria and decisions, the design docs, and the end-to-end decision. When the plan is approved, or its review skipped, it receives the plan and attaches each case to the public interface the plan exposes. Each case is **new**, checking behavior the change adds, or a **guard** on behavior that already exists. Each names the bug it catches, the input that exposes the bug, the expected result, and the cheapest type that catches it: unit, then integration, then end-to-end. An end-to-end case covers a critical path only, and only when the end-to-end decision says yes. The plan also lists what goes untested and why. A plan with no case — a change no test could catch failing, such as a copy edit or a config value — skips Write the tests and Run each new test, and the entry says why. The test plan entry records each case in one line and each exclusion.
 
-**Write the tests.** `test-writer` loads the `test-strategy` skill and writes the cases in the test plan and nothing else: no production code, and no case the plan does not hold. It may add the fixture or helper a case needs. It reports every file it changed and the command that runs each case. A case the writer cannot write is a blocker, and a blocker is an escalation. The orchestrator records a fingerprint of every file the writer changed, and the tests entry records the files and the commands — the record the feature's later tickets run.
+**Write the tests.** `test-writer` loads the `test-strategy` skill and writes the cases in the test plan and nothing else: no production code, and no case the plan does not hold. It may add the fixture or helper a case needs. It reports every file it changed and the command that runs each case. A case the writer cannot write is a blocker, and a blocker is `human_required`. The orchestrator records a fingerprint of every file the writer changed, and the tests entry records the files and the commands — the record the feature's later tickets run.
 
-**Run each new test.** The orchestrator runs each new case by the writer's command and reads the result. **Every new test must fail**, because the behavior is missing: a case that passes catches nothing, and a case that does not run at all is broken. A guard case is exempt. A case that passes or does not run goes back to `test-writer`, which sharpens or repairs it once. One that still passes is recorded and the run goes on; one that still does not run is an escalation, since no later stage can make it run. The entry records each case and how it failed. A test the writer rewrites after implementation — after a test defect — skips this check and goes straight to Run the feature's tests: the code that makes it pass now exists.
+**Run each new test.** The orchestrator runs each new case by the writer's command and reads the result. **Every new test must fail**, because the behavior is missing: a case that passes catches nothing, and a case that does not run at all is broken. A guard case is exempt. A case that passes or does not run goes back to `test-writer`, which sharpens or repairs it until it fails. One the writer reports cannot fail, because the behavior already exists, is recorded and the run goes on; one it cannot repair is a blocker, since no later stage can make it run. The entry records each case and how it failed. A test the writer rewrites after implementation — after a test defect — skips this check and goes straight to Run the feature's tests: the code that makes it pass now exists.
 
-**Implement.** `coding` builds the approved plan until the written tests pass, and nothing beyond it. It writes no test of its own and never changes a file `test-writer` wrote. When it lands, the orchestrator compares the fingerprints. A changed test file goes back to `coding` to restore, and that costs a feature-test fix cycle. A blocker it reports is an escalation. The implement entry records the calls the plan left open.
+**Implement.** `coding` builds the approved plan until the written tests pass, and nothing beyond it. It writes no test of its own and never changes a file `test-writer` wrote. When it lands, the orchestrator compares the fingerprints. A changed test file goes back to `coding` to restore. A blocker it reports is `human_required`. The implement entry records the calls the plan left open.
 
-**Run the feature's tests.** The orchestrator runs **the feature's tests**: every test file recorded in the `tests` entries of the worklogs of the feature's tickets — the ones already `done` and this one — by the commands recorded beside them. It runs no lint, no full suite, and no end-to-end test; those run in the full verification. All passing moves the ticket to Code review. Otherwise `coding` receives the failures and fixes, and the feature's tests run again. A ticket gets two fix cycles here, and a third failure is an escalation.
+**Run the feature's tests.** The orchestrator runs **the feature's tests**: every test file recorded in the `tests` entries of the worklogs of the feature's tickets — the ones already `done` and this one — by the commands recorded beside them. It runs no lint, no full suite, and no end-to-end test; those run in the full verification. All passing moves the ticket to Code review. Otherwise `coding` receives the failures and fixes, and the feature's tests run again. This repeats until they pass or the fix is stuck.
 
 **Test defect.** When `coding` concludes that a test, not its code, is wrong, it finishes every other work item it can, then returns a dispute instead of working around the test. The dispute names the test, what is wrong with it, the evidence, and the change it proposes. `test-planner` rules on each disputed test:
 
@@ -124,13 +124,13 @@ The work roots come from the ticket's `repositories`, which names them by regist
 | ---------- | ------------------------------------------------------------------------------------------------ |
 | `upheld`   | The test stands. `coding` receives the reason and builds against it                              |
 | `revised`  | The test plan changes. `test-writer` rewrites the test, and the run goes to Run the feature's tests |
-| `escalate` | The dispute turns on what the specification means, which only the answerer can settle           |
+| `spec-question` | The dispute turns on what the specification means, which only the answerer can settle |
 
-A dispute may come from any `coding` turn, including a fix after the code review or the full verification, when an existing test broke under a change the ticket meant to make. A ticket gets one dispute round; a second dispute is an escalation. The dispute entry records each dispute, its ruling, and the reason.
+A dispute may come from any `coding` turn, including a fix after the code review or the full verification, when an existing test broke under a change the ticket meant to make. The dispute entry records each dispute, its ruling, and the reason.
 
-**Code review.** The status becomes `review`, and four `code-reviewer` agents start at once on the same change, one per focus; see 2.1 Structure. The `tests` reviewer also gets the test plan. The review passes when every reviewer approves. Otherwise the status returns to `in progress`, and `coding` receives every blocking issue in one message. After the fix the feature's tests run again, and only the reviewers that blocked review again. A second blocked review is an escalation. A minor issue becomes a recommendation and blocks nothing.
+**Code review.** The status becomes `review`, and four `code-reviewer` agents start at once on the same change, one per focus; see 2.1 Structure. The `tests` reviewer also gets the test plan. The review passes when every reviewer approves. Otherwise the status returns to `in progress`, and `coding` receives every blocking issue in one message. After the fix the feature's tests run again, and only the reviewers that blocked review again, until every reviewer approves or the fix is stuck. A minor issue becomes a recommendation and blocks nothing.
 
-**Run full verification.** For the [[glossary#Full verification|full verification]], the orchestrator runs every check command in the context pack — lint, type check, and the full test suite — and, when the end-to-end decision says yes, the end-to-end suite: the project's own, or the one the test writer stood up when the project had none — never both. It reads each result. All passing moves the ticket to Finish. Otherwise `coding` receives every failure in one message, fixes, and the failed checks run first, then the rest. A second failure is an escalation. A check the project lacks is reported as skipped, never as passed.
+**Run full verification.** For the [[glossary#Full verification|full verification]], the orchestrator runs every check command in the context pack — lint, type check, and the full test suite — and, when the end-to-end decision says yes, the end-to-end suite: the project's own, or the one the test writer stood up when the project had none — never both. It reads each result. All passing moves the ticket to Finish. Otherwise `coding` receives every failure in one message, fixes, and the failed checks run first, then the rest, until every check passes or the fix is stuck. A check the project lacks is reported as skipped, never as passed.
 
 **Finish.** In one step, the orchestrator:
 
@@ -142,7 +142,7 @@ A dispute may come from any `coding` turn, including a fix after the code review
 - deletes the roadmap row;
 - corrects every remaining ticket this work proved wrong.
 
-**A run ends for a person** at every escalation, and when an agent returns nothing usable after one re-ask. Every run ends in one [[glossary#Outcome|outcome]] — `completed`, `escalate`, or `aborted`; see 5. States. A run that stops writes no note: its outcome entry names each one, and the run that finishes the ticket writes them.
+**A run ends for a person** only on `human_required`: a question only a person can settle, a blocker, an agent that returned nothing, a fix that is stuck, or ground the run must not repair. A fix is **stuck** when a turn leaves the same defects as the turn before it and the agent that owns the fix has nothing different to try. No count raises it. Every run ends in one [[glossary#Outcome|outcome]] — `completed` or `human_required`; see 5. States. A run that stops writes no note: its outcome entry names each one, and the run that finishes the ticket writes them.
 
 ### 3.2 Gates
 
@@ -168,7 +168,7 @@ The claim stops two runs from building the same ticket at once.
 - **A roadmap run claims a feature's whole dependency cluster**, on every ticket at once, and reads every one back. It holds those claims across its sessions until each ticket is `done` or the run ends; see 6.1 The roadmap run.
 - **A claimed ticket is never ready for another run.**
 - **One checkout holds one build at a time.** Start checks it: a run whose work root another run's claimed `in progress` or `review` ticket names releases its claim and picks again. Two builds in one tree would each check the other's changes. A run worktree is a checkout of its own, so a roadmap run never waits on another run's work root.
-- **Every exit removes the claim**: finish, escalation, and abort. A roadmap run's end removes the claims on every ticket of its cluster that is not `done`.
+- **Every exit removes the claim**: finish and `human_required`. A roadmap run's end removes the claims on every ticket of its cluster that is not `done`.
 
 **Weakness:** a file cannot hold a lock, so the read-back narrows the race without closing it. A run that dies without exiting leaves its claim for a person to remove.
 
@@ -179,8 +179,7 @@ The claim stops two runs from building the same ticket at once.
 | No ready ticket                | The run says nothing is ready, names planning as the way to add work, and writes nothing beyond the roadmap rows it corrected                |
 | Work root unresolved or unwritable | The run stops before Start. It removes its claim, writes nothing else, and names the access the session needs                            |
 | Completed                      | The Finish step in 3.1 Behavior                                                                                                               |
-| Escalated                      | `status` becomes `blocked`, and `blocked_by` holds one line naming what a person must decide. `assigned` and `claimed` are removed. The outcome entry names the stage, what is open, and what the next run picks up |
-| Aborted                        | As escalated. The `blocked_by` line names the stage and the agent that returned no result                                                    |
+| `human_required`               | `status` becomes `blocked`, and `blocked_by` holds one line naming what a person must do. `assigned` and `claimed` are removed. The outcome entry names the stage, what is open, and what the next run picks up |
 | Waits on another ticket        | Found during the run: `status` becomes `blocked`, and `blocked_by` holds that ticket's ID                                                     |
 | Resumable                      | A `blocked` ticket whose `blocked_by` holds only IDs of `done` tickets, or none. A person clears an outside cause by deleting its line        |
 | Resumed                        | The run removes `blocked_by` and runs every stage again, with the worklog as input to each agent                                              |
@@ -199,9 +198,9 @@ The claim stops two runs from building the same ticket at once.
 | After Implement       | The feature's tests                    | The feature's tests                             | A targeted `verify` run: the new tests, and the existing tests of the changed files |
 | Checks run by         | The orchestrator                       | The orchestrator                                | A fresh `verify` agent per run |
 | Code review           | Four reviewers, one per focus, after the feature's tests | Four reviewers, one per focus      | One reviewer from all four focuses, at the same time as the full verification |
-| Fix after review or verification | One cycle each              | One cycle each                                  | One cycle, shared by the verification, the code review, and the end-to-end run |
+| Fix after review or verification | Until it passes                  | Until it passes                                 | Until it passes, shared by the verification, the code review, and the end-to-end run |
 | End-to-end suite      | In the full verification on a yes      | In the full verification on a yes               | Held out of the full verification and offered to the person as one question at the end; run without asking when the test writer wrote end-to-end cases |
-| At a cap              | Escalation                             | A `cto` ruling, then escalation                 | Escalation                  |
+| A stage is stuck      | `human_required`                       | A `cto` ruling, then `human_required` if it says so | `human_required`        |
 | Claimed               | The ticket, as `orchestrate-<n>`       | A feature's [[glossary#Dependency cluster\|dependency cluster]], as `run-roadmap-<n>` | The ticket, as `orchestrate-quick-<n>` |
 | Builds in             | The work root                          | A [[glossary#Run worktree\|run worktree]] of each work root | The work root    |
 | Finished code         | Left uncommitted for the person        | One commit per ticket on the run branch         | Left uncommitted            |
@@ -225,9 +224,9 @@ The **launcher** is a script a person starts from a code repository, or from the
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
 | Preflight                     | Before anything is written: the framework root and its roadmap exist, every registered work root is a git tree this session can reach and write beside, and the run's existing worktrees are clean. A dirty checkout is no failure | The run ends `blocked`, naming what is missing and the fix |
 | Select the next feature       | The roadmap is first rebuilt from the tickets, and the rebuild is recorded. A feature the roadmap run already claims comes first, at its next ticket. Otherwise the orchestrator lists the candidate features in roadmap order: every feature with a ticket not `done` whose cluster holds no ticket another run claims and no ticket `blocked` on something other than a cluster ticket | No ticket left on the roadmap: the run ends, roadmap done. Tickets left and no candidate: the run ends for a person |
-| Can it run                    | `cto` picks one candidate feature and calls the end-to-end question once for it, or hands the pick back       | A hand-back ends the run for a person            |
+| Can it run                    | `cto` picks one candidate feature and calls the end-to-end question once for it, or raises `human_required`   | `human_required` ends the run for a person       |
 | Confirm                       | Automatic. Nobody is asked; the `cto`'s pick stands                                                           | —                                                |
-| Claim its dependency cluster  | The run writes its claim on every ticket of the feature's cluster and reads every one back | Another run's claim read back: the run releases what it wrote and selects again. Lost three times in a row, the run ends for a person |
+| Claim its dependency cluster  | The run writes its claim on every ticket of the feature's cluster and reads every one back | Another run's claim read back: the run releases what it wrote and selects again |
 | Choose the feature's next ticket | The cluster's first ticket, in dependency order, whose dependencies are all `done`. A dependency in another feature comes before the feature's tickets that need it. | —                                  |
 | Identify the work roots       | The `repositories` of the ticket to build and of its direct dependencies. A ticket with none gets them from the `repo-resolver` agent, written onto it, as in 3.1 Start | The agent cannot settle them: the run ends for a person, naming the candidates |
 | Create a run worktree         | One per work root, at `<repository>-worktrees/run-roadmap-<n>` beside the repository, on branch `run-roadmap-<n>` from that work root's current commit, made once and reused by every later ticket of the run | The run ends for a person, naming the work root and the git error |
@@ -243,56 +242,29 @@ The **launcher** is a script a person starts from a code repository, or from the
 - **The person's checkout is never touched.** A run worktree starts from the work root's current commit, so an uncommitted change in the checkout is not part of it, and the run builds in its worktree alone.
 - **The run never pushes, merges, or amends.** A person reviews the run branch and merges it.
 - **A run worktree is clean between tickets.** A finished ticket is committed and a stopped one is discarded, so the next ticket starts from the last commit. A worktree left dirty ends the run.
-- **A stopped ticket keeps its record and loses its code.** Every unfinished end — `deferred`, `stop-run`, `handed-back`, `aborted`, and a rejected commit once a person has looked — writes the stop as 5. States says, releases the cluster's claims, discards the ticket's changes from every run worktree it touched, and commits the documents. Half-built code is never committed.
+- **A stopped ticket keeps its record and loses its code.** Every `human_required` end, and a rejected commit once a person has looked, writes the stop as 5. States says, releases the cluster's claims, discards the ticket's changes from every run worktree it touched, and commits the documents. Half-built code is never committed.
 
 **Every session ends with one result line** the launcher parses: the outcome, the run's name, the feature, the ticket, the code commit, the run worktrees written, the tickets left on the roadmap, the next action, and a one-sentence reason.
 
 | Outcome       | What happened                                                         |
 | ------------- | --------------------------------------------------------------------- |
 | `completed`   | The ticket was finished and committed on the run branch               |
-| `deferred`    | The `cto` ruled `defer`                                               |
-| `stop-run`    | The `cto` ruled `stop-run`                                            |
-| `handed-back` | The `cto` handed a decision back, or a cap ran out of rulings, or the work roots could not be settled |
-| `aborted`     | An agent returned nothing usable after one re-ask                     |
-| `no-work`     | No ticket is left, or tickets are left and no feature can be selected |
-| `blocked`     | The ground is wrong: preflight, the claim, a run worktree, or a commit failed |
+| `human_required` | A person must act: the `cto` set `humanRequired`, the work roots could not be settled, an agent returned nothing, tickets are left and no feature can be selected, or preflight, a run worktree, or a commit failed |
+| `no-work`     | No ticket is left                                                     |
 
-**The launcher stops the run** when a session reports any outcome but `completed`, when no ticket is left, at `--max`, when a completed ticket left the count of remaining tickets unchanged, when a run worktree is dirty between tickets, and when a session prints no result line or outlives its time limit. It ends cleanly only when the roadmap is done or `--max` is reached; every other stop needs a person.
+**The launcher stops the run** when a session reports any outcome but `completed`, when no ticket is left, at `--max`, when a completed ticket left the count of remaining tickets unchanged, when a run worktree is dirty between tickets, and when a session prints no result line or outlives a `--timeout` the person set. It ends cleanly only when the roadmap is done or `--max` is reached; every other stop needs a person.
 
-**The `cto` answers three kinds of request**: `feature-selection`, which picks the feature and calls its end-to-end decision; `decisions`, which settles the planner's open forks in one round; and `escalation`, which rules on a stage that hit its cap. The `cto` is started once per session and resumed for every request.
+**The `cto` answers three kinds of request**: `feature-selection`, which picks the feature and calls its end-to-end decision; `decisions`, which settles the planner's open forks; and `ruling`, which rules on a stage that is stuck, a blocker, or a question about the specification. The `cto` is started once per session and resumed for every request.
 
-**A `cto` ruling** is one of five:
+**A `cto` ruling** is one of two, or `humanRequired`:
 
 | Ruling      | What the run does                                                                  |
 | ----------- | ---------------------------------------------------------------------------------- |
-| `retry`     | One more cycle at that stage, carrying the ruling's guidance. The stage's cap is then spent, and a retry that fails again is handed back |
+| `retry`     | Goes on at that stage, carrying the ruling's guidance, which must differ from what already failed |
 | `rescope`   | Finishes a narrower ticket; the dropped part becomes a new `backlog` ticket        |
-| `defer`     | Stops the ticket for a person, and the roadmap run ends                           |
-| `stop-run`  | The same as `defer`: the ticket stops and the roadmap run ends                     |
-| hand back   | Stops the ticket for a person to decide, and the roadmap run ends                  |
+| `humanRequired` | Stops the ticket for a person, and the roadmap run ends                        |
 
-A second escalation at one stage, or a third on one ticket, is handed back without asking the `cto`.
-
-**The caps**, applied by the command named in each column. A dash means the command has no such stage:
-
-| Cap                                   | `/orchestrate` | `/run-roadmap` | `/orchestrate-quick` |
-| ------------------------------------- | -------------- | -------------- | -------------------- |
-| Tickets per run                       | 1              | 1              | 1                    |
-| Plan revisions                        | 1              | 1              | 1                    |
-| Rounds of planner questions           | 1              | 1              | —                    |
-| Sharpen rounds for a new test that does not fail | 1   | 1              | —                    |
-| Feature-test fix cycles, a restored test file included | 2 | 2         | —                    |
-| Targeted-verify fix cycles, a restored test file included | — | —        | 2                    |
-| Test dispute rounds per ticket        | 1              | 1              | 1                    |
-| Code review fix cycles                | 1              | 1              | 1, shared            |
-| Full verification fix cycles          | 1              | 1              | 1, shared            |
-| End-to-end fix cycles                 | in the full verification | in the full verification | 1, shared |
-| Re-asks for a missing result block, per agent turn | 1 | 1            | 1                    |
-| Claim attempts lost in a row          | —              | 3              | —                    |
-| `cto` rulings per stage               | —              | 1              | —                    |
-| `cto` rulings per ticket              | —              | 2              | —                    |
-
-In `/orchestrate-quick`, "shared" means one fix cycle covers the verification failures, the review issues, and an end-to-end failure together.
+**No stage has a retry limit.** Plan revisions, planner questions, sharpen turns, fix cycles, dispute rounds, and `cto` rulings all go on until the gate passes or `human_required` stops the run. A run still builds one ticket, because each ticket gets a session of its own. Nothing but the person's `--max` and `--timeout` bounds what an unattended run spends.
 
 **A ticket that changes two work roots keeps both.** Each work root gets its own feature tests, code review, full verification, and commit, and the ticket passes only when both pass.
 

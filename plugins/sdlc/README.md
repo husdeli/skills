@@ -341,11 +341,7 @@ script reads it, and the roadmap itself is the loop counter — the run ends whe
 | The roadmap has no ticket left | The roadmap is done — exit 0 |
 | `--max` tickets were built | You asked for that many — exit 0 |
 | Tickets are left and none can be selected | Each waits on another run's claim, a block, or a missing ID — a person has to look |
-| The CTO hands a decision back, or rules `defer` or `stop-run` | Money, credentials, anything irreversible, the security model, a legal call, or a PRD contradiction it cannot settle |
-| A ticket does not complete | A person decides how its feature goes on. Its code is discarded from the worktree; its ticket and worklog are kept |
-| A stage runs out of rulings | One ruling per stage, two per ticket. A third is a person's problem |
-| An agent returns nothing usable | A dead agent is not a thing to retry around |
-| Another run took the claim three times in a row, or a worktree cannot be made | The ground is wrong |
+| A ticket reports `human_required` | A person must act: money, credentials, anything irreversible, the security model, a legal call, a PRD contradiction, a stuck stage the CTO has no new instruction for, a dead agent, or a worktree that cannot be made. Its code is discarded from the worktree; its ticket and worklog are kept |
 | A commit is rejected, or a ticket leaves its worktree dirty | The next ticket must not inherit it |
 | A registered repository is missing or is not a git tree | The registry is machine-local, so it can point at a path this machine does not have |
 | A ticket runs past `--timeout` | The ticket and everything it started are killed, and the run stops |
@@ -381,9 +377,8 @@ worth as much as its record.
   never disagree.
 - **agent-pipeline** — How a command drives subagents: spawn each role once and resume it with
   `SendMessage` rather than re-spawning, keep a fresh verification agent per run, put concurrent
-  calls in one tool block, parse the single JSON block every agent ends with and retry once before
-  calling the run aborted, keep the spawn prompt thin, never duplicate the gating run, and end in
-  exactly one of `completed`, `escalate`, or `aborted`.
+  calls in one tool block, parse the single JSON block every agent ends with, keep the spawn prompt thin, never duplicate the
+  gating run, set no retry limit, and end in exactly one of `completed` or `human_required`.
 - **ts-clean** — Framework-agnostic rules for any `.ts`/`.tsx` file: one module per file
   named after its primary export, dot notation for the modules that carry an architecture
   role (`user.service.ts`, `user.repository.ts`, `user.dto.ts`) while plain modules keep
@@ -554,11 +549,11 @@ what a ticket is, and why changing how a status transition works is one edit rat
   `/run-roadmap` run their checks themselves. Writes no code, and reviews none either.
 - **cto** — stands in for you when nobody is in the room. It reads the PRD, the glossary, the
   feature notes, and the design docs once, then answers what `/orchestrate` would have asked you: which task to build next,
-  whether it gets end-to-end tests, how each open decision goes, and what happens when a stage runs
-  out of retries — one more cycle with guidance, a narrower task, a deferred task, or the end of the
-  run. It hands a decision back to you only for the things a person must own: money, credentials,
-  anything irreversible, the security model, a legal or licensing call, and a contradiction with the
-  PRD it cannot settle from the documents. It writes no file — `/run-roadmap` records every answer
+  whether it gets end-to-end tests, how each open decision goes, and what happens when a stage is
+  stuck — go on with new guidance, or a narrower task. It raises `human_required` only for what a
+  person must own: money, credentials, anything irreversible, the security model, a legal or licensing
+  call, a contradiction with the PRD it cannot settle from the documents, a stuck stage it has no new
+  instruction for, and a failure beyond the task. It writes no file — `/run-roadmap` records every answer
   in the ticket and the worklog, which is how an unattended run stays readable afterwards.
 
 ### Commands and Codex skills
@@ -593,7 +588,7 @@ what a ticket is, and why changing how a status transition works is one edit rat
 - **/whats-next** — answers what can be worked on right now. It reads the roadmap and the ticket
   folders, sorts every task into in flight, ready to start, and waiting on a dependency, and
   names the one to start next. For a task in flight it names who holds it and quotes the last
-  worklog entry, so a task that escalated says where it stopped. It writes nothing and moves no
+  worklog entry, so a task that stopped says where. It writes nothing and moves no
   ticket: it reports the state and hands off to `/orchestrate`. When a ticket's status and its
   roadmap row disagree, it says so rather than fixing it.
 - **/orchestrate** — offers you every roadmap task whose dependencies are satisfied, asks which
@@ -607,7 +602,7 @@ what a ticket is, and why changing how a status transition works is one edit rat
   its tickets wrote — must pass before the code review. The task is finished only when four
   reviewers approve and every check passes — then the ticket moves
   to `done/` with its worklog and the roadmap row is deleted. At each stage boundary it rewrites
-  the ticket's assignee and appends the stage's worklog entry, so an escalated task is left
+  the ticket's assignee and appends the stage's worklog entry, so a stopped task is left
   assigned to you with the reason written down.
 - **/orchestrate-quick** — the short pipeline for a task that is already well understood:
   plan → one review → test plan → write tests → implement → targeted verify → verify and code
@@ -616,8 +611,8 @@ what a ticket is, and why changing how a status transition works is one edit rat
   default to no, and it reports that default.
 - **/run-roadmap** — `/orchestrate` with nobody in the loop. It never asks you anything: the **cto**
   agent picks the feature and calls the end-to-end question, settles any fork the planner finds the
-  documents leave open, and a stage that hits its cap gets a CTO ruling — retry once with guidance,
-  narrow the task, defer it, or end the run — instead of stopping to wait for you. It works one
+  documents leave open, and a stuck stage gets a CTO ruling — go on with new guidance, narrow the task, or raise
+  `human_required` — instead of stopping to wait for you. It works one
   feature at a time, claims the feature's dependency cluster, builds in a run worktree on branch `run-roadmap-<n>` beside
   each repository, and commits the code there and the documents in the framework root; nothing is
   pushed, and your checkout is never touched. One invocation is one ticket, and it ends with a

@@ -46,7 +46,7 @@ Agent(subagent_type: "sdlc:code-reviewer", model: "opus",
 
 It ends its turn with one fenced `json` block carrying `verdict`, `summary`, and `issues`. Parse it as `agent-pipeline` says.
 
-- `aborted` — nothing returned, or no valid JSON block after the one retry → report that the agent returned no usable result, and stop.
+- `human_required` — nothing returned → report that the agent returned no usable result, and stop.
 - `APPROVED` with an empty `issues` list → report the approval and stop.
 - `APPROVED` with minor issues, or `CHANGES_REQUESTED` → report them, then Stage 4.
 
@@ -83,7 +83,7 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
               + "Fix ONLY these issues, and leave every other behavior exactly as it is.")
 ```
 
-Then re-review by resuming the **same** reviewer: `SendMessage(reviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary)`. One fix cycle is the cap. When the second verdict is still `CHANGES_REQUESTED`, report what is left and stop.
+Then re-review by resuming the **same** reviewer: `SendMessage(reviewerId, "Re-review the fix below; judge each prior issue as fixed or still open." + the coding agent's summary)`. Repeat until it returns `APPROVED`. When the fix is stuck, as `agent-pipeline` defines it, that is `human_required`: report what is left and stop.
 
 **Write the notes the coding agent reported**, when its latest block carries any. A note is not the board, so this command writes it: run `create-note.py` as `agent-pipeline` says, with `--run review`, and `--ticket` when the target was a ticket, else `--feature` when the target names a feature. With neither, show the notes in full. Name each note file under *Needs a person* when you report the fix.
 
@@ -110,7 +110,7 @@ worklog beside it, there is nothing to write.
 
 - **The agent reviews the code.** You resolve the target, spawn it, and report.
 - **Keep the prompt thin.** The checklist, the skills, and the severity rules live in the agent definition.
-- **Spawn once, resume with `SendMessage`** — `agent-pipeline` holds the mechanics. One fix cycle, then stop.
+- **Spawn once, resume with `SendMessage`** — `agent-pipeline` holds the mechanics. Fix until approved, or `human_required`.
 - **Report the verdict first.** A blocking issue leads the first line.
 - **Fix on an explicit ask alone** — the `fix` argument, or the user saying so.
 - **Name every gating command that nobody ran.** Unverified code reaches the user as unverified code.

@@ -9,8 +9,8 @@
 # the run branch, in a run worktree beside each repository. Your own checkout is never touched.
 #
 # The command answers every question with the `cto` agent, so nothing in this loop waits for input.
-# It stops on its own when the roadmap is done, when --max is reached, and whenever a person is
-# needed: a hand-back, a stopped ticket, a lost claim, a worktree it cannot make, or a dead agent.
+# It stops on its own when the roadmap is done, when --max is reached, and when a ticket reports
+# human_required, the one outcome that says a person is needed.
 #
 #   ./run-roadmap.sh --max 5
 #   ./run-roadmap.sh --run 3 --yes                              # resume run-roadmap-3
@@ -23,7 +23,7 @@
 
 set -uo pipefail
 
-VERSION="2.2.0"
+VERSION="2.3.0"
 
 # ---------------------------------------------------------------------------- defaults
 
@@ -39,13 +39,12 @@ FINAL=0                      # 1 while the session about to start is the run's l
 PERMISSION_MODE="bypassPermissions"
 MODEL=""
 LOG_DIR=""
-TIMEOUT=5400                 # per task, seconds. 0 = no limit
+TIMEOUT=0                    # per task, seconds. 0 = no limit
 ASSUME_YES=0
 DRY_RUN=0
 QUIET=0
 
 TASKS_DONE=0
-TASKS_DEFERRED=0
 STOP_REASON=""
 EXIT_CODE=0
 
@@ -104,7 +103,7 @@ OPTIONS
   --model NAME         Model for the main session (the agents pick their own). Default: your config.
   --permission-mode M  Claude permission mode. Default: bypassPermissions, which is what an
                        unattended run needs — a prompt in a headless session is a dead run.
-  --timeout SECONDS    Kill a ticket that runs longer than this. Default: 5400. 0 disables it.
+  --timeout SECONDS    Kill a ticket that runs longer than this. Default: 0, meaning no limit.
   --log-dir DIR        Where the per-ticket logs go. Default: a timestamped folder under TMPDIR.
   --command NAME       Slash command to run. Default: /sdlc:run-roadmap.
   --yes, -y            Skip the confirmation prompt. Required on a non-interactive shell.
@@ -122,8 +121,7 @@ BEFORE YOU RUN IT
 EXIT CODES
   0  The roadmap is done, or --max was reached.
   1  Preflight failed: no claude, no git, an unreadable registry, or a bad option.
-  3  A person is needed: a hand-back, a stopped ticket, nothing selectable, a lost claim, a
-     worktree that could not be made, an abort, or a ticket that left its worktree dirty.
+  3  A person is needed: a ticket reported human_required, or left its worktree dirty.
   4  A ticket produced no result line, or timed out.
 EOF
 }
@@ -603,9 +601,8 @@ while :; do
       TASKS_DONE=$((TASKS_DONE + 1))
       ok "$task_id done${feature:+ (feature $feature)}${commit:+ · $commit}${remaining:+ · $remaining left}"
       ;;
-    deferred)
-      TASKS_DEFERRED=$((TASKS_DEFERRED + 1))
-      warn "$task_id deferred by the cto: ${reason:-no reason given}"
+    human_required)
+      warn "${task_id:-the run} needs a person: ${reason:-no reason given}"
       ;;
     *)
       warn "task $iteration ended as ${outcome:-unknown}: ${reason:-no reason given}"
@@ -671,7 +668,6 @@ done <"$START_COMMITS"
     [ -n "$name" ] && printf '  %-14s %s · %s · %s\n' "$name" "$range" "$n" "$path"
   done
   printf '  tasks done     %s\n' "$TASKS_DONE"
-  [ "$TASKS_DEFERRED" -gt 0 ] && printf '  deferred       %s\n' "$TASKS_DEFERRED"
   printf '  stopped        %s\n' "${STOP_REASON:-no reason recorded}"
   printf '  logs           %s\n' "$LOG_DIR"
   printf '\n'

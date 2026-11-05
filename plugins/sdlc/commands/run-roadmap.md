@@ -26,17 +26,16 @@ Arguments: $ARGUMENTS
   started by hand, with no `--run`, is final too.
 - **A roadmap file path**, when given, is the roadmap to read.
 
-This is `/orchestrate` with the human replaced. The stages, the gates, and the caps are the same;
-what changes is who answers, what is claimed, where the code is built, what happens at a cap, and
+This is `/orchestrate` with the human replaced. The stages and the gates are the same;
+what changes is who answers, what is claimed, where the code is built, what happens when a stage is stuck, and
 that the session ends in commits and a parsable result. One invocation is one ticket of the
 feature the run holds — the loop over the feature's tickets and over the roadmap belongs to [`scripts/run-roadmap.sh`](../scripts/run-roadmap.sh), which starts a
 fresh session per ticket so a long roadmap never runs out of context. The design is
 `designs/workflow.design.md`, sections 3 and 6.1, and `diagrams/run-roadmap.excalidraw.md` draws it.
 
 **Nobody is watching this run.** That is the one fact that shapes every rule below: no
-`AskUserQuestion`, a hard cap on every cycle, a commit per ticket on a branch of its own so
-`git log` is the audit trail, and a hand-back that ends the run whenever the decision belongs to a
-person.
+`AskUserQuestion`, a commit per ticket on a branch of its own so `git log` is the audit trail, and
+`human_required` as the only thing that ends the run early.
 
 ## The rules live in four skills — load each one before the stage that needs it
 
@@ -84,13 +83,12 @@ Every question goes to the `cto` agent, which answers in the user's place:
 | --- | --- |
 | Which candidate ticket to build — or that it cannot run | `cto`, request `feature-selection`, which picks a feature instead |
 | Whether the ticket gets end-to-end tests | `cto`, in the same `feature-selection` answer, once for the feature |
-| A fork the ticket's documents leave open, which the planner names | `cto`, request `decisions`, in one round |
-| Nothing — it stops and escalates | `cto`, request `escalation` |
+| A fork the ticket's documents leave open, which the planner names | `cto`, request `decisions` |
+| Nothing — it stops on `human_required` | `cto`, request `ruling`, first |
 
-When the CTO sets `handBack: true`, **that** is the moment a person is needed. Stop, run
+When the CTO sets `humanRequired: true`, **that** is the moment a person is needed. Stop, run
 `ticket-board`'s *Stopping without finishing* transition once a ticket has started, and report the
-outcome `handed-back`. Do
-not try to answer a handed-back question yourself.
+outcome `human_required`. Do not try to answer that question yourself.
 
 ## Architecture: the interactive shell, driven by an agent
 
@@ -98,38 +96,38 @@ not try to answer a handed-back question yourself.
   YOU (main loop)
   ─────────────────────────
   preflight ─► select: a feature this run claims, else the candidate features ─► Agent(cto) pick + e2e
-  ─► claim the feature's dependency cluster ─► read back  (lost ─► select again, 3× ─► blocked)
+  ─► claim the feature's dependency cluster ─► read back  (lost ─► select again)
   ─► choose the feature's next ticket ─► identify the work roots ─► run worktree per work root (once per run) ─► start the ticket ─►
 
   ┌ Agent(planner) ─► contextPack + plan + riskProfile, or openQuestions ─┐  concurrent
   └ Agent(test-planner) "SPEC ONLY" ─► draft cases ───────────────────────┤
         [openQuestions] SendMessage(cto, decisions) + Agent(plan-reviewer) "PRE-READ ONLY"
-                        ─► SendMessage(planner, answers) ─► plan  (one round ─► then cto escalation)
+                        ─► SendMessage(planner, answers) ─► plan
   [risk low ─► skip review]  Agent(plan-reviewer) ─► verdict
         ▲                          │ CHANGES_REQUESTED
-        └── SendMessage(planner) ◄──┘  (revise ×1 ─► then SendMessage(cto, escalation))
+        └── SendMessage(planner) ◄──┘  (revise until approved; stuck ─► SendMessage(cto, ruling))
   SendMessage(test-planner, plan) ─► test plan ─► [no case: skip to coding]
   Agent(test-writer) ─► tests + a command per case ─► fingerprint them
-  YOU run each new case ─► passes or does not run ─► SendMessage(test-writer)  (sharpen ×1)
+  YOU run each new case ─► passes or does not run ─► SendMessage(test-writer)  (sharpen until it fails)
   Agent(coding) ─► [fingerprints moved? ─► restore]
         │ testDisputes ─► SendMessage(test-planner) ─► upheld / revised (test-writer)
-        ▼                  escalate ─► SendMessage(cto, escalation)  (one round per ticket)
-  YOU run the feature's tests ─► fail ─► SendMessage(coding)  (fix ×2 ─► then cto)
+        ▼                  spec-question ─► SendMessage(cto, ruling)
+  YOU run the feature's tests ─► fail ─► SendMessage(coding)  (fix until they pass; stuck ─► cto)
         ▼ pass                               status ─► review
   ┌ Agent(code-reviewer) "Focus: correctness" ┐
   ├ Agent(code-reviewer) "Focus: conventions" ┤  concurrent, every one must APPROVE
   ├ Agent(code-reviewer) "Focus: security"    ┤
   └ Agent(code-reviewer) "Focus: tests"       ┤
         ▲                                     │ CHANGES_REQUESTED
-        └── SendMessage(coding) ─► feature's tests ─► blocking reviewers only  (fix ×1 ─► then cto)
-  YOU run full verification: lint, typecheck, full suite, e2e ─► fail ─► SendMessage(coding)  (fix ×1 ─► then cto)
+        └── SendMessage(coding) ─► feature's tests ─► blocking reviewers only  (fix until approved; stuck ─► cto)
+  YOU run full verification: lint, typecheck, full suite, e2e ─► fail ─► SendMessage(coding)  (fix until they pass; stuck ─► cto)
   finish the ticket ─► commit the code (run branch) ─► commit the documents (framework root)
   ─► report + RUN-ROADMAP-RESULT
 ```
 
 ### Which agents are persistent
 `agent-pipeline` holds the mechanics — spawn once, resume with `SendMessage`, concurrent calls in one
-tool block, the single JSON block and its one retry, and the `completed` / `escalate` / `aborted`
+tool block, the single JSON block and how to ask for it again, and the `completed` / `human_required`
 vocabulary. The persistent roles here are the **cto**, the **planner**, the **plan reviewer** (two
 on a high-risk plan), the **test planner**, the **test writer**, the **coding agent**, and the **four
 code reviewers**, one per focus. Each focus is a role of its own: a re-review resumes the reviewer
@@ -142,27 +140,17 @@ that blocked. Keep every id. `agent-pipeline` also holds the test fingerprints a
 the design docs on its first turn; re-spawning it throws that away and invites an answer that
 contradicts the one before it.
 
-## The caps — every one of them is hard
+## One stop: `human_required`
 
-An unattended run with a soft cap is an unattended run that never ends. Apply these mechanically:
+No stage has a retry limit, and no count ends a loop: a gate loops until it passes. `agent-pipeline`
+lists what raises `human_required`, and it is the only thing that ends this run early.
 
-| Cap | Value | What happens at the cap |
-| --- | --- | --- |
-| Tickets per invocation | **1** | Print the result line and stop. The script starts the next ticket |
-| Claim attempts lost in a row | **3** | Outcome `blocked` — another run keeps taking the same tickets |
-| Plan revisions | **1** | Ask the CTO for an `escalation` ruling |
-| Sharpen rounds for a new test that does not fail | **1** | A case that still passes is recorded and the run goes on. A case that still does not run asks the CTO for an `escalation` ruling |
-| Feature-test fix cycles, a restored test file included | **2** | Ask the CTO for an `escalation` ruling |
-| Test dispute rounds | **1** | A second dispute, or a dispute the test planner escalated, asks the CTO for an `escalation` ruling |
-| Code review fix cycles | **1** | Ask the CTO for an `escalation` ruling |
-| Full verification fix cycles | **1** | Ask the CTO for an `escalation` ruling |
-| Re-asks for a missing result block, per agent turn | **1** | Outcome `aborted` at that stage |
-| CTO rulings per stage | **1** | A second escalation at the same stage is `handed-back`. Never ask twice |
-| CTO rulings per ticket | **2** | The third escalation is `handed-back`, whatever stage it came from |
-| `retry` cycles granted by a ruling | **1 per stage** | A `retry` that fails again is `handed-back` |
+**Ask the CTO first when a person would decide**: a stage that is stuck, a blocker, and a question
+about the specification go to Stage 7, and `human_required` follows only when the CTO sets
+`humanRequired`. A dead agent and wrong ground go straight to `human_required`.
 
-A `retry` ruling buys exactly one more cycle at that stage, and the stage's own cap is then spent.
-Never improvise a third cycle because the next one looks close.
+One ticket per invocation is how the run is built, not a limit: print the result line and stop, and
+the script starts the next ticket.
 
 ## The worklog, the assignee, and the commit — you are the only writer
 
@@ -195,10 +183,10 @@ to learn why the product went this way, and nothing else records them. Write eac
 wrote it: the decision, what it beat, and the cost it accepted. The answers to the planner's open
 questions go in the plan entry; every ruling gets an entry of its own.
 
-**Every exit writes the outcome entry.** A hand-back, a defer, and an abort all run
+**Every exit writes the outcome entry.** A `human_required` runs
 `ticket-board`'s *Stopping without finishing* transition, so the next session reads the worklog and
-learns where the ticket stopped and why. Then they all run Stage 9's **keep the record, discard the
-code** procedure, whatever stage they stopped at — an unattended run must never leave half-built code
+learns where the ticket stopped and why. Then it runs Stage 9's **keep the record, discard the
+code** procedure, whatever stage it stopped at — an unattended run must never leave half-built code
 in the run worktree for the next ticket to commit.
 
 ## Workflow
@@ -207,21 +195,21 @@ in the run worktree for the next ticket to commit.
 Check these first, in one parallel Bash batch, and stop before you spawn anything if one fails:
 
 - **The framework root and its roadmap exist.** Resolve them with `sdlc-structure`. With no roadmap
-  anywhere, outcome `blocked`, naming `/setup`.
+  anywhere, outcome `human_required`, naming `/setup`.
 - **Every registered repository is a git work tree.** `git -C <path> rev-parse
   --is-inside-work-tree`, one per entry in the registry, in one batch. In a repo-rooted run that is
   the session's own repository, and the registry is not read. Without git there is no run branch and
-  no audit trail: outcome `blocked`, naming the repository. **A dirty checkout is not a failure** —
+  no audit trail: outcome `human_required`, naming the repository. **A dirty checkout is not a failure** —
   the run builds in its own worktree, from the checkout's last commit.
 - **Every registered repository, and the folder its worktrees go in, is reachable from this
-  session.** A path that does not exist or that this session cannot write to is outcome `blocked` —
+  session.** A path that does not exist or that this session cannot write to is outcome `human_required` —
   name it, and name the fix: restart with `--add-dir` for it. An unattended run cannot grant itself
   access.
 - **The run's own worktrees, when they exist, are clean.** `git -C <worktree> status --porcelain`
   for each one a `--run` already made. Work left there is a ticket that neither committed nor
-  discarded: outcome `blocked`, naming the worktree.
+  discarded: outcome `human_required`, naming the worktree.
 
-Report a `blocked` preflight in two lines and print the result line. Do not try to fix the ground.
+Report a failed preflight in two lines and print the result line. Do not try to fix the ground.
 
 ### 1. Select the next feature — can it run?
 `ticket-board` holds the roadmap's shape — one `## <CODE> — <epic name>` section per epic, one row
@@ -245,7 +233,7 @@ section**. Reading a table top to bottom reads it in the order it should be buil
   description, acceptance criteria, priority, and `depends_on` from there. Correct a row that
   disagrees, as `ticket-board` says, and record what you corrected in the opening worklog entry.
 - **No ticket left on the roadmap** → outcome `no-work`, `remaining` 0: the roadmap is done.
-  **Tickets left and no candidate feature** → outcome `no-work` with the tickets left in
+  **Tickets left and no candidate feature** → outcome `human_required` with the tickets left in
   `remaining`, and say what each feature waits on — another run's claim, a block, a missing ID. A
   person has to unblock it. Never invent a ticket.
 
@@ -263,13 +251,12 @@ Agent(subagent_type: "sdlc:cto", model: "opus",
               + "Remaining on the roadmap: <N> tickets across <K> features.")
 ```
 
-It returns one `json` block with `featureCode`, `rationale`, `e2e`, `skipped`, and the hand-back
-fields — the shape is in the agent definition, do not restate it.
+It returns one `json` block with `featureCode`, `rationale`, `e2e`, `skipped`, and the
+`humanRequired` fields — the shape is in the agent definition, do not restate it.
 
-- `handBack: true` → **it cannot run**: outcome `handed-back`. Nothing has started, so there is no
+- `humanRequired: true` → **it cannot run**: outcome `human_required`. Nothing has started, so there is no
   ticket to stop: report the reason and print the result line.
-- A `featureCode` that is not a candidate → ask **once** for a candidate code. A second bad answer
-  is `aborted` at stage `selection`.
+- A `featureCode` that is not a candidate → ask again, naming the candidates.
 - A non-empty `skipped` → carry each skipped feature and its reason into the report, so a person can
   fix it. Change nothing about its tickets.
 - **Confirm automatically.** Where `/orchestrate` asks the person to confirm the pick, the CTO's pick
@@ -286,8 +273,6 @@ then read every one back in the next. `ticket-board` holds the claim's rules.
 - **Any one reads back as another run's** → lost. Remove the claims this attempt wrote, in one tool
   block, and go back to Stage 1 with the candidates collected again. Resume the same CTO, and tell it
   which ticket of which feature was lost.
-- **Lost three times in a row** → outcome `blocked`: another run keeps taking the same tickets, and a
-  person has to look. Release nothing else — this attempt's claims are already removed.
 
 ### 1.3 Choose the feature's next ticket
 **The ticket to build** is the cluster's first ticket, in dependency order, whose `depends_on` is all
@@ -309,10 +294,10 @@ Agent(subagent_type: "sdlc:repo-resolver", model: "sonnet",
 - **`settled: true`** → its codes are the ticket's work roots. Write them onto the ticket's
   `repositories` in the Stage 2 Starting a ticket tool block, and its evidence into the opening
   worklog entry.
-- **`settled: false`** → outcome `handed-back`: nobody is here to choose, and building in the wrong
+- **`settled: false`** → outcome `human_required`: nobody is here to choose, and building in the wrong
   repository costs the whole pipeline. Report the candidates it named, so a person can fill
   `repositories` and resume. Release the cluster's claims first, as every end does.
-- Silent after one re-ask → `aborted` at stage `repositories`.
+- Silent → `human_required` at stage `repositories`.
 
 Never ask the CTO which repository, and never fall back to every registered repository.
 
@@ -327,9 +312,9 @@ Never ask the CTO which repository, and never fall back to every registered repo
   checkout's current commit.
 
 A worktree that cannot be created — the path is taken, the branch is checked out elsewhere, the
-folder is not writable — is outcome `blocked`, naming the repository and git's error. **Remove this
+folder is not writable — is outcome `human_required`, naming the repository and git's error. **Remove this
 run's claims on the whole cluster first**, as every end does. A worktree that exists but is not clean
-is `blocked` the same way.
+is `human_required` the same way.
 
 ### 2. Start the ticket, then plan and draft the tests concurrently
 **Pick up the ticket to build**: run `ticket-board`'s **Starting a ticket** transition yourself,
@@ -354,7 +339,7 @@ Agent(subagent_type: "sdlc:implementation-planner", model: "opus",
                  current practice. The ticket's Decisions are fixed constraints. Return the context
                  pack with the project's check commands, the full plan, and its risk profile in this
                  one reply — or, when a fork the documents leave open needs an answer, the context
-                 pack and every open question instead. I settle them in one round.")
+                 pack and every open question instead. I settle them.")
 
 Agent(subagent_type: "sdlc:test-planner", model: "opus",
       prompt: the ticket block + acceptance criteria + its Decisions + the design docs' paths
@@ -371,10 +356,10 @@ pack and every open question, no plan, and a `null` `riskProfile`. **Forward the
 coding agent, and every code reviewer, and to the test planner with the plan, so none of them
 cold-explores the codebase. Its `verificationCommands` and `e2eCommand` are the checks you run in Stage 6.5.
 
-Planner silent → `aborted` at stage `plan`. The test planner's spec-only turn emits no `json`
-block; it is silent only when it returns nothing at all → `aborted` at stage `test-plan`.
+Planner silent → `human_required` at stage `plan`. The test planner's spec-only turn emits no `json`
+block; it is silent only when it returns nothing at all → `human_required` at stage `test-plan`.
 
-### 3. The CTO answers the open questions — one round
+### 3. The CTO answers the open questions
 **A plan turn** → the plan stands; go to Stage 4.
 
 **A question turn** → resume the same CTO — do not spawn a second one:
@@ -389,17 +374,16 @@ SendMessage(ctoId, "Request: decisions. The planner read the ticket's documents 
 
 In the same tool block, spawn the plan reviewer in **pre-read only** mode, so it reads the context
 pack while the plan is still being written; see Stage 4. The CTO returns one choice per question and
-the hand-back fields; the shape is in the agent definition.
+the `humanRequired` fields; the shape is in the agent definition.
 
-- `handBack: true` → outcome `handed-back`: the ticket goes back to planning with a person. Run
+- `humanRequired: true` → outcome `human_required`: the ticket goes back to planning with a person. Run
   *Stopping without finishing*, with the outcome entry naming the question the CTO would not settle
   and why.
 - Otherwise `SendMessage(plannerId, the answers + "These questions are settled — treat the answers
   as fixed constraints. Write the full plan now, and end with the ```json block.")`. Keep the
-  answers for the plan entry. Planner silent → `aborted` at stage `plan`.
+  answers for the plan entry. Planner silent → `human_required` at stage `plan`.
 
-**One round only.** A non-empty `openQuestions` on the planner's next turn is an escalation: ask the
-CTO for a ruling (Stage 7) with stage `plan`.
+A non-empty `openQuestions` on the planner's next turn goes to the CTO the same way.
 
 ### 4. Review the plan — the risk gate
 **Apply the gate mechanically** on the final `riskProfile`:
@@ -426,22 +410,22 @@ criteria, its Decisions, the context pack, and the plan in one message. The plan
 focus input, so each high-risk prompt names its lens.
 
 Merge multiple verdicts: `CHANGES_REQUESTED` if **any** reviewer requests changes; concatenate the
-issues. Every reviewer silent → `aborted` at stage `plan-review`.
+issues. Every reviewer silent → `human_required` at stage `plan-review`.
 
 - `APPROVED` → append the plan and plan-review entries and set `assigned` to `test-planner-<n>`, in
   one tool block, then Stage 4.5. The plan entry carries the **direction** the plan settled on, the
   approach it turned down, and each CTO answer with its reason; the plan markdown is kept nowhere.
-- `CHANGES_REQUESTED`, **not yet revised** → `SendMessage(plannerId, "Revise your plan to resolve
+- `CHANGES_REQUESTED` → `SendMessage(plannerId, "Revise your plan to resolve
   every issue below. Note in the Context section how each was addressed. Re-emit the full plan
   markdown + the ```json block." + issues)`, then re-review through the same reviewer(s).
-- `CHANGES_REQUESTED`, **already revised once** → **ask the CTO** (Stage 7) with stage
+- `CHANGES_REQUESTED`, **stuck**, as `agent-pipeline` defines it → **ask the CTO** (Stage 7) with stage
   `plan-review`.
 
 ### 4.5 Plan the tests
 Resume the test planner: `SendMessage(testPlannerId, the approved plan + the context pack + "The
 plan is approved. Attach your drafted cases to the public interfaces it exposes, cut what it made
 redundant, and return the full test plan with its ```json block.")`. It returns `summary`, `cases`,
-and `untested`. Silent → `aborted` at stage `test-plan`.
+and `untested`. Silent → `human_required` at stage `test-plan`.
 
 Append the `test-planner · test plan` entry — each case in one line and each exclusion with its
 reason — and set `assigned` to `test-writer-<n>`, in one tool block. **An empty `cases` skips Stages
@@ -460,7 +444,7 @@ Agent(subagent_type: "sdlc:test-writer", model: "sonnet",
 
 It returns `testFiles`, `cases` — each with the `command` that runs it alone and what the writer
 `observed` — the top-level `command` and `e2eCommand`, and `blockers`. `observed` is the writer's own
-report, never the gate: Stage 4.7 runs every case itself. Silent → `aborted` at stage `write-tests`.
+report, never the gate: Stage 4.7 runs every case itself. Silent → `human_required` at stage `write-tests`.
 Non-empty `blockers` → **ask the CTO** with stage `write-tests`. **Fingerprint every file it created
 or modified**, as `agent-pipeline` says. Append the `test-writer · tests` entry, in one tool block:
 the work root, every test file, and each case's `command` beside its id. **This entry is the record the
@@ -478,9 +462,10 @@ new case must fail**, because the behavior it tests is not built yet:
 Send every passing or broken case back in one message: `SendMessage(testWriterId, "These cases did
 not fail as they must. Sharpen each passing one so it asserts what only the new code delivers, repair
 each broken one, and report again." + each case and its output)`. Fingerprint its files again,
-append a new `test-writer · tests` entry when a file or a command changed, and run those cases once
-more. **One sharpen round only**: a case that still passes is recorded and the run goes on; a case
-that still does not run → **ask the CTO** with stage `new-tests`.
+append a new `test-writer · tests` entry when a file or a command changed, and run those cases
+again, until each one fails. A case the writer reports cannot fail, because the behavior it checks
+already exists, is recorded and the run goes on. A case it cannot repair is a blocker → **ask the
+CTO** with stage `new-tests`.
 
 Append the `<run name> · new tests` entry — each case and how it failed, and each case recorded as
 passing — and set `assigned` to `coding-<n>`, in one tool block.
@@ -503,16 +488,16 @@ It ends every turn with `summary`, `workItemsCompleted`, `filesChanged`, `decisi
 `testDisputes`, and `notes`. Act on **every** `coding` turn — this stage's and every later fix — in
 this order:
 
-1. Silent → `aborted` at stage `implement`.
-2. **Compare the fingerprints.** A changed test file goes back to the coding agent to restore, and
-   that spends one feature-test fix cycle; with none left → **ask the CTO** with stage `implement`.
+1. Silent → `human_required` at stage `implement`.
+2. **Compare the fingerprints.** A changed test file goes back to the coding agent to restore. When
+   it is stuck there → **ask the CTO** with stage `implement`.
 3. Non-empty `blockers` → **ask the CTO** with stage `implement`.
 4. Non-empty `testDisputes` → the test defect round below.
 5. Otherwise go on. On this stage's turn, append the `coding · implement` entry — its `decisions`,
    the code-level calls the plan left open — in one tool block, then Stage 5.5. A fix turn goes back
    to the stage that asked for the fix.
 
-**Test defect — at most ONE dispute round per ticket.** `SendMessage(testPlannerId, "The coding agent
+**Test defect.** `SendMessage(testPlannerId, "The coding agent
 disputes these tests. Rule on each against the specification." + testDisputes)`. It rules on each
 test:
 
@@ -522,16 +507,16 @@ test:
   cases — spawning it now when the empty test plan skipped Stage 4.6. Fingerprint its files again and
   append a new `test-writer · tests` entry. A rewritten test skips Stage 4.7, because the code that
   makes it pass now exists: go straight to Stage 5.5.
-- **`escalate`** → **ask the CTO** with stage `test-dispute`. The CTO answers a question about the
-  specification with a `retry` whose `guidance` holds the reading it chose: send that guidance to the
-  test planner, which rules again from it. That is the one extra ruling the CTO's `retry` buys.
+- **`spec-question`** → **ask the CTO** with stage `test-dispute`. The CTO answers a question about
+  the specification with a `retry` whose `guidance` holds the reading it chose: send that guidance to
+  the test planner, which rules again from it.
 
 A dispute may come from any `coding` turn, including a fix after the code review or the full
-verification. A second dispute → **ask the CTO** with stage `test-dispute`. Append the
+verification. Append the
 `test-planner · test dispute` entry — each dispute, its ruling, and the reason — and set `assigned`
 back to `coding-<n>`.
 
-### 5.5 Run the feature's tests — at most two fix cycles
+### 5.5 Run the feature's tests — until they pass
 **The feature's tests** are every test file recorded in the `test-writer · tests` entries of the
 worklogs of the feature's tickets — those already `done` and this one. Find them by the `feature`
 property, in every bucket, and take each file's latest entry. Run each by the command recorded beside
@@ -547,12 +532,12 @@ Append the `<run name> · feature tests` entry on every run — each file and it
 
 - **All passing** → set `status` to `review` and `assigned` to `code-reviewer-<n>`, in the same tool
   block, then Stage 6.
-- **Failing, with a cycle left** → `SendMessage(codingId, "The feature's tests fail. Fix the code,
+- **Failing** → `SendMessage(codingId, "The feature's tests fail. Fix the code,
   not the tests, then stop; I run them again." + the failures)`. Run its reply through Stage 5's
   steps 1–5, then run the feature's tests again, the failed files first.
-- **Failing, with both cycles spent** → **ask the CTO** with stage `feature-tests`.
+- **Failing, stuck**, as `agent-pipeline` defines it → **ask the CTO** with stage `feature-tests`.
 
-### 6. Code review — four reviewers at once, one fix cycle
+### 6. Code review — four reviewers at once, until all approve
 Issue **four `Agent` calls in one tool block**, one per focus, each spawned once and resumed:
 
 ```
@@ -577,18 +562,18 @@ Agent(subagent_type: "sdlc:code-reviewer", model: <opus on high risk, else sonne
 **The code review has no skip gate**: every focus runs on every ticket, and the model follows the same
 high-risk test as Stage 4. Append one `code-reviewer · code review` entry per focus that reviewed.
 
-- Any reviewer silent → `aborted` at stage `code-review`.
+- Any reviewer silent → `human_required` at stage `code-review`.
 - **Every reviewer returns `APPROVED`** → remove `assigned`, keep `status` `review`, then Stage 6.5.
   Minor issues become recommendations in the report; they block nothing.
-- **A reviewer blocks, not yet fixed** → set `status` to `in progress` and `assigned` to
+- **A reviewer blocks** → set `status` to `in progress` and `assigned` to
   `coding-<n>`, then one message with every blocking issue: `SendMessage(codingId, "The code review
   found the following. Fix ONLY what is needed to clear them — stay within the approved plan, change
   no test, then stop." + the blocking issues)`. Run its reply through Stage 5's steps 1–5, run the
-  feature's tests again (a failure spends a Stage 5.5 fix cycle), and set `status` back to `review`.
+  feature's tests again, and set `status` back to `review`.
   Then resume **only the reviewers that blocked**, in one tool block.
-- **A reviewer blocks, already fixed once** → **ask the CTO** with stage `code-review`.
+- **A reviewer blocks, stuck**, as `agent-pipeline` defines it → **ask the CTO** with stage `code-review`.
 
-### 6.5 Run full verification — one fix cycle
+### 6.5 Run full verification — until it passes
 Run **every check command in the context pack** yourself, in one parallel Bash batch, as
 `cd <worktree> && <command>`: the `command` of every `verificationCommands` entry — `lint`,
 `typecheck`, and `test`, the full suite — and, when the `e2eDecision` says yes, the end-to-end
@@ -606,21 +591,20 @@ worklog — **never record a skipped check as passed**. Append the `<run name> �
 every run: each command and its result.
 
 - **Every check passes** → Stage 8.
-- **A check fails, not yet fixed** → set `assigned` to `coding-<n>`, then one message with every
+- **A check fails** → set `assigned` to `coding-<n>`, then one message with every
   failure: `SendMessage(codingId, "The full verification failed. Fix ONLY what is needed to clear
   it — stay within the approved plan, change no test, then stop." + each failing command and its
   output)`. Run its reply through Stage 5's steps 1–5, then run the failed checks first and the rest
   after them.
-- **A check fails, already fixed once** → **ask the CTO** with stage `verification`.
+- **A check fails, stuck**, as `agent-pipeline` defines it → **ask the CTO** with stage `verification`.
 
-### 7. Ask the CTO for a ruling — the procedure every cap runs into
-This replaces every `escalate` in `/orchestrate`. Before you ask, check the caps: a **second** ruling
-at this stage, or a **third** on this ticket, is not a question — it is outcome `handed-back`.
+### 7. Ask the CTO for a ruling — the procedure every stuck stage runs into
+This replaces `human_required` in `/orchestrate` wherever a person would decide what happens next:
 
 ```
-SendMessage(ctoId, "Request: escalation. Stage <stage> hit its cap."
-                 + what the stage reported (issues, failures, or blockers)
-                 + what was already tried (the revision or the fix cycle, and what it changed)
+SendMessage(ctoId, "Request: ruling. Stage <stage> needs a decision."
+                 + what the stage reported (issues, failures, blockers, or the question)
+                 + what was already tried (the revisions or the fix cycles, and what they changed)
                  + "Rulings already given on this ticket: <list, or none>.")
 ```
 
@@ -630,11 +614,9 @@ ruling, whatever it says, then act:
 
 | Ruling | What you do |
 | --- | --- |
-| `retry` | One more cycle at that stage, with the CTO's `guidance` in the message to the agent that owns it. The stage's cap is now spent — a second failure is `handed-back` |
+| `retry` | Go on at that stage, with the CTO's `guidance` in the message to the agent that owns it |
 | `rescope` | `SendMessage` the planner or the coding agent with the narrowed ticket, finish it, and in the Stage 8 edit **add the dropped part to the roadmap** as a new `backlog` ticket, per `ticket-board`. Say what came out, in the report and the worklog |
-| `defer` | Outcome `deferred`. Run *Stopping without finishing*, then Stage 9's **keep the record, discard the code** procedure. The ticket keeps everything that was learned, and the roadmap run ends: a person decides how the feature goes on without it |
-| `stop-run` | Outcome `stop-run`. The same as `deferred` for this ticket |
-| `handBack: true` | Outcome `handed-back`, whatever the ruling field says. A person decides |
+| `humanRequired: true` | Outcome `human_required`, whatever the ruling field says. Run *Stopping without finishing*, then Stage 9's **keep the record, discard the code** procedure. A person decides how the feature goes on |
 
 ### 8. Finish the ticket (only on success)
 **Commit the code first**, by Stage 9's code-commit steps. A ticket is `done` only once its code is
@@ -668,7 +650,7 @@ a sequence of changes a person can read and merge.
    verification result. `technical-writing` governs it. A ticket that changed two worktrees gets one
    commit in each, same subject, each body naming the other repository.
 4. **Never push, never merge, never amend, and never touch a commit that was already there.**
-5. A commit that fails — a hook rejects it — is outcome `blocked`. The ticket has not finished: run
+5. A commit that fails — a hook rejects it — is outcome `human_required`. The ticket has not finished: run
    *Stopping without finishing*, with `blocked_by` naming the hook and what it said, then commit
    the documents. Leave the worktree as it is for a person to look at. Do not retry with
    `--no-verify`.
@@ -680,12 +662,12 @@ those paths only, because the person may have their own changes there — then o
 code commit's subject. A framework root in a vault that is no git tree has nothing to commit: the
 files are saved, and the report says so.
 
-**A documents commit that fails is outcome `blocked`**, and the ticket stays as it is: its code
+**A documents commit that fails is outcome `human_required`**, and the ticket stays as it is: its code
 commit has landed and its files are already written, so nothing is undone. Say what git said, leave
 the framework root's changes uncommitted for a person, and never retry with `--no-verify`.
 
-**Keep the record, discard the code** — the exit every unfinished ticket takes: `deferred`,
-`stop-run`, `handed-back`, `aborted`, and a `blocked` commit's ticket once a person has looked.
+**Keep the record, discard the code** — the exit every `human_required` ticket takes, and a rejected
+commit's ticket once a person has looked.
 Half-built code must not be committed, the ticket's record must survive, and the next session has
 to start from a clean worktree:
 
@@ -697,7 +679,7 @@ to start from a clean worktree:
    ticket touched. The worktree is the run's own, so this discards exactly the ticket's code and
    nothing of the person's.
 4. Commit the documents in the framework root, as above, with a subject naming the ticket and the
-   outcome — `<ID>: deferred by cto` — and the CTO's reason in the body.
+   outcome — `<ID>: human_required` — and the reason in the body.
 5. Confirm every worktree is clean with `git -C <worktree> status --porcelain`. The script ends the
    run when a ticket leaves work behind.
 
@@ -714,12 +696,12 @@ The report is short — a person reads a hundred of these in a log, not one on a
 ## [ID] — [Title] · [outcome]
 
 - [x] Feature chosen by cto — [the rationale, one line]
-- [x] Planning — [N] open questions answered by cto (or: none); approved ([0 or 1] revision, or: review gate skipped)
+- [x] Planning — [N] open questions answered by cto (or: none); approved ([N] revisions, or: review gate skipped)
 - [x] Test plan — [N] cases, [M] left untested on purpose (or: no case — [why])
 - [x] Tests written first — [N] failing before the code; [K] sharpened, [P] still passing and recorded
-- [x] Implementation — [N] files; [0 or N] test disputes ([rulings])
-- [x] Feature's tests — passed, [N] files across [M] tickets ([0–2] fix cycles; [what was skipped and why])
-- [x] Code review — correctness, conventions, security, tests approved ([0 or 1] fix cycle)
+- [x] Implementation — [N] files; [N] test disputes ([rulings])
+- [x] Feature's tests — passed, [N] files across [M] tickets ([N] fix cycles; [what was skipped and why])
+- [x] Code review — correctness, conventions, security, tests approved ([N] fix cycles)
 - [x] Full verification — passed ([the commands], or: [what was skipped and why])
 - [x] Run — [run name] · branch `run-roadmap-<n>` · feature [CODE] · cluster [IDs, done and left]
 - [x] Run worktrees — [code] `[absolute path]`, one per line
@@ -743,7 +725,7 @@ One line, valid compact JSON, no code fence, no text after it. The fields:
 
 | Field | Value |
 | --- | --- |
-| `outcome` | `completed`, `deferred`, `handed-back`, `aborted`, `stop-run`, `no-work`, or `blocked` |
+| `outcome` | `completed`, `human_required`, or `no-work` |
 | `run` | The roadmap run's name, `run-roadmap-<n>`. The script passes it to the next session |
 | `feature` | The code of the feature the run holds, or `""` when none was selected |
 | `taskId` | The ticket this invocation worked on, or `""` when none was started. It may belong to another feature, as a dependency of the one the run holds |
@@ -758,12 +740,8 @@ One line, valid compact JSON, no code fence, no text after it. The fields:
 | Outcome | What happened | `nextAction` |
 | --- | --- | --- |
 | `completed` | The ticket shipped and was committed on the run branch | `continue`, or `stop` when `remaining` is 0 or this session is `--final` |
-| `deferred` | The CTO ruled `defer`; the ticket waits for a person | `stop` |
-| `handed-back` | The CTO set `handBack`, or a cap ran out of rulings | `stop` |
-| `aborted` | An agent returned nothing usable after one retry | `stop` |
-| `stop-run` | The CTO ruled that the run must end | `stop` |
-| `no-work` | No ticket left (`remaining` 0), or tickets left and none can be selected | `stop` |
-| `blocked` | Preflight, the claim, a worktree, or a commit failed — the ground is wrong | `stop` |
+| `human_required` | A person must act: the CTO set `humanRequired`, an agent died, tickets are left and none can be selected, or preflight, a worktree, or a commit failed | `stop` |
+| `no-work` | No ticket left (`remaining` 0) | `stop` |
 
 `technical-writing` governs the report. **It does not govern the result line**, which is data: keep the
 keys, the order, and the spelling exactly as above.
@@ -773,13 +751,13 @@ The four skills carry the rules they own. What is this command's own:
 
 - **One ticket per invocation.** Never loop over the roadmap in one session. The script does that.
 - **Never call `AskUserQuestion`, and never write a sentence that waits for an answer.** Ask the
-  CTO, or hand back.
+  CTO, or raise `human_required`.
 - **The CTO decides; you execute and record.** Never answer a product question yourself, and never
   overrule the CTO — but never let it past a failing gate either. A test result and a review verdict
   are not product decisions.
-- **Every cap is hard**, and the CTO's `retry` buys exactly one cycle. No improvised extra pass.
+- **No retry limit.** A gate loops until it passes, and only `human_required` ends the run early.
 - **Tests before code, and the coder never touches them.** Every new test runs before `coding`
-  starts, and one that does not fail is sharpened once, then recorded. Once `coding` starts, a test
+  starts, and one that does not fail is sharpened until it does, or recorded when it cannot fail. Once `coding` starts, a test
   changes only by a `revised` ruling from the test planner. The CTO settles what the specification
   means; it never tells the coding agent to change a test.
 - **Work one feature at a time.** Claim its whole cluster before anything else is written, build every ticket of it before selecting another feature, and release the claims at every end.

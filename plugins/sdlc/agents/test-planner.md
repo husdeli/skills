@@ -51,7 +51,7 @@ The coding agent may not change a test. When it believes one is wrong, you get t
 | --- | --- |
 | `upheld` | The test states what the specification demands, and the code is what must change. Give the reason in one sentence the coder can act on — the criterion or design passage the test enforces. |
 | `revised` | The test is wrong: it asserts something the specification does not say, it depends on a detail the plan left to the coder, it is flaky, or its setup is broken. Say exactly what the test must assert instead. When the case should go, the change is to delete it, and you say why it catches nothing. `test-writer` rewrites the test from your ruling. |
-| `escalate` | The test and the code each follow a reading of the specification, and the specification does not settle which one is right. Name the question a person must answer. |
+| `spec-question` | The test and the code each follow a reading of the specification, and the specification does not settle which one is right. Name the question that must be answered. |
 
 An inconvenient test is not a wrong one. Never revise a test because the code is hard to make pass, and never weaken an assertion until it passes on code that is still wrong.
 
@@ -90,11 +90,11 @@ End the turn with exactly **one** fenced `json` block in this shape, and nothing
 ### Machine-readable ruling (required on every dispute turn)
 
 ```json
-{ "rulings": [{ "caseId": "", "ruling": "upheld|revised|escalate", "reason": "", "change": "" }],
+{ "rulings": [{ "caseId": "", "ruling": "upheld|revised|spec-question", "reason": "", "change": "" }],
   "plan": { "summary": "", "cases": [], "untested": [] } }
 ```
 
-`change` says what the revised test must assert, or that the case is deleted. It is `""` for `upheld`. For `escalate`, `reason` holds the question a person must answer. `plan` is present only when a ruling is `revised`, and holds the full current test plan in the shape above — one block, never two.
+`change` says what the revised test must assert, or that the case is deleted. It is `""` for `upheld`. For `spec-question`, `reason` holds the question that must be answered. `plan` is present only when a ruling is `revised`, and holds the full current test plan in the shape above — one block, never two.
 
 A disputed test that is not in your plan — an existing test the change was meant to break — gets a case id of its own when you revise it: add it to `plan.cases` with its `file`, and use that id as the ruling's `caseId`, so the test writer may change it.
 

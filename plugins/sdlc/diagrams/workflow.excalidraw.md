@@ -125,7 +125,7 @@ pipeline runs with a person at
 its decisions for one ticket.
 An agent that returns nothing usable,
 a coder that hits a blocker, or a
-loop past its cap also ends it:
+stuck loop also ends it:
 it needs a person. ^1Eb7VABJ
 
 ## Element Links
@@ -5404,9 +5404,9 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"updated": 1791918378139,
 			"link": null,
 			"locked": false,
-			"text": "Called from the roadmap run: open\nStart to go back to it. The same\npipeline runs with a person at\nits decisions for one ticket.\nAn agent that returns nothing usable,\na coder that hits a blocker, or a\nloop past its cap also ends it:\nit needs a person.",
-			"rawText": "Called from the roadmap run: open\nStart to go back to it. The same\npipeline runs with a person at\nits decisions for one ticket.\nAn agent that returns nothing usable,\na coder that hits a blocker, or a\nloop past its cap also ends it:\nit needs a person.",
-			"originalText": "Called from the roadmap run: open\nStart to go back to it. The same\npipeline runs with a person at\nits decisions for one ticket.\nAn agent that returns nothing usable,\na coder that hits a blocker, or a\nloop past its cap also ends it:\nit needs a person.",
+			"text": "Called from the roadmap run: open\nStart to go back to it. The same\npipeline runs with a person at\nits decisions for one ticket.\nAn agent that returns nothing usable,\na coder that hits a blocker, or a\nstuck loop also ends it:\nit needs a person.",
+			"rawText": "Called from the roadmap run: open\nStart to go back to it. The same\npipeline runs with a person at\nits decisions for one ticket.\nAn agent that returns nothing usable,\na coder that hits a blocker, or a\nstuck loop also ends it:\nit needs a person.",
+			"originalText": "Called from the roadmap run: open\nStart to go back to it. The same\npipeline runs with a person at\nits decisions for one ticket.\nAn agent that returns nothing usable,\na coder that hits a blocker, or a\nstuck loop also ends it:\nit needs a person.",
 			"fontSize": 14,
 			"fontFamily": 5,
 			"textAlign": "left",
