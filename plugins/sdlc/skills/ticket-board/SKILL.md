@@ -345,6 +345,33 @@ and name the setup entry point as the way to clean it up. **A ticket with no `pr
 `Medium`; write that value into the ticket and the row the next time either is touched, and say in
 the report that the priority was assumed.
 
+## The board script does the counting
+
+The rules above are mechanical, and a run that applies them by hand reads every ticket and every
+worklog to do it. **`scripts/board.py` applies them** and prints one JSON object; run it instead,
+and read the files by hand only when `python3` is missing:
+
+```bash
+board="${CLAUDE_PLUGIN_ROOT}/scripts/board.py"
+python3 "$board" ready [--project <name>]              # ready tickets in roadmap order, resumes marked,
+                                                       # and the work roots claimed builds hold
+python3 "$board" ready --features --run <run name>     # a roadmap run's feature candidates and clusters
+python3 "$board" next-run --command <command>          # the lowest number no claim uses
+python3 "$board" claim --run <claim> <ID>…             # write and read back; exit 1 when one is lost
+python3 "$board" release --run <claim> [<ID>…]         # every open ticket the run claims, when no ID
+python3 "$board" feature-tests --ticket <ID> [--work-root <code>=<path>]
+```
+
+- **`ready` lists candidates, not their content.** Open each ticket you offer for its description
+  and criteria, and correct a row that disagrees with it, as above.
+- **`claim` is all or nothing.** When it reads back another run's claim, it removes what it wrote,
+  and the run drops the ticket or the cluster and picks again.
+- **`feature-tests` reads the test records** described in the worklog section below, leaves out the
+  end-to-end cases, and returns one command per distinct command. With `--work-root`, a case built in
+  another work root, or whose file that tree does not hold, comes back under `skipped`, never as
+  passed. A work root with no registry code is passed as its bare path. An older entry with no record comes back under `unparsed`: read that entry by hand.
+- **Pass `--root <framework root>`** when the session does not stand in it.
+
 ## The worklog
 
 **A ticket that has started has a worklog beside it** — `<CODE>-<NNN>-<slug>.worklog.md`, in the
@@ -378,6 +405,26 @@ own entries name the orchestrator's claim: `orchestrate-2 · start`, `orchestrat
 - **Never rewrite or delete an earlier entry.** A decision that turns out wrong becomes a new entry
   that says so.
 
+**A `test-writer · tests` entry ends with its test record**, the one block of data a worklog holds,
+because the feature's later tickets run their tests from it. Copy `testFiles`, `command`,
+`e2eCommand`, and each case's `id`, `file`, and `command` from the test writer's block; add the work
+root's registry code, or `""` with no registry, and each case's `type` from the test plan:
+
+````markdown
+## 2026-10-09 13:40 — test-writer · tests
+
+- One unit case, on the add path the cart had no test for.
+
+```json
+{"workRoot": "acme-api", "testFiles": {"created": ["src/cart.test.ts"], "modified": [], "deleted": []},
+ "command": "bun test src/cart.test.ts", "e2eCommand": "",
+ "cases": [{"id": "T1", "file": "src/cart.test.ts", "command": "bun test src/cart.test.ts -t adds", "type": "unit"}]}
+```
+````
+
+A later entry overrides an earlier case with the same `id`, and a file it lists under `deleted` drops
+every case in it.
+
 ## The orchestrator is the only writer
 
 **Only the orchestrator writes a ticket, its worklog, and the roadmap.** Every agent reports its
@@ -396,8 +443,8 @@ one tool block. Never spread a status change across turns, and never delegate on
    there. A ticket this run already claims — a roadmap run's feature cluster — keeps its claim. Resolve the work root and confirm the session can write to it; a run that cannot stops
    here, removes its claim, and writes nothing else.
    **Then check the checkout is free:** list `work/in-progress/` for a ticket another run claims
-   at `in progress` or `review` whose `repositories` names the same work root. One found → remove
-   this claim, name that ticket and its run, and pick again. A roadmap run building in its own run
+   at `in progress` or `review` whose `repositories` names the same work root — `board.py ready`
+   returns them as `busyWorkRoots`. One found → remove this claim, name that ticket and its run, and pick again. A roadmap run building in its own run
    worktrees skips this check.
 2. **`status`** → `in progress`, **`assigned`** → the first agent, **`updatedAt`** → now. Remove
    `blocked_by` when the ticket resumes from `blocked`.

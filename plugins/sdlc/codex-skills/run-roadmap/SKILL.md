@@ -11,7 +11,7 @@ Run one roadmap task autonomously with the shared run-roadmap command.
 
 1. Resolve `../../commands/run-roadmap.md` from this skill directory.
 2. Read the command file completely before changing task status or creating subagents.
-3. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
+3. Replace `$ARGUMENTS` with the request text that follows the skill invocation, and `${CLAUDE_PLUGIN_ROOT}` with the plugin root that contains this skill.
 4. Treat the shared command as the source of truth for the stages, the contracts, the
    commit, and the result line.
 5. Read every skill the command's table names, from the plugin's `skills/<name>/SKILL.md` —

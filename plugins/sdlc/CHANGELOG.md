@@ -7,7 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`scripts/board.py`**, the board's bookkeeping as one script that prints JSON, so a pipeline no
+  longer reads every ticket and every worklog to work it out. It reuses `build-roadmap.py`'s parser,
+  and writes nothing but the `claimed` property:
+  - `ready` — the ready tickets in roadmap order, each resume marked, and the work roots claimed
+    builds hold; with `--features`, a roadmap run's candidate features, each cluster in build order
+    with its next ticket, and what each excluded feature waits on.
+  - `next-run`, `claim`, and `release` — the lowest free run number, a claim written and read back
+    that removes what it wrote when one ticket is lost, and a run's claims removed without touching
+    another run's.
+  - `feature-tests` — the feature's tests, from the worklogs' test records, end-to-end cases left
+    out, with `--work-root` skipping what another work root holds.
+- **A `test-writer · tests` worklog entry ends with a test record**, a JSON block copied from the
+  test writer's result: the work root's code, the files, and each case's command and type. It is
+  what `feature-tests` reads. An older entry without one is returned as `unparsed`, to read by hand.
+
 ### Changed
+
+- `/orchestrate`, `/orchestrate-quick`, and `/run-roadmap` call `board.py` for the pick, the claim,
+  the feature's tests, and the release, and apply the rules by hand only when `python3` is missing.
 
 - **The code review and the full verification run at once** in `/orchestrate` and `/run-roadmap`,
   as they already did in `/orchestrate-quick`. The four reviewers and every check command go out in
@@ -22,6 +42,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **The Codex `$orchestrate`, `$orchestrate-quick`, and `$run-roadmap` entry points replace
+  `${CLAUDE_PLUGIN_ROOT}`**, as `$setup` and `$stack` already did, so the scripts the commands call
+  resolve in a Codex session.
 - **`/run-roadmap`'s frontmatter did not parse.** Its `argument-hint` began with `[` unquoted, which
   YAML reads as a list and then rejects. Every command's `argument-hint` is now a quoted string.
 

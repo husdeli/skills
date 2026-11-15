@@ -34,7 +34,7 @@ skills/                          # shared rules and document skills, read by bot
 codex-skills/                    # Codex entry points, never loaded by Claude Code
 agents/                          # agent definitions and Codex role contracts
 commands/                        # Claude commands and shared workflow sources
-scripts/                         # run-roadmap.sh, the unattended launcher; build-roadmap.py; create-note.py; stack-install.py
+scripts/                         # run-roadmap.sh, the unattended launcher; build-roadmap.py; board.py; create-note.py; stack-install.py
 ```
 
 ## Where your product docs live
@@ -173,6 +173,18 @@ commands that pick a task do that for the rows they read, and
 ```shell
 plugins/sdlc/scripts/build-roadmap.py --check    # what differs, as a diff; writes nothing
 plugins/sdlc/scripts/build-roadmap.py            # rewrite every table from the tickets
+```
+
+The pipelines leave the rest of the board's arithmetic to
+[`scripts/board.py`](scripts/board.py), which reads the same tickets with the same parser: the
+ready tickets in roadmap order, a roadmap run's candidate features and their clusters, the next
+free run number, writing a claim and reading it back, releasing a run's claims, and the feature's
+tests from the test records its tickets' worklogs end with. It prints JSON and changes nothing
+but `claimed`.
+
+```shell
+plugins/sdlc/scripts/board.py ready                       # what is ready, in roadmap order
+plugins/sdlc/scripts/board.py feature-tests --ticket CHECKOUT-002
 ```
 
 **Some work needs a person after the code is done.** When the code the coding agent wrote depends

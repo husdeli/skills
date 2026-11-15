@@ -172,7 +172,7 @@ The **`ticket-board`** skill holds the roadmap's shape: one `## <CODE> — <epic
 - Carry an epic's `**Note**:` line into the planner prompt as a constraint on the task.
 
 ### 2. Pick the Next Task
-Collect **every** task that is **ready**, as `ticket-board` defines it — a `backlog` ticket whose **dependencies are all satisfied**, or a `blocked` ticket that is **resumable** because its `blocked_by` holds only finished IDs, or nothing — those are the candidates. `ticket-board` says when a `Depends on` cell counts as satisfied, and that a claimed ticket is never a candidate. Mark a resumable candidate as a resume in its line, and give the planner its worklog, as Start says. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task.
+Collect **every** task that is **ready**, as `ticket-board` defines it — a `backlog` ticket whose **dependencies are all satisfied**, or a `blocked` ticket that is **resumable** because its `blocked_by` holds only finished IDs, or nothing — those are the candidates. **`board.py ready` lists them**, in roadmap order and with each resume marked, as `ticket-board` says; open only the tickets it names. `ticket-board` says when a `Depends on` cell counts as satisfied, and that a claimed ticket is never a candidate. Mark a resumable candidate as a resume in its line, and give the planner its worklog, as Start says. When the roadmap holds no pending task at all, say so and name `/plan` as the way to add one — do not invent a task.
 
 Show the candidates first, so the user reads the detail that an option label cannot hold. List them in roadmap order — top to bottom, epic by epic. `ticket-board` keeps each epic's table sorted by priority with dependencies as a hard constraint, so roadmap order already **is** priority order; the first candidate is the highest-priority one that is actually ready.
 
@@ -206,7 +206,7 @@ Track stages with the task/todo tools so the user sees live progress.
 Every agent turn ends with one `json` block. When a block is missing or malformed, ask that agent to re-emit it, as `agent-pipeline` says. The stage names below are the ones a `human_required` reports.
 
 #### Start
-As soon as the task is approved and *before* spawning any agent, run the **`ticket-board`** skill's **Starting a ticket** transition — the claim `orchestrate-<n>` written and read back, the work root resolved as `sdlc-structure` says and checked to be writable from this session, then status, assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all in one tool block. Do it yourself with file edits; do not delegate it. A claim read back as another run's, or a checkout another run is building in, drops the ticket: say so and pick again. Two values are this command's:
+As soon as the task is approved and *before* spawning any agent, run the **`ticket-board`** skill's **Starting a ticket** transition — the claim `orchestrate-<n>` written and read back with `board.py next-run --command orchestrate` and `board.py claim`, the work root resolved as `sdlc-structure` says and checked to be writable from this session, then status, assignee, the move into `in-progress/`, the new worklog, and the roadmap row, all in one tool block. Do it yourself with file edits; do not delegate it. A claim read back as another run's, or a checkout another run is building in, drops the ticket: say so and pick again. Two values are this command's:
 - The **assignee** is `implementation-planner-<n>`.
 - The **opening worklog entry** is `orchestrate-<n> · start`: the task you are building, what it delivers, the work root and the evidence that settled it, and the `e2eDecision`. A ticket that resumes from `blocked` keeps its worklog, and the entry is appended.
 
@@ -293,7 +293,7 @@ Agent(subagent_type: "sdlc:test-writer", model: "sonnet",
 
 It ends every turn with a `json` block carrying `summary`, `testFiles`, `command`, `e2eCommand`, `cases` (each with its own `command`), and `blockers`. Nothing returned → `human_required` (stage `write-tests`). Non-empty `blockers` → `human_required` (stage `write-tests`).
 
-When it lands, **fingerprint every created and modified path in `testFiles`** as `agent-pipeline` says, and keep the fingerprints, the commands, and each case's command. Append the `test-writer · tests` entry — every file, the command that runs each case, and `command` and `e2eCommand` — in one tool block. The assignee stays `test-writer-<n>`.
+When it lands, **fingerprint every created and modified path in `testFiles`** as `agent-pipeline` says, and keep the fingerprints, the commands, and each case's command. Append the `test-writer · tests` entry, ending with its test record as `ticket-board` shows it — every file, each case's command and type, and `command` and `e2eCommand` — in one tool block. The assignee stays `test-writer-<n>`.
 
 #### Run each new test
 **Every `new` case must fail**, because the behavior it checks does not exist yet. A case that passes catches nothing, and a case that does not run is broken. A `guard` case checks behavior that already exists, so it is exempt.
@@ -335,12 +335,7 @@ It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`,
 6. Otherwise go to **Run the feature's tests**. A fix turn goes there too: the feature's tests run after every change to the code.
 
 #### Run the feature's tests
-**The feature's tests are every test the feature's tickets wrote.** Collect them from the worklogs:
-
-1. Take the feature the ticket's `feature` property links.
-2. Read the worklog of each of that feature's tickets in `done/`, and this ticket's worklog.
-3. From each worklog's `test-writer · tests` entries, take the test files and the commands recorded beside them. A later entry overrides an earlier one, and a file it records as deleted drops out.
-4. Leave out the end-to-end commands. They run in the full verification.
+**The feature's tests are every test the feature's tickets wrote** — the cases in the test records of the worklogs of the feature's tickets in `done/` and of this ticket, end-to-end cases left out, since they run in the full verification. `board.py feature-tests --ticket <ID> --work-root <code>=<work root>` collects them, as `ticket-board` says. Read any entry it returns under `unparsed` by hand: take its files and commands, a later entry overriding an earlier one.
 
 Run each command yourself — `cd <work root> && <command>` — in one tool block when they share no state, and read each exit code and output. This stage runs no lint, no type check, no full suite, and no end-to-end test. A feature whose tickets recorded no test has nothing to run here: say so in the entry and go on.
 

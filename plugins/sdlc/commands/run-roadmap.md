@@ -16,7 +16,7 @@ Arguments: $ARGUMENTS
 - **`--run run-roadmap-<n>`** — the roadmap run this session belongs to. The launcher passes it on
   every session after the first, and on a resume. Without it you start a new roadmap run: `<n>` is
   the lowest positive number that no `claimed` value in `work/` and no `run-roadmap-<n>` branch in a
-  registered repository uses.
+  registered repository uses — `board.py next-run --command run-roadmap` prints it.
 - **`--project <name>`** — the project the run builds, by the `name` in its project note. The
   launcher passes it whenever it knows the project; it settles the project before anything else, as
   `sdlc-structure` resolves it. Every work root the run builds in is one the registry lists for
@@ -219,6 +219,10 @@ section**. Reading a table top to bottom reads it in the order it should be buil
 - **In an unattended run, rebuild the roadmap first.** Nobody is there to notice a stale row, so run
   `${CLAUDE_PLUGIN_ROOT}/scripts/build-roadmap.py --project <project>` and put what it reported into
   the opening worklog entry. Skip it when `python3` is missing, and say so in the report.
+- **Then run `board.py ready --features --run <run name> --project <project>`**, as `ticket-board`
+  says. It applies the two rules below and returns `claimedByRun`, the `candidates` with each
+  cluster in build order and its `next` ticket, the `excluded` features with what each waits on, and
+  `remaining`. Apply the rules by hand only when `python3` is missing.
 - **A feature this run already claims comes first.** Find every ticket whose `claimed` is this run's
   name and that is not `done`. When there is one, the run is in the middle of a feature: skip the
   CTO and the claim, and go to Stage 1.3. The end-to-end decision is the one the run's opening entry
@@ -265,12 +269,12 @@ It returns one `json` block with `featureCode`, `rationale`, `e2e`, `skipped`, a
 Track the stages with the task/todo tools, so the session's log shows live progress.
 
 ### 1.2 Claim the feature's dependency cluster — is the claim held?
-Write `claimed: <run name>` on **every** ticket of the selected feature's cluster, in one tool block,
-then read every one back in the next. `ticket-board` holds the claim's rules.
+Write `claimed: <run name>` on **every** ticket of the selected feature's cluster and read every one
+back: `board.py claim --run <run name> <every cluster ID>`. `ticket-board` holds the claim's rules.
 
 - **Every claim reads back as this run's** → held. Go to Stage 1.3.
-- **Any one reads back as another run's** → lost. Remove the claims this attempt wrote, in one tool
-  block, and go back to Stage 1 with the candidates collected again. Resume the same CTO, and tell it
+- **Any one reads back as another run's** → lost. The script has already removed the claims this
+  attempt wrote. Go back to Stage 1 with the candidates collected again. Resume the same CTO, and tell it
   which ticket of which feature was lost.
 
 ### 1.3 Choose the feature's next ticket
@@ -445,9 +449,10 @@ It returns `testFiles`, `cases` — each with the `command` that runs it alone a
 `observed` — the top-level `command` and `e2eCommand`, and `blockers`. `observed` is the writer's own
 report, never the gate: Stage 4.7 runs every case itself. Silent → `human_required` at stage `write-tests`.
 Non-empty `blockers` → **ask the CTO** with stage `write-tests`. **Fingerprint every file it created
-or modified**, as `agent-pipeline` says. Append the `test-writer · tests` entry, in one tool block:
-the work root, every test file, and each case's `command` beside its id. **This entry is the record the
-feature's later tickets run**, so write each command exactly as the writer reported it.
+or modified**, as `agent-pipeline` says. Append the `test-writer · tests` entry, in one tool block,
+ending with its test record as `ticket-board` shows it: the work root's code, every test file, and
+each case's `command` and `type` beside its id. **This record is what the feature's later tickets
+run**, so copy each command exactly as the writer reported it.
 
 ### 4.7 Run each new test — every one must fail
 Run each case by its own `command`, as `cd <worktree> && <command>`, and read the result. **Every
@@ -516,11 +521,12 @@ verification. Append the
 back to `coding-<n>`.
 
 ### 5.5 Run the feature's tests — until they pass
-**The feature's tests** are every test file recorded in the `test-writer · tests` entries of the
-worklogs of the feature's tickets — those already `done` and this one. Find them by the `feature`
-property, in every bucket, and take each file's latest entry. Run each by the command recorded beside
-it, as `cd <worktree> && <command>`, in the run worktree of the work root the entry names; an entry
-for a work root this ticket does not build in is not run. Run nothing else here: no lint, no full
+**The feature's tests** are every case in the test records of the worklogs of the feature's tickets
+— those already `done` and this one. `board.py feature-tests --ticket <ID> --work-root
+<code>=<worktree>`, once per work root, collects them as `ticket-board` says, and read any entry it
+returns under `unparsed` by hand. Run each command it returns as `cd <worktree> && <command>`, in the
+run worktree of the work root it names; a case for a work root this ticket does not build in is not
+run. Run nothing else here: no lint, no full
 suite, and no end-to-end test — Stage 6 runs those.
 
 - A recorded file that the worktree does not hold — a ticket built on a branch not merged yet — is
@@ -661,8 +667,8 @@ to start from a clean worktree:
 
 1. Write the *Stopping without finishing* edits first — the status, `blocked_by`, the assignee
    removed, and the outcome worklog entry.
-2. **Release the run's claims** on every ticket of the cluster that is not `done`, in the same tool
-   block. Every end of a roadmap run does this.
+2. **Release the run's claims** on every ticket of the cluster that is not `done`, once those edits
+   have landed: `board.py release --run <run name>`. Every end of a roadmap run does this.
 3. `git -C <worktree> reset --hard` then `git -C <worktree> clean -fd`, in every run worktree the
    ticket touched. The worktree is the run's own, so this discards exactly the ticket's code and
    nothing of the person's.
