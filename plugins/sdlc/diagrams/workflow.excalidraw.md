@@ -37,15 +37,11 @@ run the feature's tests ^EEFXCaHw
 feature tests
 pass? ^opQxsSov
 
-Code review ^impXpOOz
+Code review and
+full verification ^impXpOOz
 
-all reviewers
-approve? ^P6nqxMya
-
-run full verification ^lKviFMvm
-
-all checks
-pass? ^sz2OTBPg
+all approve and
+checks pass? ^P6nqxMya
 
 finish the ticket and
 write its notes ^sTzmeJYH
@@ -63,8 +59,6 @@ test-strategy
 skill ^OJViZsQq
 
 Fix ^fXPXKND1
-
-Fix ^JtmlPPx4
 
 deterministic ^XPCYwA9v
 
@@ -84,8 +78,6 @@ yes ^mIvF2ZI0
 
 yes ^dgvXCa1c
 
-yes ^XjtvQpIM
-
 reads ^F187fHJ7
 
 no ^oIKpkcla
@@ -100,8 +92,6 @@ test defect ^nFjN5t8Q
 
 no ^gbmUH4mX
 
-no ^v7olfiPO
-
 yes: review
 skipped ^fsZGDenK
 
@@ -114,10 +104,10 @@ after implementation, a rewritten
 test skips this check and goes
 straight to the feature's tests ^cDh7my9g
 
-four code-reviewer agents at once:
-correctness, conventions, security,
-tests. After a fix, only the
-reviewers that blocked review again ^YPi2RH7C
+four code-reviewer agents and every
+check, at once. After a fix, every
+reviewer reviews again and every
+check runs again ^YPi2RH7C
 
 Called from the roadmap run: open
 Start to go back to it. The same
@@ -127,9 +117,6 @@ An agent that returns nothing usable,
 a coder that hits a blocker, or a
 stuck loop also ends it:
 it needs a person. ^1Eb7VABJ
-
-## Element Links
-L7pfNyZl: [[run-roadmap.excalidraw]]
 
 %%
 ## Drawing
@@ -1304,10 +1291,10 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 		{
 			"id": "impXpOOz",
 			"type": "text",
-			"x": -45.59196472167969,
-			"y": 1706,
-			"width": 91.18392944335938,
-			"height": 20,
+			"x": -81.6,
+			"y": 1696.0,
+			"width": 163,
+			"height": 40.0,
 			"angle": 0,
 			"strokeColor": "#1e1e1e",
 			"backgroundColor": "transparent",
@@ -1328,9 +1315,9 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"updated": 1791918531124,
 			"link": null,
 			"locked": false,
-			"text": "Code review",
-			"rawText": "Code review",
-			"originalText": "Code review",
+			"text": "Code review and\nfull verification",
+			"rawText": "Code review and\nfull verification",
+			"originalText": "Code review and\nfull verification",
 			"fontSize": 16,
 			"fontFamily": 5,
 			"textAlign": "center",
@@ -1396,10 +1383,10 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 		{
 			"id": "P6nqxMya",
 			"type": "text",
-			"x": -46.76795196533203,
-			"y": 1840,
-			"width": 93.53590393066406,
-			"height": 40,
+			"x": -72.0,
+			"y": 1840.0,
+			"width": 144,
+			"height": 40.0,
 			"angle": 0,
 			"strokeColor": "#1e1e1e",
 			"backgroundColor": "transparent",
@@ -1420,9 +1407,9 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"updated": 1791918531124,
 			"link": null,
 			"locked": false,
-			"text": "all reviewers\napprove?",
-			"rawText": "all reviewers\napprove?",
-			"originalText": "all reviewers\napprove?",
+			"text": "all approve and\nchecks pass?",
+			"rawText": "all approve and\nchecks pass?",
+			"originalText": "all approve and\nchecks pass?",
 			"fontSize": 16,
 			"fontFamily": 5,
 			"textAlign": "center",
@@ -1436,196 +1423,10 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"baseFontSize": null
 		},
 		{
-			"id": "hckW8ILq",
-			"type": "rectangle",
-			"x": -142,
-			"y": 1982,
-			"width": 284,
-			"height": 68,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "#ffec99",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "aS",
-			"roundness": {
-				"type": 3
-			},
-			"seed": 1976545630,
-			"version": 1,
-			"versionNonce": 1371744046,
-			"isDeleted": false,
-			"boundElements": [
-				{
-					"id": "lKviFMvm",
-					"type": "text"
-				},
-				{
-					"id": "e0saERg1",
-					"type": "arrow"
-				},
-				{
-					"id": "CtVQj8tW",
-					"type": "arrow"
-				},
-				{
-					"id": "tND7BoVu",
-					"type": "arrow"
-				}
-			],
-			"updated": 1791918378139,
-			"link": null,
-			"locked": false,
-			"customData": {
-				"legacyTextWrap": true
-			},
-			"created": null,
-			"hasTextLink": false
-		},
-		{
-			"id": "lKviFMvm",
-			"type": "text",
-			"x": -74.10393524169922,
-			"y": 2006,
-			"width": 148.20787048339844,
-			"height": 20,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "transparent",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "aT",
-			"roundness": null,
-			"seed": 492500731,
-			"version": 1,
-			"versionNonce": 1606516562,
-			"isDeleted": false,
-			"boundElements": [],
-			"updated": 1791918531124,
-			"link": null,
-			"locked": false,
-			"text": "run full verification",
-			"rawText": "run full verification",
-			"originalText": "run full verification",
-			"fontSize": 16,
-			"fontFamily": 5,
-			"textAlign": "center",
-			"verticalAlign": "middle",
-			"containerId": "hckW8ILq",
-			"lineHeight": 1.25,
-			"autoResize": true,
-			"hasTextLink": false,
-			"created": null,
-			"labelPosition": null,
-			"baseFontSize": null
-		},
-		{
-			"id": "MdWJKDnW",
-			"type": "diamond",
-			"x": -120,
-			"y": 2102,
-			"width": 240,
-			"height": 116,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "#ffec99",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "aU",
-			"roundness": null,
-			"seed": 1794681757,
-			"version": 1,
-			"versionNonce": 586939258,
-			"isDeleted": false,
-			"boundElements": [
-				{
-					"id": "sz2OTBPg",
-					"type": "text"
-				},
-				{
-					"id": "CtVQj8tW",
-					"type": "arrow"
-				},
-				{
-					"id": "EuyEFLYm",
-					"type": "arrow"
-				},
-				{
-					"id": "rCByzcP4",
-					"type": "arrow"
-				}
-			],
-			"updated": 1791918378139,
-			"link": null,
-			"locked": false,
-			"customData": {
-				"legacyTextWrap": true
-			},
-			"created": null,
-			"hasTextLink": false
-		},
-		{
-			"id": "sz2OTBPg",
-			"type": "text",
-			"x": -36.911964416503906,
-			"y": 2140,
-			"width": 73.82392883300781,
-			"height": 40,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "transparent",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "aV",
-			"roundness": null,
-			"seed": 492500731,
-			"version": 1,
-			"versionNonce": 1606516562,
-			"isDeleted": false,
-			"boundElements": [],
-			"updated": 1791918531124,
-			"link": null,
-			"locked": false,
-			"text": "all checks\npass?",
-			"rawText": "all checks\npass?",
-			"originalText": "all checks\npass?",
-			"fontSize": 16,
-			"fontFamily": 5,
-			"textAlign": "center",
-			"verticalAlign": "middle",
-			"containerId": "MdWJKDnW",
-			"lineHeight": 1.25,
-			"autoResize": true,
-			"hasTextLink": false,
-			"created": null,
-			"labelPosition": null,
-			"baseFontSize": null
-		},
-		{
 			"id": "O92XhAY7",
 			"type": "rectangle",
 			"x": -142,
-			"y": 2282,
+			"y": 1982,
 			"width": 284,
 			"height": 68,
 			"angle": 0,
@@ -1652,11 +1453,11 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 					"type": "text"
 				},
 				{
-					"id": "EuyEFLYm",
+					"id": "fgSzTsnN",
 					"type": "arrow"
 				},
 				{
-					"id": "fgSzTsnN",
+					"id": "e0saERg1",
 					"type": "arrow"
 				}
 			],
@@ -1673,7 +1474,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "sTzmeJYH",
 			"type": "text",
 			"x": -100.8,
-			"y": 2296.0,
+			"y": 1996.0,
 			"width": 201.6,
 			"height": 40.0,
 			"angle": 0,
@@ -1715,7 +1516,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "wN7ZHWTZ",
 			"type": "ellipse",
 			"x": -142,
-			"y": 2406,
+			"y": 2106,
 			"width": 284,
 			"height": 90,
 			"angle": 0,
@@ -1757,7 +1558,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "FXd6sldX",
 			"type": "text",
 			"x": -38.08796691894531,
-			"y": 2431,
+			"y": 2131,
 			"width": 76.17593383789062,
 			"height": 40,
 			"angle": 0,
@@ -2160,100 +1961,10 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"baseFontSize": null
 		},
 		{
-			"id": "aNJiRUOK",
-			"type": "rectangle",
-			"x": 328,
-			"y": 2126,
-			"width": 284,
-			"height": 68,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "#d0bfff",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "ai",
-			"roundness": {
-				"type": 3
-			},
-			"seed": 1976545630,
-			"version": 1,
-			"versionNonce": 1371744046,
-			"isDeleted": false,
-			"boundElements": [
-				{
-					"id": "JtmlPPx4",
-					"type": "text"
-				},
-				{
-					"id": "rCByzcP4",
-					"type": "arrow"
-				},
-				{
-					"id": "tND7BoVu",
-					"type": "arrow"
-				}
-			],
-			"updated": 1791918378139,
-			"link": null,
-			"locked": false,
-			"customData": {
-				"legacyTextWrap": true
-			},
-			"created": null,
-			"hasTextLink": false
-		},
-		{
-			"id": "JtmlPPx4",
-			"type": "text",
-			"x": 458.0320129394531,
-			"y": 2150,
-			"width": 23.93597412109375,
-			"height": 20,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "transparent",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "aj",
-			"roundness": null,
-			"seed": 492500731,
-			"version": 1,
-			"versionNonce": 1606516562,
-			"isDeleted": false,
-			"boundElements": [],
-			"updated": 1791918531124,
-			"link": null,
-			"locked": false,
-			"text": "Fix",
-			"rawText": "Fix",
-			"originalText": "Fix",
-			"fontSize": 16,
-			"fontFamily": 5,
-			"textAlign": "center",
-			"verticalAlign": "middle",
-			"containerId": "aNJiRUOK",
-			"lineHeight": 1.25,
-			"autoResize": true,
-			"hasTextLink": false,
-			"created": null,
-			"labelPosition": null,
-			"baseFontSize": null
-		},
-		{
 			"id": "VsKBxska",
 			"type": "rectangle",
 			"x": 329,
-			"y": 2400,
+			"y": 2100,
 			"width": 282,
 			"height": 52,
 			"angle": 0,
@@ -2293,7 +2004,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "XPCYwA9v",
 			"type": "text",
 			"x": 420.68004608154297,
-			"y": 2416,
+			"y": 2116,
 			"width": 98.63990783691406,
 			"height": 20,
 			"angle": 0,
@@ -2335,7 +2046,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "IjbZDyOg",
 			"type": "rectangle",
 			"x": 329,
-			"y": 2468,
+			"y": 2168,
 			"width": 282,
 			"height": 52,
 			"angle": 0,
@@ -2375,7 +2086,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "hmKSNkIP",
 			"type": "text",
 			"x": 442.04002380371094,
-			"y": 2484,
+			"y": 2184,
 			"width": 55.919952392578125,
 			"height": 20,
 			"angle": 0,
@@ -2417,7 +2128,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "g8J0LGWi",
 			"type": "rectangle",
 			"x": 329,
-			"y": 2536,
+			"y": 2236,
 			"width": 282,
 			"height": 52,
 			"angle": 0,
@@ -2457,7 +2168,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "eBJBFjaA",
 			"type": "text",
 			"x": 433.71202850341797,
-			"y": 2552,
+			"y": 2252,
 			"width": 72.57594299316406,
 			"height": 20,
 			"angle": 0,
@@ -2499,7 +2210,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "uLCsrLcA",
 			"type": "rectangle",
 			"x": 329,
-			"y": 2604,
+			"y": 2304,
 			"width": 282,
 			"height": 52,
 			"angle": 0,
@@ -2539,7 +2250,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "A2zhefHL",
 			"type": "text",
 			"x": 455.8400192260742,
-			"y": 2620,
+			"y": 2320,
 			"width": 28.319961547851562,
 			"height": 20,
 			"angle": 0,
@@ -3590,7 +3301,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"x": 0.02461011662646609,
 			"y": 1923.7836829386483,
 			"width": 0.003377383373538413,
-			"height": 52.216317061351674,
+			"height": 58.216317061351674,
 			"angle": 0,
 			"strokeColor": "#1e1e1e",
 			"backgroundColor": "transparent",
@@ -3624,8 +3335,8 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 					0
 				],
 				[
-					0.003377383373538413,
-					52.216317061351674
+					0,
+					58.216317061351674
 				]
 			],
 			"lastCommittedPoint": null,
@@ -3638,7 +3349,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 				]
 			},
 			"endBinding": {
-				"elementId": "hckW8ILq",
+				"elementId": "O92XhAY7",
 				"mode": "orbit",
 				"fixedPoint": [
 					0.5001,
@@ -3695,183 +3406,10 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"baseFontSize": null
 		},
 		{
-			"id": "CtVQj8tW",
-			"type": "arrow",
-			"x": 0.02789230769231209,
-			"y": 2056,
-			"width": 0.0031912009929317663,
-			"height": 40.21630418663108,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "transparent",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "b1B",
-			"roundness": {
-				"type": 2
-			},
-			"seed": 991982135,
-			"version": 2,
-			"versionNonce": 176560334,
-			"isDeleted": false,
-			"boundElements": [],
-			"updated": 1791922744308,
-			"link": null,
-			"locked": false,
-			"points": [
-				[
-					0,
-					0
-				],
-				[
-					-0.0031912009929317663,
-					40.21630418663108
-				]
-			],
-			"lastCommittedPoint": null,
-			"startBinding": {
-				"elementId": "hckW8ILq",
-				"mode": "orbit",
-				"fixedPoint": [
-					0.5001,
-					1
-				]
-			},
-			"endBinding": {
-				"elementId": "MdWJKDnW",
-				"mode": "orbit",
-				"fixedPoint": [
-					0.5001,
-					0
-				]
-			},
-			"startArrowhead": null,
-			"endArrowhead": "arrow",
-			"elbowed": false,
-			"created": null,
-			"hasTextLink": false,
-			"moveMidPointsWithElement": false
-		},
-		{
-			"id": "EuyEFLYm",
-			"type": "arrow",
-			"x": 0.024610116626444516,
-			"y": 2223.783682938649,
-			"width": 0.003377383373559986,
-			"height": 52.21631706135122,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "transparent",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "b1C",
-			"roundness": {
-				"type": 2
-			},
-			"seed": 991982135,
-			"version": 2,
-			"versionNonce": 351583566,
-			"isDeleted": false,
-			"boundElements": [
-				{
-					"id": "XjtvQpIM",
-					"type": "text"
-				}
-			],
-			"updated": 1791922744309,
-			"link": null,
-			"locked": false,
-			"points": [
-				[
-					0,
-					0
-				],
-				[
-					0.003377383373559986,
-					52.21631706135122
-				]
-			],
-			"lastCommittedPoint": null,
-			"startBinding": {
-				"elementId": "MdWJKDnW",
-				"mode": "orbit",
-				"fixedPoint": [
-					0.5001,
-					1
-				]
-			},
-			"endBinding": {
-				"elementId": "O92XhAY7",
-				"mode": "orbit",
-				"fixedPoint": [
-					0.5001,
-					0
-				]
-			},
-			"startArrowhead": null,
-			"endArrowhead": "arrow",
-			"elbowed": false,
-			"created": null,
-			"hasTextLink": false,
-			"moveMidPointsWithElement": false
-		},
-		{
-			"id": "XjtvQpIM",
-			"type": "text",
-			"x": -11.269989013671875,
-			"y": 2241.25,
-			"width": 22.53997802734375,
-			"height": 17.5,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "transparent",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "b1D",
-			"roundness": null,
-			"seed": 492500731,
-			"version": 1,
-			"versionNonce": 1606516562,
-			"isDeleted": false,
-			"boundElements": [],
-			"updated": 1791918531124,
-			"link": null,
-			"locked": false,
-			"text": "yes",
-			"rawText": "yes",
-			"originalText": "yes",
-			"fontSize": 14,
-			"fontFamily": 5,
-			"textAlign": "center",
-			"verticalAlign": "middle",
-			"containerId": "EuyEFLYm",
-			"lineHeight": 1.25,
-			"autoResize": true,
-			"hasTextLink": false,
-			"created": null,
-			"labelPosition": null,
-			"baseFontSize": null
-		},
-		{
 			"id": "fgSzTsnN",
 			"type": "arrow",
 			"x": 0.028400000000004866,
-			"y": 2356,
+			"y": 2056,
 			"width": 0,
 			"height": 44.0000009389737,
 			"angle": 0,
@@ -4845,181 +4383,6 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"baseFontSize": null
 		},
 		{
-			"id": "rCByzcP4",
-			"type": "arrow",
-			"x": 125.61699074932112,
-			"y": 2160.0114720409183,
-			"width": 196.38300925067887,
-			"height": 0.004533579379312869,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "transparent",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "b1V",
-			"roundness": {
-				"type": 2
-			},
-			"seed": 991982135,
-			"version": 2,
-			"versionNonce": 1112269710,
-			"isDeleted": false,
-			"boundElements": [
-				{
-					"id": "v7olfiPO",
-					"type": "text"
-				}
-			],
-			"updated": 1791922744309,
-			"link": null,
-			"locked": false,
-			"points": [
-				[
-					0,
-					0
-				],
-				[
-					196.38300925067887,
-					-0.004533579379312869
-				]
-			],
-			"lastCommittedPoint": null,
-			"startBinding": {
-				"elementId": "MdWJKDnW",
-				"mode": "orbit",
-				"fixedPoint": [
-					1,
-					0.5001
-				]
-			},
-			"endBinding": {
-				"elementId": "aNJiRUOK",
-				"mode": "orbit",
-				"fixedPoint": [
-					0,
-					0.5001
-				]
-			},
-			"startArrowhead": null,
-			"endArrowhead": "arrow",
-			"elbowed": false,
-			"created": null,
-			"hasTextLink": false,
-			"moveMidPointsWithElement": false
-		},
-		{
-			"id": "v7olfiPO",
-			"type": "text",
-			"x": 216.11800384521484,
-			"y": 2151.25,
-			"width": 15.763992309570312,
-			"height": 17.5,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "transparent",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "b1W",
-			"roundness": null,
-			"seed": 492500731,
-			"version": 1,
-			"versionNonce": 1606516562,
-			"isDeleted": false,
-			"boundElements": [],
-			"updated": 1791918531124,
-			"link": null,
-			"locked": false,
-			"text": "no",
-			"rawText": "no",
-			"originalText": "no",
-			"fontSize": 14,
-			"fontFamily": 5,
-			"textAlign": "center",
-			"verticalAlign": "middle",
-			"containerId": "rCByzcP4",
-			"lineHeight": 1.25,
-			"autoResize": true,
-			"hasTextLink": false,
-			"created": null,
-			"labelPosition": null,
-			"baseFontSize": null
-		},
-		{
-			"id": "tND7BoVu",
-			"type": "arrow",
-			"x": 470.02685090909085,
-			"y": 2120,
-			"width": 322.02685090909085,
-			"height": 104,
-			"angle": 0,
-			"strokeColor": "#1e1e1e",
-			"backgroundColor": "transparent",
-			"fillStyle": "solid",
-			"strokeWidth": 2,
-			"strokeStyle": "solid",
-			"roughness": 1,
-			"opacity": 100,
-			"groupIds": [],
-			"frameId": null,
-			"index": "b1X",
-			"roundness": null,
-			"seed": 991982135,
-			"version": 2,
-			"versionNonce": 1143328526,
-			"isDeleted": false,
-			"boundElements": [],
-			"updated": 1791922744308,
-			"link": null,
-			"locked": false,
-			"points": [
-				[
-					0,
-					0
-				],
-				[
-					-0.026850909090853747,
-					-104
-				],
-				[
-					-322.02685090909085,
-					-103.99332439024374
-				]
-			],
-			"lastCommittedPoint": null,
-			"startBinding": {
-				"elementId": "aNJiRUOK",
-				"mode": "orbit",
-				"fixedPoint": [
-					0.5001,
-					0
-				]
-			},
-			"endBinding": {
-				"elementId": "hckW8ILq",
-				"mode": "orbit",
-				"fixedPoint": [
-					1,
-					0.5001
-				]
-			},
-			"startArrowhead": null,
-			"endArrowhead": "arrow",
-			"elbowed": false,
-			"created": null,
-			"hasTextLink": false,
-			"moveMidPointsWithElement": false
-		},
-		{
 			"id": "RcbvDHuN",
 			"type": "arrow",
 			"x": -125.61696198771749,
@@ -5341,7 +4704,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"x": 162,
 			"y": 1681,
 			"width": 241.26168823242188,
-			"height": 70,
+			"height": 70.0,
 			"angle": 0,
 			"strokeColor": "#1e1e1e",
 			"backgroundColor": "transparent",
@@ -5362,9 +4725,9 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"updated": 1791918378139,
 			"link": null,
 			"locked": false,
-			"text": "four code-reviewer agents at once:\ncorrectness, conventions, security,\ntests. After a fix, only the\nreviewers that blocked review again",
-			"rawText": "four code-reviewer agents at once:\ncorrectness, conventions, security,\ntests. After a fix, only the\nreviewers that blocked review again",
-			"originalText": "four code-reviewer agents at once:\ncorrectness, conventions, security,\ntests. After a fix, only the\nreviewers that blocked review again",
+			"text": "four code-reviewer agents and every\ncheck, at once. After a fix, every\nreviewer reviews again and every\ncheck runs again",
+			"rawText": "four code-reviewer agents and every\ncheck, at once. After a fix, every\nreviewer reviews again and every\ncheck runs again",
+			"originalText": "four code-reviewer agents and every\ncheck, at once. After a fix, every\nreviewer reviews again and every\ncheck runs again",
 			"fontSize": 14,
 			"fontFamily": 5,
 			"textAlign": "left",
@@ -5381,7 +4744,7 @@ L7pfNyZl: [[run-roadmap.excalidraw]]
 			"id": "1Eb7VABJ",
 			"type": "text",
 			"x": 328,
-			"y": 2220,
+			"y": 1920,
 			"width": 259.293701171875,
 			"height": 140,
 			"angle": 0,

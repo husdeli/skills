@@ -115,12 +115,12 @@ outcome `human_required`. Do not try to answer that question yourself.
   YOU run the feature's tests ─► fail ─► SendMessage(coding)  (fix until they pass; stuck ─► cto)
         ▼ pass                               status ─► review
   ┌ Agent(code-reviewer) "Focus: correctness" ┐
-  ├ Agent(code-reviewer) "Focus: conventions" ┤  concurrent, every one must APPROVE
-  ├ Agent(code-reviewer) "Focus: security"    ┤
-  └ Agent(code-reviewer) "Focus: tests"       ┤
-        ▲                                     │ CHANGES_REQUESTED
-        └── SendMessage(coding) ─► feature's tests ─► blocking reviewers only  (fix until approved; stuck ─► cto)
-  YOU run full verification: lint, typecheck, full suite, e2e ─► fail ─► SendMessage(coding)  (fix until they pass; stuck ─► cto)
+  ├ Agent(code-reviewer) "Focus: conventions" ┤  concurrent, one tool block:
+  ├ Agent(code-reviewer) "Focus: security"    ┤  every reviewer must APPROVE
+  ├ Agent(code-reviewer) "Focus: tests"       ┤  and every check must pass
+  └ YOU run full verification: lint, typecheck, full suite, e2e ┤
+        ▲                                     │ CHANGES_REQUESTED or a check fails
+        └── SendMessage(coding, every defect) ─► feature's tests ─► every reviewer + the checks again  (fix until both pass; stuck ─► cto)
   finish the ticket ─► commit the code (run branch) ─► commit the documents (framework root)
   ─► report + RUN-ROADMAP-RESULT
 ```
@@ -173,8 +173,7 @@ run's number, so `coding-3` works for `run-roadmap-3`:
 | Stage 5, the implementation lands | `coding · implement` | unchanged |
 | Stage 5, every test dispute round | `test-planner · test dispute`, and `test-writer · tests` when a test was revised | `in progress` · `test-writer-<n>` while it rewrites, then `coding-<n>` |
 | Stage 5.5, every run of the feature's tests | `<run name> · feature tests` | passing: `review` · `code-reviewer-<n>`; failing: unchanged |
-| Stage 6, the code review closes | `code-reviewer · code review`, one per focus that reviewed | approved: `review` · removed; blocked: `in progress` · `coding-<n>` |
-| Stage 6.5, every run of the full verification | `<run name> · verification` | passing: unchanged; failing: `review` · `coding-<n>` |
+| Stage 6, every run of the code review and the full verification | `code-reviewer · code review`, one per focus that reviewed, then `<run name> · verification` | both pass: `review` · removed; a defect in either: `in progress` · `coding-<n>` |
 | Every CTO ruling | `cto · ruling` — the stage, the ruling, and the guidance | unchanged |
 | Stage 8, finishing the ticket | `<run name> · done` | `done` · removed |
 
@@ -354,7 +353,7 @@ symbols, conventions, `verificationCommands`, `e2eCommand`), `riskProfile`, and 
 **plan turn** carries the plan and an empty `openQuestions`. A **question turn** carries the context
 pack and every open question, no plan, and a `null` `riskProfile`. **Forward the `contextPack`** into the first message of the plan reviewer, the test writer, the
 coding agent, and every code reviewer, and to the test planner with the plan, so none of them
-cold-explores the codebase. Its `verificationCommands` and `e2eCommand` are the checks you run in Stage 6.5.
+cold-explores the codebase. Its `verificationCommands` and `e2eCommand` are the checks you run in Stage 6.
 
 Planner silent → `human_required` at stage `plan`. The test planner's spec-only turn emits no `json`
 block; it is silent only when it returns nothing at all → `human_required` at stage `test-plan`.
@@ -494,8 +493,8 @@ this order:
 3. Non-empty `blockers` → **ask the CTO** with stage `implement`.
 4. Non-empty `testDisputes` → the test defect round below.
 5. Otherwise go on. On this stage's turn, append the `coding · implement` entry — its `decisions`,
-   the code-level calls the plan left open — in one tool block, then Stage 5.5. A fix turn goes back
-   to the stage that asked for the fix.
+   the code-level calls the plan left open — in one tool block, then Stage 5.5. A fix turn goes to
+   Stage 5.5 too: the feature's tests run after every change to the code.
 
 **Test defect.** `SendMessage(testPlannerId, "The coding agent
 disputes these tests. Rule on each against the specification." + testDisputes)`. It rules on each
@@ -511,7 +510,7 @@ test:
   the specification with a `retry` whose `guidance` holds the reading it chose: send that guidance to
   the test planner, which rules again from it.
 
-A dispute may come from any `coding` turn, including a fix after the code review or the full
+A dispute may come from any `coding` turn, including a fix after the code review and the full
 verification. Append the
 `test-planner · test dispute` entry — each dispute, its ruling, and the reason — and set `assigned`
 back to `coding-<n>`.
@@ -522,7 +521,7 @@ worklogs of the feature's tickets — those already `done` and this one. Find th
 property, in every bucket, and take each file's latest entry. Run each by the command recorded beside
 it, as `cd <worktree> && <command>`, in the run worktree of the work root the entry names; an entry
 for a work root this ticket does not build in is not run. Run nothing else here: no lint, no full
-suite, and no end-to-end test — Stage 6.5 runs those.
+suite, and no end-to-end test — Stage 6 runs those.
 
 - A recorded file that the worktree does not hold — a ticket built on a branch not merged yet — is
   skipped, and the entry and the report name it. Never record a skipped test as passed.
@@ -537,8 +536,11 @@ Append the `<run name> · feature tests` entry on every run — each file and it
   steps 1–5, then run the feature's tests again, the failed files first.
 - **Failing, stuck**, as `agent-pipeline` defines it → **ask the CTO** with stage `feature-tests`.
 
-### 6. Code review — four reviewers at once, until all approve
-Issue **four `Agent` calls in one tool block**, one per focus, each spawned once and resumed:
+### 6. Code review and full verification — at once, until both pass
+The reviewers read the change and you run the checks on the same tree, and neither changes it, so
+they run **at once**. In **one tool block**, issue four `Agent` calls, one per focus, each spawned
+once and resumed, and run **every check command in the context pack** as parallel Bash calls, each
+as `cd <worktree> && <command>`:
 
 ```
 Agent(subagent_type: "sdlc:code-reviewer", model: <opus on high risk, else sonnet>,
@@ -552,51 +554,37 @@ Agent(subagent_type: "sdlc:code-reviewer", model: <opus on high risk, else sonne
                 in Stage 4.7)
 ```
 
-| Focus | Judges |
-| --- | --- |
-| `correctness` | Bugs, edge cases, and whether every acceptance criterion is met |
-| `conventions` | Fit with the codebase, its architecture, and the plugin's coding skills |
-| `security` | Authentication, input handling, secrets, and injection |
-| `tests` | Whether the tests match the test plan and catch the bugs it named |
+What each focus judges lives in the agent definition. **The code review has no skip gate**: every
+focus runs on every ticket, and the model follows the same high-risk test as Stage 4.
 
-**The code review has no skip gate**: every focus runs on every ticket, and the model follows the same
-high-risk test as Stage 4. Append one `code-reviewer · code review` entry per focus that reviewed.
+**The checks** are the `command` of every `verificationCommands` entry — `lint`, `typecheck`, and
+`test`, the full suite — and, when the `e2eDecision` says yes, the end-to-end suite: the pack's
+`e2eCommand`, or the test writer's `e2eCommand` when the pack's is `"none"` because this ticket stood
+the suite up. Never both. This pipeline runs the end-to-end suite inside the gate: there is no person
+at the end to ask, and an unattended commit must not rest on a suite nobody ran.
 
-- Any reviewer silent → `human_required` at stage `code-review`.
-- **Every reviewer returns `APPROVED`** → remove `assigned`, keep `status` `review`, then Stage 6.5.
-  Minor issues become recommendations in the report; they block nothing.
-- **A reviewer blocks** → set `status` to `in progress` and `assigned` to
-  `coding-<n>`, then one message with every blocking issue: `SendMessage(codingId, "The code review
-  found the following. Fix ONLY what is needed to clear them — stay within the approved plan, change
-  no test, then stop." + the blocking issues)`. Run its reply through Stage 5's steps 1–5, run the
-  feature's tests again, and set `status` back to `review`.
-  Then resume **only the reviewers that blocked**, in one tool block.
-- **A reviewer blocks, stuck**, as `agent-pipeline` defines it → **ask the CTO** with stage `code-review`.
-
-### 6.5 Run full verification — until it passes
-Run **every check command in the context pack** yourself, in one parallel Bash batch, as
-`cd <worktree> && <command>`: the `command` of every `verificationCommands` entry — `lint`,
-`typecheck`, and `test`, the full suite — and, when the `e2eDecision` says yes, the end-to-end
-suite: the pack's `e2eCommand`, or the test writer's `e2eCommand` when the pack's is `"none"`
-because this ticket stood the suite up. Never both.
-Read each result. This pipeline runs the end-to-end suite inside the gate: there is no person at the
-end to ask, and an unattended commit must not rest on a suite nobody ran.
-
-**A ticket built in two work roots is verified in each**: every work root's checks run in its own
-run worktree, and the ticket passes only when both pass.
+**A ticket built in two work roots is reviewed and verified in each**: every work root's checks run
+in its own run worktree, and the ticket passes only when both pass.
 
 A check the project lacks — an entry whose `command` is `"none"` — is reported as **skipped**, with
-the reason, in the report and the
-worklog — **never record a skipped check as passed**. Append the `<run name> · verification` entry on
-every run: each command and its result.
+the reason, in the report and the worklog — **never record a skipped check as passed**. Every time
+the stage lands, append one `code-reviewer · code review` entry per focus that reviewed and the
+`<run name> · verification` entry: each command and its result.
 
-- **Every check passes** → Stage 8.
-- **A check fails** → set `assigned` to `coding-<n>`, then one message with every
-  failure: `SendMessage(codingId, "The full verification failed. Fix ONLY what is needed to clear
-  it — stay within the approved plan, change no test, then stop." + each failing command and its
-  output)`. Run its reply through Stage 5's steps 1–5, then run the failed checks first and the rest
-  after them.
-- **A check fails, stuck**, as `agent-pipeline` defines it → **ask the CTO** with stage `verification`.
+- Any reviewer silent → `human_required` at stage `code-review`.
+- **Every reviewer returns `APPROVED` and every check passes** → remove `assigned`, keep `status`
+  `review`, then Stage 8. Minor issues become recommendations in the report; they block nothing.
+- **A reviewer blocks, or a check fails** → set `status` to `in progress` and `assigned` to
+  `coding-<n>`, then one message with every blocking issue and every failure: `SendMessage(codingId,
+  "The code review and the full verification found the following. Fix ONLY what is needed to clear
+  them — stay within the approved plan, change no test, then stop." + the blocking issues + each
+  failing command and its output)`. Run its reply through Stage 5's steps 1–5, which run the
+  feature's tests again, and set `status` back to `review`. Then run this stage again, in one tool
+  block: **resume every reviewer**, as `agent-pipeline` says — an approval covers only the code it
+  read — with the coding agent's summary and `filesChanged`, and **run every check again**, the
+  failed ones first and the rest once they pass.
+- **Stuck**, as `agent-pipeline` defines it → **ask the CTO** — stage `verification` when a check
+  still fails, `code-review` when only the review still blocks.
 
 ### 7. Ask the CTO for a ruling — the procedure every stuck stage runs into
 This replaces `human_required` in `/orchestrate` wherever a person would decide what happens next:

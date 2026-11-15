@@ -54,11 +54,11 @@ Start with `git diff --stat` to see the shape of the change, then read **every c
 
 ## Re-review turns
 
-You may be sent back once the issues you raised have been fixed. On a re-review:
+You are sent back after every fix to the code — the fix for the issues you raised, and also a fix for another reviewer's issues or a failed check after you approved. On a re-review:
 
 - Re-read what changed since your last turn (`git diff` against the state you reviewed, or the files the fix names).
-- Judge each prior issue as fixed or still open. An issue answered with a different approach that also works is fixed.
-- Keep any new issue to the code the fix introduced, judged from your focus. Code you already approved stays approved.
+- Judge each prior issue as fixed or still open. An issue answered with a different approach that also works is fixed. With no prior issue, judge only what the fix changed.
+- Keep any new issue to the code the fix introduced, judged from your focus. Code you already approved, and the fix did not touch, stays approved.
 - Emit the full verdict JSON again.
 
 ## Review Checklist

@@ -378,7 +378,8 @@ worth as much as its record.
 - **agent-pipeline** — How a command drives subagents: spawn each role once and resume it with
   `SendMessage` rather than re-spawning, keep a fresh verification agent per run, put concurrent
   calls in one tool block, parse the single JSON block every agent ends with, keep the spawn prompt thin, never duplicate the
-  gating run, set no retry limit, and end in exactly one of `completed` or `human_required`.
+  gating run, run the code review beside the full verification, send every fix back to every code
+  reviewer, set no retry limit, and end in exactly one of `completed` or `human_required`.
 - **ts-clean** — Framework-agnostic rules for any `.ts`/`.tsx` file: one module per file
   named after its primary export, dot notation for the modules that carry an architecture
   role (`user.service.ts`, `user.repository.ts`, `user.dto.ts`) while plain modules keep
@@ -594,7 +595,7 @@ what a ticket is, and why changing how a status transition works is one edit rat
 - **/orchestrate** — offers you every roadmap task whose dependencies are satisfied, asks which
   one to build and whether it gets end-to-end tests, then drives it through
   plan → review (skipped when the risk is low) → plan the tests → write the tests → run each new
-  test → implement → run the feature's tests → code review → full verification, using the agents
+  test → implement → run the feature's tests → code review and full verification at once, using the agents
   above. `diagrams/workflow.excalidraw.md` draws it. The plan reads the feature folder; there is no
   interview, because `/plan` settled the decisions. The tests are decided and written before the
   code, by agents other than the one that writes it, and the orchestrator itself runs every test

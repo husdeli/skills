@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The code review and the full verification run at once** in `/orchestrate` and `/run-roadmap`,
+  as they already did in `/orchestrate-quick`. The four reviewers and every check command go out in
+  one tool block, and one fix message carries every blocking issue and every failed check. A
+  ticket's wall-clock time loses the shorter of the two stages. `/run-roadmap`'s Stages 6 and 6.5
+  are now one Stage 6.
+
+### Fixed
+
+- **A fix after an approval is reviewed again.** In every pipeline, a fix for a failed check — or,
+  in `/orchestrate-quick`, a failed end-to-end run — went straight to `done` without a reviewer
+  reading it. `agent-pipeline` now says an approval covers only the code it read: every fix goes
+  back to every code reviewer, and one that approved judges only what the fix changed.
+- **Leftover retry limits from 0.72.0 are gone**: the design's "a second miss aborts the run" and
+  "one sharpen round", the pipeline diagrams' "one dispute round per ticket", and the Codex entry
+  points' "limits".
+
 ## [0.72.0] - 2026-11-05
 
 ### Added

@@ -116,7 +116,7 @@ Use `collaboration.followup_task` for every later turn of these roles:
 Use the canonical task name returned by the first `spawn_agent` call.
 Send only the new input that the shared command specifies.
 Do not repeat the role bootstrap, plan, context pack, or prior messages unless the command requires them.
-Each code-review focus is its own agent: a re-review goes to the reviewer that blocked, and only to it.
+Each code-review focus is its own agent, and every fix after the code review starts goes back to every one of them: a reviewer that blocked judges its prior issues, and one that approved judges only what the fix changed.
 
 `$orchestrate` creates no verification agent. Its main agent runs every test and every check itself with the shell tool and reads the result.
 A workflow whose command still spawns a verification agent creates a new one for each verification run, with a new task name for each run.

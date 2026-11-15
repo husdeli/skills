@@ -50,6 +50,22 @@ Two calls in two blocks are two waits.
 A pre-read or a spec-only turn that later gets discarded costs tokens, never wall-clock. Take that
 trade: start the read while the thing it reads about is still being written.
 
+**The code review and the full verification run at once.** Both judge the same tree and neither
+changes it, so the reviewers and the check commands go out in one tool block, and one fix message
+carries every blocking issue and every failed check.
+
+## An approval covers the code it read
+
+A reviewer's `APPROVED` holds for the code it read, not for the code that ships. **Every fix after
+the code review starts goes back to every code reviewer**, resumed in one tool block with the coding
+agent's summary and `filesChanged`:
+
+- a reviewer that blocked judges each of its prior issues as fixed or still open;
+- a reviewer that approved judges only what the fix changed, from its focus.
+
+A fix for a failed check is still a change to the code, so it gets the same re-review as a fix for
+a review issue. Skipping it lets code nobody reviewed reach `done`.
+
 ## Every agent ends with one JSON block
 
 Each agent ends its reply with exactly **one** fenced ` ```json ` block, in the contract its own

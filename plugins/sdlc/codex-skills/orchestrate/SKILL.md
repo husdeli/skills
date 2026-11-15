@@ -1,6 +1,6 @@
 ---
 name: orchestrate
-description: Pick one actionable roadmap task and drive it through planning, plan review, tests written before the code, implementation, the feature's tests, a code review from four focuses, full verification, and status updates with persistent subagents. Use for a planned roadmap ticket whose decisions its documents already hold, or when a user invokes `$orchestrate` as the Codex equivalent of `/orchestrate`.
+description: Pick one actionable roadmap task and drive it through planning, plan review, tests written before the code, implementation, the feature's tests, a code review from four focuses run beside the full verification, and status updates with persistent subagents. Use for a planned roadmap ticket whose decisions its documents already hold, or when a user invokes `$orchestrate` as the Codex equivalent of `/orchestrate`.
 ---
 
 # Orchestrate
@@ -12,7 +12,7 @@ Run the full reviewed workflow with the shared orchestrate command.
 1. Resolve `../../commands/orchestrate.md` from this skill directory.
 2. Read the command file completely before changing task status or creating subagents.
 3. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
-4. Treat the shared command as the source of truth for stages, limits, contracts, and status changes.
+4. Treat the shared command as the source of truth for stages, gates, contracts, and status changes.
 5. Read every skill the command's table names, from the plugin's `skills/<name>/SKILL.md` — `sdlc-structure`, `ticket-board`, `agent-pipeline`, and `technical-writing` — before the stage that needs each one.
 6. Run the workflow with the subagent, file, and user-input tools of the current runtime.
 
