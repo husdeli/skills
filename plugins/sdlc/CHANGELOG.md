@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.73.0] - 2026-11-15
+
 ### Added
 
 - **`scripts/board.py`**, the board's bookkeeping as one script that prints JSON, so a pipeline no
