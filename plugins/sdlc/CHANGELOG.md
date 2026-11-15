@@ -26,6 +26,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **`/orchestrate` and `/run-roadmap` share one copy of their stages.** Plan through Code review and
+  full verification now live in `agent-pipeline`'s `references/build-stages.md`, written once with
+  three slots each command fills: its claim, its work root, and its **answerer** — the user in
+  `/orchestrate`, where a stuck stage is `human_required`, and the CTO in `/run-roadmap`, where it
+  is a ruling. The commands keep only what is theirs: the pick, the start, the answerer, the finish,
+  and the report. `/orchestrate` drops from 443 to 205 lines and `/run-roadmap` from 780 to 505,
+  and the two can no longer drift apart. `/run-roadmap`'s stages after the build are renumbered
+  3 to 8. `/orchestrate-quick` keeps its own pipeline.
 - **The plan, the context pack, and the test plan go to agents by path.** The orchestrator writes
   each once to a run folder, `<framework root>/.runs/<claim>/`, which a `.gitignore` of `*` keeps
   out of git and every exit deletes, and sends the path instead of pasting the text into each of up

@@ -6,7 +6,9 @@ description: "Rules for driving subagents from a command — spawn each role onc
 # agent-pipeline skill
 
 How a command drives subagents. The stages and the gates belong to each command;
-this skill holds the mechanics every one of them shares.
+this skill holds the mechanics every one of them shares. The stages `/orchestrate` and
+`/run-roadmap` both drive, from Plan to Code review and full verification, are in
+[the build stages](references/build-stages.md): read it whole when one of those commands says to.
 
 ## Spawn once, resume with SendMessage
 

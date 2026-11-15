@@ -16,7 +16,7 @@ Run one roadmap task autonomously with the shared run-roadmap command.
    commit, and the result line.
 5. Read every skill the command's table names, from the plugin's `skills/<name>/SKILL.md` —
    `sdlc-structure`, `ticket-board`, `agent-pipeline`, and `technical-writing` — before the stage that
-   needs each one.
+   needs each one, and `skills/agent-pipeline/references/build-stages.md` whole before Plan.
 6. Run the workflow with the subagent, file, and shell tools of the current runtime.
 
 In a Codex session, also read [the Codex subagent protocol](../orchestrate/references/codex-subagents.md)
