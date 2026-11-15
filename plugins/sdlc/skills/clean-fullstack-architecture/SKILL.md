@@ -1,6 +1,6 @@
 ---
 name: clean-fullstack-architecture
-description: "Use when: planning a feature implementation, designing a feature, creating an implementation plan, planning architecture, writing feature code, creating a new feature, adding a service, calling an API, defining a DTO or a domain model, mapping an API response, structuring the project, adding a component, adding a hook, adding domain logic, or writing any production code. Enforces Clean Code principles and Hexagonal Architecture with strict dependency rules across all layers — including that every service is a class of static methods owning its DTOs, that domain logic names only domain models and never a DTO, and that an adapter is the only place the two shapes meet."
+description: "Clean Code and Hexagonal Architecture rules for production code — the layers and their dependency rules, services as classes of static methods that own their DTOs, domain logic on domain models only, and adapters as the one place the two shapes meet. Use when planning or writing a feature, a service, an API call, a DTO or domain model, a component, a hook, or any production code."
 ---
 
 # Clean Fullstack Architecture

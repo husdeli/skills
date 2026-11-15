@@ -1,6 +1,6 @@
 ---
 name: clean-tanstack-start
-description: "Rules for organizing and securing TanStack Start server functions and server-only code. INVOKE THIS SKILL before editing any file that defines, imports, or calls `createServerFn`, touches a database or secret from application code, or lives in a TanStack Start `src/` tree. Enforces `.functions.ts` wrappers, `.server.ts` server-only helpers, client-safe plain `.ts` modules, separate server configuration, static server-function imports, authentication in every private server function, and private caching for identity-dependent responses. Builds on the `ts-clean` skill; load that skill too."
+description: "Rules for organizing and securing TanStack Start server functions and server-only code. INVOKE THIS SKILL before editing any file that defines, imports, or calls `createServerFn`, touches a database or secret from application code, or lives in a TanStack Start `src/` tree. Builds on the `ts-clean` skill; load that one too."
 ---
 
 # Clean TanStack Start

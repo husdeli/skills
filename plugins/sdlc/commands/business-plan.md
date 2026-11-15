@@ -1,6 +1,6 @@
 ---
 description: Create or update the business plan and the competitor notes beside it.
-argument-hint: [what to write or update, e.g. "refresh competitors" or "add competitor Gamma"]
+argument-hint: '[what to write or update, e.g. "refresh competitors" or "add competitor Gamma"]'
 ---
 
 # Business plan

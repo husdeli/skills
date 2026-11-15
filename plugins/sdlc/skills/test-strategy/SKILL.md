@@ -1,6 +1,6 @@
 ---
 name: test-strategy
-description: Rules for deciding which tests a change gets and for writing them — a test earns its place by the bug it catches, the fewest and cheapest tests, the type ladder from unit to integration to end-to-end, what a case never is, what makes a valid failing test, and how fixtures and helpers are reused. INVOKE THIS SKILL before you plan a test, write one, rule on a disputed test, or judge tests against a test plan. Enforces one case per bug, the cheapest type that catches it, end-to-end tests only on a critical path the end-to-end decision allows, no test theater, a new test that fails because the behavior is missing, and the project's own runner and fixtures.
+description: "Rules for deciding which tests a change gets and for writing them — the fewest, cheapest tests that each catch a bug the change could ship, the ladder from unit to integration to end-to-end, and what makes a valid failing test. INVOKE THIS SKILL before you plan a test, write one, rule on a disputed test, or judge tests against a test plan."
 ---
 
 # Test Strategy

@@ -1,6 +1,6 @@
 ---
 name: react-animations
-description: Rules for animating a React interface — CSS and the UI library's own transitions first, the platform next, and a proven animation library (Motion) only for what they cannot do. INVOKE THIS SKILL before you add or change a transition, a keyframe animation, an enter or exit effect, a layout animation, a gesture, or a scroll effect in a React project, and before you plan or review one. Enforces the lowest rung that meets the requirement, a named reason before Motion, no hand-rolled animation code (no requestAnimationFrame loop, JavaScript tween, setTimeout chain, or effect that toggles a class), one animation library per project, transform and opacity only, reduced motion respected, and timing from theme tokens. Builds on the `react-clean` skill — load that one too.
+description: "Rules for animating a React interface — CSS and the UI library's own transitions first, the platform next, and Motion only for what they cannot do. INVOKE THIS SKILL before you add, change, plan, or review a transition, a keyframe animation, an enter or exit effect, a layout animation, a gesture, or a scroll effect in a React project. Builds on the `react-clean` skill; load that one too."
 ---
 
 # React animations

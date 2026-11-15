@@ -1,6 +1,6 @@
 ---
 description: Drive one task straight through plan → single review → test plan → tests → implement → verify + code review. No interview, no gates.
-argument-hint: [task description or roadmap/ticket file path]
+argument-hint: "[task description or roadmap/ticket file path]"
 ---
 
 # Quick Orchestrator

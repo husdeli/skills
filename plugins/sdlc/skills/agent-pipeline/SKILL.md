@@ -1,6 +1,6 @@
 ---
 name: agent-pipeline
-description: "Rules for driving subagents from a command — spawn each role once and resume it with SendMessage, issue concurrent spawns in one tool block, parse the single fenced JSON block every agent ends with, ask again for a missing block, and keep the spawn prompt thin because it is re-paid on every spawn. INVOKE THIS SKILL before you spawn a subagent from a command, and before you resume, re-review, or judge one's result. Enforces one spawn per role, no duplicated gating run, no retry limit, and one stop: `human_required`."
+description: "Rules for driving subagents from a command — spawn each role once and resume it, run independent calls in one tool block, drive control flow from the JSON block every agent ends with, run every check yourself, and stop only on `human_required`. INVOKE THIS SKILL before you spawn a subagent from a command, and before you resume, re-review, or judge one's result."
 ---
 
 # agent-pipeline skill

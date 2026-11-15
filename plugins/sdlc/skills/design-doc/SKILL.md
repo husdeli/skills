@@ -1,6 +1,6 @@
 ---
 name: design-doc
-description: "Create a design doc at the framework root's features/<feature>/<subject>.design.md when it belongs to one feature, or designs/<subject>.design.md when it underpins every feature — the framework root is the folder holding sdlc.json, such as one in an Obsidian vault, or .sdlc/ in a repository — that specifies how a solution works — the parts it is built from, how work flows through it end to end, and how it behaves. Use when: asked to write a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen. A design doc defines the target state — not how to build it"
+description: "Create or update a design doc — `<subject>.design.md` in a feature's folder, or in `designs/` when it underpins every feature — that specifies the target state of a solution: the parts it is built from, how work flows through it, and how it behaves. Use when asked for a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen."
 ---
 
 # Design-doc skill

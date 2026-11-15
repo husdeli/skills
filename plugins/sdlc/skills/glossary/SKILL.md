@@ -1,6 +1,6 @@
 ---
 name: glossary
-description: "Rules for the terms — the framework root's one glossary.md that defines every term the framework and its projects use, each once under its own heading, how a term is chosen, and how every other document links a definition instead of writing it again. INVOKE THIS SKILL before you name a domain concept in anything a person reads, and before you read, write, rename, or link a glossary entry. Enforces one definition per term, one term per concept, a heading that holds the term alone, and a link at the term's first use in every document."
+description: "Rules for the framework root's one `glossary.md` — every term defined once under its own heading, and linked from every other document instead of defined again. INVOKE THIS SKILL before you name a domain concept in anything a person reads, and before you read, write, rename, or link a glossary entry."
 ---
 
 # glossary skill

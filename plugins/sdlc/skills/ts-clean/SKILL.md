@@ -1,6 +1,6 @@
 ---
 name: ts-clean
-description: Rules for writing clean TypeScript in any file. INVOKE THIS SKILL before writing or editing ANY `.ts`/`.tsx` file — a service, domain module, hook, utility, or config file. Enforces one module per file named after its primary export (index files stay re-export barrels), dot-suffixed names for the modules that carry an architecture role (`user.service.ts`, `user.repository.ts`, `user.dto.ts`) while plain modules keep plain names, static top-of-file imports (no `await import()` / `require()` inside a function outside the listed code-splitting, SSR, and optional-dependency exceptions), self-documenting code over comments (at most one or two per file, one sentence each, keeping only a *why* that stays verifiable — never a file path, a line number, a finished ticket, or a past refactor), and configuration in `.config.ts` modules that are the only place `process.env` is read — required variables validated at load and throwing by name, optional ones given a typed default, secrets never defaulted. Framework-agnostic.
+description: "Rules for clean TypeScript in any file — one module per file named after its primary export, role suffixes such as `.service.ts`, static imports, self-documenting code with few comments, and `process.env` read only in `.config.ts` modules. INVOKE THIS SKILL before writing or editing any `.ts`/`.tsx` file. Framework-agnostic."
 ---
 
 # Clean TypeScript

@@ -1,6 +1,6 @@
 ---
 description: Pick the next actionable roadmap task and drive it through plan → review → tests first → implement → the feature's tests → code review and full verification at once, using persistent subagents.
-argument-hint: [roadmap-file-path]
+argument-hint: "[roadmap-file-path]"
 ---
 
 # Roadmap Orchestrator

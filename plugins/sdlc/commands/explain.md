@@ -1,6 +1,6 @@
 ---
 description: Explain what is happening, in plain language a non-expert can follow — the last thing you did, a file, an error, a change, or a concept.
-argument-hint: [what to explain — a file, symbol, error, change, or concept; empty means what you just did]
+argument-hint: "[what to explain — a file, symbol, error, change, or concept; empty means what you just did]"
 ---
 
 # Explain

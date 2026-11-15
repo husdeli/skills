@@ -1,6 +1,6 @@
 ---
 name: feature
-description: "Rules for the feature — the entity that names one thing a customer can do, kept as a folder under the framework root's features/<feature-name>/ with its feature note, the design docs it owns, and the notes a person must act on, carrying the epic code that numbers its tickets and the projects it relates to. INVOKE THIS SKILL before you create, rename, read, or retire a feature, before you write a design doc that belongs to one, before you open an epic on a roadmap, and before you list what a product can do. Enforces one feature per folder, one feature note per feature, a code that is the epic code, at least one project per feature, and a status verified against the code."
+description: "Rules for a feature — one thing a customer can do, kept as `features/<feature-name>/` with its feature note, its design docs, its notes for a person, and the epic code that numbers its tickets. INVOKE THIS SKILL before you create, rename, read, or retire a feature, write a design doc that belongs to one, open an epic on a roadmap, or list what a product can do."
 ---
 
 # feature skill

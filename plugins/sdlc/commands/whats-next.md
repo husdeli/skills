@@ -1,6 +1,6 @@
 ---
 description: Show what is actionable on the roadmap right now — what is in flight and who holds it, what is ready to start, and what is blocked and by what.
-argument-hint: [epic code to narrow to, or a roadmap path]
+argument-hint: "[epic code to narrow to, or a roadmap path]"
 ---
 
 # What's Next

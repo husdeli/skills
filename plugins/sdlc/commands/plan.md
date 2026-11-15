@@ -1,6 +1,6 @@
 ---
 description: Turn a request into updated product documents, roadmap tasks, and tickets for /orchestrate to build.
-argument-hint: [feature or change to plan]
+argument-hint: "[feature or change to plan]"
 ---
 
 # Plan

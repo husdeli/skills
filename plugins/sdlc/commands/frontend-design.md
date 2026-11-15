@@ -1,6 +1,6 @@
 ---
 description: Agree on the look of a screen before it is built — publishes a static mockup as an Artifact and iterates until you sign it off.
-argument-hint: [screen, component, or flow to design]
+argument-hint: "[screen, component, or flow to design]"
 ---
 
 # Frontend design

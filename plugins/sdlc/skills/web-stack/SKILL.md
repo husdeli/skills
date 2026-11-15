@@ -1,6 +1,6 @@
 ---
 name: web-stack
-description: "The default stack for a web project — TypeScript on TanStack Start with TanStack Query, TanStack Form, Zod, Mantine with Tailwind CSS, design tokens in DTCG JSON built by Style Dictionary, a Storybook design board, Motion, Postgres through Drizzle, Better Auth, Bun, Vitest, Playwright, and Biome — and the rule for when a project already chose otherwise. INVOKE THIS SKILL before you add a dependency to a web project, start a new web project or a layer it does not have yet (a database, auth, forms, UI components, design tokens, a design board, tests, lint), plan or review a change that does either, or decide a library question in an interview. Enforces one library per layer, the project's existing choice over the default, the default over a new pick, no migration nobody asked for, and the integration rules that keep these libraries working together."
+description: "The default web stack — TanStack Start, Query, and Form, Zod, Mantine with Tailwind CSS, DTCG design tokens, Storybook, Motion, Postgres through Drizzle, Better Auth, Bun, Vitest, Playwright, and Biome — and the rule for a project that already chose otherwise. INVOKE THIS SKILL before you add a dependency, start a web project or a layer it lacks, plan or review either, or settle a library question."
 ---
 
 # Web stack

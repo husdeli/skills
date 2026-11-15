@@ -1,6 +1,6 @@
 ---
 description: Create or update a product requirements document that describes what the product does and why.
-argument-hint: [product or feature to write or update a PRD for]
+argument-hint: "[product or feature to write or update a PRD for]"
 ---
 
 # PRD

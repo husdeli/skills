@@ -1,6 +1,6 @@
 ---
-description: Build the next ticket of a roadmap run with no person in the loop — the run works one feature at a time, the cto agent answers every question, the feature's dependency cluster is claimed, the code is committed on the run branch in a run worktree, and the session reports a machine-readable result for the launcher script.
-argument-hint: [--run run-roadmap-<n>] [--project <name>] [--final] [roadmap-file-path]
+description: "Build the next ticket of a roadmap run with no person in the loop — the cto agent answers every question, the code is committed on the run branch in a run worktree, and the session ends with a result line for the launcher script."
+argument-hint: "[--run run-roadmap-<n>] [--project <name>] [--final] [roadmap-file-path]"
 ---
 
 # Autonomous Roadmap Runner

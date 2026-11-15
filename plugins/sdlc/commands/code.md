@@ -1,6 +1,6 @@
 ---
 description: Implement what the user asks with the coding agent, which loads every coding skill. No planner, no reviewer.
-argument-hint: [what to build, change, or fix]
+argument-hint: "[what to build, change, or fix]"
 ---
 
 # Code

@@ -1,6 +1,6 @@
 ---
 name: ticket-board
-description: "Rules for the ticket board this plugin drives — the `work/` folder and its three buckets, how a ticket is named and numbered within the epic of the feature it delivers, the properties it carries (`status`, `repositories`, `assigned`, `claimed`, `blocked_by`, its times and its usage), the transitions between its statuses, the claim that stops two runs building one ticket, each project's roadmap of the work that is left, and the worklog that records what was decided while a ticket was built. INVOKE THIS SKILL before you read, write, move, assign, claim, or finish a ticket, before you add or delete a roadmap row, and before you write a worklog entry. Enforces one status record per ticket, a bucket that always matches the status, one claim per ticket, a roadmap that only shrinks or gets corrected, one writer for the ticket and its worklog, and one step per status change."
+description: "Rules for the ticket board — the `work/` buckets, how a ticket is named and what it carries, its status transitions, the claim, each project's roadmap, and the worklog. INVOKE THIS SKILL before you read, write, move, assign, claim, or finish a ticket, add or delete a roadmap row, or write a worklog entry."
 ---
 
 # ticket-board skill

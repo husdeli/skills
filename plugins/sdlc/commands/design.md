@@ -1,6 +1,6 @@
 ---
 description: Create or update a design doc that specifies how a solution works, end to end.
-argument-hint: [system, service, flow, integration, or screen to specify]
+argument-hint: "[system, service, flow, integration, or screen to specify]"
 ---
 
 # Design

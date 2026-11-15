@@ -1,6 +1,6 @@
 ---
 description: Open or update a feature — the folder that holds what a customer can do, its design docs, and the code that numbers its tickets.
-argument-hint: [the feature, in the words a customer would use]
+argument-hint: "[the feature, in the words a customer would use]"
 ---
 
 # Feature

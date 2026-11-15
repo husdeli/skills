@@ -14,8 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   one tool block, and one fix message carries every blocking issue and every failed check. A
   ticket's wall-clock time loses the shorter of the two stages. `/run-roadmap`'s Stages 6 and 6.5
   are now one Stage 6.
+- **Shorter skill descriptions.** Each description now says what the skill covers and when to load
+  it; the rule lists ("Enforces …") stay in the body, where they already were. Seventeen skills and
+  `/run-roadmap` drop from 16,761 to 10,260 characters in total, and `design-system`, at 1,115, is
+  back under the 1,024-character limit. The skill listing has a budget, and over it the listing
+  showed some sdlc skills with no description at all.
 
 ### Fixed
+
+- **`/run-roadmap`'s frontmatter did not parse.** Its `argument-hint` began with `[` unquoted, which
+  YAML reads as a list and then rejects. Every command's `argument-hint` is now a quoted string.
 
 - **A fix after an approval is reviewed again.** In every pipeline, a fix for a failed check — or,
   in `/orchestrate-quick`, a failed end-to-end run — went straight to `done` without a reviewer

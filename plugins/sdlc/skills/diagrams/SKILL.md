@@ -1,6 +1,6 @@
 ---
 name: diagrams
-description: "Rules for a diagram in any product document — generated into the framework root's diagrams/<name>.excalidraw.md by this skill's own builder, referenced from the document with a one-line caption, and written as an ASCII diagram only when the builder cannot run. INVOKE THIS SKILL before you put a diagram in a PRD, a design doc, a ticket, or any other document in the framework root, and before you update a document whose shape a diagram already shows. Enforces one diagram per shape, one home for every diagram file, the Obsidian `.excalidraw.md` format, a caption that carries the meaning in text, and prose that stays complete without the picture."
+description: "Rules for a diagram in a product document — built by this skill's script into `diagrams/<name>.excalidraw.md`, referenced with a one-line caption, and drawn in ASCII only when the script cannot run. INVOKE THIS SKILL before you put a diagram in a PRD, a design doc, a ticket, or any other framework-root document, and before you update a document a diagram already shows."
 ---
 
 # diagrams skill

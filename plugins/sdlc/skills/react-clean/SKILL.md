@@ -1,6 +1,6 @@
 ---
 name: react-clean
-description: Rules for writing clean React components. INVOKE THIS SKILL before writing or editing ANY React component, hook, or `.tsx`/`.jsx` file — when creating a component, adding an effect, wiring up data fetching, passing props down a tree, or refactoring React code. Enforces one-component-per-file, size limits (component body and props count), at most one useEffect (extract the rest into custom hooks), no data-layer access from components (service + TanStack Query instead), no prop drilling (compose instead of threading props through), and the "You Might Not Need an Effect" anti-pattern rules from react.dev. Animation rules live in the `react-animations` skill, and the design system — shared components, their catalog, and design values — in the `design-system` skill. Builds on the `ts-clean` skill — load that one too.
+description: "Rules for clean React components and hooks — one component per file, size limits, at most one effect, data through a service and TanStack Query, and composition instead of prop drilling. INVOKE THIS SKILL before writing or editing any React component, hook, or `.tsx`/`.jsx` file. Animation lives in `react-animations` and UI design in `design-system`. Builds on the `ts-clean` skill; load that one too."
 ---
 
 # Clean React Components

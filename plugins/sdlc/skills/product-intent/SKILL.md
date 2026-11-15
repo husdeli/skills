@@ -1,6 +1,6 @@
 ---
 name: product-intent
-description: "Rules for the product's intent — why it exists, who for, what it refuses, and what proves it worked — held as five kinds of note under the project's product/: a goal, a non-goal, a persona, a problem, and a success metric. These are the pieces the PRD is assembled from, and the pieces a feature, a design doc, and the business plan cite. INVOKE THIS SKILL before you write or change any of those five, before you cite one from a feature, a design doc, a ticket, or the business plan, and before you write the PRD sections that list them. Enforces one note per piece, a statement that stands on its own, a status that is checked rather than assumed, and a citation that links the note instead of repeating it."
+description: "Rules for the product's intent — the goal, non-goal, persona, problem, and success-metric notes under the project's `product/` that the PRD is assembled from and that features, design docs, and the business plan cite. INVOKE THIS SKILL before you write or change one of those notes, cite one, or write the PRD sections that list them."
 ---
 
 # product-intent skill
