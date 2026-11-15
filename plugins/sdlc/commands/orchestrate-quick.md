@@ -150,23 +150,25 @@ Agent(subagent_type: "sdlc:test-planner", model: "opus",
 
 Keep **all three ids**. The planner returns the plan markdown plus one `json` block carrying `contextPack` (the `workRoot`, relevant files, key symbols, conventions, `verificationCommands`, `e2eCommand`) and `riskProfile` — **ignore `riskProfile` here**, it drives gates this pipeline does not have. Forward the `contextPack` into the plan reviewer's, test writer's, coding agent's, code reviewer's, and every verify agent's *first* message, and into the message that hands the test planner the approved plan, so none of them cold-explores the codebase; later `SendMessage` turns already have it.
 
+**Forward it by path**, as `agent-pipeline` says: write the `contextPack` to `context-pack.json`, the plan to `plan.md`, and the test plan to `test-plan.md` in the run folder, `<framework root>/.runs/orchestrate-quick-<n>/`, as each lands or a revision replaces it. In every prompt below, "plan", "approved plan", "contextPack", and "test plan" mean those paths. Every exit deletes the folder. A bare task with no framework root has no run folder: paste the documents instead.
+
 Planner returns nothing → `human_required` (stage `plan`).
 
 ### 4. Review the plan — one reviewer, until approved
 Hand the plan to the pre-warmed reviewer:
 
 ```
-SendMessage(reviewerId, "Review the plan below against the checklist. You have already read
-                         the code — re-read only what the plan points at that you have not
-                         seen." + plan + contextPack)
+SendMessage(reviewerId, "Review the plan in <plan.md path> against the checklist. You have
+                         already read the code — re-read only what the plan points at that you
+                         have not seen." + the context pack's path)
 ```
 
 One reviewer, on **sonnet**, always. Reviewing a plan against files it has already read is checklist work; the two-lens Opus review is what `/orchestrate` is for.
 
 It ends its review turn with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues`. Nothing returned → `human_required` (stage `review`).
 
-- `APPROVED` → append the plan and plan-review worklog entries and set the assignee to `test-planner-<n>`, in one tool block, then Stage 4.5. The plan entry carries the **direction** the plan settled on and the approach it turned down — the plan markdown is not persisted anywhere, so this is the only trace it leaves. The review entry carries the verdict and the issues that forced the revision.
-- `CHANGES_REQUESTED`: `SendMessage(plannerId, "Revise your plan to resolve every issue below. Note in the Context section how each was addressed. Re-emit the full plan markdown + the ```json block." + issues)` — the planner holds the plan, task, and pack, so **send only the issues**. Then `SendMessage(reviewerId, "Re-review the revised plan below; the files are unchanged." + revised plan)`.
+- `APPROVED` → append the plan and plan-review worklog entries and set the assignee to `test-planner-<n>`, in one tool block, then Stage 4.5. The plan entry carries the **direction** the plan settled on and the approach it turned down — the run folder is deleted at the exit, so this is the only trace the plan leaves. The review entry carries the verdict and the issues that forced the revision.
+- `CHANGES_REQUESTED`: `SendMessage(plannerId, "Revise your plan to resolve every issue below. Note in the Context section how each was addressed. Re-emit the full plan markdown + the ```json block." + issues)` — the planner holds the plan, task, and pack, so **send only the issues**. Overwrite `plan.md` with the revision, then `SendMessage(reviewerId, "Re-read <plan.md path>, which now holds the revised plan, and re-review it; the code is unchanged.")`.
 - `CHANGES_REQUESTED`, **stuck**, as `agent-pipeline` defines it → **`human_required`** (stage `review`) with the summary and remaining issues. Write the outcome entry, run `ticket-board`'s *Stopping without finishing* transition — `blocked`, with `blocked_by` naming what a person must decide, the claim and the assignee removed — and stop.
 
 ### 4.5 Test plan
@@ -279,7 +281,7 @@ Agent(subagent_type: "sdlc:verify", model: "sonnet",
   Judge its `json` block by the Stage 6 rules: passed → Stage 8; `skipped` → still go to Stage 8, and name the command and the reason in the report, never as green; failed → hand the failures to the coding agent with `SendMessage` exactly as Stage 6 does, then re-run Stage 6 on the fix — a fresh verify and the reviewer's re-review, in one tool block — and, when it passes, a fresh e2e verify. An e2e failure that is stuck is `human_required` with stage `verify`, and the ticket stops as `blocked`, as above.
 
 ### 8. Finish the ticket (only on success)
-Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block. This command's closing entry is `orchestrate-quick-<n> · done`, and the worklog also takes the verification and code-review entries and the Stage 7 end-to-end result. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-quick-<n>`; with no ticket, pass the feature the task belongs to, or show the notes in the report when it has none.
+Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block, and delete the run folder. This command's closing entry is `orchestrate-quick-<n> · done`, and the worklog also takes the verification and code-review entries and the Stage 7 end-to-end result. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-quick-<n>`; with no ticket, pass the feature the task belongs to, or show the notes in the report when it has none.
 
 Never finish the ticket unless verification passed **and** the code review returned `APPROVED`. Report only after the files are updated.
 
@@ -307,6 +309,7 @@ Omit the status line when there was no ticket or roadmap to mark.
 `agent-pipeline` holds the outcome vocabulary and the conditions for `human_required`, and `ticket-board` holds the **Stopping without finishing** transition. No stage has a retry limit: every loop runs until its gate passes or `human_required` stops it.
 
 - Never mark a task complete unless verification passed **and** the code review approved.
+- Every stop deletes the run folder, as the finish does.
 - If a stage stops on `human_required` because the task turned out to need decisions this pipeline cannot make, say so and point at `/orchestrate` — do not improvise an interview here.
 
 ## Rules

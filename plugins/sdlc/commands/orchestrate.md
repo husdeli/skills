@@ -148,8 +148,10 @@ read the result.
 
 A pre-read review is occasionally discarded, when the risk gate skips the review. That is a token cost, not a wall-clock one — take it.
 
-### Context Pack (built once, forwarded automatically)
-The planner emits a **context pack** — the work root, relevant files, key symbols, conventions, one check command per check in `verificationCommands`, and the project's `e2eCommand` — in its JSON block, on its first turn. Paste it into the plan reviewer's, the test planner's, the test writer's, the coding agent's, and every code reviewer's *first* message, so none of them cold-explores the codebase (later `SendMessage` turns already have it). You read its commands for the full verification.
+### Context Pack (built once, forwarded by path)
+The planner emits a **context pack** — the work root, relevant files, key symbols, conventions, one check command per check in `verificationCommands`, and the project's `e2eCommand` — in its JSON block, on its first turn. Write it to the run folder, `<framework root>/.runs/orchestrate-<n>/`, as `agent-pipeline` says, and send its path in the plan reviewer's, the test planner's, the test writer's, the coding agent's, and every code reviewer's *first* message, so none of them cold-explores the codebase (later `SendMessage` turns already have it). You read its commands for the full verification.
+
+**The plan and the test plan go the same way**: `plan.md` when the plan lands or a revision replaces it, `test-plan.md` when the test plan lands or a ruling revises it. In every prompt below, "approved plan", "context pack", and "test plan" mean those paths. Delete the folder at every exit.
 
 ## Everything you show the user goes through `technical-writing`
 
@@ -237,7 +239,7 @@ The planner reads the feature folder — the ticket and its `Decisions`, the fea
 
   **An answer that does not settle a question is `human_required`** (stage `plan`): the user picked no option, or said the documents must decide it first. The `blocked_by` line names the question, and the report names `/plan` as the place to settle it. A further turn of questions from the planner gets another round, the same way.
 
-Keep the plan markdown as `plan`, and the parsed `contextPack` and `riskProfile` in hand. When the plan lands, append the `implementation-planner · plan` entry and set the assignee, in one tool block. The plan markdown is persisted nowhere else, so the entry carries the **direction** the plan settled on, the approach it turned down, and each question with the answer the user gave.
+Write the plan markdown to `plan.md` and the `contextPack` to `context-pack.json` — on a question turn, the pack as soon as it lands — and keep the parsed `riskProfile` in hand. When the plan lands, append the `implementation-planner · plan` entry and set the assignee, in one tool block. The plan markdown is persisted nowhere else, so the entry carries the **direction** the plan settled on, the approach it turned down, and each question with the answer the user gave.
 
 #### Review the plan
 **Apply the gate mechanically** on the `riskProfile` that came back with the plan — no judgment here:
@@ -258,13 +260,13 @@ Agent(subagent_type: "sdlc:plan-reviewer", model: "sonnet",
                  hazard you already see. Do NOT issue a verdict yet.")
 ```
 
-**Hand over the plan** with `SendMessage(reviewerId, "Review the plan below against the checklist. You have already read the context pack files; re-read only what the plan points at that you have not seen. <plan>")`. A reviewer that never pre-read gets the full first message: the ticket path + task block + acceptance criteria + the questions and their answers + plan + context pack + the work root + "Read the referenced files — do not review from the plan text alone." Two reviewers go out **in one tool block**.
+**Hand over the plan** with `SendMessage(reviewerId, "Review the plan in <plan.md path> against the checklist. You have already read the context pack files; re-read only what the plan points at that you have not seen.")`. A reviewer that never pre-read gets the full first message: the ticket path + task block + acceptance criteria + the questions and their answers + plan + context pack + the work root + "Read the referenced files — do not review from the plan text alone." Two reviewers go out **in one tool block**.
 
 Every reviewer ends its review turn with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues` — shape in the agent definition, do not restate it. Merge multiple reviewers: `CHANGES_REQUESTED` if **any** reviewer requests changes; concat their issues. Nothing returned → `human_required` (stage `plan-review`).
 
 **Revision loop — until the plan is approved:**
 - `APPROVED` → append the `plan-reviewer · plan review` entry and set the assignee to `test-planner-<n>`, in one tool block, then Plan the tests. The entry carries the verdict, the issues that forced a revision, and how the revision answered them.
-- `CHANGES_REQUESTED`: `SendMessage(plannerId, "Revise your plan to resolve every issue below. Note in the Context section how each was addressed. Re-emit the full plan markdown + the ```json block." + issues)` — the planner holds the plan, the ticket, and the pack, so **send only the issues**. Then re-review via `SendMessage` to the same reviewer(s): `"Re-review the revised plan below; the files are unchanged. <revised plan>"` — both in **one tool block** when there are two. Loop back to the new verdict.
+- `CHANGES_REQUESTED`: `SendMessage(plannerId, "Revise your plan to resolve every issue below. Note in the Context section how each was addressed. Re-emit the full plan markdown + the ```json block." + issues)` — the planner holds the plan, the ticket, and the pack, so **send only the issues**. When the revision lands, overwrite `plan.md` with it, then re-review via `SendMessage` to the same reviewer(s): `"Re-read <plan.md path>, which now holds the revised plan, and re-review it; the code is unchanged."` — both in **one tool block** when there are two. Loop back to the new verdict.
 - `CHANGES_REQUESTED`, **stuck**, as `agent-pipeline` defines it → **`human_required`** (stage `plan-review`) with the reviewer summary and the remaining issues.
 
 #### Plan the tests
@@ -279,7 +281,7 @@ SendMessage(testPlannerId, approved plan + context pack
 
 It returns the test plan and a `json` block carrying `summary`, `cases` (each `new` or `guard`), and `untested`. Nothing returned → `human_required` (stage `test-plan`).
 
-Append the `test-planner · test plan` entry — each case in one line (its id, the bug it catches, its type) and each exclusion with its reason; the test plan is persisted nowhere else. In the same tool block, set the assignee to `test-writer-<n>`, or to `coding-<n>` when `cases` is empty. **An empty plan skips Write the tests and Run each new test**: say so in the entry with the planner's `summary`, and go to Implement with no written tests.
+Write the test plan to `test-plan.md`, and append the `test-planner · test plan` entry — each case in one line (its id, the bug it catches, its type) and each exclusion with its reason; the run folder is deleted at the exit, so the entry is the test plan's only record. In the same tool block, set the assignee to `test-writer-<n>`, or to `coding-<n>` when `cases` is empty. **An empty plan skips Write the tests and Run each new test**: say so in the entry with the planner's `summary`, and go to Implement with no written tests.
 
 #### Write the tests
 Spawn the test writer **once** and keep its id:
@@ -351,7 +353,7 @@ SendMessage(testPlannerId, "The coding agent disputes these tests. Rule on each 
                             specification." + testDisputes)
 ```
 
-It returns one `json` block carrying `rulings`, plus `plan` — the full current test plan — when any ruling is `revised`. Nothing returned → `human_required` (stage `test-dispute`). Then:
+It returns one `json` block carrying `rulings`, plus `plan` — the full current test plan, which overwrites `test-plan.md` — when any ruling is `revised`. Nothing returned → `human_required` (stage `test-dispute`). Then:
 - Any ruling `spec-question` → `human_required` (stage `test-dispute`) with the planner's question. That is a question about the specification, and only the user answers it.
 - Any ruling `revised` → `SendMessage(testWriterId, "Apply these revised cases and stop." + the revised rulings)` — spawn the test writer now if the empty plan skipped Write the tests — then take the fingerprints again. A revised test skips Run each new test: the code that makes it pass may already exist.
 - Any ruling `upheld` → **one** message to coding carrying every ruling: `SendMessage(codingId, "The test planner ruled on your disputes. Upheld tests stand — build against them. Revised tests have changed. Continue until the written tests pass." + rulings)`. Its reply goes through Implement's steps, which lead to Run the feature's tests.
@@ -393,11 +395,11 @@ Each reviewer ends with a `json` block carrying `focus`, `verdict` (`APPROVED` |
 - **Stuck**, as `agent-pipeline` defines it → `human_required` with the remaining issues and failures — stage `verification` when a check still fails, `code-review` when only the review still blocks.
 
 #### Finish
-Run the **`ticket-board`** skill's **Finishing a ticket** transition in one step: `status` `done` with `assigned` and `claimed` removed, the usage added, the ticket and its worklog moved to `done/`, the roadmap row deleted, and the closing `orchestrate-<n> · done` worklog entry appended: what shipped, each recommendation nobody acted on, and each note file. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-<n>`. A correction this run forced on a *remaining* ticket — a constraint the code review found, a dependency that turned out wrong — is rewritten in the same step.
+Run the **`ticket-board`** skill's **Finishing a ticket** transition in one step: `status` `done` with `assigned` and `claimed` removed, the usage added, the ticket and its worklog moved to `done/`, the roadmap row deleted, the run folder deleted, and the closing `orchestrate-<n> · done` worklog entry appended: what shipped, each recommendation nobody acted on, and each note file. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-<n>`. A correction this run forced on a *remaining* ticket — a constraint the code review found, a dependency that turned out wrong — is rewritten in the same step.
 
 **Act on the result.** Whichever it is, the entry of the stage that ended the run goes into the worklog — a run that failed is exactly the run whose record matters. `agent-pipeline` defines the two outcomes and `ticket-board` holds the transition each one writes:
 - **`completed`** → **Finishing a ticket**, as above. Keep whether the review ran, the reviewers' summaries, and the test and verification details for the report.
-- **`human_required`** → **Stopping without finishing**. Surface the `stage`, the reason, and any issues, failures, or blockers for the user.
+- **`human_required`** → **Stopping without finishing**, and delete the run folder. Surface the `stage`, the reason, and any issues, failures, or blockers for the user.
 
 Report only after the files are updated.
 

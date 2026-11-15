@@ -359,6 +359,12 @@ pack and every open question, no plan, and a `null` `riskProfile`. **Forward the
 coding agent, and every code reviewer, and to the test planner with the plan, so none of them
 cold-explores the codebase. Its `verificationCommands` and `e2eCommand` are the checks you run in Stage 6.
 
+**Forward it by path.** Write the `contextPack` to `context-pack.json` in the run folder,
+`<framework root>/.runs/<run name>/`, as `agent-pipeline` says, the moment it lands; the plan to
+`plan.md` when it lands or a revision replaces it; and the test plan to `test-plan.md` when it lands
+or a ruling revises it. In every prompt below, "approved plan", "contextPack", and "test plan" mean
+those paths. Every exit deletes the folder.
+
 Planner silent → `human_required` at stage `plan`. The test planner's spec-only turn emits no `json`
 block; it is silent only when it returns nothing at all → `human_required` at stage `test-plan`.
 
@@ -405,8 +411,8 @@ A non-empty `openQuestions` on the planner's next turn goes to the CTO the same 
 **Let the reviewer read while the plan is written.** On a question turn no `riskProfile` exists
 yet, so Stage 3 spawns one reviewer in **pre-read only** mode — the ticket, the criteria, its
 Decisions, the context pack, and "PRE-READ ONLY. The plan is still being written. Do NOT issue a
-verdict yet." When the plan lands, hand it over with `SendMessage(reviewerId, "Review the plan below
-against the checklist. Re-read only what the plan points at that you have not seen." + plan)`. A
+verdict yet." When the plan lands, hand it over with `SendMessage(reviewerId, "Review the plan in <plan.md
+path> against the checklist. Re-read only what the plan points at that you have not seen.")`. A
 high-risk plan reuses it as lens (a) and spawns lens (b) fresh; a gate that skips the review drops
 it. After a plan turn in Stage 2 there is no pre-read: spawn the reviewer(s) with the ticket, the
 criteria, its Decisions, the context pack, and the plan in one message. The plan reviewer takes no
@@ -417,10 +423,12 @@ issues. Every reviewer silent → `human_required` at stage `plan-review`.
 
 - `APPROVED` → append the plan and plan-review entries and set `assigned` to `test-planner-<n>`, in
   one tool block, then Stage 4.5. The plan entry carries the **direction** the plan settled on, the
-  approach it turned down, and each CTO answer with its reason; the plan markdown is kept nowhere.
+  approach it turned down, and each CTO answer with its reason; the run folder is deleted at the
+  exit, so the entry is the plan's only record.
 - `CHANGES_REQUESTED` → `SendMessage(plannerId, "Revise your plan to resolve
   every issue below. Note in the Context section how each was addressed. Re-emit the full plan
-  markdown + the ```json block." + issues)`, then re-review through the same reviewer(s).
+  markdown + the ```json block." + issues)`. Overwrite `plan.md` with the revision, then re-review
+  through the same reviewer(s): "Re-read <plan.md path>, which now holds the revised plan."
 - `CHANGES_REQUESTED`, **stuck**, as `agent-pipeline` defines it → **ask the CTO** (Stage 7) with stage
   `plan-review`.
 
@@ -430,8 +438,9 @@ plan is approved. Attach your drafted cases to the public interfaces it exposes,
 redundant, and return the full test plan with its ```json block.")`. It returns `summary`, `cases`,
 and `untested`. Silent → `human_required` at stage `test-plan`.
 
-Append the `test-planner · test plan` entry — each case in one line and each exclusion with its
-reason — and set `assigned` to `test-writer-<n>`, in one tool block. **An empty `cases` skips Stages
+Write the test plan to `test-plan.md`, append the `test-planner · test plan` entry — each case in
+one line and each exclusion with its reason — and set `assigned` to `test-writer-<n>`, in one tool
+block. **An empty `cases` skips Stages
 4.6 and 4.7**: record the planner's reason, set `assigned` to `coding-<n>`, and go to Stage 5 with no
 written tests.
 
@@ -618,7 +627,7 @@ on the run branch: a commit a hook rejects stops the ticket here instead, as Sta
 stage never runs.
 
 Then run `ticket-board`'s **Finishing a ticket** transition yourself, in one tool block: the status field,
-the closing worklog entry, the move into `done/`, and the roadmap row deleted. This command's closing
+the closing worklog entry, the move into `done/`, the roadmap row deleted, and the run folder deleted. This command's closing
 entry is `<run name> · done`, and it names each note file. In the same step, write the coding agent's
 latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run <run name>`. A note is
 never a reason to stop: the run goes on, and a person acts on the note later.
@@ -676,6 +685,7 @@ to start from a clean worktree:
    outcome — `<ID>: human_required` — and the reason in the body.
 5. Confirm every worktree is clean with `git -C <worktree> status --porcelain`. The script ends the
    run when a ticket leaves work behind.
+6. Delete the run folder in the framework root.
 
 **On `--final`**, release the run's claims the same way after a completed ticket too, so no claim
 outlives the run.

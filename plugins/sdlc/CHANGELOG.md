@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The plan, the context pack, and the test plan go to agents by path.** The orchestrator writes
+  each once to a run folder, `<framework root>/.runs/<claim>/`, which a `.gitignore` of `*` keeps
+  out of git and every exit deletes, and sends the path instead of pasting the text into each of up
+  to eight prompts. A revision overwrites the file, and a resumed agent is told to re-read it.
 - `/orchestrate`, `/orchestrate-quick`, and `/run-roadmap` call `board.py` for the pick, the claim,
   the feature's tests, and the release, and apply the rules by hand only when `python3` is missing.
 

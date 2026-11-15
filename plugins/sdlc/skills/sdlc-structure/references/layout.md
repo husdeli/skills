@@ -17,6 +17,8 @@ inside it is, and [the framework root and the registry](roots.md) say how a sess
 │       └── notes/                       <slug>.note.md — actions a person must take
 ├── designs/                         design docs every feature depends on
 ├── diagrams/                        <name>.excalidraw.md, one file per drawing
+├── .runs/                           scratch for runs in flight — <claim>/plan.md and the like;
+│                                    ignored by git, deleted when the run exits, never a record
 ├── work/                            every ticket, in one bucket per status
 │   ├── backlog/                     <CODE>-<NNN>-<slug>.md — tickets no one has started
 │   ├── in-progress/                 tickets being built, each with its .worklog.md beside it

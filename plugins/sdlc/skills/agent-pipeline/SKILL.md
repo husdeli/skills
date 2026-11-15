@@ -91,6 +91,28 @@ documents and not the code — an agent left to assume would read the wrong tree
 result from it. `sdlc-structure` holds how the work root is resolved; resolving it is the command's
 job, once, before the first spawn.
 
+## Hand the long documents over by path
+
+The plan, the context pack, and the test plan go to most of the run's agents, and a pasted copy is
+re-typed — as slow output — in every prompt that carries it. **Write each one once to the run
+folder, and send its path:**
+
+```
+<framework root>/.runs/<claim>/
+  .gitignore         one line, `*` — git ignores the folder, wherever the framework root sits
+  plan.md            the plan markdown, as the planner returned it
+  context-pack.json  the planner's `contextPack`
+  test-plan.md       the test plan markdown, with its `cases` and `untested`
+```
+
+- **Write it the moment the document lands**, and overwrite it when a revision lands. A resumed agent
+  that already read it gets "re-read `plan.md`; the plan was revised" instead of the plan again.
+- **In a command's prompt, "the approved plan", "the context pack", and "the test plan" mean that
+  file's absolute path**, with the line "read it whole before you start". The agent reads it itself.
+- **Delete the folder at every exit**, finish and `human_required`. It is scratch, never a record:
+  the worklog entries carry what the plan decided.
+- **With no framework root** — `/orchestrate-quick` on a bare task — paste the documents as before.
+
 ## Tests come before the code, from three different agents
 
 The agent that decides what to test, the agent that writes the tests, and the agent that writes the
