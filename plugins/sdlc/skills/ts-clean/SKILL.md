@@ -1,6 +1,9 @@
 ---
 name: ts-clean
-description: "Rules for clean TypeScript in any file — one module per file named after its primary export, role suffixes such as `.service.ts`, static imports, self-documenting code with few comments, and `process.env` read only in `.config.ts` modules. INVOKE THIS SKILL before writing or editing any `.ts`/`.tsx` file. Framework-agnostic."
+description: "Defines clean TypeScript: one module per file named after its export, role suffixes like .service.ts, static imports, few comments, and process.env read only in .config.ts files. Use before writing or editing any .ts or .tsx file."
+paths:
+  - "**/*.ts"
+  - "**/*.tsx"
 ---
 
 # Clean TypeScript

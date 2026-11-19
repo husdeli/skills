@@ -1,6 +1,6 @@
 ---
 name: diagrams
-description: "Rules for a diagram in a product document — built by this skill's script into `diagrams/<name>.excalidraw.md`, referenced with a one-line caption, and drawn in ASCII only when the script cannot run. INVOKE THIS SKILL before you put a diagram in a PRD, a design doc, a ticket, or any other framework-root document, and before you update a document a diagram already shows."
+description: "Builds a diagram for a product document into diagrams/<name>.excalidraw.md with this skill's script, cited by a one-line caption. Use before adding or updating a diagram in a PRD, design doc, ticket, or other framework document."
 ---
 
 # diagrams skill

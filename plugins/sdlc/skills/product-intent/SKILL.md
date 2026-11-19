@@ -1,6 +1,6 @@
 ---
 name: product-intent
-description: "Rules for the product's intent — the goal, non-goal, persona, problem, and success-metric notes under the project's `product/` that the PRD is assembled from and that features, design docs, and the business plan cite. INVOKE THIS SKILL before you write or change one of those notes, cite one, or write the PRD sections that list them."
+description: "Defines the goal, non-goal, persona, problem, and success-metric notes under a project's product/ that the PRD is assembled from. Use before writing, changing, or citing one of those notes, or writing the PRD sections that list them."
 ---
 
 # product-intent skill
@@ -24,8 +24,8 @@ the cross-cutting qualities are narrative, and narrative does not decompose.
 
 **The `sdlc-structure` skill resolves the framework root and the project** — `<project>/` below
 is the project folder — and holds the table of which document owns which
-fact — load it before you resolve any path below. The **`prd`** skill holds the document that
-composes these notes, the **`feature`** skill holds the feature that cites them, and the
+fact — load it before you resolve any path below. The **`prd-doc`** skill holds the document that
+composes these notes, the **`feature-folder`** skill holds the feature that cites them, and the
 **`glossary`** skill holds every term they name.
 
 ## What earns a note
@@ -42,7 +42,7 @@ paragraphs around it, so it stays prose. A risk and an assumption belong to the 
 are already numbered inside it.
 
 **Never decompose further than this.** A goal is not split into sub-goals, and a persona is not
-split into one note per need. The `prd` skill's rule still holds: a product is described in prose,
+split into one note per need. The `prd-doc` skill's rule still holds: a product is described in prose,
 not as a tree of individually-IDed micro-requirements.
 
 ## The shape every note shares

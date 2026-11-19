@@ -1,6 +1,6 @@
 ---
 name: cto
-description: Stands in for the user in an autonomous run — picks which roadmap feature to build next, calls the end-to-end question, settles the forks a ticket's documents leave open for the planner, and rules on a stage that is stuck. Use when `/run-roadmap` reaches a point where an interactive pipeline would ask a person. Returns a decision only — writes no file and no code.
+description: "Stands in for the user in an autonomous run: picks the next roadmap feature, calls the end-to-end question, settles forks the documents leave open, and rules on a stuck stage. Use when /run-roadmap reaches a point that would ask a person. Returns a decision only; writes no file or code."
 tools: Read, Grep, Glob, Bash, WebFetch, WebSearch, Skill
 model: opus
 ---

@@ -7,6 +7,83 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.74.0] - 2026-11-19
+
+Hardening for unattended runs, from the review in `reports/2026-11-18-sdlc-autonomy-review.md`.
+
+### Added
+
+- **Plugin hooks, `hooks/hooks.json` and `hooks/guard.py`**, hold each agent to what its definition
+  says, instead of trusting it to remember. They act only inside an sdlc subagent; the main
+  session and other plugins' agents are never touched, and a guard that cannot read its input lets
+  the call through.
+  - The read-only agents (both reviewers, the planners, `cto`, `repo-resolver`, `verify`,
+    `feature-interviewer`) cannot Edit or Write.
+  - `test-writer` may write test files, test configs, and package manifests only.
+  - `coding` cannot change a file `test-writer` wrote in the same session — the fingerprint rule,
+    now held before the edit lands.
+  - No sdlc agent commits, pushes, resets, cleans, stashes, or passes `--no-verify`.
+  - A subagent whose reply carries a ```json block that does not parse, or two of them, is sent back
+    to re-emit one. A reply with no block passes, since pre-read and spec-only turns emit none.
+- **`board.py stop`** makes the *Stopping without finishing* transition for a run that cannot make
+  it itself, and **`board.py recover`** stops or releases the claims of runs that died without
+  exiting, judged by `claimedAt` and the launcher's heartbeat.
+- **`scripts/session-log.py`** reads a `claude -p` stream-json log: the `RUN-ROADMAP-RESULT` payload,
+  decoded with a JSON parser, the cost, the turns, and how the session ended.
+- **Tests and CI.** `tests/` holds 57 pytest cases: the board's claims (including six concurrent
+  claimers with one winner), stop, recover, and the frontmatter editor; the launcher driven by a
+  fake `claude` through every ending; and every hook rule. `.github/workflows/sdlc-tests.yml` runs
+  them on Linux and macOS.
+
+### Changed
+
+- **`run-roadmap.sh` 3.0.0 bounds and recovers an unattended run.**
+  - The default permission mode is `auto` with `--permission-prompts none`, not
+    `bypassPermissions`.
+  - `--timeout` defaults to 7200 seconds. The summary reports what the run spent.
+  - A session that times out, is interrupted, or ends with no valid result line is
+    stopped by the script: its code is saved on `refs/sdlc-wip/<run>/task-<n>` and the worktree
+    cleaned, the ticket becomes `blocked` with the log's path, and the run's other claims are released.
+  - A session's stdin is `/dev/null`, so a tool that reads the terminal can no longer hang the run.
+  - The result is read from `--output-format stream-json`, the remaining count from the board, and a
+    `completed` ticket's commit must be on the run branch.
+  - The run number comes from `board.py next-run --reserve`, which holds it with a heartbeat file.
+  - Logs go to `<framework root>/.runs/logs/`, not `TMPDIR`, with a plain-text `summary.txt`, and
+    `--notify CMD` (or `SDLC_NOTIFY`) runs at every end.
+  - A value option given without its value fails instead of looping forever; `--run` is checked
+    strictly; a dirty worktree at preflight exits 3, as the help said.
+- **Claims are locked and timestamped.** `board.py` writes `claimed` and `claimedAt` under
+  `.runs/.board.lock`, checks every ticket before writing any, keeps a file's line endings, and
+  `next-run` counts reserved run numbers.
+- **Every script writes atomically** — `board.py`, `build-roadmap.py`, `create-note.py`, and
+  `excalidraw_md.py` write a temporary file and rename it, so a kill never leaves half a ticket.
+- **`/orchestrate-quick` runs the shared build stages.** `build-stages.md` now describes every stage
+  once, with a *Modes* table for what quick does differently; quick handles the planner's
+  `openQuestions`, and every command uses one set of stage names. The opening rules the three
+  orchestrators repeated live once in `agent-pipeline`'s `references/command-preamble.md`.
+- **Fixed contradictions between documents**: a blocker goes to the answerer before
+  `human_required`; a stopped ticket has no `assigned`; the Codex port no longer aborts after a
+  count; the README no longer claims a "three lost in a row" limit, that quick asks nothing, or that
+  `/review` re-reviews once; `/code` loads `web-stack`; `ai-planning-workflow` records decisions in
+  the ticket and defers UI agreement to the mockup skill.
+- **`plan-reviewer` and `code-reviewer` default to `sonnet`**, the model every normal-risk spawn
+  already used; high risk still asks for `opus`.
+- **The README's command sections** are one to three sentences each, with a link to the command.
+- **Five rule skills are renamed so they no longer share a name with a command**, which in Claude
+  Code's single namespace made `sdlc:feature` resolve to one or the other: `business-plan` →
+  `business-plan-doc`, `design-system` → `design-system-rules`, `feature` → `feature-folder`,
+  `frontend-design` → `mockup-agreement`, `prd` → `prd-doc`. The commands keep their names. In
+  Codex, the rule skills are now `$sdlc:feature-folder` and so on, and `$sdlc:design-system` is the
+  command only.
+- **Every skill, command, and agent description is rewritten** in the third person, in at most 250
+  characters for skills and commands and 300 for agents, so the whole list fits the listing budget
+  and none is dropped.
+- **The file-type rule skills load by path**: `ts-clean`, `react-clean`, `react-animations`, and
+  `clean-tanstack-start` carry `paths:` globs.
+- **Commands with side effects start only when a person types them**: `run-roadmap`, `setup`,
+  `orchestrate`, `orchestrate-quick`, `code`, and `plan` carry `disable-model-invocation: true`.
+- **The plugin description** says what the plugin does now.
+
 ## [0.73.0] - 2026-11-15
 
 ### Added

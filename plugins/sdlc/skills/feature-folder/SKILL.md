@@ -1,9 +1,9 @@
 ---
-name: feature
-description: "Rules for a feature — one thing a customer can do, kept as `features/<feature-name>/` with its feature note, its design docs, its notes for a person, and the epic code that numbers its tickets. INVOKE THIS SKILL before you create, rename, read, or retire a feature, write a design doc that belongs to one, open an epic on a roadmap, or list what a product can do."
+name: feature-folder
+description: "Defines a feature: one thing a customer can do, kept in features/<name>/ with its feature note, design docs, notes, and the epic code that numbers its tickets. Use before creating, renaming, reading, or retiring a feature, or opening an epic."
 ---
 
-# feature skill
+# feature-folder skill
 
 A **feature** is one thing a customer can do. It is the unit the product is described in, the work
 is grouped by, and the plan is sold on, so it has one home and one record:

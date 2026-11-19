@@ -1,5 +1,5 @@
 ---
-description: Open or update a feature — the folder that holds what a customer can do, its design docs, and the code that numbers its tickets.
+description: "Opens or updates a feature: the folder that holds what a customer can do, its design docs, and the code that numbers its tickets. Use when the user names a new capability or changes an existing one."
 argument-hint: "[the feature, in the words a customer would use]"
 ---
 
@@ -9,8 +9,8 @@ Open or update a **feature** for the target below.
 
 Target: $ARGUMENTS
 
-Invoke the **`feature`** skill and follow it. If the skill is namespaced here (e.g.
-`sdlc:feature`), invoke that. Load it **before** you write anything, and follow its folder shape,
+Invoke the **`feature-folder`** skill and follow it. If the skill is namespaced here (e.g.
+`sdlc:feature-folder`), invoke that. Load it **before** you write anything, and follow its folder shape,
 its feature note's properties, and its status rules exactly.
 
 - **Load the `sdlc-structure` skill** (namespaced `sdlc:sdlc-structure`) and resolve the framework
@@ -39,7 +39,7 @@ its feature note's properties, and its status rules exactly.
 
 **When the feature already exists**, update it in place: the `status`, the `projects`, `goals`,
 and `personas` when they changed, and the list of design docs when one was added. Leave an older
-property — `area`, `shipped`, `updated` — as it is; the `feature` skill holds why. Never rewrite the
+property — `area`, `shipped`, `updated` — as it is; the `feature-folder` skill holds why. Never rewrite the
 code of a feature that has tickets.
 
 **Then report**: the feature's name, its code, its status and the evidence behind it, the path of

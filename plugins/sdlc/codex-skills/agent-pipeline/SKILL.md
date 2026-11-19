@@ -1,6 +1,6 @@
 ---
 name: agent-pipeline
-description: Rules for driving subagents from a command — create each role once and continue it rather than recreating it, run independent calls together, parse the single JSON block every agent ends with, ask again for a missing block, and keep the spawn prompt thin. Use before creating a subagent from a command, and before continuing, re-reviewing, or judging one's result.
+description: "Defines how a command drives subagents: spawn each role once and resume it, run independent calls together, and act on each agent's closing JSON block. Use before spawning, resuming, re-reviewing, or judging a subagent from a command."
 ---
 
 # agent-pipeline

@@ -12,13 +12,18 @@
 #   ./board.py next-run --command orchestrate           # the lowest free run number
 #   ./board.py claim --run orchestrate-2 CHECKOUT-002   # write the claim, read it back
 #   ./board.py release --run run-roadmap-3              # remove the run's claims on open tickets
+#   ./board.py stop --run run-roadmap-3 --blocked-by "…" # stop the run's in-flight tickets as blocked
+#   ./board.py recover --stale-hours 24                 # stop or release claims of runs that died
 #   ./board.py feature-tests --ticket CHECKOUT-002      # the feature's tests, from the worklogs
 #
 # It finds the framework root the way `build-roadmap.py` does, and reuses that script's parser for
 # tickets, features, and projects, so the two never read a board two ways.
 #
-# What it never does: move a ticket, change its status, or write a worklog. `claim` and `release`
-# write one property, `claimed`, and nothing else.
+# `claim` and `release` write `claimed` and `claimedAt`, and nothing else. `stop` and `recover` write
+# the one transition a launcher has to make without a model: a ticket in flight becomes `blocked`,
+# as the `ticket-board` skill's *Stopping without finishing* says, with an outcome worklog entry and
+# a rebuilt roadmap. Every write holds the board lock (`<root>/.runs/.board.lock`) and replaces the
+# file atomically, so two runs cannot both win a claim and a kill never leaves half a ticket.
 #
 # Exit codes: 0 done, 1 a claim was lost (`claim` only; the JSON says which), 2 an error that
 # stopped it — the reason is on stderr.
@@ -26,14 +31,25 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
+import datetime as _datetime
 import importlib.util
 import json
+import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
-VERSION = "1.0.0"
+try:
+    import fcntl
+except ImportError:  # pragma: no cover - Windows has no flock; the read-back is all it gets there
+    fcntl = None
+
+VERSION = "1.1.0"
+LOCK_WAIT_SECONDS = 60
+IN_FLIGHT = ("in progress", "review")
 
 _spec = importlib.util.spec_from_file_location("build_roadmap", Path(__file__).with_name("build-roadmap.py"))
 br = importlib.util.module_from_spec(_spec)
@@ -49,6 +65,142 @@ E2E_TYPES = {"e2e", "end-to-end", "end to end"}
 
 class BoardFail(Exception):
     pass
+
+
+def now_property() -> str:
+    """Local date and time in the form every ticket property uses."""
+    return _datetime.datetime.now().strftime("%Y-%m-%dT%H:%M")
+
+
+def parse_property_time(value: object) -> _datetime.datetime | None:
+    text = str(value or "").strip()
+    for form in ("%Y-%m-%dT%H:%M", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M", "%Y-%m-%d"):
+        try:
+            return _datetime.datetime.strptime(text, form)
+        except ValueError:
+            continue
+    return None
+
+
+# ------------------------------------------------------------------------------------ the lock
+
+
+def runs_folder(root: Path) -> Path:
+    """`<root>/.runs/`, the run scratch space, created with a `.gitignore` that ignores all of it."""
+    folder = root / ".runs"
+    folder.mkdir(exist_ok=True)
+    ignore = folder / ".gitignore"
+    if not ignore.exists():
+        ignore.write_text("*\n", encoding="utf-8")
+    return folder
+
+
+@contextlib.contextmanager
+def board_lock(root: Path):
+    """Hold the board's write lock. Every command that writes a ticket takes it first, so the
+    write-then-read-back of a claim is one step no other run can interleave with."""
+    if fcntl is None:
+        yield
+        return
+    handle = open(runs_folder(root) / ".board.lock", "a+")
+    deadline = time.monotonic() + LOCK_WAIT_SECONDS
+    try:
+        while True:
+            try:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except BlockingIOError:
+                if time.monotonic() > deadline:
+                    raise BoardFail(f"another process has held the board lock for {LOCK_WAIT_SECONDS}s: {handle.name}")
+                time.sleep(0.2)
+        yield
+    finally:
+        with contextlib.suppress(OSError):
+            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        handle.close()
+
+
+# ------------------------------------------------------------------------------------ frontmatter
+
+KEY_LINE = re.compile(r"^([A-Za-z_][\w-]*)\s*:")
+PLAIN_SCALAR = re.compile(r"^[\w./@+\[\]-][\w ./@+()\[\]-]*$")
+
+
+def yaml_scalar(value: str) -> str:
+    """A scalar as a ticket writes it: bare when it is plain, double-quoted otherwise."""
+    if PLAIN_SCALAR.match(value) and not value.endswith(" ") and value.lower() not in ("true", "false", "null", "yes", "no"):
+        return value
+    # The board's parser strips one pair of quotes and unescapes nothing, so pick the quote the
+    # value does not contain.
+    if '"' not in value and "\\" not in value:
+        return f'"{value}"'
+    if "'" not in value:
+        return f"'{value}'"
+    return json.dumps(value, ensure_ascii=False)
+
+
+def edit_frontmatter(text: str, changes: dict[str, object]) -> str:
+    """Set, replace, or remove frontmatter properties, leaving every other line as it was.
+    A value of None removes the property; a list is written as an indented block; anything else
+    is a scalar. The file's own line endings are kept."""
+    newline = "\r\n" if "\r\n" in text else "\n"
+    lines = text.split(newline)
+    if not lines or lines[0].strip() != "---":
+        raise BoardFail("no frontmatter")
+    closing = next((i for i in range(1, len(lines)) if lines[i].strip() == "---"), None)
+    if closing is None:
+        raise BoardFail("its frontmatter never closes")
+
+    blocks: dict[str, tuple[int, int]] = {}
+    index = 1
+    while index < closing:
+        match = KEY_LINE.match(lines[index])
+        if not match:
+            index += 1
+            continue
+        end = index + 1
+        while end < closing and not KEY_LINE.match(lines[end]):
+            end += 1
+        blocks[match.group(1)] = (index, end)
+        index = end
+
+    def render(key: str, value: object) -> list[str]:
+        if isinstance(value, (list, tuple)):
+            if not value:
+                return [f"{key}: []"]
+            return [f"{key}:"] + [f"  - {yaml_scalar(str(item))}" for item in value]
+        return [f"{key}: {yaml_scalar(str(value))}"]
+
+    edits = []  # (start, end, replacement) on existing blocks
+    additions: list[str] = []
+    for key, value in changes.items():
+        if key in blocks:
+            start, end = blocks[key]
+            # Keep blank lines that trailed the old block.
+            while end - 1 > start and not lines[end - 1].strip():
+                end -= 1
+            edits.append((start, end, [] if value is None else render(key, value)))
+        elif value is not None:
+            additions += render(key, value)
+    for start, end, replacement in sorted(edits, reverse=True):
+        lines[start:end] = replacement
+    if additions:
+        closing = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
+        lines[closing:closing] = additions
+    return newline.join(lines)
+
+
+def rewrite_ticket(path: Path, changes: dict[str, object]) -> None:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as error:
+        raise BoardFail(f"{path.name}: {error}") from error
+    try:
+        updated = edit_frontmatter(text, changes)
+    except BoardFail as error:
+        raise BoardFail(f"{path.name}: {error}") from error
+    if updated != text:
+        br.atomic_write_text(path, updated)
 
 
 # ------------------------------------------------------------------------------------ the board
@@ -262,20 +414,35 @@ def command_ready(args: argparse.Namespace) -> dict[str, object]:
 
 def command_next_run(args: argparse.Namespace) -> dict[str, object]:
     board = Board(args)
-    used = set()
-    for tid in board.tickets:
-        match = CLAIM.match(board.claimed(tid))
-        if match:
-            used.add(int(match.group(2)))
-    repositories = [Path(p).expanduser() for p in args.repo] or registry_paths(board.root)
-    if args.command == "run-roadmap":
-        for repo in repositories:
-            for n in branch_numbers(repo):
-                used.add(n)
-    n = 1
-    while n in used:
-        n += 1
-    return {"n": n, "run": f"{args.command}-{n}", "used": sorted(used)}
+    with board_lock(board.root) if args.reserve else contextlib.nullcontext():
+        used = set()
+        for tid in board.tickets:
+            match = CLAIM.match(board.claimed(tid))
+            if match:
+                used.add(int(match.group(2)))
+        live = board.root / ".runs" / ".live"
+        if live.is_dir():
+            for child in live.iterdir():
+                match = CLAIM.match(child.name)
+                if match:
+                    used.add(int(match.group(2)))
+        repositories = [Path(p).expanduser() for p in args.repo] or registry_paths(board.root)
+        if args.command == "run-roadmap":
+            for repo in repositories:
+                for n in branch_numbers(repo):
+                    used.add(n)
+        n = 1
+        while n in used:
+            n += 1
+        result: dict[str, object] = {"n": n, "run": f"{args.command}-{n}", "used": sorted(used)}
+        if args.reserve:
+            # The heartbeat file reserves the number until the launcher removes it, and its mtime is
+            # what `recover` reads to tell a live run from a dead one.
+            live = runs_folder(board.root) / ".live"
+            live.mkdir(exist_ok=True)
+            (live / result["run"]).touch()
+            result["heartbeat"] = str(live / result["run"])
+    return result
 
 
 def registry_paths(root: Path) -> list[Path]:
@@ -316,27 +483,28 @@ def branch_numbers(repo: Path) -> list[int]:
 
 
 def set_claim(path: Path, value: str | None) -> None:
-    """Write or remove the `claimed` property, leaving every other line as it was."""
-    lines = path.read_text(encoding="utf-8").split("\n")
-    if not lines or lines[0].strip() != "---":
-        raise BoardFail(f"{path.name}: no frontmatter to write the claim into")
-    closing = next((i for i in range(1, len(lines)) if lines[i].strip() == "---"), None)
-    if closing is None:
-        raise BoardFail(f"{path.name}: its frontmatter never closes")
-    index = next((i for i in range(1, closing) if re.match(r"^claimed:", lines[i])), None)
-    if value is None:
-        if index is not None:
-            del lines[index]
-    elif index is not None:
-        lines[index] = f"claimed: {value}"
-    else:
-        lines.insert(closing, f"claimed: {value}")
-    path.write_text("\n".join(lines), encoding="utf-8")
+    """Write or remove `claimed` and its `claimedAt`, leaving every other line as it was."""
+    rewrite_ticket(path, {"claimed": value, "claimedAt": now_property() if value else None})
+
+
+def check_writable(tickets: list[br.Ticket]) -> None:
+    """Fail before the first write when any ticket could not take one, so a claim never half lands."""
+    for ticket in tickets:
+        try:
+            edit_frontmatter(ticket.path.read_text(encoding="utf-8"), {})
+        except (BoardFail, OSError) as error:
+            raise BoardFail(f"{ticket.path.name}: {error}") from error
 
 
 def command_claim(args: argparse.Namespace) -> tuple[dict[str, object], int]:
     board = Board(args)
+    with board_lock(board.root):
+        return _claim(Board(args), args)
+
+
+def _claim(board: Board, args: argparse.Namespace) -> tuple[dict[str, object], int]:
     tickets = [board.find(ref) for ref in args.tickets]
+    check_writable([t for t in tickets if not t.is_done])
     lost, skipped, written = [], [], []
     for ticket in tickets:
         claim = board.claimed(ticket.ticket_id)
@@ -368,6 +536,11 @@ def command_claim(args: argparse.Namespace) -> tuple[dict[str, object], int]:
 
 def command_release(args: argparse.Namespace) -> dict[str, object]:
     board = Board(args)
+    with board_lock(board.root):
+        return _release(Board(args), args)
+
+
+def _release(board: Board, args: argparse.Namespace) -> dict[str, object]:
     if args.tickets:
         tickets = [board.find(ref) for ref in args.tickets]
     else:
@@ -381,6 +554,121 @@ def command_release(args: argparse.Namespace) -> dict[str, object]:
         elif claim:
             not_ours.append({"id": ticket.ticket_id, "claimedBy": claim})
     return {"released": released, "notOurs": not_ours}
+
+
+# ------------------------------------------------------------------------------------ stop and recover
+
+
+def append_worklog(ticket: br.Ticket, run: str, lines: list[str]) -> Path:
+    """Append one outcome entry to the ticket's worklog, creating the worklog when it has none."""
+    worklog = ticket.path.with_name(f"{ticket.path.stem}.worklog.md")
+    stamp = _datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+    entry = f"## {stamp} — {run} · stop\n\n" + "".join(f"- {line}\n" for line in lines)
+    if worklog.is_file():
+        text = worklog.read_text(encoding="utf-8")
+        separator = "" if text.endswith("\n\n") else ("\n" if text.endswith("\n") else "\n\n")
+        br.atomic_write_text(worklog, text + separator + entry)
+    else:
+        br.atomic_write_text(worklog, f"# [{ticket.ticket_id}] {ticket.title} — worklog\n\n" + entry)
+    return worklog
+
+
+def rebuild_roadmaps(root: Path) -> int:
+    """Rebuild every project's roadmap from the tickets, so a stopped row reads `Blocked`."""
+    namespace = argparse.Namespace(
+        project=None, root=str(root), roadmap=None, check=False, style="auto", strict=False, today=None, quiet=True,
+    )
+    with contextlib.redirect_stdout(sys.stderr):
+        return br.build(namespace)
+
+
+def stop_tickets(board: Board, tickets: list[br.Ticket], run: str, blocked_by: str, stage: str, details: list[str]) -> list[dict[str, object]]:
+    check_writable(tickets)
+    stopped = []
+    for ticket in tickets:
+        rewrite_ticket(ticket.path, {
+            "status": "blocked",
+            "blocked_by": [blocked_by],
+            "assigned": None,
+            "claimed": None,
+            "claimedAt": None,
+            "updatedAt": now_property(),
+        })
+        worklog = append_worklog(ticket, run, [
+            f"Stopped at {stage}, outside the pipeline: {blocked_by}",
+            *details,
+            "Nothing was committed for this ticket. A person deletes the `blocked_by` line once the cause is "
+            "cleared, and the next run starts the ticket again from Plan, with this worklog as input.",
+        ])
+        stopped.append({"id": ticket.ticket_id, "path": str(ticket.path), "worklog": str(worklog)})
+    return stopped
+
+
+def command_stop(args: argparse.Namespace) -> dict[str, object]:
+    board = Board(args)
+    with board_lock(board.root):
+        board = Board(args)
+        if args.tickets:
+            tickets = [board.find(ref) for ref in args.tickets]
+            foreign = [t.ticket_id for t in tickets if board.claimed(t.ticket_id) not in ("", args.run)]
+            if foreign:
+                raise BoardFail(f"another run claims {', '.join(foreign)}; stop only what --run holds")
+        else:
+            tickets = [
+                t for t in board.tickets.values()
+                if board.claimed(t.ticket_id) == args.run and t.status in IN_FLIGHT
+            ]
+        tickets = [t for t in tickets if not t.is_done]
+        stopped = stop_tickets(board, tickets, args.run, args.blocked_by, args.stage, args.detail)
+        released = _release(Board(args), argparse.Namespace(run=args.run, tickets=[]))["released"] if args.release_rest else []
+        roadmap = rebuild_roadmaps(board.root) if stopped else 0
+    return {"stopped": stopped, "released": released, "roadmapRebuilt": bool(stopped) and roadmap != 2}
+
+
+def run_last_seen(root: Path, claim: str, claimed_at: _datetime.datetime | None) -> _datetime.datetime | None:
+    """The newest sign the run is alive: its claim time, or the heartbeat its launcher touches."""
+    seen = [claimed_at] if claimed_at else []
+    heartbeat = root / ".runs" / ".live" / claim
+    if heartbeat.exists():
+        seen.append(_datetime.datetime.fromtimestamp(heartbeat.stat().st_mtime))
+    return max(seen) if seen else None
+
+
+def command_recover(args: argparse.Namespace) -> dict[str, object]:
+    board = Board(args)
+    with board_lock(board.root):
+        board = Board(args)
+        limit = _datetime.datetime.now() - _datetime.timedelta(hours=args.stale_hours)
+        stale: dict[str, list[br.Ticket]] = {}
+        undated, alive = [], []
+        for ticket in board.tickets.values():
+            claim = board.claimed(ticket.ticket_id)
+            if not claim or ticket.is_done or (args.run and claim != args.run):
+                continue
+            seen = run_last_seen(board.root, claim, parse_property_time(board.props[ticket.ticket_id].get("claimedAt")))
+            if seen is None:
+                undated.append({"id": ticket.ticket_id, "claimed": claim})
+            elif seen < limit:
+                stale.setdefault(claim, []).append(ticket)
+            else:
+                alive.append({"id": ticket.ticket_id, "claimed": claim, "lastSeen": seen.strftime("%Y-%m-%dT%H:%M")})
+        stopped, released = [], []
+        for claim, tickets in stale.items():
+            in_flight = [t for t in tickets if t.status in IN_FLIGHT]
+            reason = (f"Run {claim} stopped without exiting and left this ticket in flight. Check its work root "
+                      f"for half-built changes, then delete this line.")
+            if not args.dry_run:
+                stopped += stop_tickets(board, in_flight, claim, reason, "an unknown stage", [])
+                for ticket in tickets:
+                    if ticket not in in_flight:
+                        set_claim(ticket.path, None)
+                        released.append(ticket.ticket_id)
+            else:
+                stopped += [{"id": t.ticket_id, "path": str(t.path)} for t in in_flight]
+                released += [t.ticket_id for t in tickets if t not in in_flight]
+        if stopped and not args.dry_run:
+            rebuild_roadmaps(board.root)
+    return {"dryRun": args.dry_run, "stopped": stopped, "released": released, "alive": alive, "undated": undated}
 
 
 # ------------------------------------------------------------------------------------ the feature's tests
@@ -523,6 +811,7 @@ def main(argv: list[str] | None = None) -> int:
     nxt = add("next-run", "the lowest run number no claim uses")
     nxt.add_argument("--command", required=True, choices=("orchestrate", "orchestrate-quick", "run-roadmap"))
     nxt.add_argument("--repo", action="append", default=[], help="a repository whose branches count (run-roadmap)")
+    nxt.add_argument("--reserve", action="store_true", help="hold the number with a heartbeat file under .runs/.live/")
 
     claim = add("claim", "write the run's claim on tickets and read it back")
     claim.add_argument("--run", required=True)
@@ -531,6 +820,19 @@ def main(argv: list[str] | None = None) -> int:
     release = add("release", "remove the run's claims")
     release.add_argument("--run", required=True)
     release.add_argument("tickets", nargs="*", help="ticket IDs or paths; every open ticket the run claims when left out")
+
+    stop = add("stop", "stop the run's tickets in flight as blocked — what a launcher does after a crash")
+    stop.add_argument("--run", required=True)
+    stop.add_argument("--blocked-by", required=True, help="the one line naming what a person must do")
+    stop.add_argument("--stage", default="an unknown stage", help="the stage the ticket stopped at")
+    stop.add_argument("--detail", action="append", default=[], help="another line for the outcome entry")
+    stop.add_argument("--release-rest", action="store_true", help="also release the run's other claims")
+    stop.add_argument("tickets", nargs="*", help="ticket IDs or paths; every in-flight ticket the run claims when left out")
+
+    recover = add("recover", "stop or release the claims of runs that died without exiting")
+    recover.add_argument("--stale-hours", type=float, default=24.0, help="a claim older than this, with no fresher heartbeat, is dead")
+    recover.add_argument("--run", help="only this run's claims")
+    recover.add_argument("--dry-run", action="store_true", help="report what would change and write nothing")
 
     tests = add("feature-tests", "the feature's tests, from its tickets' worklogs")
     tests.add_argument("--ticket", required=True, help="the ticket being built, by ID or path")
@@ -553,6 +855,10 @@ def main(argv: list[str] | None = None) -> int:
             result, code = command_claim(args)
         elif args.action == "release":
             result = command_release(args)
+        elif args.action == "stop":
+            result = command_stop(args)
+        elif args.action == "recover":
+            result = command_recover(args)
         else:
             result = command_feature_tests(args)
     except BoardFail as error:

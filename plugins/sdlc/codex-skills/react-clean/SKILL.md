@@ -1,6 +1,6 @@
 ---
 name: react-clean
-description: Rules for writing clean React components. Use before writing or editing any React component, hook, or `.tsx` file. Builds on the `ts-clean` skill; follow that one too.
+description: "Defines clean React components and hooks: one component per file, size limits, at most one effect, data through services and TanStack Query, composition over prop drilling. Use before writing or editing a component, hook, or .tsx/.jsx file."
 ---
 
 # react-clean

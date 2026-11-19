@@ -1,0 +1,27 @@
+name: sdlc tests
+
+on:
+  push:
+    paths: ["plugins/sdlc/**", ".github/workflows/sdlc-tests.yml"]
+  pull_request:
+    paths: ["plugins/sdlc/**", ".github/workflows/sdlc-tests.yml"]
+
+jobs:
+  scripts:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python: ["3.9", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python -m pip install pytest
+      - name: Syntax-check the launcher
+        run: bash -n plugins/sdlc/scripts/run-roadmap.sh
+      - name: Run the script tests
+        working-directory: plugins/sdlc
+        run: python -m pytest -q tests

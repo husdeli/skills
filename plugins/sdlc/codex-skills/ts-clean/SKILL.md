@@ -1,6 +1,6 @@
 ---
 name: ts-clean
-description: Rules for writing clean TypeScript in any file. Use before writing or editing any `.ts` or `.tsx` file — a service, a domain module, a hook, a utility, or a config file.
+description: "Defines clean TypeScript: one module per file named after its export, role suffixes like .service.ts, static imports, few comments, and process.env read only in .config.ts files. Use before writing or editing any .ts or .tsx file."
 ---
 
 # ts-clean

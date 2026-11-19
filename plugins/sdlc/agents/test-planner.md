@@ -1,6 +1,6 @@
 ---
 name: test-planner
-description: Decides which tests a change gets before any code exists — derives the cases from the specification, keeps only the ones that catch a bug the change could ship, picks the cheapest test type for each, and rules on a test the coding agent disputes. Use when the orchestrator reaches its Plan the tests or Test defect stage. Returns a test plan or a ruling only — writes no test and no code.
+description: "Decides which tests a change gets before code exists: derives cases from the spec, keeps those that catch a shippable bug, and picks the cheapest type for each. Use at the Plan the tests or Test defect stage. Returns a test plan or a ruling; writes no test or code."
 tools: Read, Grep, Glob, Bash, Skill
 model: opus
 ---

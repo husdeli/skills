@@ -1,6 +1,6 @@
 ---
 name: sdlc-structure
-description: The structure this plugin creates and works in — the framework root (the `sdlc.json` registry, the glossary, `features/`, the `work/` folder, `projects/`), the project folder and its project note, every kind of document and where it sits, which document owns each fact, the work root, the `.sdlc.json` pointer file, and the Obsidian-vault conventions. Use before reading, creating, moving, or updating any product document — a project note, a PRD, a product note, a glossary, a feature, a design doc, a diagram, a roadmap, a ticket, a worklog, or the business plan — and before running a command against a repository that is not the working directory.
+description: "Maps where this plugin's documents live: the framework root and registry, projects, features, tickets, worklogs, the work root, and vault conventions. Use before reading, creating, moving, or updating a framework document, or resolving its path."
 ---
 
 # sdlc-structure

@@ -1,6 +1,6 @@
 ---
 name: ticket-board
-description: "Rules for the ticket board — the `work/` buckets, how a ticket is named and what it carries, its status transitions, the claim, each project's roadmap, and the worklog. INVOKE THIS SKILL before you read, write, move, assign, claim, or finish a ticket, add or delete a roadmap row, or write a worklog entry."
+description: "Defines the ticket board: the work/ buckets, ticket names and properties, status transitions, claims, roadmaps, and worklogs. Use before reading, writing, moving, claiming, or finishing a ticket, editing a roadmap row, or writing a worklog."
 ---
 
 # ticket-board skill
@@ -106,6 +106,7 @@ related:
 | `depends_on` | Required. The IDs of every ticket this one cannot start without, as bare IDs. `[]` when there are none. |
 | `assigned` | The agent that works on the ticket now, or is planned to, by its name: `coding-2`. See [Who holds the ticket](#who-holds-the-ticket). |
 | `claimed` | The run that holds the ticket: `orchestrate-2`. See [The claim](#the-claim). |
+| `claimedAt` | When `claimed` was written, as `YYYY-MM-DDTHH:mm`. Written and removed with `claimed`, by `board.py` only. |
 | `blocked_by` | Required while `status` is `blocked`, and absent otherwise. See [What blocks a ticket](#what-blocks-a-ticket). |
 | `createdAt` | Required. When the ticket was created. Set once, in the step that creates it, and never changed. |
 | `updatedAt` | Required. When the ticket last changed. Equal to `createdAt` on a new ticket, and rewritten by every step that changes the ticket. |
@@ -182,7 +183,7 @@ as well as the role. A session doing the work itself names its command the same 
 | --- | --- |
 | `backlog` | Optional; the agent planned to work on it, once that is known |
 | `in progress` | Required; the agent working on it |
-| `blocked` | Optional; the agent that resumes it once it is unblocked |
+| `blocked` | Absent; *Stopping without finishing* removes it, and the run that resumes the ticket sets it again at Start |
 | `review` | Optional; the agent that reviews it, once that is known |
 | `done` | Absent |
 
@@ -210,8 +211,16 @@ it, and `claimed` may be set at any status except `done`.
 - **Every exit removes the claim**: finish and `human_required`. A roadmap run's end removes the
   claims on every ticket of its cluster that is not `done`.
 
-A file cannot hold a lock, so the read-back narrows the race without closing it. A run that dies
-without exiting leaves its claim for a person to remove.
+**Claims go through `board.py`, never by hand.** It writes `claimed` and `claimedAt` under the
+board lock, `<framework root>/.runs/.board.lock`, so a claim and its read-back are one step no other
+run can interleave with. A claim edited by hand bypasses the lock and reopens the race.
+
+**A run that dies without exiting** — a crash, a closed laptop — leaves its claims behind.
+`run-roadmap.sh` stops its own dead tickets itself. For any other, `board.py recover` treats a claim
+as dead when its `claimedAt`, and the heartbeat a launcher keeps in `.runs/.live/<run>`, are both
+older than `--stale-hours` (24 by default): it stops that run's in-flight tickets as `blocked`, with
+a `blocked_by` line saying so, and releases its other claims. A claim with no `claimedAt` is never
+treated as dead; a person removes it.
 
 ## Every ticket belongs to an epic, and every epic delivers one feature
 
@@ -219,7 +228,7 @@ An **epic** is the group of tickets that delivers one **feature**. They share on
 code — two to eight characters — uppercase letters and digits, starting with a letter, from the feature note's `code` — and that code prefixes every ticket
 ID under it: `CHECKOUT-001`, `CHECKOUT-002`.
 
-**The feature note is where the code comes from.** Load the **`feature`** skill before you open an
+**The feature note is where the code comes from.** Load the **`feature-folder`** skill before you open an
 epic. A feature is created before its first ticket — the code exists because the feature exists, and
 a ticket never mints a code. Work no customer would name, such as a migration or a cleanup, still
 gets a feature note, so its code has one owner.
@@ -329,7 +338,7 @@ session. In the middle of a run, correct only the rows you read.
 2. Delete the ticket's ID from every other row's `Depends on` cell, write `—` in a cell left empty,
    and re-sort the table when this frees a row to move up. Leave every ticket's `depends_on` alone.
 3. Delete the epic's section once its last row is gone. Set its feature to `status: done` only after
-   you check a work root holds the whole feature, as the **`feature`** skill requires.
+   you check a work root holds the whole feature, as the **`feature-folder`** skill requires.
 4. Bump the roadmap's `updated`.
 
 **The roadmap is not a history.** It never grows a done section, a struck-through row, or a note
@@ -359,6 +368,10 @@ python3 "$board" ready --features --run <run name>     # a roadmap run's feature
 python3 "$board" next-run --command <command>          # the lowest number no claim uses
 python3 "$board" claim --run <claim> <ID>…             # write and read back; exit 1 when one is lost
 python3 "$board" release --run <claim> [<ID>…]         # every open ticket the run claims, when no ID
+python3 "$board" stop --run <claim> --blocked-by "<line>" [--release-rest] [<ID>…]
+                                                       # the Stopping transition, for a run that cannot
+                                                       # make it itself; the launcher's crash path
+python3 "$board" recover [--stale-hours 24] [--dry-run]  # stop or release the claims of dead runs
 python3 "$board" feature-tests --ticket <ID> [--work-root <code>=<path>]
 ```
 

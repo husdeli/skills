@@ -1,6 +1,9 @@
 ---
 name: react-animations
-description: "Rules for animating a React interface — CSS and the UI library's own transitions first, the platform next, and Motion only for what they cannot do. INVOKE THIS SKILL before you add, change, plan, or review a transition, a keyframe animation, an enter or exit effect, a layout animation, a gesture, or a scroll effect in a React project. Builds on the `react-clean` skill; load that one too."
+description: "Defines how to animate a React interface: CSS and the UI library first, the platform next, Motion only for the rest. Use before adding, changing, or reviewing a transition, keyframe, enter or exit, layout, gesture, or scroll animation."
+paths:
+  - "**/*.tsx"
+  - "**/*.css"
 ---
 
 # React animations
@@ -62,7 +65,7 @@ pull request:
   `<MotionConfig reducedMotion="user">` at the root. A reduced-motion user still sees the end
   state, without the movement.
 - **Timing comes from tokens.** Durations and easings are named once, as `motion.*` tokens
-  (`design-system` Rule 5), and every animation picks one. A bare `duration-[437ms]` is a token that was
+  (`design-system-rules` Rule 5), and every animation picks one. A bare `duration-[437ms]` is a token that was
   never named.
 - **Animation never carries meaning alone.** The state an animation shows is also visible when
   it does not run: under reduced motion, in a test, and before the JavaScript loads.

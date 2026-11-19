@@ -1,6 +1,6 @@
 ---
 name: repo-resolver
-description: Works out which registered repositories a ticket is built in, when the ticket's `repositories` property is empty or names a code the registry no longer has. Reads the ticket, its feature and design docs, the registry, and the candidate repositories' code, and returns the registry codes with the evidence that settled them. Use when `/orchestrate`, `/orchestrate-quick`, or `/run-roadmap` picks a ticket with no usable `repositories`, or when `/plan` cannot settle them itself. Returns an answer only — writes no file and no code.
+description: "Works out which registered repositories a ticket is built in when its `repositories` is empty or stale, from the ticket, its feature and design docs, the registry, and the code. Use when a pipeline or /plan cannot settle them. Returns registry codes with evidence; writes nothing."
 tools: Read, Grep, Glob, Bash, Skill
 model: sonnet
 ---

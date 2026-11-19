@@ -1,6 +1,7 @@
 ---
-description: "Build the next ticket of a roadmap run with no person in the loop — the cto agent answers every question, the code is committed on the run branch in a run worktree, and the session ends with a result line for the launcher script."
+description: "Builds the next ticket of an unattended roadmap run: the cto agent answers every question, the code is committed on the run branch in a run worktree, and a result line reports the outcome. Use when the run-roadmap launcher starts a session."
 argument-hint: "[--run run-roadmap-<n>] [--project <name>] [--final] [roadmap-file-path]"
+disable-model-invocation: true
 ---
 
 # Autonomous Roadmap Runner
@@ -37,19 +38,9 @@ fresh session per ticket so a long roadmap never runs out of context. The design
 `AskUserQuestion`, a commit per ticket on a branch of its own so `git log` is the audit trail, and
 `human_required` as the only thing that ends the run early.
 
-## The rules live in four skills — load each one before the stage that needs it
+## Before you start
 
-| Skill | What it holds | Load before |
-| --- | --- | --- |
-| **`sdlc-structure`** | Where the project and the work root are, and how each destination writes a document | you read any document |
-| **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 1 |
-| **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary — and, in `references/build-stages.md`, every stage from Plan to Code review and full verification | Stage 2, with the reference read whole |
-| **`technical-writing`** | Every word a person reads later — the worklog, the commit message, the report | Stage 2 |
-
-Each name may be namespaced here — `sdlc:sdlc-structure`, `sdlc:ticket-board`,
-`sdlc:agent-pipeline`, `sdlc:technical-writing`. Invoke the namespaced form when it is there, load each
-skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
-spawn prompt: the agents load their own.
+[The command preamble](../skills/agent-pipeline/references/command-preamble.md) holds the four skills this command loads and when, the namespacing rule, the `technical-writing` rules, the board rules, and the failure rules. Read it first. Here `technical-writing` governs what a person reads later — the worklog, the commit message, and the report — and nobody reads anything live. The stages from Plan to Code review and full verification are the **full mode** of [the build stages](../skills/agent-pipeline/references/build-stages.md).
 
 **The documents sit in the framework root** — the glossary, the features and their design docs,
 each project's `roadmap.md`, and the tickets in `work/<bucket>/`, with a worklog beside a ticket in
@@ -113,8 +104,8 @@ contradicts the one before it.
 
 ## One stop: `human_required`
 
-No stage has a retry limit, and no count ends a loop: a gate loops until it passes. `agent-pipeline`
-lists what raises `human_required`, and it is the only thing that ends this run early.
+The command preamble's failure rules hold: no count ends a loop, and `human_required` is the only
+thing that ends this run early.
 
 **Ask the CTO first when a person would decide**: a stage that is stuck, a blocker, and a question
 about the specification go to Stage 5, and `human_required` follows only when the CTO sets
@@ -123,13 +114,10 @@ about the specification go to Stage 5, and `human_required` follows only when th
 One ticket per invocation is how the run is built, not a limit: print the result line and stop, and
 the script starts the next ticket.
 
-## The worklog, the assignee, and the commit — you are the only writer
+## The worklog, the assignee, and the commit
 
-`ticket-board` holds the worklog's shape and what each assignee value means. What is this
-pipeline's:
-
-**You are the only writer.** The agents — the CTO included — report their decisions to you and you
-write them down, so the file has one writer and the concurrent stages cannot lose an entry.
+`ticket-board` holds the worklog's shape, and the command preamble holds the board rules. The CTO
+is no exception: it reports its decisions to you, and you write them down.
 
 **The entry, the status, and the assignee go in one tool block.** `<n>` is the run's number, so
 `coding-3` works for `run-roadmap-3`. The build stages hold the boundaries from the plan to the code
@@ -146,10 +134,8 @@ to learn why the product went this way, and nothing else records them. Write eac
 wrote it: the decision, what it beat, and the cost it accepted. The answers to the planner's open
 questions go in the plan entry; every ruling gets an entry of its own.
 
-**Every exit writes the outcome entry.** A `human_required` runs
-`ticket-board`'s *Stopping without finishing* transition, so the next session reads the worklog and
-learns where the ticket stopped and why. Then it runs Stage 7's **keep the record, discard the
-code** procedure, whatever stage it stopped at — an unattended run must never leave half-built code
+**Every exit writes the outcome entry**, as the preamble says. A `human_required` then runs Stage
+7's **keep the record, discard the code** procedure, whatever stage it stopped at — an unattended run must never leave half-built code
 in the run worktree for the next ticket to commit.
 
 ## Workflow
@@ -218,8 +204,7 @@ Agent(subagent_type: "sdlc:cto", model: "opus",
               + "Remaining on the roadmap: <N> tickets across <K> features.")
 ```
 
-It returns one `json` block with `featureCode`, `rationale`, `e2e`, `skipped`, and the
-`humanRequired` fields — the shape is in the agent definition, do not restate it.
+Act on its block:
 
 - `humanRequired: true` → **it cannot run**: outcome `human_required`. Nothing has started, so there is no
   ticket to stop: report the reason and print the result line.
@@ -297,7 +282,7 @@ interview: the planner reads those documents, and only a fork they leave open re
 
 ### 3. Build the ticket — the build stages
 Run every stage of `agent-pipeline`'s `references/build-stages.md`, from Plan to Code review and full
-verification, as this command's own text. What this command supplies:
+verification, in **full mode**, as this command's own text. What this command supplies:
 
 - **`<claim>`** is the run name, and the run folder is `<framework root>/.runs/<run name>/`.
 - **The work root** is the run worktree of each work root Stage 1.5 identified — never the person's
@@ -319,8 +304,8 @@ SendMessage(ctoId, "Request: decisions. The planner read the ticket's documents 
                    and the planner's recommendation with why)
 ```
 
-The plan reviewer's pre-read goes out in the same tool block, as the build stages say. The CTO
-returns one choice per question and the `humanRequired` fields; the shape is in the agent definition.
+The plan reviewer's pre-read goes out in the same tool block, as the build stages say. Act on the
+CTO's block:
 
 - `humanRequired: true` → outcome `human_required`: the ticket goes back to planning with a person.
   Run *Stopping without finishing*, with the outcome entry naming the question the CTO would not
@@ -337,8 +322,7 @@ SendMessage(ctoId, "Request: ruling. Stage <stage> needs a decision."
                  + "Rulings already given on this ticket: <list, or none>.")
 ```
 
-The stages are `plan`, `plan-review`, `write-tests`, `new-tests`, `implement`, `test-dispute`,
-`feature-tests`, `code-review`, and `verification`. Append the `cto · ruling` worklog entry for every
+The stage is one of the names the build stages list. Append the `cto · ruling` worklog entry for every
 ruling, whatever it says, then act:
 
 | Ruling | What you do |
@@ -477,7 +461,8 @@ One line, valid compact JSON, no code fence, no text after it. The fields:
 keys, the order, and the spelling exactly as above.
 
 ## Rules
-The four skills carry the rules they own. What is this command's own:
+The four skills carry the rules they own, and the command preamble the rules every orchestrator
+shares. What is this command's own:
 
 - **One ticket per invocation.** Never loop over the roadmap in one session. The script does that.
 - **Never call `AskUserQuestion`, and never write a sentence that waits for an answer.** Ask the
@@ -485,14 +470,12 @@ The four skills carry the rules they own. What is this command's own:
 - **The CTO decides; you execute and record.** Never answer a product question yourself, and never
   overrule the CTO — but never let it past a failing gate either. A test result and a review verdict
   are not product decisions.
-- **No retry limit.** A gate loops until it passes, and only `human_required` ends the run early.
 - **The build stages are the rules from Plan on**: the gates, the tests before the code, and the
   code review from four focuses. The CTO settles what the specification means; it never tells the
   coding agent to change a test.
 - **Work one feature at a time.** Claim its whole cluster before anything else is written, build every ticket of it before selecting another feature, and release the claims at every end.
 - **Build only in the run worktrees.** Create them before the ticket starts, record them in the worklog, pass them to every agent as the work root, and name them in the result line. Never let an agent infer which repository it is working in, and never write to the person's checkout.
-- **You write the status, the assignee, the worklog, the roadmap, and the commit.** No agent writes
-  any of them.
+- **You write the commits**, as well as the board. No agent writes either.
 - **You run every check.** Every new test, the feature's tests, and the full verification run in your
   own Bash calls, in the run worktree. No agent's report of a passing check counts.
 - **Never finish a ticket unless the feature's tests passed, all four code reviewers approved, and

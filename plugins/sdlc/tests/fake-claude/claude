@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# A stand-in for `claude -p` that plays one scripted ending, chosen by FAKE_SCENARIO, so the launcher's
+# every path can be tested without a model. It writes stream-json, as the launcher asks for.
+set -u
+prompt="$2"
+run="$(printf '%s' "$prompt" | sed -n 's/.*--run \(run-roadmap-[0-9]*\).*/\1/p')"
+printf '%s\n' "$*" >>"${FAKE_ARGS_LOG:-/dev/null}"
+emit_text() { python3 -c 'import json,sys; print(json.dumps({"type":"assistant","parent_tool_use_id":None,"message":{"content":[{"type":"text","text":sys.argv[1]}]}}))' "$1"; }
+emit_result() { python3 -c 'import json,sys; print(json.dumps({"type":"result","subtype":sys.argv[1],"is_error":sys.argv[1]!="success","result":sys.argv[2],"total_cost_usd":float(sys.argv[3]),"num_turns":7}))' "$1" "$2" "$3"; }
+worktree="$(dirname "$FAKE_REPO")/$(basename "$FAKE_REPO")-worktrees/$run"
+
+start_ticket() {
+  [ -d "$worktree" ] || git -C "$FAKE_REPO" worktree add -q -b "$run" "$worktree" >/dev/null 2>&1
+  python3 "$FAKE_BOARD" claim --root "$FAKE_ROOT" --run "$run" CHECKOUT-001 >/dev/null
+  t="$FAKE_ROOT/work/backlog/CHECKOUT-001-slug.md"
+  sed -i.bak 's/^status: backlog$/status: in progress/' "$t" && rm -f "$t.bak"
+  mkdir -p "$FAKE_ROOT/work/in-progress" && mv "$t" "$FAKE_ROOT/work/in-progress/"
+}
+
+case "${FAKE_SCENARIO:-}" in
+  completed)
+    start_ticket
+    echo "code" >"$worktree/feature.txt"
+    git -C "$worktree" add feature.txt && git -C "$worktree" commit -qm "CHECKOUT-001" 
+    sha="$(git -C "$worktree" rev-parse --short HEAD)"
+    emit_text "Built it."
+    emit_result success "Done.
+RUN-ROADMAP-RESULT {\"outcome\":\"completed\",\"run\":\"$run\",\"feature\":\"CHECKOUT\",\"taskId\":\"CHECKOUT-001\",\"commit\":\"$sha\",\"workRoots\":[],\"remaining\":3,\"nextAction\":\"continue\",\"reason\":\"a {brace} in the reason\"}" 1.25
+    ;;
+  bogus-commit)
+    emit_result success "RUN-ROADMAP-RESULT {\"outcome\":\"completed\",\"run\":\"$run\",\"taskId\":\"CHECKOUT-001\",\"commit\":\"deadbeef\",\"remaining\":3,\"nextAction\":\"continue\",\"reason\":\"\"}" 0.5
+    ;;
+  human)
+    emit_result success "RUN-ROADMAP-RESULT {\"outcome\":\"human_required\",\"run\":\"$run\",\"taskId\":\"CHECKOUT-001\",\"commit\":\"\",\"remaining\":3,\"nextAction\":\"stop\",\"reason\":\"the CTO needs a person\"}" 2
+    ;;
+  no-line)
+    start_ticket
+    echo "half" >"$worktree/half.txt"
+    emit_text "I forgot the result line."
+    emit_result success "All done!" 3
+    ;;
+  hang)
+    start_ticket
+    read -r ignored   # stdin must be /dev/null, or this waits forever
+    sleep 600
+    ;;
+esac
+exit 0

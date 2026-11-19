@@ -48,6 +48,33 @@ class NoteError(Exception):
     pass
 
 
+
+def atomic_write_text(path, text: str) -> None:
+    """Write a file so a reader never sees half of it: a temporary file beside it, then a rename.
+    A kill mid-write, or a sync client reading at the wrong moment, leaves the old file whole."""
+    import os
+    import tempfile
+    path = os.fspath(path)
+    folder = os.path.dirname(path) or "."
+    descriptor, temporary = tempfile.mkstemp(prefix=".tmp-", suffix=".part", dir=folder)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as handle:
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            os.chmod(temporary, os.stat(path).st_mode & 0o7777)
+        except FileNotFoundError:
+            os.chmod(temporary, 0o644)
+        os.replace(temporary, path)
+    except BaseException:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+        raise
+
+
 def find_framework_root(start: Path) -> Path | None:
     home = Path.home().resolve()
     for folder in [start, *start.parents]:
@@ -210,7 +237,7 @@ def create(args: argparse.Namespace, raw: str) -> dict[str, list[str]]:
             result["existing"].append(str(path))
             continue
         notes_dir.mkdir(exist_ok=True)
-        path.write_text(render(note, feature, ticket, args.run, vault, now), encoding="utf-8")
+        atomic_write_text(path, render(note, feature, ticket, args.run, vault, now))
         result["created"].append(str(path))
     return result
 

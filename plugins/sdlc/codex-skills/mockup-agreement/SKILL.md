@@ -1,14 +1,14 @@
 ---
-name: frontend-design
-description: Agree the visual design of a user interface with the user before any UI code is written, by building a static mockup and iterating on it. Use when asked to design a screen, a component, or a flow, or before implementing a request that changes what a user sees.
+name: mockup-agreement
+description: "Agrees a screen's visual design with the user before UI code is written, by publishing a static mockup as an Artifact and iterating on it. Use when asked to design a screen, component, or flow, or before building a change a user sees."
 ---
 
-# frontend-design
+# mockup-agreement
 
 The rules live in one shared skill. This entry point points at it.
 
-Read `../../skills/frontend-design/SKILL.md` completely before you draw anything, and follow every rule in it.
-Read every reference that file requires, and resolve each path against `../../skills/frontend-design/`.
+Read `../../skills/mockup-agreement/SKILL.md` completely before you draw anything, and follow every rule in it.
+Read every reference that file requires, and resolve each path against `../../skills/mockup-agreement/`.
 
 ## Running it outside Claude Code
 

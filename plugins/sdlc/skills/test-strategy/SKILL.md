@@ -1,6 +1,6 @@
 ---
 name: test-strategy
-description: "Rules for deciding which tests a change gets and for writing them — the fewest, cheapest tests that each catch a bug the change could ship, the ladder from unit to integration to end-to-end, and what makes a valid failing test. INVOKE THIS SKILL before you plan a test, write one, rule on a disputed test, or judge tests against a test plan."
+description: "Decides which tests a change gets and how to write them: the fewest, cheapest tests that each catch a shippable bug, from unit to end-to-end. Use before planning, writing, or judging a test, or ruling on a disputed one."
 ---
 
 # Test Strategy

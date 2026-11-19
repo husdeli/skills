@@ -1,6 +1,6 @@
 ---
 name: run-roadmap
-description: Build the next ticket of a roadmap run with no person in the loop — the run works one feature at a time, a CTO agent answers every question, the feature's dependency cluster is claimed, the code is committed on the run branch in a run worktree, and the session reports a machine-readable result. Use when a user asks for an autonomous or unattended roadmap run, or invokes `$run-roadmap` as the Codex equivalent of `/run-roadmap`.
+description: "Builds the next ticket of an unattended roadmap run: the cto agent answers every question, the code is committed on the run branch in a run worktree, and a result line reports the outcome. Use when the run-roadmap launcher starts a session."
 ---
 
 # Run Roadmap
@@ -14,7 +14,8 @@ Run one roadmap task autonomously with the shared run-roadmap command.
 3. Replace `$ARGUMENTS` with the request text that follows the skill invocation, and `${CLAUDE_PLUGIN_ROOT}` with the plugin root that contains this skill.
 4. Treat the shared command as the source of truth for the stages, the contracts, the
    commit, and the result line.
-5. Read every skill the command's table names, from the plugin's `skills/<name>/SKILL.md` —
+5. Read `skills/agent-pipeline/references/command-preamble.md`, then every skill its table names,
+   from the plugin's `skills/<name>/SKILL.md` —
    `sdlc-structure`, `ticket-board`, `agent-pipeline`, and `technical-writing` — before the stage that
    needs each one, and `skills/agent-pipeline/references/build-stages.md` whole before Plan.
 6. Run the workflow with the subagent, file, and shell tools of the current runtime.

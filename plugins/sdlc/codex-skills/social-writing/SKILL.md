@@ -1,6 +1,6 @@
 ---
 name: social-writing
-description: Write social media posts and threads with a strong hook, personal voice, and reader engagement. Use whenever the user asks for a LinkedIn post, tweet, thread, caption, or wants to share an update, lesson, or announcement on social media, even if they don't say "post".
+description: "Writes social media posts and threads with a strong hook, a personal voice, and reader engagement. Use when asked for a LinkedIn post, tweet, thread, or caption, or to share an update, lesson, or announcement on social media."
 ---
 
 # social-writing

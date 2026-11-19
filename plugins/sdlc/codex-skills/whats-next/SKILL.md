@@ -1,6 +1,6 @@
 ---
 name: whats-next
-description: Report what is actionable on the roadmap right now — the tasks in flight and who holds each one, the tasks ready to start, and the tasks waiting on a dependency. Use when a user asks what to work on next, what the roadmap status is, what is blocked, or invokes `$whats-next` as the Codex equivalent of `/whats-next`.
+description: "Shows what is actionable on the roadmap: what is in flight and who holds it, what is ready to start, and what is blocked by what. Use when the user asks what to work on next or for the roadmap's status."
 ---
 
 # whats-next

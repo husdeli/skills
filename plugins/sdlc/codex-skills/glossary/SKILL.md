@@ -1,6 +1,6 @@
 ---
 name: glossary
-description: Rules for the terms — the framework root's one `glossary.md` that defines each term once under its own heading, and how every other document links a definition instead of writing it again. Use before naming a domain concept in anything a person reads, and before reading, writing, renaming, or linking a glossary entry.
+description: "Defines the framework root's glossary.md: each term defined once under its own heading and linked everywhere else. Use before naming a domain concept in a document a person reads, or reading, writing, renaming, or linking a glossary entry."
 ---
 
 # glossary

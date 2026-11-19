@@ -1,6 +1,6 @@
 ---
 name: code
-description: Implement a requested change with the coding subagent, which loads the architecture, TypeScript, React, and TanStack Start rules itself. Use for a fix, a small feature, or an addition that follows an existing pattern, or when a user invokes `$code` as the Codex equivalent of `/code`.
+description: "Hands a request straight to the coding agent, which loads every coding skill itself; no planner and no reviewer. Use for a fix, a small feature, or a change that follows an existing pattern."
 ---
 
 # Code

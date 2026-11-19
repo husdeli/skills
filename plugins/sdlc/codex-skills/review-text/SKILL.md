@@ -1,6 +1,6 @@
 ---
 name: review-text
-description: Review a text written for people against the technical-writing or social-writing rules and return both a report and a machine-readable findings block. Use when a user asks to review, edit, proofread, or improve a text, or invokes `$review-text` as the Codex equivalent of `/review-text`.
+description: "Reviews a text written for people against the technical-writing or social-writing rules, and returns a report and a findings block. Use when the user asks to review, edit, proofread, or improve a text."
 ---
 
 # Review Text

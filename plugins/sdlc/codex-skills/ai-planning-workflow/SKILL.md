@@ -1,6 +1,6 @@
 ---
 name: ai-planning-workflow
-description: Feedback-driven development workflow for tickets and features. Use when starting a ticket, writing a ticket, planning a feature, asking for feedback after a step, or marking a ticket complete.
+description: "Builds a ticket in phases, with a feedback checkpoint after each step and a design agreement before UI work. Use when starting, logging, or completing a ticket by hand, planning a feature, or asking for feedback on a step."
 ---
 
 # ai-planning-workflow

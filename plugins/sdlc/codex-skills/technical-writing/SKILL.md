@@ -1,6 +1,6 @@
 ---
 name: technical-writing
-description: Write technical prose a reader works from — with the context first, the answer before the reasoning, and no sentence the reader does not need. Use whenever the user asks for a document, spec, PRD, design doc, ticket, report, review verdict, commit message, pull-request body, runbook, or release notes, or asks to review one, even if they don't say "document".
+description: "Writes technical prose with the context first, the answer before the reasoning, and no needless sentence. Use when writing or reviewing a document, spec, PRD, design doc, ticket, report, commit message, PR body, runbook, or release notes."
 ---
 
 # technical-writing

@@ -1,6 +1,6 @@
 ---
 name: clean-fullstack-architecture
-description: "Clean Code and Hexagonal Architecture rules for production code — the layers and their dependency rules, services as classes of static methods that own their DTOs, domain logic on domain models only, and adapters as the one place the two shapes meet. Use when planning or writing a feature, a service, an API call, a DTO or domain model, a component, a hook, or any production code."
+description: "Enforces Clean Code and Hexagonal Architecture: layers and dependency rules, static-method services that own their DTOs, domain logic on domain models, adapters between them. Use when planning or writing any production code."
 ---
 
 # Clean Fullstack Architecture
@@ -475,7 +475,7 @@ Prefer styles co-located with the component, in this order. The `web-stack` skil
 **Rules:**
 - Pick one approach per element and stay consistent within a file
 - Global styles (resets, cascade layer order, CSS variables, font-face) live in a single top-level stylesheet (e.g. `src/styles/globals.css`)
-- Design tokens (colors, spacing, radii, type, shadows, motion) are defined in one place and reached by their semantic names — never magic strings scattered across components (`design-system`)
+- Design tokens (colors, spacing, radii, type, shadows, motion) are defined in one place and reached by their semantic names — never magic strings scattered across components (`design-system-rules`)
 
 ```tsx
 // Preferred: Tailwind with cn() helper for conditional classes

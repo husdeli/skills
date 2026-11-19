@@ -1,6 +1,6 @@
 ---
-name: design-system
-description: "Rules for the project's design system — semantic design tokens, the shared components listed in the `design-system.md` catalog, and the Storybook design board. INVOKE THIS SKILL before you plan, build, mock up, or review anything a user sees; before you add or change a shared component, a design value, a theme, or a token file; and before you set up or change the design board. Builds on the `web-stack` skill; load that one too."
+name: design-system-rules
+description: "Defines the project's design system: semantic tokens, the design-system.md component catalog, and the Storybook design board. Use before planning, building, mocking up, or reviewing UI, or changing a shared component, token, or theme."
 ---
 
 # Design system
@@ -27,7 +27,7 @@ build from what it lists.
   names any new shared component the work adds.
 - **A coding agent uses a catalog component** wherever one does the job, and reports a component
   it needed and the catalog lacked.
-- **A mockup uses the catalog's components and the tokens** (`frontend-design`), so the screen the
+- **A mockup uses the catalog's components and the tokens** (`mockup-agreement`), so the screen the
   user signs off is one the code can build.
 - **No catalog yet** — the project has shared components but no `design-system.md` — is a gap.
   Read the top-level `components/` instead, and say the catalog is missing; `/design-system board`

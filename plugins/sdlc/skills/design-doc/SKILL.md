@@ -1,6 +1,6 @@
 ---
 name: design-doc
-description: "Create or update a design doc — `<subject>.design.md` in a feature's folder, or in `designs/` when it underpins every feature — that specifies the target state of a solution: the parts it is built from, how work flows through it, and how it behaves. Use when asked for a design doc, or to specify a system, a service, a flow, an integration, a data model, or a screen."
+description: "Writes a design doc, <subject>.design.md in a feature folder or designs/, that specifies a solution's parts, flow, and behavior. Use when asked for a design doc, or to specify a system, service, flow, integration, data model, or screen."
 ---
 
 # Design-doc skill
@@ -18,7 +18,7 @@ Create a design doc following the structure and style below.
 | Belongs to **one feature** — what that feature is built from, how it behaves | `features/<feature>/<subject>.design.md` |
 | Underpins **every feature** — an app shell, an authentication model, a shared data model, an event queue | `designs/<subject>.design.md` |
 
-Create the folder if it is missing. **Load the `feature` skill before you decide**, and open the
+Create the folder if it is missing. **Load the `feature-folder` skill before you decide**, and open the
 feature first when the subject belongs to a feature that has no folder yet: a design doc never
 creates the feature it describes as a side effect.
 

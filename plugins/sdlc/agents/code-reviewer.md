@@ -1,8 +1,8 @@
 ---
 name: code-reviewer
-description: "Reviews code — a working-tree diff, a branch, or named files — from one focus given in its prompt (correctness, conventions, security, or tests), or from all four when no focus is given. Use once code exists and somebody has to read it back: after a change is made, before a pull request, when a user asks for a code review, or when the orchestrator reaches its Code review stage and starts one reviewer per focus. Returns APPROVED or CHANGES_REQUESTED — writes no code."
+description: "Reviews code (a diff, a branch, or named files) from one focus (correctness, conventions, security, or tests) or all four. Use after a change, before a pull request, on a review request, or at the orchestrator's Code review stage. Returns APPROVED or CHANGES_REQUESTED; writes no code."
 tools: Read, Grep, Glob, Bash, Skill
-model: opus
+model: sonnet
 ---
 
 # Code Reviewer
@@ -93,7 +93,7 @@ Evaluate the change against every item your focus owns. Read the code to confirm
      - an animation on a higher rung than it needs, such as Motion where CSS or a Mantine transition does the job, or Motion with no named reason
      - a second animation library next to the project's own
      - an animated layout property, motion that ignores reduced motion, or a duration outside the `motion.*` tokens
-   - **`design-system`** for any UI, shared component, design value, style, theme, token file, or board change. Read the project's `design-system.md` catalog first. Flag:
+   - **`design-system-rules`** for any UI, shared component, design value, style, theme, token file, or board change. Read the project's `design-system.md` catalog first. Flag:
      - a catalog component bypassed with the Mantine component it wraps, or a new component that duplicates one the catalog lists
      - a new, renamed, or removed shared component without its catalog entry or its stories in the same change
      - project-wide defaults repeated at call sites, or a wrapper that only sets default props, where `theme.components` belongs

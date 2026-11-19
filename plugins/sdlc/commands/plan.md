@@ -1,6 +1,7 @@
 ---
-description: Turn a request into updated product documents, roadmap tasks, and tickets for /orchestrate to build.
+description: "Turns a request into updated product documents, roadmap tasks, and tickets for /orchestrate to build. Use when a feature or change needs planning before any code is written."
 argument-hint: "[feature or change to plan]"
+disable-model-invocation: true
 ---
 
 # Plan
@@ -42,7 +43,7 @@ Everything here runs **in the main loop, with you**. The documents carry the pro
 
 ## Everything here is read by a person
 
-`technical-writing` governs every word the user sees and every line you write into a document: each question, the change proposal, the PRD and design edits, each ticket, and the report. The `prd`, `design-doc`, and `ticket-board` skills say *what belongs in* each document; `technical-writing` says *how each sentence reads*. It governs prose only — IDs, file paths, status values, and anchor codes stay exact.
+`technical-writing` governs every word the user sees and every line you write into a document: each question, the change proposal, the PRD and design edits, each ticket, and the report. The `prd-doc`, `design-doc`, and `ticket-board` skills say *what belongs in* each document; `technical-writing` says *how each sentence reads*. It governs prose only — IDs, file paths, status values, and anchor codes stay exact.
 
 ## Workflow
 
@@ -132,12 +133,12 @@ Wait for approval. Adjust and re-present as many times as the user asks.
 ### 5. Write the documents
 
 In this order, so each document takes its vocabulary from the one before it. Each skill named
-below is namespaced here (`sdlc:prd`, `sdlc:design-doc`, `sdlc:ticket-board`) — load it before you
+below is namespaced here (`sdlc:prd-doc`, `sdlc:design-doc`, `sdlc:ticket-board`) — load it before you
 write the document it governs, and follow it. Do not restate its rules from memory.
 
-**PRD** — load the **`prd`** skill and follow it. Fold the request into the existing sections in place, as the current truth, and keep the document whole. It stays product-only: no ticket ID, no roadmap reference, no library name, no file path. **It stays high level**, as the `prd` skill's *Altitude* section says: a request usually changes what an area does for its users in a sentence or two, and everything about how it works goes into the design doc instead. When the request changes no area's purpose, the PRD gets no change. The decisions from the interview live in the tickets, not here. Bump `updated`.
+**PRD** — load the **`prd-doc`** skill and follow it. Fold the request into the existing sections in place, as the current truth, and keep the document whole. It stays product-only: no ticket ID, no roadmap reference, no library name, no file path. **It stays high level**, as the `prd-doc` skill's *Altitude* section says: a request usually changes what an area does for its users in a sentence or two, and everything about how it works goes into the design doc instead. When the request changes no area's purpose, the PRD gets no change. The decisions from the interview live in the tickets, not here. Bump `updated`.
 
-**Features** — whenever the request adds something a customer can name, or changes the state of something they already can. Load the **`feature`** skill and follow it: one folder per feature, one `<feature>.feature.md` feature note, and the code that feature's epic and tickets take. Open the feature **before** you write its design doc or its first ticket, so both have an owner. A request that only changes how an existing feature works updates that feature's note and opens nothing.
+**Features** — whenever the request adds something a customer can name, or changes the state of something they already can. Load the **`feature-folder`** skill and follow it: one folder per feature, one `<feature>.feature.md` feature note, and the code that feature's epic and tickets take. Open the feature **before** you write its design doc or its first ticket, so both have an owner. A request that only changes how an existing feature works updates that feature's note and opens nothing.
 
 **Design docs** — only when the request changes how a part, a flow, or a surface works. Load the **`design-doc`** skill and follow it: one file per subject, in the feature's folder when it belongs to one feature and in `designs/` when it underpins every feature, the per-subject pattern (structure → behavior → states → variation and limits), the structural altitude, no tickets and no code references. Update the doc whose subject the request touches, and start a new one only for a subject that has none. Bump `updated` on each file you touch.
 

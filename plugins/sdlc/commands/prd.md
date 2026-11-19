@@ -1,5 +1,5 @@
 ---
-description: Create or update a product requirements document that describes what the product does and why.
+description: "Creates or updates the product requirements document that says what the product does and why. Use when the user asks to write or revise a PRD or product requirements."
 argument-hint: "[product or feature to write or update a PRD for]"
 ---
 
@@ -9,9 +9,9 @@ Create or update a **product requirements document** for the target below.
 
 Target: $ARGUMENTS
 
-Invoke the **`prd`** skill and follow it to produce the PRD:
+Invoke the **`prd-doc`** skill and follow it to produce the PRD:
 
-- If the skill is namespaced here (e.g. `sdlc:prd`), invoke that.
+- If the skill is namespaced here (e.g. `sdlc:prd-doc`), invoke that.
 - Load the skill **before** writing anything, and follow its product-only rules, cohesive-and-positive framing, document shape, and style rules exactly.
 - Load the **`technical-writing`** skill alongside it and follow it for every sentence of the document — a PRD is read end to end by people who were not in the room.
 - The PRD lives at **`<project>/prd.md`**, with `type: prd`. **Load the `sdlc-structure` skill** (namespaced `sdlc:sdlc-structure`) and resolve the framework root and the project as it says — it also holds how the PRD's properties (`status`, `product`, `updated`) are written as frontmatter in every destination, never as lines under the title. Create the file if it is missing, or run `/setup` first when there is no framework root yet. A `prd.md` at a repository root is a framework root on an older shape: update it where it sits, as `sdlc-structure`'s older shapes say, rather than starting a second one.

@@ -1,6 +1,7 @@
 ---
-description: Implement what the user asks with the coding agent, which loads every coding skill. No planner, no reviewer.
+description: "Hands a request straight to the coding agent, which loads every coding skill itself; no planner and no reviewer. Use for a fix, a small feature, or a change that follows an existing pattern."
 argument-hint: "[what to build, change, or fix]"
+disable-model-invocation: true
 ---
 
 # Code
@@ -11,7 +12,7 @@ Request: $ARGUMENTS
 
 This is the direct path. `/orchestrate` runs plan → review → test plan → tests → implement → the feature's tests → code review from four focuses and full verification, at once. `/orchestrate-quick` runs plan → one review → test plan → tests → implement → verification and one code review. `/code` runs one: the coding agent, with no plan in front of it. When the change is one the user will see, you agree the design with them first, in this session, before the agent starts. Use it when the change is one the user already understands — a fix, a small feature, an addition that follows a pattern the codebase already has.
 
-The coding agent takes a request with no plan as one of its two input shapes, so this command needs no planner. It is also the right worker because it already loads the plugin's coding skills itself — `clean-fullstack-architecture` for any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for a component or a hook, `react-animations` for an animation, `design-system` for UI, a shared component, or a design value, `clean-tanstack-start` for TanStack Start server code. Do not restate those rules in the prompt.
+The coding agent takes a request with no plan as one of its two input shapes, so this command needs no planner. It is also the right worker because it already loads the plugin's coding skills itself — `clean-fullstack-architecture` for any production code, `ts-clean` for any `.ts`/`.tsx` file, `react-clean` for a component or a hook, `react-animations` for an animation, `design-system-rules` for UI, a shared component, or a design value, `clean-tanstack-start` for TanStack Start server code, `web-stack` before it adds a dependency or a layer. Do not restate those rules in the prompt.
 
 **Load the `agent-pipeline` skill before you spawn anything**, namespaced here as `sdlc:agent-pipeline` — it holds how to spawn, resume, and read the agent's JSON block. Add **`ticket-board`** when the request came from a ticket, and **`sdlc-structure`** whenever this session is not standing in the repository the change lands in.
 
@@ -35,7 +36,7 @@ Derive acceptance criteria from the request. When it names none and none are inf
 request and the files it touches whether it adds or changes a screen, a component, a layout, or
 a flow the user walks through.
 
-**It does** → run the **`frontend-design`** skill (namespaced here as `sdlc:frontend-design`)
+**It does** → run the **`mockup-agreement`** skill (namespaced here as `sdlc:mockup-agreement`)
 yourself, in this session, before you spawn anything. The skill publishes a static mockup as an
 Artifact and iterates with the user until they agree. Run it here rather than in the agent: only
 the main loop can publish an Artifact and talk to the user, and the coding agent has neither.
@@ -64,7 +65,7 @@ Agent(subagent_type: "sdlc:coding", model: "opus",
                  brief. Raise a blocker only for work you genuinely cannot complete.")
 ```
 
-It ends every turn with one fenced `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, and `notes`. Parse it as `agent-pipeline` says.
+It ends every turn with one `json` block, its shape in the agent definition. Act on the block as `agent-pipeline` says:
 
 - `human_required` — nothing returned → report that the agent returned no usable result, and stop.
 - Non-empty `blockers` → `human_required`: report them and stop. Do not fix the blocker yourself.

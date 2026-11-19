@@ -1,6 +1,9 @@
 ---
 name: react-clean
-description: "Rules for clean React components and hooks — one component per file, size limits, at most one effect, data through a service and TanStack Query, and composition instead of prop drilling. INVOKE THIS SKILL before writing or editing any React component, hook, or `.tsx`/`.jsx` file. Animation lives in `react-animations` and UI design in `design-system`. Builds on the `ts-clean` skill; load that one too."
+description: "Defines clean React components and hooks: one component per file, size limits, at most one effect, data through services and TanStack Query, composition over prop drilling. Use before writing or editing a component, hook, or .tsx/.jsx file."
+paths:
+  - "**/*.tsx"
+  - "**/*.jsx"
 ---
 
 # Clean React Components
@@ -196,7 +199,7 @@ animation code.
 ## Rule 8 — Build from the design system
 
 Before you build anything a user sees, or add or change a shared component or a design value,
-**load the `design-system` skill** and follow it: read the `design-system.md` catalog and use its
+**load the `design-system-rules` skill** and follow it: read the `design-system.md` catalog and use its
 components first, give a new shared component its catalog entry and its stories, and name a
 semantic token instead of writing a raw value.
 
@@ -211,5 +214,5 @@ semantic token instead of writing a raw value.
 - [ ] Derived data is computed during render (or `useMemo`), not stored in state and synced by an effect.
 - [ ] No prop is passed through a component that never uses it — pass-through chains replaced by composition (`children`/slots), relocated state, or context for truly global values.
 - [ ] If the component animates, the `react-animations` checklist passes too.
-- [ ] No raw color, size, radius, font, shadow, or timing value — every one names a semantic token, and no catalog component is bypassed or duplicated (`design-system`).
+- [ ] No raw color, size, radius, font, shadow, or timing value — every one names a semantic token, and no catalog component is bypassed or duplicated (`design-system-rules`).
 - [ ] The `ts-clean` checklist also passes for this file.

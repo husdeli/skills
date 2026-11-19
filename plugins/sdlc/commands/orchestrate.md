@@ -1,6 +1,7 @@
 ---
-description: Pick the next actionable roadmap task and drive it through plan → review → tests first → implement → the feature's tests → code review and full verification at once, using persistent subagents.
+description: "Picks the next actionable roadmap task and drives it through plan, review, tests first, implementation, the feature's tests, code review, and full verification with persistent subagents. Use to build the next planned ticket."
 argument-hint: "[roadmap-file-path]"
+disable-model-invocation: true
 ---
 
 # Roadmap Orchestrator
@@ -9,19 +10,9 @@ You are a workflow orchestrator. Pick the **next actionable item** from a roadma
 
 Roadmap file (if provided): $ARGUMENTS
 
-## The rules live in four skills — load each one before the stage that needs it
+## Before you start
 
-| Skill | What it holds | Load before |
-| --- | --- | --- |
-| **`sdlc-structure`** | Where the project and the work root are, and how each destination writes a document | you read any document |
-| **`ticket-board`** | The ticket, the roadmap, the claim, the assignee, the worklog, and what each status transition writes | Start |
-| **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the test fingerprints and the dispute route, the outcome vocabulary — and, in `references/build-stages.md`, every stage from Plan to Code review and full verification | Plan, with the reference read whole |
-| **`technical-writing`** | Every word the user reads | Pick the next task |
-
-Each name may be namespaced here — `sdlc:sdlc-structure`, `sdlc:ticket-board`,
-`sdlc:agent-pipeline`, `sdlc:technical-writing`. Invoke the namespaced form when it is there, load each
-skill **once**, and follow it. Do not work from memory, and do not restate a skill's rules in a
-spawn prompt: the agents load their own.
+[The command preamble](../skills/agent-pipeline/references/command-preamble.md) holds the four skills this command loads and when, the namespacing rule, the `technical-writing` rules for everything the user reads, the board rules, and the failure rules. Read it first. The stages from Plan to Code review and full verification are the **full mode** of [the build stages](../skills/agent-pipeline/references/build-stages.md).
 
 **The documents sit where `sdlc-structure` lays them out.** The framework root holds
 `glossary.md`, `features/<feature>/`, `designs/<subject>.design.md`, and the tickets in
@@ -52,31 +43,15 @@ root and the code is somewhere else.
   command fixes it: `/add-dir <work root>`, or a restart as `claude --add-dir <work root>`. That
   is a setup problem, and no agent can solve it.
 
-## The worklog and the assignee — you are the only writer
+## The worklog and the assignee
 
-The **`ticket-board`** skill holds the worklog's shape, what belongs in an entry, and what each
-assignee value means. What is specific to this pipeline:
-
-**You are the only writer.** Each agent reports its decisions to you and you write them down, so
-the file has one writer and the four code reviewers cannot lose each other's entry. No agent writes
-the ticket, the worklog, or the roadmap.
-
-**`<n>` is this run's number** — the one in its claim, `orchestrate-<n>`. Every agent of the run
-carries it in `assigned`: `coding-2` works for `orchestrate-2`. Your own entries name the claim:
-`orchestrate-2 · start`.
-
-**The entry and the assignee go in one tool block.** The build stages hold the boundaries from the
-plan to the code review, with `<claim>` as `orchestrate-<n>`; this command's own are:
+The build stages hold the boundaries from the plan to the code review, with `<claim>` as `orchestrate-<n>`: `coding-2` works for `orchestrate-2`. This command's own are:
 
 | Boundary | Entries to append | `status` · `assigned` becomes |
 | --- | --- | --- |
 | Start | the worklog itself, with the `orchestrate-<n> · start` entry | `in progress` · `implementation-planner-<n>` |
 | Finish | `orchestrate-<n> · done` | `done` · removed |
 | Every stop | the entry of the stage that stopped, then the outcome entry | `blocked` · removed |
-
-**Every exit writes the outcome entry and the assignee** — a `human_required` at any stage
-runs `ticket-board`'s *Stopping without finishing* transition, so the next session can read the
-worklog and learn where the task stopped.
 
 ## Architecture: interactive shell + persistent-agent core
 
@@ -90,11 +65,11 @@ This command runs entirely **in the main loop, with you**. The human-facing step
   ─► finish the ticket / human_required ─► report
 ```
 
-## Everything you show the user goes through `technical-writing`
+`diagrams/workflow.excalidraw.md` draws the whole pipeline.
 
-You are the only stage that talks to the person, so `technical-writing` governs every word they see: the task you present for approval, every `AskUserQuestion` question and option label, the answers you record, the completion report, and every `human_required`.
+## What the user reads
 
-The agents apply it to their own output, but you are what the user actually reads — a plan that landed cleanly still fails the user if you relay it badly. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, keep an option label to one short phrase, and reuse the roadmap's and the PRD's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact. They stay exact **beside** the prose: a path, a symbol, or a snippet never goes inside a sentence, and the sentence names the thing in words instead.
+The preamble's `technical-writing` rules govern the task you present for approval, every `AskUserQuestion` question and option label, the answers you record, the completion report, and every `human_required`. The agents apply it to their own output, but you are what the user actually reads — a plan that landed cleanly still fails the user if you relay it badly.
 
 ## Core Principle: Next Task, Full Completion
 
@@ -148,7 +123,7 @@ As soon as the task is approved and *before* spawning any agent, run the **`tick
 - The **opening worklog entry** is `orchestrate-<n> · start`: the task you are building, what it delivers, the work root and the evidence that settled it, and the `e2eDecision`. A ticket that resumes from `blocked` keeps its worklog, and the entry is appended.
 
 #### Build it — the build stages
-Run every stage of `agent-pipeline`'s `references/build-stages.md`, from Plan to Code review and full verification, as this command's own text. What this command supplies:
+Run every stage of `agent-pipeline`'s `references/build-stages.md`, from Plan to Code review and full verification, in **full mode**, as this command's own text. What this command supplies:
 
 - **`<claim>`** is `orchestrate-<n>`, and the run folder is `<framework root>/.runs/orchestrate-<n>/`.
 - **The work root** is the one Start resolved.
@@ -188,18 +163,13 @@ Needs a person: [each note file and its title, or "nothing"]
 ```
 
 ## Failure Handling
-`agent-pipeline` holds the outcome vocabulary and the conditions for `human_required`, and `ticket-board` holds the **Stopping without finishing** transition. No stage has a retry limit: every loop runs until its gate passes or `human_required` stops it.
-
-- Never mark a task complete unless the feature's tests passed, all four code reviewers approved, **and** every check passed.
+The command preamble holds the failure rules. Never mark a task complete unless the feature's tests passed, all four code reviewers approved, **and** every check passed.
 
 ## Rules
-The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, and thin-prompt mechanics and the build stages, `ticket-board` for the transitions and the roadmap, `sdlc-structure` for the paths, `technical-writing` for the prose. What is this command's own:
+The four skills carry the rules they own, and the command preamble the rules every orchestrator shares. What is this command's own:
 - **One task at a time.** Do not execute the whole roadmap.
 - **Resolve the work root before the ticket starts**, record it in the worklog, and pass it to every agent. Never let an agent infer which repository it is working in.
-- **Load every skill in the table before the stage that needs it.** They are the rules; this file is the sequence.
 - **The decisions are made before the run.** The planner reads them from the ticket and the feature folder. A question the documents leave open goes to the user, and its answer goes into the plan entry; a question the user cannot settle sends the ticket back to `/plan`.
 - **You run every check.** Each new test, the feature's tests, and the full verification are commands you run and read. No agent's report of a passing check counts.
 - **The build stages are the rules from Plan on**: the gates, the tests before the code, and the code review from four focuses.
-- **You write the status, the assignee, and the worklog** — at the boundaries in the table and at every exit. No agent writes any of them.
 - **Never proceed without approval** on the selected task, and never start a task whose dependencies are incomplete.
-- **Be explicit about failures** and propose next steps.

@@ -1,6 +1,6 @@
 ---
 name: web-stack
-description: The default stack for a web project, and the rule for when a project already chose otherwise. Use before adding a dependency to a web project, starting a new web project or a layer it does not have yet, planning or reviewing a change that does either, or deciding a library question.
+description: "Defines the default web stack (TanStack Start, Zod, Mantine, Tailwind, Drizzle, Better Auth, Bun, Vitest, Playwright, Biome), and when a project's choice wins. Use before adding a dependency, starting a project or layer, or picking a library."
 ---
 
 # web-stack

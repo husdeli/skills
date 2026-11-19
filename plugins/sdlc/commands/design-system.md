@@ -1,15 +1,15 @@
 ---
-description: Show how complete a web project's design system is — catalog, tokens, components, stories — or add `board` to generate or refresh the Storybook design board, separate from the app, where anyone can see all of it.
+description: "Reports how complete a web project's design system is (catalog, tokens, components, stories), or with `board` generates the Storybook design board. Use when the user asks to audit the design system or build its board."
 argument-hint: "[board] [a repository code from sdlc.json, a path, or nothing for the current repository]"
 ---
 
 # Design system
 
-Report a web repository's design system against the **`design-system`** skill, or generate its design board.
+Report a web repository's design system against the **`design-system-rules`** skill, or generate its design board.
 
 Target: $ARGUMENTS
 
-Load the **`design-system`** skill (namespaced `sdlc:design-system`) and the **`technical-writing`** skill (namespaced `sdlc:technical-writing`) first.
+Load the **`design-system-rules`** skill (namespaced `sdlc:design-system-rules`) and the **`technical-writing`** skill (namespaced `sdlc:technical-writing`) first.
 
 **`board` as the first word** runs the board mode in the last section, on the target that follows it. Without it, this command writes no file.
 
@@ -29,7 +29,7 @@ If the code is not in the registry or the path holds no `package.json`, say so a
 - The top-level `components/` folder — every shared component and every `*.stories.tsx` beside one.
 - The token source — `tokens/` and `style-dictionary.config.*` with the design-tokens layer, else the Mantine theme module.
 - `.storybook/` — the board's config and pages — and the `board`, `board:build`, `tokens`, and `tokens:check` scripts in `package.json`.
-- A sample of feature components and stylesheets, for raw values and bypassed catalog components (`design-system` Rules 2 and 4). Search for hex colors, `rgb(`, arbitrary Tailwind values (`-[`), and direct Mantine imports of a component the catalog wraps.
+- A sample of feature components and stylesheets, for raw values and bypassed catalog components (`design-system-rules` Rules 2 and 4). Search for hex colors, `rgb(`, arbitrary Tailwind values (`-[`), and direct Mantine imports of a component the catalog wraps.
 
 ## Report
 
@@ -57,7 +57,7 @@ Run this mode only when the first word of the target is `board`. Resolve the wor
    ```
    Agent(subagent_type: "sdlc:coding", model: "opus",
          prompt: "Work root: <absolute path>.
-                  Generate or refresh the design board as the design-system skill and its
+                  Generate or refresh the design board as the design-system-rules skill and its
                   board reference describe:
                   - set up .storybook/ (main.ts, preview.tsx) where it is missing or broken;
                   - write the Introduction page and the token pages where they are missing;
@@ -72,7 +72,7 @@ Run this mode only when the first word of the target is `board`. Resolve the wor
 
    Parse its `json` block as `agent-pipeline` says. On `human_required` or non-empty `blockers`, report them and stop. When `board:build` failed, resume the agent with the failing output until it passes; when it is stuck, as `agent-pipeline` defines it, report what is left and stop.
 4. **Show the drafted catalog entries** to the user. Each *For* and *Not for* line is a design judgment the agent inferred from code, so ask the user to confirm or correct them, and apply the corrections to `design-system.md` yourself.
-5. **Report** what the board now shows: the pages written, the stories added, the components still missing from it, and the result of `bun run board:build`. Name `bun run board` to open it locally. Deploying it is the user's decision (`design-system` Rule 6) — offer it in the last line, and never deploy it from this command.
+5. **Report** what the board now shows: the pages written, the stories added, the components still missing from it, and the result of `bun run board:build`. Name `bun run board` to open it locally. Deploying it is the user's decision (`design-system-rules` Rule 6) — offer it in the last line, and never deploy it from this command.
 
 ## Rules
 

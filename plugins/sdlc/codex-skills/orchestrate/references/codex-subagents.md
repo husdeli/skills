@@ -154,7 +154,7 @@ Use these local names for the current plugin:
 - `ts-clean`
 - `react-clean`
 - `react-animations`
-- `design-system`
+- `design-system-rules`
 - `clean-tanstack-start`
 
 Do not depend on a Claude namespace or a `Skill` tool being present.
@@ -192,7 +192,7 @@ If a required block is missing or invalid:
 
 1. Call `followup_task` on the same agent.
 2. Ask it to return only the corrected JSON block for its previous result.
-3. Abort the stage if the second response is still missing or invalid.
+3. Ask again for as long as it answers. No count ends the stage: a turn that returns nothing at all is `human_required`, as the `agent-pipeline` skill says.
 
 Do not request a JSON block after a pre-read or spec-only turn when its role contract says none is due.
 

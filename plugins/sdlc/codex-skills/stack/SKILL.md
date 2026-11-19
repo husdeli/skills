@@ -1,6 +1,6 @@
 ---
 name: stack
-description: Report a web repository's stack layer by layer against the default web stack, or with `install` propose the missing installs, ask which optional layers the project needs, and install them on the user's yes. Use when a user asks what stack a project uses or wants the stack installed, or invokes `$stack` as the Codex equivalent of `/stack`.
+description: "Reports a web project's stack layer by layer against the default, or with `install` proposes the missing layers and installs them on the user's yes. Use when the user asks what stack a project uses or to install it."
 ---
 
 # Stack

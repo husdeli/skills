@@ -1,6 +1,7 @@
 ---
-description: Set up the SDLC framework structure for a product, in an Obsidian vault or in the repository, and register the repositories the product is built in.
+description: "Sets up the SDLC framework structure for a product, in an Obsidian vault or the repository, and registers the repositories it is built in. Use when the user asks to set up or initialize the plugin, or to register a repository."
 argument-hint: "[product name] [destination path] [repository paths]"
+disable-model-invocation: true
 ---
 
 # Setup
@@ -13,7 +14,7 @@ The recommended home is a folder in an **Obsidian vault**, outside the repositor
 
 Arguments (if provided): $ARGUMENTS
 
-Load four skills before you create anything, namespaced here as `sdlc:<name>`: **`sdlc-structure`**, which holds the resolution order, the pointer file, the registry, the vault conventions this command writes, and the layout it creates — read its layout reference before Step 4 — **`ticket-board`**, which holds the `work/` folder, the ticket, and the roadmap it creates and migrates, **`feature`**, which holds the feature folder, the feature note, and the code that ties a feature to its epic, and **`product-intent`**, which holds the five notes the PRD is assembled from and the migration that splits an existing PRD into them.
+Load four skills before you create anything, namespaced here as `sdlc:<name>`: **`sdlc-structure`**, which holds the resolution order, the pointer file, the registry, the vault conventions this command writes, and the layout it creates — read its layout reference before Step 4 — **`ticket-board`**, which holds the `work/` folder, the ticket, and the roadmap it creates and migrates, **`feature-folder`**, which holds the feature folder, the feature note, and the code that ties a feature to its epic, and **`product-intent`**, which holds the five notes the PRD is assembled from and the migration that splits an existing PRD into them.
 
 The tree this command creates, what each folder holds, and what it leaves empty are in the `sdlc-structure` layout reference. Create every folder that reference lists except `business/`, which `/business-plan` creates. Write no ticket and no worklog here, and no ticket template: the template lives in the `ticket-board` skill, and `/plan` writes each ticket from it.
 
@@ -140,12 +141,12 @@ Say what the split buys before you offer it: a goal becomes something a feature 
 
 When the user says no, create `product/` empty and leave the PRD whole: every command reads that shape as a fallback. Skip the offer when `product/` already holds a note.
 
-**A framework root with no `features/` folder** needs the same explicit yes. A **feature** is one thing a customer can do: it owns a folder, a feature note that says what the customer can do and whether it is done, the design docs for that feature, and the code that numbers its tickets. The `feature` skill holds the shape. A project whose design docs all sit in `designs/`, or whose roadmap has epics but no feature notes, is on the older shape.
+**A framework root with no `features/` folder** needs the same explicit yes. A **feature** is one thing a customer can do: it owns a folder, a feature note that says what the customer can do and whether it is done, the design docs for that feature, and the code that numbers its tickets. The `feature-folder` skill holds the shape. A project whose design docs all sit in `designs/`, or whose roadmap has epics but no feature notes, is on the older shape.
 
 Say what the migration buys before you offer it: the feature register becomes the list of what the product does, so the business plan, the roadmap, and every design doc point at one place instead of three. Say what it costs: a design doc that moves changes its path, so a note or a bookmark that cites the old path stops resolving. Then offer it in three steps, and stop at any step the user does not approve:
 
 1. **Propose the features.** Read the roadmap's epics, the design docs in `designs/`, and the PRD's product areas. Each epic is a candidate feature, and its code is the feature's code. Each design doc is either a feature's doc or cross-cutting. Show the whole mapping as one table — feature name, code, PRD area, status, and the design docs that move into it — with a second short table of the docs that stay in `designs/` and why. Ask the user to accept it, rename a feature, move a doc, or drop a row.
-2. **Create the folders and the feature notes.** One folder per approved feature, and one `<feature>.feature.md` in each, with the properties the `feature` skill defines and `projects` naming this project. **Check each status against the work root** before you write it — an epic with rows left is `in progress` or `backlog`, and a feature is `done` only when the code holds the whole of it. Report any feature whose evidence disagreed with the roadmap.
+2. **Create the folders and the feature notes.** One folder per approved feature, and one `<feature>.feature.md` in each, with the properties the `feature-folder` skill defines and `projects` naming this project. **Check each status against the work root** before you write it — an epic with rows left is `in progress` or `backlog`, and a feature is `done` only when the code holds the whole of it. Report any feature whose evidence disagreed with the roadmap.
 3. **Move the design docs and rewrite every reference.** Move each approved doc into its feature's folder — with `git mv` inside a git working tree, a plain `mv` otherwise — keeping its name. Add a `**Feature**:` line to each roadmap epic section that now has a feature. Then search the project for every moved path and fix what that finds — a `related:` property, a ticket, a diagram caption, the business plan. Report the counts: features opened, docs moved, docs kept in `designs/`, references rewritten.
 
 When the user says no, create `features/` empty and leave every design doc in `designs/`: every agent reads that shape as a fallback. Skip the offer when `features/` already holds a feature.

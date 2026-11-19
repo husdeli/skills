@@ -1,6 +1,6 @@
 ---
 name: review
-description: Review code that was already written — the working tree, a branch, a ticket, or named files — with the code-reviewer subagent, and report APPROVED or CHANGES_REQUESTED. Use for a change that never went through an orchestrated verify stage, or when a user invokes `$review` as the Codex equivalent of `/review`.
+description: "Reviews existing code (the working tree, a branch, a ticket, or files) with the code-reviewer agent; `fix` hands blocking issues to the coding agent. Use when the user asks for a code review."
 ---
 
 # Review

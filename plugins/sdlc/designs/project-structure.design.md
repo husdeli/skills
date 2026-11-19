@@ -90,15 +90,15 @@ Each document has one owner of its rules, named in the last column.
 
 | Path | Owns | Defined in |
 | --- | --- | --- |
-| `prd.md` | What the product does, why, and for whom, with one line per product note | [[prd.design\|PRD]], and the `prd` skill |
+| `prd.md` | What the product does, why, and for whom, with one line per product note | [[prd.design\|PRD]], and the `prd-doc` skill |
 | `roadmap.md` | The work left on this project: one section per epic, one row per open ticket | The `ticket-board` skill; see [[glossary#Roadmap\|roadmap]] |
 | `product/goals/<slug>.goal.md` | One outcome the product commits to, the problem it answers, and the metric that measures it | The `product-intent` skill |
 | `product/non-goals/<slug>.non-goal.md` | One thing the product refuses or defers | The `product-intent` skill |
 | `product/personas/<slug>.persona.md` | One kind of person the product serves | The `product-intent` skill |
 | `product/problems/<slug>.problem.md` | One failure the product exists to fix, and the personas it hurts | The `product-intent` skill |
 | `product/metrics/<slug>.metric.md` | One measure of success, with its value and the date it was measured | The `product-intent` skill |
-| `business/business-plan.md` | Who pays, what they pay for, and how the product reaches them — every price and market claim | The `business-plan` skill; see [[glossary#Business plan\|business plan]] |
-| `business/competitors/<slug>.md` | The detail on one competitor, which the business plan links and never repeats | The `business-plan` skill |
+| `business/business-plan.md` | Who pays, what they pay for, and how the product reaches them — every price and market claim | The `business-plan-doc` skill; see [[glossary#Business plan\|business plan]] |
+| `business/competitors/<slug>.md` | The detail on one competitor, which the business plan links and never repeats | The `business-plan-doc` skill |
 
 The five kinds under `product/` are the [[glossary#Product note|product notes]]. `/setup` creates `product/` and its five folders empty, and `/prd` writes the notes. `/business-plan` creates `business/`.
 

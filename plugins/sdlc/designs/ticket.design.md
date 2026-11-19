@@ -73,7 +73,7 @@ A ticket no agent has worked on has none of the three.
 | ------------- | ------------------------------------------------------------ |
 | `backlog`     | Optional; the agent planned to work on it, once that is known |
 | `in progress` | Required; the agent working on it                            |
-| `blocked`     | Optional; the agent that resumes it once it is unblocked     |
+| `blocked`     | Absent; stopping removes it, and the run that resumes the ticket sets it again |
 | `review`      | Optional; the agent that reviews it, once that is known      |
 | `done`        | Absent                                                       |
 

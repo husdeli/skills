@@ -1,5 +1,5 @@
 ---
-description: Show what is actionable on the roadmap right now — what is in flight and who holds it, what is ready to start, and what is blocked and by what.
+description: "Shows what is actionable on the roadmap: what is in flight and who holds it, what is ready to start, and what is blocked by what. Use when the user asks what to work on next or for the roadmap's status."
 argument-hint: "[epic code to narrow to, or a roadmap path]"
 ---
 

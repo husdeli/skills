@@ -1,5 +1,5 @@
 ---
-description: Explain what is happening, in plain language a non-expert can follow — the last thing you did, a file, an error, a change, or a concept.
+description: "Explains in plain language the last thing done, a file, an error, a change, or a concept. Use when the user asks what happened, why something works, or what an error means."
 argument-hint: "[what to explain — a file, symbol, error, change, or concept; empty means what you just did]"
 ---
 

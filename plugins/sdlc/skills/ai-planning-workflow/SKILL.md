@@ -1,6 +1,6 @@
 ---
 name: ai-planning-workflow
-description: "Feedback-driven workflow for building a ticket in phases, with a feedback checkpoint after each step and design agreement before UI work. Use when starting, logging, or completing work on a ticket, planning a feature, or asking for feedback on a finished step. The ticket, roadmap, and worklog rules live in the `ticket-board` skill."
+description: "Builds a ticket in phases, with a feedback checkpoint after each step and a design agreement before UI work. Use when starting, logging, or completing a ticket by hand, planning a feature, or asking for feedback on a step."
 ---
 
 # AI Planning Workflow
@@ -54,7 +54,7 @@ Assumptions I'll make unless you say otherwise: […]
 Which options do you want?
 ```
 
-5. Record the answers in the worklog's interview entry — each decision, what it beat, and each assumption confirmed — so the plan and every later step build on settled choices. The ticket says what to build and never records what happened.
+5. Write each answer into the ticket's **Decisions**, one line with its reason, as the `ticket-board` ticket guidelines say — every later step treats it as a fixed constraint. The worklog entry for this phase records what each decision beat and each assumption the user confirmed.
 
 Skip this phase only for small, unambiguous changes with no product/UX/architecture forks.
 
@@ -87,23 +87,7 @@ Feedback requested after each step. Good to go?
 
 If the ticket includes **any UI work**, complete this phase before writing business logic.
 
-1. Build a **static prototype** — visual structure only, placeholder data, no live data fetching
-2. Cover all meaningful states: empty, loading skeleton, populated, error, mobile
-3. Present for review:
-
-```markdown
-## 🎨 Design: [Feature Name]
-
-Static prototype — no live data or business logic yet.
-
-- [Component/screen]: [description]
-- Preview: [run instructions + URL]
-- Decisions: [key choices and rationale]
-
-Changes before I wire up the logic?
-```
-
-4. **Iterate until explicitly approved.** Do NOT start business logic until design is signed off.
+Run the **`mockup-agreement`** skill (namespaced `sdlc:mockup-agreement`). It says when the step can be skipped, publishes a static mockup as an Artifact with every state it lists, and iterates until the user agrees. **Do not start business logic until the user signs the design off.** Carry what they agreed — the artifact URL, the states it covers, and the layout and component decisions — into Phase 3.
 
 ---
 

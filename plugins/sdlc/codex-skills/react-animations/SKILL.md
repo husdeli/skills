@@ -1,6 +1,6 @@
 ---
 name: react-animations
-description: Rules for animating a React interface — CSS and the UI library first, a proven animation library only for what they cannot do. Use before adding or changing a transition, an enter or exit effect, a layout animation, a gesture, or a scroll effect. Builds on the `react-clean` skill; follow that one too.
+description: "Defines how to animate a React interface: CSS and the UI library first, the platform next, Motion only for the rest. Use before adding, changing, or reviewing a transition, keyframe, enter or exit, layout, gesture, or scroll animation."
 ---
 
 # react-animations

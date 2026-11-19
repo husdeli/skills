@@ -1,14 +1,16 @@
 ---
 name: agent-pipeline
-description: "Rules for driving subagents from a command — spawn each role once and resume it, run independent calls in one tool block, drive control flow from the JSON block every agent ends with, run every check yourself, and stop only on `human_required`. INVOKE THIS SKILL before you spawn a subagent from a command, and before you resume, re-review, or judge one's result."
+description: "Defines how a command drives subagents: spawn each role once and resume it, run independent calls together, and act on each agent's closing JSON block. Use before spawning, resuming, re-reviewing, or judging a subagent from a command."
 ---
 
 # agent-pipeline skill
 
 How a command drives subagents. The stages and the gates belong to each command;
-this skill holds the mechanics every one of them shares. The stages `/orchestrate` and
-`/run-roadmap` both drive, from Plan to Code review and full verification, are in
-[the build stages](references/build-stages.md): read it whole when one of those commands says to.
+this skill holds the mechanics every one of them shares. The stages `/orchestrate`, `/run-roadmap`,
+and `/orchestrate-quick` drive, from Plan to Code review and full verification, are in
+[the build stages](references/build-stages.md), in a full and a quick mode: read it whole when one
+of those commands says to. The rules those three commands share before their own stages are in
+[the command preamble](references/command-preamble.md).
 
 ## Spawn once, resume with SendMessage
 
@@ -131,7 +133,8 @@ produces tests that describe its code rather than check it.
 - **Every new test fails before the code exists.** The orchestrator runs each `new` case by the
   command the writer reported for it. A case that passes catches nothing, and a case that does not
   run is broken: either one goes back to `test-writer`, to sharpen or repair. A `guard` case
-  checks behavior that already exists, and is exempt.
+  checks behavior that already exists, and is exempt. In `/orchestrate-quick` the test writer
+  proves each case fails itself, and its report is the gate.
 - **Fingerprint every file `test-writer` changed**, the moment its block lands:
   `git -C <work root> hash-object <file>…`. Compare after every `coding` turn. A file whose
   fingerprint moved goes back to `coding` with "restore this test file exactly; dispute it instead

@@ -496,8 +496,29 @@ def read_json(path: str) -> dict:
 
 
 def write_text(path: str, text: str) -> None:
-    with open(path, "w", encoding="utf-8") as handle:
-        handle.write(text)
+    """Write a file so a reader never sees half of it: a temporary file beside it, then a rename.
+    A kill mid-write, or a sync client reading at the wrong moment, leaves the old file whole."""
+    import os
+    import tempfile
+    path = os.fspath(path)
+    folder = os.path.dirname(path) or "."
+    descriptor, temporary = tempfile.mkstemp(prefix=".tmp-", suffix=".part", dir=folder)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as handle:
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            os.chmod(temporary, os.stat(path).st_mode & 0o7777)
+        except FileNotFoundError:
+            os.chmod(temporary, 0o644)
+        os.replace(temporary, path)
+    except BaseException:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+        raise
 
 
 def main(argv: list[str]) -> int:

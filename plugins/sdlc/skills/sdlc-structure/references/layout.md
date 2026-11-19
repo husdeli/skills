@@ -64,7 +64,7 @@ project folder. Every other folder is the same.
   `.goal.md`, `.note.md`, `.worklog.md` — names the kind, so a folder listing reads as an inventory.
 - **Ownership decides where a design doc sits.** A subject that belongs to one feature sits in that
   feature's folder. A subject every feature depends on sits in `designs/`. The test: would the doc
-  still be needed if the feature were dropped? The `design-doc` and `feature` skills hold the rest.
+  still be needed if the feature were dropped? The `design-doc` and `feature-folder` skills hold the rest.
 - **A ticket's bucket follows its status.** It moves between `backlog/`, `in-progress/`, and
   `done/` as the status changes, and its worklog moves with it. The `ticket-board` skill holds the
   mapping.

@@ -1,6 +1,6 @@
 ---
 name: sdlc-structure
-description: "Where everything this plugin works with lives — the framework root and its registry, projects, features, documents, tickets, and worklogs, the work root, and the Obsidian-vault conventions — and which document owns each fact. INVOKE THIS SKILL before you read, create, move, or update any framework document, before you resolve a path in the framework root or a work root, and before you run a command against a repository that is not the working directory."
+description: "Maps where this plugin's documents live: the framework root and registry, projects, features, tickets, worklogs, the work root, and vault conventions. Use before reading, creating, moving, or updating a framework document, or resolving its path."
 ---
 
 # sdlc-structure skill
@@ -57,10 +57,10 @@ inside each document belongs to its own skill:
 | Skill | Holds |
 | --- | --- |
 | `product-intent` | The goal, non-goal, persona, problem, and success metric notes |
-| `prd` | The PRD |
+| `prd-doc` | The PRD |
 | `glossary` | The terms, and the link a document writes to one |
-| `feature` | The feature folder, its feature note, and its code |
+| `feature-folder` | The feature folder, its feature note, and its code |
 | `design-doc` | The design doc |
 | `diagrams` | The drawing, and how a document references it |
 | `ticket-board` | The work folder, the ticket, its claim, the roadmap, the worklog, and the status transitions |
-| `business-plan` | The business plan and the competitor notes |
+| `business-plan-doc` | The business plan and the competitor notes |

@@ -14,21 +14,21 @@ it holds one project directly. Every other path is relative to the framework roo
 | Registry | `sdlc.json` | — | — | `sdlc-structure` | `/setup` |
 | Glossary | `glossary.md` | `glossary` | — | `glossary` | whoever coins a term |
 | Project note | `<project>/<project-name>.md` | `project` | `backlog`, `in progress`, `done` | `sdlc-structure` | `/setup` |
-| PRD | `<project>/prd.md` | `prd` | `Draft`, `Living document`, `Final` | `prd`, `product-intent` | `/prd` |
+| PRD | `<project>/prd.md` | `prd` | `Draft`, `Living document`, `Final` | `prd-doc`, `product-intent` | `/prd` |
 | Goal | `<project>/product/goals/<slug>.goal.md` | `goal` | `Committed`, `Met`, `Dropped` | `product-intent` | `/prd` |
 | Non-goal | `<project>/product/non-goals/<slug>.non-goal.md` | `non-goal` | `Excluded`, `Deferred` | `product-intent` | `/prd` |
 | Persona | `<project>/product/personas/<slug>.persona.md` | `persona` | — | `product-intent` | `/prd` |
 | Problem | `<project>/product/problems/<slug>.problem.md` | `problem` | — | `product-intent` | `/prd` |
 | Success metric | `<project>/product/metrics/<slug>.metric.md` | `metric` | A value with the date it was measured | `product-intent` | `/prd` |
 | Roadmap | `<project>/roadmap.md` | `roadmap` | A row mirrors its ticket's status, and is deleted when the ticket is done | `ticket-board` | `/plan`, the orchestrators |
-| Feature note | `features/<feature-name>/<feature-name>.feature.md` | `feature` | `backlog`, `in progress`, `done` | `feature` | `/feature` |
+| Feature note | `features/<feature-name>/<feature-name>.feature.md` | `feature` | `backlog`, `in progress`, `done` | `feature-folder` | `/feature` |
 | Design doc | `features/<feature-name>/<subject>.design.md` or `designs/<subject>.design.md` | `design` | — | `design-doc` | `/design` |
-| Note | `features/<feature-name>/notes/<slug>.note.md` | `note` | `open`, `done` | `feature` | `scripts/create-note.py`, for the orchestrators and `/code`; a person sets `done` |
+| Note | `features/<feature-name>/notes/<slug>.note.md` | `note` | `open`, `done` | `feature-folder` | `scripts/create-note.py`, for the orchestrators and `/code`; a person sets `done` |
 | Diagram | `diagrams/<name>.excalidraw.md` | — | — | `diagrams` | whoever writes the document it illustrates |
 | Ticket | `work/<bucket>/<CODE>-<NNN>-<slug>.md` | — | `backlog`, `in progress`, `blocked`, `review`, `done` | `ticket-board` | `/plan`, the orchestrators |
 | Worklog | beside its ticket, `<CODE>-<NNN>-<slug>.worklog.md` | `worklog` | — | `ticket-board` | the orchestrator only |
-| Business plan | `<project>/business/business-plan.md` | `business-plan` | `Draft`, `Living document` | `business-plan` | `/business-plan` |
-| Competitor | `<project>/business/competitors/<slug>.md` | `competitor` | — | `business-plan` | `/business-plan` |
+| Business plan | `<project>/business/business-plan.md` | `business-plan` | `Draft`, `Living document` | `business-plan-doc` | `/business-plan` |
+| Competitor | `<project>/business/competitors/<slug>.md` | `competitor` | — | `business-plan-doc` | `/business-plan` |
 
 **A document's `type` property is what makes it that kind of document**, together with where it
 sits. A ticket is the exception: it is a ticket because of its name and its bucket, and it carries

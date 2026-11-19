@@ -157,6 +157,33 @@ class Feature:
 # ------------------------------------------------------------------------------------ parsing
 
 
+
+def atomic_write_text(path, text: str) -> None:
+    """Write a file so a reader never sees half of it: a temporary file beside it, then a rename.
+    A kill mid-write, or a sync client reading at the wrong moment, leaves the old file whole."""
+    import os
+    import tempfile
+    path = os.fspath(path)
+    folder = os.path.dirname(path) or "."
+    descriptor, temporary = tempfile.mkstemp(prefix=".tmp-", suffix=".part", dir=folder)
+    try:
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="") as handle:
+            handle.write(text)
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            os.chmod(temporary, os.stat(path).st_mode & 0o7777)
+        except FileNotFoundError:
+            os.chmod(temporary, 0o644)
+        os.replace(temporary, path)
+    except BaseException:
+        try:
+            os.unlink(temporary)
+        except FileNotFoundError:
+            pass
+        raise
+
+
 def split_frontmatter(text: str) -> tuple[dict[str, object], list[str]]:
     """Return (properties, body lines). Only the small YAML subset these documents use."""
     lines = text.splitlines()
@@ -1011,7 +1038,7 @@ def rebuild(board: Board, project: Project, args: argparse.Namespace, report: Re
         return 1 if changed else 0
 
     if changed:
-        roadmap_path.write_text(after, encoding="utf-8")
+        atomic_write_text(roadmap_path, after)
         report.say(f"Rebuilt the tables in {roadmap_path}")
     else:
         report.say(f"Nothing to change in {roadmap_path}")

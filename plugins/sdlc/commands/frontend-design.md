@@ -1,5 +1,5 @@
 ---
-description: Agree on the look of a screen before it is built — publishes a static mockup as an Artifact and iterates until you sign it off.
+description: "Agrees the look of a screen before it is built, by publishing a static mockup as an Artifact and iterating until sign-off. Use when the user asks to design a screen, component, or flow."
 argument-hint: "[screen, component, or flow to design]"
 ---
 
@@ -9,9 +9,9 @@ Agree the visual design of the interface below with the user, before any UI code
 
 Target: $ARGUMENTS
 
-Invoke the **`frontend-design`** skill and follow it end to end:
+Invoke the **`mockup-agreement`** skill and follow it end to end:
 
-- If the skill is namespaced here (e.g. `sdlc:frontend-design`), invoke that.
+- If the skill is namespaced here (e.g. `sdlc:mockup-agreement`), invoke that.
 - Load it **before** you draw anything, and follow its process, its visual direction rules, and
   its hard rules exactly.
 - Load the **`artifact-design`** skill as the skill requires, and follow the `technical-writing`

@@ -23,7 +23,8 @@
 
 set -uo pipefail
 
-VERSION="2.3.0"
+VERSION="3.0.0"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # ---------------------------------------------------------------------------- defaults
 
@@ -36,10 +37,11 @@ WORK_ROOTS=""                # one absolute repository path per line
 MAX_TASKS=0                  # 0 = until the roadmap is done
 RUN_NAME=""                  # run-roadmap-<n>; set by --run, or the lowest free number
 FINAL=0                      # 1 while the session about to start is the run's last
-PERMISSION_MODE="bypassPermissions"
+PERMISSION_MODE="auto"       # the classifier approves routine work; nothing waits on a prompt
 MODEL=""
 LOG_DIR=""
-TIMEOUT=0                    # per task, seconds. 0 = no limit
+TIMEOUT=7200                 # per task, seconds. 0 = no limit
+NOTIFY_CMD="${SDLC_NOTIFY:-}"
 ASSUME_YES=0
 DRY_RUN=0
 QUIET=0
@@ -47,6 +49,9 @@ QUIET=0
 TASKS_DONE=0
 STOP_REASON=""
 EXIT_CODE=0
+SPENT_USD=0
+SAVED_WORK=""                # one "worktree -> ref" line per half-built ticket the launcher put aside
+HEARTBEAT=""
 
 # ---------------------------------------------------------------------------- output
 
@@ -101,10 +106,15 @@ OPTIONS
                        sdlc.json names for that project. Default: detected from the working
                        directory, or from the repository's .sdlc.json pointer file.
   --model NAME         Model for the main session (the agents pick their own). Default: your config.
-  --permission-mode M  Claude permission mode. Default: bypassPermissions, which is what an
-                       unattended run needs — a prompt in a headless session is a dead run.
-  --timeout SECONDS    Kill a ticket that runs longer than this. Default: 0, meaning no limit.
-  --log-dir DIR        Where the per-ticket logs go. Default: a timestamped folder under TMPDIR.
+  --permission-mode M  Claude permission mode. Default: auto — a classifier approves routine work
+                       and denies the rest, and with --permission-prompts none nothing waits for
+                       an answer. bypassPermissions skips every check; use it only in a sandbox.
+  --timeout SECONDS    Kill a ticket that runs longer than this. Default: 7200. 0 means no limit.
+  --notify CMD         A shell command run once when the run ends, as
+                       sh -c CMD sdlc-notify <exit code> <stop reason> <summary file>, with
+                       SDLC_RUN, SDLC_EXIT_CODE, SDLC_STOP_REASON, and SDLC_SUMMARY set.
+                       Default: the SDLC_NOTIFY environment variable.
+  --log-dir DIR        Where the per-ticket logs go. Default: <framework root>/.runs/logs/<run>-<time>.
   --command NAME       Slash command to run. Default: /sdlc:run-roadmap.
   --yes, -y            Skip the confirmation prompt. Required on a non-interactive shell.
   --dry-run            Print the command for the first ticket and exit.
@@ -118,17 +128,33 @@ BEFORE YOU RUN IT
   never pushes, and never merges. Read the branch afterwards and merge what you keep — a CTO agent
   made every product decision in it.
 
+WHEN A TICKET DIES
+  A ticket that times out, is interrupted, or ends without a result line is
+  stopped by this script: its half-built code is saved on refs/sdlc-wip/<run>/task-<n> in each
+  worktree it touched and the worktree is cleaned, the ticket becomes blocked with the log's path
+  in blocked_by, and the run's other claims are released — so the next run starts on a clean board.
+  Claims of runs that died without this script (a closed laptop) are cleared with:
+    python3 scripts/board.py recover --stale-hours 24
+
 EXIT CODES
   0  The roadmap is done, or --max was reached.
-  1  Preflight failed: no claude, no git, an unreadable registry, or a bad option.
-  3  A person is needed: a ticket reported human_required, or left its worktree dirty.
-  4  A ticket produced no result line, or timed out.
+  1  Preflight failed: no claude, git, or python3, an unreadable registry, or a bad option.
+  3  A person is needed: a ticket reported human_required, left its worktree dirty, or reported a
+     commit no run branch holds.
+  4  A ticket died: it produced no valid result line, or timed out.
 EOF
 }
 
 # ---------------------------------------------------------------------------- options
 
+# need_value <option> <argument count> — an option that takes a value was given one.
+need_value() { [ "$2" -ge 2 ] || { usage >&2; die "$1 needs a value" 1; }; }
+
 while [ $# -gt 0 ]; do
+  case "$1" in
+    --max|--max-tasks|--run|--roadmap|--project|--model|--permission-mode|--timeout|--log-dir|--command|--notify)
+                       need_value "$1" "$#" ;;
+  esac
   case "$1" in
     --max|--max-tasks) MAX_TASKS="${2:-}"; shift 2 ;;
     --run)             RUN_NAME="${2:-}"; shift 2 ;;
@@ -139,6 +165,7 @@ while [ $# -gt 0 ]; do
     --timeout)         TIMEOUT="${2:-}"; shift 2 ;;
     --log-dir)         LOG_DIR="${2:-}"; shift 2 ;;
     --command)         COMMAND="${2:-}"; shift 2 ;;
+    --notify)          NOTIFY_CMD="${2:-}"; shift 2 ;;
     --keep-going|--allow-dirty)
                        warn "$1 is gone: a stopped ticket ends the run, and the run never builds in your checkout"; shift ;;
     -y|--yes)          ASSUME_YES=1; shift ;;
@@ -157,13 +184,14 @@ case "$RUN_NAME" in
   [1-9]*) RUN_NAME="run-roadmap-$RUN_NAME" ;;
   *) die "--run needs a run number, such as 3 or run-roadmap-3" 1 ;;
 esac
-case "$RUN_NAME" in ''|run-roadmap-[1-9]|run-roadmap-[1-9]*[0-9]) ;; *) die "--run needs a run number" 1 ;; esac
+[ -z "$RUN_NAME" ] || [[ "$RUN_NAME" =~ ^run-roadmap-[1-9][0-9]*$ ]] || die "--run needs a run number, such as 3" 1
 case "$TIMEOUT"   in ''|*[!0-9]*) die "--timeout needs a whole number of seconds" 1 ;; esac
 
 # ---------------------------------------------------------------------------- preflight
 
 command -v claude >/dev/null 2>&1 || die "claude is not on PATH. Install Claude Code first." 1
 command -v git    >/dev/null 2>&1 || die "git is not on PATH." 1
+command -v python3 >/dev/null 2>&1 || die "python3 is not on PATH. The board scripts need it." 1
 
 # expand_tilde <path> — a leading ~ is the user's home, as sdlc.json may write it.
 expand_tilde() {
@@ -330,24 +358,53 @@ worktree_of() {
   printf '%s/%s-worktrees/%s' "$(dirname "$1")" "$(basename "$1")" "$RUN_NAME"
 }
 
-# run_number_taken <n> — a claim, a branch, or a worktree already uses run-roadmap-<n>.
-run_number_taken() {
-  grep -rqs --include='*.md' "^claimed: run-roadmap-$1\$" "$RUN_ROOT" && return 0
-  while IFS= read -r wr; do
-    [ -n "$wr" ] || continue
-    git -C "$wr" show-ref --verify --quiet "refs/heads/run-roadmap-$1" && return 0
-    [ -e "$(dirname "$wr")/$(basename "$wr")-worktrees/run-roadmap-$1" ] && return 0
-  done <<EOF
-$WORK_ROOTS
-EOF
-  return 1
+# board <action> [args] — the board script, against this run's framework root.
+board() {
+  action="$1"; shift
+  python3 "$SCRIPT_DIR/board.py" "$action" --root "$RUN_ROOT" "$@"
 }
 
+# json_get <json> <key>... — one scalar from a JSON object, by a path of keys; empty when absent.
+json_get() {
+  python3 -c '
+import json, sys
+value = json.loads(sys.argv[1] or "null")
+for key in sys.argv[2:]:
+    value = value.get(key) if isinstance(value, dict) else None
+print("" if value is None else (json.dumps(value) if isinstance(value, (dict, list)) else value))
+' "$@" 2>/dev/null
+}
+
+board_problem="$(board ready ${PROJECT_NAME:+--project "$PROJECT_NAME"} 2>&1 >/dev/null)" \
+  || die "no ticket board the run can read at $RUN_ROOT: $board_problem
+Run /setup first." 1
+
+repo_args=()
+while IFS= read -r wr; do
+  [ -n "$wr" ] && repo_args+=(--repo "$wr")
+done <<EOF
+$WORK_ROOTS
+EOF
+
 if [ -z "$RUN_NAME" ]; then
-  n=1
-  while run_number_taken "$n"; do n=$((n + 1)); done
-  RUN_NAME="run-roadmap-$n"
+  # The lowest number no claim, branch, worktree, or live run uses — reserved with a heartbeat file
+  # unless this is a dry run, so two launchers started at once never share a number.
+  if [ "$DRY_RUN" -eq 1 ]; then
+    next="$(board next-run --command run-roadmap "${repo_args[@]}")" || die "board.py next-run failed" 1
+  else
+    next="$(board next-run --command run-roadmap --reserve "${repo_args[@]}")" || die "board.py next-run failed" 1
+    HEARTBEAT="$(json_get "$next" heartbeat)"
+  fi
+  RUN_NAME="$(json_get "$next" run)"
+  [[ "$RUN_NAME" =~ ^run-roadmap-[1-9][0-9]*$ ]] || die "board.py next-run returned no run name" 1
+elif [ "$DRY_RUN" -eq 0 ]; then
+  HEARTBEAT="$RUN_ROOT/.runs/.live/$RUN_NAME"
+  mkdir -p "$(dirname "$HEARTBEAT")" && touch "$HEARTBEAT"
 fi
+
+# The heartbeat says this run is alive; `board.py recover` reads its age. It goes when the script does.
+remove_heartbeat() { [ -n "$HEARTBEAT" ] && rm -f "$HEARTBEAT"; return 0; }
+trap remove_heartbeat EXIT
 
 # dirty_worktrees — prints every run worktree with uncommitted changes.
 dirty_worktrees() {
@@ -365,7 +422,7 @@ EOF
 DIRTY="$(dirty_worktrees)"
 [ -z "$DIRTY" ] || die "a run worktree of $RUN_NAME holds uncommitted work — a ticket neither committed
 nor discarded it. Look at it before resuming:
-$DIRTY" 1
+$DIRTY" 3
 
 # Each repository's worktree folder has to exist for the session to be granted it.
 [ "$DRY_RUN" -eq 1 ] || while IFS= read -r wr; do
@@ -377,7 +434,9 @@ $WORK_ROOTS
 EOF
 
 if [ -z "$LOG_DIR" ]; then
-  LOG_DIR="${TMPDIR:-/tmp}/sdlc-run-roadmap/$(basename "$RUN_ROOT")-$(date -u '+%Y%m%dT%H%M%SZ')"
+  # Under the framework root's .runs/, which git ignores, so a purged TMPDIR never takes the logs.
+  mkdir -p "$RUN_ROOT/.runs" && [ -f "$RUN_ROOT/.runs/.gitignore" ] || printf '*\n' >"$RUN_ROOT/.runs/.gitignore"
+  LOG_DIR="$RUN_ROOT/.runs/logs/$RUN_NAME-$(date -u '+%Y%m%dT%H%M%SZ')"
 fi
 mkdir -p "$LOG_DIR" || die "cannot create the log directory: $LOG_DIR" 1
 LOG_DIR="$(cd "$LOG_DIR" && pwd)"
@@ -409,7 +468,10 @@ build_prompt() {
 
 claude_argv() {
   # Prints one argument per line, so the caller can read them without word splitting.
-  printf '%s\n' "claude" "-p" "$(build_prompt)" "--permission-mode" "$PERMISSION_MODE"
+  printf '%s\n' "claude" "-p" "$(build_prompt)" "--permission-mode" "$PERMISSION_MODE" \
+    "--output-format" "stream-json" "--verbose"
+  # Nobody is there to answer: a prompt is denied at once instead of hanging the run.
+  [ "$PERMISSION_MODE" = "bypassPermissions" ] || printf '%s\n' "--permission-prompts" "none"
   [ -n "$MODEL" ] && printf '%s\n' "--model" "$MODEL"
   # The session writes to each run worktree, beside its repository, and in the project's case reads
   # the repository itself, so every one has to be granted.
@@ -446,6 +508,7 @@ ${C_BOLD}An autonomous run is about to start.${C_RESET}
   run               $RUN_NAME — branch and worktree of that name beside each repository
   permission mode   $PERMISSION_MODE
   tickets           $([ "$MAX_TASKS" -eq 0 ] && printf 'until the roadmap is done' || printf '%s at most' "$MAX_TASKS")
+  time limit        $([ "$TIMEOUT" -eq 0 ] && printf 'none' || printf '%ss per ticket' "$TIMEOUT")
   logs              $LOG_DIR
 
 It writes code, runs your test suite, and commits one commit per finished ticket on the run
@@ -469,12 +532,55 @@ stop_tree() {
   return 0
 }
 
+# set_aside_work <why> — save each dirty run worktree on refs/sdlc-wip/<run>/task-<n>, then clean it,
+# so the next ticket starts from the last commit and nothing half-built is lost or committed.
+set_aside_work() {
+  why="$1"
+  while IFS= read -r wr; do
+    [ -n "$wr" ] || continue
+    wt="$(worktree_of "$wr")"
+    [ -d "$wt" ] && [ -n "$(git -C "$wt" status --porcelain 2>/dev/null)" ] || continue
+    ref="refs/sdlc-wip/$RUN_NAME/task-$(printf '%02d' "${iteration:-0}")"
+    if git -C "$wt" add -A \
+       && tree="$(git -C "$wt" write-tree)" \
+       && commit="$(git -C "$wt" commit-tree "$tree" -p HEAD -m "sdlc: half-built work of $RUN_NAME task ${iteration:-0}, set aside — $why")" \
+       && git -C "$wt" update-ref "$ref" "$commit" \
+       && git -C "$wt" reset -q --hard HEAD \
+       && git -C "$wt" clean -qfd; then
+      SAVED_WORK="${SAVED_WORK}${wt} -> ${ref}
+"
+    else
+      warn "could not set aside the work in $wt — it is left as it was"
+    fi
+  done <<EOF
+$WORK_ROOTS
+EOF
+  return 0
+}
+
+# stop_dead_ticket <why> — what the session would have done had it lived: put its code aside, stop
+# its ticket as blocked with the reason and the log, and release the rest of the run's claims.
+stop_dead_ticket() {
+  why="$1"
+  set_aside_work "$why"
+  if ! out="$(board stop --run "$RUN_NAME" --blocked-by "$why — see ${task_log:-the run logs}" \
+                --stage "an unknown stage" --release-rest 2>&1)"; then
+    warn "board.py stop failed, so the run's tickets keep their claims: $out"
+    return 0
+  fi
+  stopped="$(printf '%s' "$out" | python3 -c 'import json,sys; print(", ".join(s["id"] for s in json.load(sys.stdin)["stopped"]))' 2>/dev/null)"
+  [ -n "$stopped" ] && warn "stopped $stopped as blocked: $why"
+  return 0
+}
+
 on_interrupt() {
   trap - INT TERM
   printf '\n%s\n' "${C_YELLOW}interrupted${C_RESET} — stopping the task that is running" >&2
   [ -n "$CURRENT_TASK_PID" ] && stop_tree "$CURRENT_TASK_PID"
-  printf '%s\n' "Logs are in $LOG_DIR. A run worktree may hold a half-built ticket, and its claims stay" >&2
-  printf '%s\n' "on the board — check both before you resume with --run ${RUN_NAME#run-roadmap-}." >&2
+  stop_dead_ticket "the run was interrupted"
+  printf '%s\n' "Logs are in $LOG_DIR." >&2
+  [ -n "$SAVED_WORK" ] && printf 'Half-built work was set aside:\n%s' "$SAVED_WORK" >&2
+  printf '%s\n' "Resume with --run ${RUN_NAME#run-roadmap-} once a person has cleared the blocked ticket." >&2
   exit 130
 }
 trap on_interrupt INT TERM
@@ -492,15 +598,17 @@ run_task() {
 
   # Job control puts the task in its own process group, so a timeout or a Ctrl-C takes down whatever
   # it started — a test runner, a dev server — instead of orphaning it.
+  # stdin is /dev/null: a background job that reads the terminal is stopped by SIGTTIN and would
+  # wait forever, and `claude -p` would append a piped stdin to the prompt.
   set -m
-  "${cmd[@]}" >"$task_log" 2>&1 &
+  "${cmd[@]}" </dev/null >"$task_log" 2>&1 &
   claude_pid=$!
   set +m
   CURRENT_TASK_PID="$claude_pid"
 
   tail_pid=""
   if [ "$QUIET" -eq 0 ] && is_tty; then
-    tail -f "$task_log" 2>/dev/null &
+    python3 "$SCRIPT_DIR/session-log.py" render --follow "$task_log" 2>/dev/null &
     tail_pid=$!
   fi
 
@@ -516,6 +624,7 @@ run_task() {
     fi
     sleep 5
     waited=$((waited + 5))
+    [ -n "$HEARTBEAT" ] && [ $((waited % 60)) -eq 0 ] && touch "$HEARTBEAT" 2>/dev/null
   done
   [ "$status" -eq 0 ] && { wait "$claude_pid"; status=$?; }
   CURRENT_TASK_PID=""
@@ -529,23 +638,20 @@ run_task() {
   return "$status"
 }
 
-# result_line <log file> — the last RUN-ROADMAP-RESULT payload in the log, or nothing.
-result_line() {
-  grep -o 'RUN-ROADMAP-RESULT[[:space:]]*{.*}' "$1" 2>/dev/null \
-    | tail -n 1 \
-    | sed 's/^RUN-ROADMAP-RESULT[[:space:]]*//'
+# session_result <log file> — the session's result as session-log.py reads it: the payload of its
+# RUN-ROADMAP-RESULT line, what it cost, and how it ended.
+session_result() {
+  python3 "$SCRIPT_DIR/session-log.py" result "$1" 2>/dev/null || printf '{}'
 }
 
-# json_field <json> <key> — one scalar field, with jq when it is there and sed when it is not.
-json_field() {
-  if [ -n "$JQ" ]; then
-    printf '%s' "$1" | "$JQ" -r --arg k "$2" 'try (.[$k] // "") catch ""' 2>/dev/null
-    return 0
-  fi
-  printf '%s' "$1" \
-    | sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\([^\"]*\)\".*/\1/p;s/.*\"$2\"[[:space:]]*:[[:space:]]*\([0-9][0-9]*\).*/\1/p" \
-    | head -n 1
+# board_remaining — the open tickets the board holds for this project; empty when it cannot say.
+board_remaining() {
+  json_get "$(board ready ${PROJECT_NAME:+--project "$PROJECT_NAME"} 2>/dev/null)" remaining
 }
+
+# add_cost <dollars> — add to what the run has spent.
+add_cost() { SPENT_USD="$(awk -v a="$SPENT_USD" -v b="${1:-0}" 'BEGIN { printf "%.2f", a + b }')"; }
+
 
 # ---------------------------------------------------------------------------- the loop
 
@@ -563,38 +669,66 @@ while :; do
   iteration=$((iteration + 1))
   FINAL=0
   [ "$MAX_TASKS" -gt 0 ] && [ "$iteration" -ge "$MAX_TASKS" ] && FINAL=1
-  task_log="$LOG_DIR/task-$(printf '%02d' "$iteration").log"
+  task_log="$LOG_DIR/task-$(printf '%02d' "$iteration").jsonl"
   info "task $iteration — $(date -u '+%H:%M:%SZ')"
 
   run_task "$task_log"
   claude_status=$?
 
-  payload="$(result_line "$task_log")"
+  result="$(session_result "$task_log")"
+  payload="$(json_get "$result" payload)"
+  cost="$(json_get "$result" costUsd)"
+  add_cost "$cost"
+  ended_as="$(json_get "$result" subtype)"
 
   if [ "$claude_status" -eq 124 ]; then
-    printf '%s\t%s\t\t\t\t%s\n' "$iteration" "timeout" "killed after ${TIMEOUT}s" >>"$SUMMARY"
+    printf '%s\t%s\t\t\t\t\t%s\n' "$iteration" "timeout" "killed after ${TIMEOUT}s" >>"$SUMMARY"
+    stop_dead_ticket "the session ran past --timeout ${TIMEOUT}s"
     STOP_REASON="task $iteration timed out after ${TIMEOUT}s — see $task_log"
     EXIT_CODE=4
     break
   fi
 
-  if [ -z "$payload" ]; then
-    printf '%s\t%s\t\t\t\t\t%s\n' "$iteration" "no-result" "claude exited $claude_status" >>"$SUMMARY"
-    STOP_REASON="task $iteration printed no RUN-ROADMAP-RESULT line (claude exited $claude_status) — see $task_log"
-    EXIT_CODE=4
-    break
-  fi
+  outcome="$(json_get "$payload" outcome)"
+  case "$outcome" in
+    completed|human_required|no-work) ;;
+    *)
+      why="the session ended (${ended_as:-killed}, claude exited $claude_status) with no valid RUN-ROADMAP-RESULT line: $(json_get "$result" payloadProblem)"
+      printf '%s\t%s\t\t\t\t\t%s\n' "$iteration" "no-result" "$why" >>"$SUMMARY"
+      stop_dead_ticket "$why"
+      STOP_REASON="task $iteration: $why — see $task_log"
+      EXIT_CODE=4
+      break
+      ;;
+  esac
 
-  outcome="$(json_field "$payload" outcome)"
-  feature="$(json_field "$payload" feature)"
-  task_id="$(json_field "$payload" taskId)"
-  commit="$(json_field "$payload" commit)"
-  remaining="$(json_field "$payload" remaining)"
-  next_action="$(json_field "$payload" nextAction)"
-  reason="$(json_field "$payload" reason)"
+  feature="$(json_get "$payload" feature)"
+  task_id="$(json_get "$payload" taskId)"
+  commit="$(json_get "$payload" commit)"
+  next_action="$(json_get "$payload" nextAction)"
+  reason="$(json_get "$payload" reason)"
+  # The board is the record of what is left, not the session's count of it.
+  remaining="$(board_remaining)"
+  [ -n "$remaining" ] || remaining="$(json_get "$payload" remaining)"
 
   printf '%s\t%s\t%s\t%s\t%s\t%s\t%s\n' \
     "$iteration" "${outcome:-unknown}" "$feature" "$task_id" "$commit" "$remaining" "$reason" >>"$SUMMARY"
+
+  # A completed ticket's commit has to be on the run branch of a work root it names.
+  if [ "$outcome" = "completed" ]; then
+    on_branch=""
+    while IFS= read -r wr; do
+      [ -n "$wr" ] && [ -n "$commit" ] || continue
+      git -C "$wr" merge-base --is-ancestor "$commit" "refs/heads/$RUN_NAME" 2>/dev/null && on_branch=1
+    done <<EOF
+$WORK_ROOTS
+EOF
+    if [ -z "$on_branch" ]; then
+      STOP_REASON="task $iteration reported ${task_id:-a ticket} completed with commit '${commit:-none}', which no $RUN_NAME branch holds — see $task_log"
+      EXIT_CODE=3
+      break
+    fi
+  fi
 
   case "$outcome" in
     completed)
@@ -668,6 +802,7 @@ done <"$START_COMMITS"
     [ -n "$name" ] && printf '  %-14s %s · %s · %s\n' "$name" "$range" "$n" "$path"
   done
   printf '  tasks done     %s\n' "$TASKS_DONE"
+  printf '  spent          $%s\n' "$SPENT_USD"
   printf '  stopped        %s\n' "${STOP_REASON:-no reason recorded}"
   printf '  logs           %s\n' "$LOG_DIR"
   printf '\n'
@@ -685,9 +820,22 @@ done <"$START_COMMITS"
       [ -n "$path" ] && printf '%s\n' "    git -C $path log --oneline $range"
     done
   fi
+  if [ -n "$SAVED_WORK" ]; then
+    printf '%s\n' "  Half-built work was set aside, not committed. See it, or bring it back, with:"
+    printf '%s' "$SAVED_WORK" | while IFS= read -r line; do
+      [ -n "$line" ] && printf '    git -C %s diff HEAD %s\n' "${line% -> *}" "${line##* -> }"
+    done
+  fi
   if [ "$EXIT_CODE" -ne 0 ]; then
     printf '%s\n' "  Resume after a person has looked: $0 --run ${RUN_NAME#run-roadmap-}"
   fi
-} | { [ "$QUIET" -eq 1 ] && cat >&2 || cat; }
+} | tee >(sed $'s/\033\\[[0-9;]*m//g' >"$LOG_DIR/summary.txt") | { [ "$QUIET" -eq 1 ] && cat >&2 || cat; }
+
+if [ -n "$NOTIFY_CMD" ]; then
+  sleep 1  # let the summary file land
+  SDLC_RUN="$RUN_NAME" SDLC_EXIT_CODE="$EXIT_CODE" SDLC_STOP_REASON="$STOP_REASON" SDLC_SUMMARY="$LOG_DIR/summary.txt" \
+    sh -c "$NOTIFY_CMD" sdlc-notify "$EXIT_CODE" "$STOP_REASON" "$LOG_DIR/summary.txt" </dev/null \
+    || warn "the --notify command failed"
+fi
 
 exit "$EXIT_CODE"

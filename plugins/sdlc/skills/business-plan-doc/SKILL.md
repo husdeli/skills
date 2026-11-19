@@ -1,6 +1,6 @@
 ---
-name: business-plan
-description: "Create or update the business plan in the project's business/business-plan.md and one competitor note per competitor in its business/competitors/. Use when: asked to write or update a business plan, analyse, add, or refresh a competitor, or model pricing, unit economics, break-even, or go-to-market."
+name: business-plan-doc
+description: "Writes the business plan in business/business-plan.md and one note per competitor in business/competitors/. Use when writing or updating a business plan, researching a competitor, or modelling pricing, unit economics, or go-to-market."
 ---
 
 # Business plan skill
@@ -13,7 +13,7 @@ Load four skills before you read or write anything:
 
 - **`sdlc-structure`**: resolve the framework root and the project, and follow its conventions
   (frontmatter properties, wikilinks in a vault, no dot-folders).
-- **`feature`**: the features in the framework root's `features/` that name this project are what
+- **`feature-folder`**: the features in the framework root's `features/` that name this project are what
   section 2 lists, and it holds the status
   vocabulary and the query the capability table is built from.
 - **`product-intent`**: the personas section 3 sells to, and the metrics section 12 proves, are
@@ -66,7 +66,7 @@ business plan somewhere else, move it into `business/` with the user's yes, and 
 7. **Verify the product state in the code.** A feature is `done` only when a work root holds
    it. The feature note, the PRD, and the roadmap can all lag the code. Read the work root before
    you quote a status, and correct the feature note in the same step when the two disagree — the
-   **`feature`** skill holds that check.
+   **`feature-folder`** skill holds that check.
 
 ## Step 1: Gather the facts
 
@@ -244,7 +244,7 @@ with a relative link per feature, and rewrite it whenever a feature's status cha
 - **Only the project's features are listed.** The query keeps the features whose `projects` names
   this project; a feature that serves another project belongs in that project's plan.
 - **Never type a capability that has no feature note.** When the product does something the
-  register does not list, open the feature — the **`feature`** skill says how — and let the query
+  register does not list, open the feature — the **`feature-folder`** skill says how — and let the query
   pick it up.
 - **Never restate a feature's prose here.** The row links the note; the note says what the customer
   can do. What belongs in this section is the three to five points on what makes the product

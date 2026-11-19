@@ -1,6 +1,6 @@
 ---
 name: web-stack
-description: "The default web stack — TanStack Start, Query, and Form, Zod, Mantine with Tailwind CSS, DTCG design tokens, Storybook, Motion, Postgres through Drizzle, Better Auth, Bun, Vitest, Playwright, and Biome — and the rule for a project that already chose otherwise. INVOKE THIS SKILL before you add a dependency, start a web project or a layer it lacks, plan or review either, or settle a library question."
+description: "Defines the default web stack (TanStack Start, Zod, Mantine, Tailwind, Drizzle, Better Auth, Bun, Vitest, Playwright, Biome), and when a project's choice wins. Use before adding a dependency, starting a project or layer, or picking a library."
 ---
 
 # Web stack
@@ -31,7 +31,7 @@ Read the work root's `package.json` and lockfile before you name a library. For 
 Core layers belong in every web project. An **optional** layer is added only when the product
 needs it — auth when it has accounts, a database when it stores data on the server, forms when it
 has more than a field or two, design tokens when the design decisions reach beyond one web app
-(a native app, a second app, or a design tool's variables — `design-system`), a design board when
+(a native app, a second app, or a design tool's variables — `design-system-rules`), a design board when
 more than one person needs to see the shared components and tokens apart from the app, animation when CSS and Mantine cannot meet a requirement (`react-animations`), end-to-end tests when a critical path earns them. Never add an
 optional layer because the table lists it. `/stack install` proposes the installs and asks which
 optional layers the project needs.
@@ -45,8 +45,8 @@ optional layers the project needs.
 | Forms (optional) | TanStack Form | Validates with the Zod schema directly. |
 | UI components | Mantine | Interactive components: inputs, buttons, modals, menus, notifications. |
 | Styling | Tailwind CSS | Layout, spacing, and one-off adjustments around Mantine components. |
-| Design tokens (optional) | DTCG JSON under `tokens/`, built by Style Dictionary (`style-dictionary`) | Generates the CSS variables, the Tailwind theme, the Mantine theme, and native outputs (`design-system`). |
-| Design board (optional) | Storybook (`storybook`, `@storybook/react-vite`, `@storybook/addon-docs`, `@storybook/addon-a11y`) | A separate build that shows the catalog, every token, and every shared component (`design-system`). |
+| Design tokens (optional) | DTCG JSON under `tokens/`, built by Style Dictionary (`style-dictionary`) | Generates the CSS variables, the Tailwind theme, the Mantine theme, and native outputs (`design-system-rules`). |
+| Design board (optional) | Storybook (`storybook`, `@storybook/react-vite`, `@storybook/addon-docs`, `@storybook/addon-a11y`) | A separate build that shows the catalog, every token, and every shared component (`design-system-rules`). |
 | Animation (optional) | Motion (`motion`, imported from `motion/react`) | Only for what CSS, Mantine's transitions, and the platform cannot do (`react-animations`). |
 | Database (optional) | Postgres | Driven through `postgres` (postgres.js). |
 | Data access (optional, with the database) | Drizzle ORM, with drizzle-kit for migrations | |
@@ -58,7 +58,7 @@ optional layers the project needs.
 
 ## Rule 3 — Mantine and Tailwind share the page
 
-- **The catalog's component first, then Mantine's, Tailwind around both** (`design-system`
+- **The catalog's component first, then Mantine's, Tailwind around both** (`design-system-rules`
   Rule 2). Build a control the catalog lacks from Mantine and style it
   through its own props (`variant`, `color`, `size`, `radius`) before anything else. Use Tailwind
   for the layout around it and for elements Mantine has no component for. Never rebuild with
@@ -72,7 +72,7 @@ optional layers the project needs.
   ```
 
   Never fix a cascade conflict with `!important`.
-- **Design tokens live in one place** (`design-system`). With the design-tokens layer, the DTCG
+- **Design tokens live in one place** (`design-system-rules`). With the design-tokens layer, the DTCG
   JSON is that place and the Mantine theme and Tailwind's theme are both generated from it.
   Without it, colors, radii, spacing, and fonts are defined once in the Mantine theme, and
   Tailwind's theme refers to the CSS variables Mantine emits (`--mantine-color-*`). Either way,

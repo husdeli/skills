@@ -1,9 +1,9 @@
 ---
-name: frontend-design
-description: "Agree the visual design of a user interface with the user before any UI code is written, by publishing a static mockup as an Artifact and iterating on it. Use when: asked to design a screen, a component, or a flow; or before implementing a request that changes what a user sees. Produces an agreed design, not production code."
+name: mockup-agreement
+description: "Agrees a screen's visual design with the user before UI code is written, by publishing a static mockup as an Artifact and iterating on it. Use when asked to design a screen, component, or flow, or before building a change a user sees."
 ---
 
-# Frontend-design skill
+# Mockup-agreement skill
 
 Show the user what a screen will look like, and get their agreement, **before** anyone writes
 the code that builds it. The output of this skill is a signed-off design, not a feature.
@@ -45,7 +45,7 @@ The mockup must look like it belongs to the product, so learn the product first.
   belongs to a feature, `designs/<subject>.design.md` when it does not — for the states
   and rules the screen must hold. The
   `sdlc-structure` skill resolves the framework root — load it before you read one.
-- Find the design system the codebase already has. Load the `design-system` skill and read the
+- Find the design system the codebase already has. Load the `design-system-rules` skill and read the
   work root's `design-system.md` catalog and its design board when there is one, then the token
   source or theme config, the styling approach, and two or three existing screens.
 - **An existing design system wins.** When the project has one, the mockup uses its tokens, its

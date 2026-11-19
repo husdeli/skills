@@ -39,7 +39,7 @@ frontmatter — there is no second copy to keep in step.
   it — the glossary, the PRD, the roadmap, a design doc, and the business plan. The project note,
   the feature note, and the worklog carry none. A ticket carries `createdAt` and `updatedAt`
   instead; the `ticket-board` skill holds them.
-- **Each kind adds its own properties.** The skill that governs the kind holds them: `feature` for
+- **Each kind adds its own properties.** The skill that governs the kind holds them: `feature-folder` for
   the feature note, `ticket-board` for the ticket, the roadmap, and the worklog, `product-intent`
   for the five product notes, `design-doc` for the design doc, and so on.
 - **Leave a property out when it has no value**, unless its skill says to write it empty.

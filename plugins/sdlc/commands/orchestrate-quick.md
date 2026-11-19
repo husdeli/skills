@@ -1,6 +1,7 @@
 ---
-description: Drive one task straight through plan → single review → test plan → tests → implement → verify + code review. No interview, no gates.
+description: "Drives one task through plan, one review, test plan, tests, implementation, verification, and code review, with no interview and no gates. Use for a clear, well-scoped ticket, fix, or task."
 argument-hint: "[task description or roadmap/ticket file path]"
+disable-model-invocation: true
 ---
 
 # Quick Orchestrator
@@ -9,89 +10,34 @@ You are a workflow orchestrator running the **short pipeline**: plan → one pla
 
 Task or roadmap (if provided): $ARGUMENTS
 
-This is `/orchestrate` with the human-in-the-loop stages removed. There is **no feature interview**, **no mid-pipeline `AskUserQuestion` round trip** — the end-to-end question `/orchestrate` asks up front is answered here by the default, **no e2e written**, and the end-to-end **run** is held back and offered as one question at the end (Stage 7) — and **no review-skip / high-risk gating** — the plan review always runs, exactly once, with one reviewer, and so does the code review at the end. Use it when the task is already well understood: a scoped change, a ticket someone already thought through, a fix. When the task has open product/UX/architecture forks, or touches a new public API or dependency, use `/orchestrate` instead — the interview and the risk-scaled review exist for exactly that.
+This is `/orchestrate` with its questions and its gates removed. Nobody answers mid-run: the end-to-end question `/orchestrate` asks at the pick is answered here by the default, **no e2e written**, and a fork the planner finds open stops the run instead of reaching the user. The plan review always runs, exactly once, with one reviewer, and so does the code review at the end. The end-to-end **run** is held back and offered as one question at the end. Use it when the task is already well understood: a scoped change, a ticket someone already thought through, a fix. When the task has open product, UX, or architecture forks, or touches a new public API or dependency, settle them with `/plan` and build with `/orchestrate`, whose risk-scaled review exists for exactly that.
 
-## The rules live in four skills — load each one before the stage that needs it
+## Before you start
 
-| Skill | What it holds | Load before |
-| --- | --- | --- |
-| **`sdlc-structure`** | Where the project and the work root are, and how each destination writes a document | you read any document |
-| **`ticket-board`** | The ticket, the roadmap, the assignee, the worklog, and what each status transition writes | Stage 2 |
-| **`agent-pipeline`** | Spawn once and resume, concurrent calls, the JSON block, the outcome vocabulary | Stage 3 |
-| **`technical-writing`** | Every word the user reads | Stage 3 |
+[The command preamble](../skills/agent-pipeline/references/command-preamble.md) holds the four skills this command loads and when, the namespacing rule, the `technical-writing` rules for everything the user reads, the board rules, and the failure rules. Read it first. The stages from Plan to Code review and full verification are the **quick mode** of [the build stages](../skills/agent-pipeline/references/build-stages.md).
 
-Each name may be namespaced here — `sdlc:sdlc-structure`, `sdlc:ticket-board`,
-`sdlc:agent-pipeline`, `sdlc:technical-writing`. Invoke the namespaced form when it is there, load each
-skill **once**, and follow it. Do not restate a skill's rules in a spawn prompt: the agents load
-their own.
+What the user reads here: the assumed acceptance criteria you state, the task you present for approval, the end-to-end question and its option labels, the completion report, and every `human_required`.
 
 ```
   YOU (main loop)
   ─────────────────────────
-  resolve task ─► start the ticket ─►
-
-  ┌ Agent(planner) ─► plan + context pack ───────────────────┐  concurrent
-  ├ Agent(reviewer) "PRE-READ ONLY" ─────────────────────────┤
-  └ Agent(test-planner) "SPEC ONLY" ─────────────────────────┤
-                       SendMessage(reviewer, plan) ◄─────────┘
-        ▲                                             │ CHANGES_REQUESTED
-        └── SendMessage(planner, issues) ◄────────────┘  (revise and re-review until approved)
-  SendMessage(test-planner, approved plan) ─► test plan ─► [no cases: skip to coding]
-  Agent(test-writer) ─► failing tests ─► fingerprint them
-  Agent(coding) ─► [fingerprints moved? ─► restore]
-        │ testDisputes ─► SendMessage(test-planner) ─► upheld / revised (test-writer) / spec-question
-        ▼                                                (every round goes to the test planner)
-  Agent(verify, TARGETED) ─► FAILED ─► SendMessage(coding)  (fix until they pass)
-        ▼ passed
-                   ┌ Agent(verify, no e2e) ──────┐  concurrent
-                   └ Agent(code-reviewer) ───────┤
-        ▲                                        │ FAILED or CHANGES_REQUESTED
-        └── SendMessage(coding) ◄────────────────┘  (fix, re-verify, re-review until both pass)
-  AskUserQuestion (run e2e?) ─► [Agent(verify, e2e only)] ─►
-  finish the ticket / human_required ─► report
+  resolve task ─► [roadmap pick: approval] ─► work root + start the ticket
+  ─► the build stages, quick mode, with no answerer
+  ─► AskUserQuestion (run e2e?) ─► [Agent(verify, e2e only)]
+  ─► finish the ticket / human_required ─► report
 ```
 
-### Which agents are persistent here
-The **`agent-pipeline`** skill holds the mechanics, the same as in `/orchestrate`. This command's six persistent roles are the **planner**, the **plan reviewer** (one, always), the **test planner**, the **test writer**, the **coding agent**, and the **code reviewer**; `verify` is spawned fresh every run. Keep all six ids.
+### The worklog and the assignee
 
-### Everything you show the user goes through `technical-writing`
-You are the only stage that talks to the person, so `technical-writing` governs every word they see: the assumed acceptance criteria you state, the task you present for approval, the Stage 7 end-to-end question and its option labels, the completion report, and every `human_required`. The rules that bite hardest here: name the task and the stake before the detail, give the verdict before the evidence, and reuse the ticket's own words for every domain term. It governs prose only — IDs, file paths, commands, status markers, and the agents' `json` blocks stay exact. They stay exact **beside** the prose: a path, a symbol, or a snippet never goes inside a sentence, and the sentence names the thing in words instead.
-
-### The worklog and the assignee — you are the only writer
-
-The **`ticket-board`** skill holds the worklog's shape and the assignee values. What is specific to
-this pipeline:
-
-**You are the only writer.** The agents report their decisions to you and you write them down, so
-the file has one writer and the concurrent stage — verification beside the code review — cannot
-lose an entry. No agent writes either field.
-
-**`<n>` is this run's number** — the one in its claim, `orchestrate-quick-<n>`, chosen as
-`ticket-board` says. Every agent of the run carries it in `assigned`: `coding-2` works for
-`orchestrate-quick-2`. Your own entries name the claim: `orchestrate-quick-2 · start`.
-
-**The entry and the assignee go in one tool block**, at these boundaries. `assigned` names the one
-agent the ticket waits on; a stage that runs two at once names the one that gates it:
+The build stages hold the boundaries from the plan to the code review, with `<claim>` as `orchestrate-quick-<n>`: `coding-2` works for `orchestrate-quick-2`. This command's own are:
 
 | Boundary | Entries to append | `status` · `assigned` becomes |
 | --- | --- | --- |
 | Stage 2, starting the ticket | the worklog itself, with the `orchestrate-quick-<n> · start` entry | `in progress` · `implementation-planner-<n>` |
-| Stage 4, the plan is approved | `implementation-planner · plan`, then `plan-reviewer · plan review` | `test-planner-<n>` |
-| Stage 4.5, the test plan lands | `test-planner · test plan` | `test-writer-<n>`, or `coding-<n>` when the plan holds no case |
-| Stage 4.6, the tests land | `test-writer · tests` | `coding-<n>` |
-| Stage 5, every test dispute round | `coding · test dispute`, `test-planner · test dispute`, and `test-writer · tests` when a test was revised | `coding-<n>` |
-| Stage 5, the implementation lands | `coding · implement` | `verify-<n>` for the targeted run, or `review` · `code-reviewer-<n>` when the test stages were skipped |
-| Stage 5.5, the targeted run passes | `verify · targeted` | `review` · `code-reviewer-<n>` |
-| Stage 6, a fix goes out | none | `in progress` · `coding-<n>` |
-| Stage 8, finish | `verify · verification`, `code-reviewer · code review`, the Stage 7 end-to-end result, then `orchestrate-quick-<n> · done` | `done` · removed |
+| Stage 5, finish | the Stage 4 end-to-end result, then `orchestrate-quick-<n> · done` | `done` · removed |
 | Every stop | the entry of the stage that stopped, then the outcome entry | `blocked` · removed |
 
-**Every exit writes the outcome entry and the assignee** — a `human_required` at any stage
-runs `ticket-board`'s *Stopping without finishing* transition, so the next session can read the
-worklog and learn where the task stopped.
-
-**A bare task description with no ticket file** has nothing to sit beside: skip all of it, exactly
-as Stage 2 does.
+**A bare task description with no ticket file** has nothing to sit beside: skip all of it, exactly as Stage 2 does.
 
 ## Workflow
 
@@ -109,183 +55,56 @@ The documents sit where `sdlc-structure` lays them out: `glossary.md`, `features
 
 Never start a task whose dependencies are incomplete.
 
-**Writing end-to-end tests defaults to no.** This pipeline does not ask up front — `/orchestrate` does. Carry `e2eDecision` as the line `"E2E: no — unit and integration only"` into the Stage 3 planner and test-planner prompts, so the test planner plans no end-to-end case and the planner knows no suite is needed. Say the default in one line of your report, so the user knows what was not written.
+**Writing end-to-end tests defaults to no.** This pipeline does not ask up front — `/orchestrate` does. Carry `e2eDecision` as the line `"E2E: no — unit and integration only"`, so the test planner plans no end-to-end case and the planner knows no suite is needed. Say the default in one line of your report, so the user knows what was not written.
 
 **Override the default only when the task itself asks for it** — the request, the ticket, or the acceptance criteria name an end-to-end test or a user flow that must be covered end to end. Then carry `"E2E: yes, critical path only"` instead, and say why in the same line. When a task needs that call made rather than assumed, `/orchestrate` is the command that asks.
 
-**Running an existing end-to-end suite is optional, and the user decides at the end.** The suite is the longest block in the task and it is not what this pipeline gates on, so no `verify` run inside the pipeline touches it. Stage 7 asks the one question, after the code is green and reviewed.
+**Running an existing end-to-end suite is optional, and the user decides at the end.** The suite is the longest block in the task and it is not what this pipeline gates on, so no `verify` run inside the pipeline touches it. Stage 4 asks the one question, after the code is green and reviewed.
 
 Track the stages with the task/todo tools so the user sees live progress.
 
 ### 2. Resolve the work root, then start the ticket
-Resolve the work root first, as `sdlc-structure` says. Then run the **`ticket-board`** skill's **Starting a ticket** transition yourself, with the edits in one tool block: the claim `orchestrate-quick-<n>` written and read back first, with `board.py next-run --command orchestrate-quick` and `board.py claim`, then the rest. A claim read back as another run's, or a checkout another run is building in, drops the ticket: say so and pick again. A ticket resuming from `blocked` keeps its worklog, the entry is appended, and the planner gets the worklog's path. Two values are this command's: the **assignee** is `implementation-planner-<n>`, and the **opening worklog entry** is `orchestrate-quick-<n> · start` — the task, what it delivers, the work root and the evidence that settled it, and the end-to-end default below.
+Resolve the work root first, as `sdlc-structure` says. Then run the **`ticket-board`** skill's **Starting a ticket** transition yourself, with the edits in one tool block: the claim `orchestrate-quick-<n>` written and read back first, with `board.py next-run --command orchestrate-quick` and `board.py claim`, then the rest. A claim read back as another run's, or a checkout another run is building in, drops the ticket: say so and pick again. A ticket resuming from `blocked` keeps its worklog, the entry is appended, and the planner gets the worklog's path. Two values are this command's: the **assignee** is `implementation-planner-<n>`, and the **opening worklog entry** is `orchestrate-quick-<n> · start` — the task, what it delivers, the work root and the evidence that settled it, and the end-to-end default.
 
 With a bare task description and no board, there is no worklog to write it in: resolve the work root anyway, and name it in one line of your report.
 
 Do whichever of the ticket and the roadmap exists. With a bare task description and no files, skip this stage.
 
-### 3. Plan — and pre-read the review in parallel
-Issue **all three `Agent` calls in one tool block** so they run concurrently. The review and the test plan always run in this pipeline, so neither early start is wasted:
+### 3. Build it — the build stages, quick mode
+Run every stage of `agent-pipeline`'s `references/build-stages.md`, from Plan to Code review and full verification, in **quick mode**, as this command's own text. What this command supplies:
 
-```
-Agent(subagent_type: "sdlc:implementation-planner", model: "opus",
-      prompt: task block + acceptance criteria + any ticket/roadmap context + the e2eDecision line
-              + the work root as an absolute path
-              + "No interview ran — plan from the task and acceptance criteria alone.
-                 State any assumption you make rather than guessing silently.")
+- **`<claim>`** is `orchestrate-quick-<n>`, and the run folder is `<framework root>/.runs/orchestrate-quick-<n>/`. A bare task with no framework root has no run folder: paste the documents instead.
+- **The work root** is the one Stage 2 resolved.
+- **The `e2eDecision`** is the default line from Stage 1, or its override.
+- **Prompt additions:** for the planner, "Plan from the task and the acceptance criteria. State any assumption you make rather than guessing silently." With a bare task, the ticket path and the worklog path are absent from every prompt.
+- **The answerer:** none. A question turn, a stuck stage, a blocker, and a `spec-question` are each `human_required` with the stage. This pipeline asks nothing mid-run.
 
-Agent(subagent_type: "sdlc:plan-reviewer", model: "sonnet",
-      prompt: task block + acceptance criteria + the work root as an absolute path
-              + "PRE-READ ONLY. There is no context pack and no plan yet — the plan is being
-                 written now. Find and read the code this task touches, and reply with a few
-                 lines on what you read and any hazard you already see. Do NOT issue a verdict.")
-
-Agent(subagent_type: "sdlc:test-planner", model: "opus",
-      prompt: task block + acceptance criteria + the e2eDecision line
-              + the work root as an absolute path
-              + "SPEC ONLY. There is no context pack and no plan yet, and you will not see the
-                 plan until it is approved. Find the existing tests around the code this task
-                 touches, draft the cases from the specification, and reply with a few lines.")
-```
-
-Keep **all three ids**. The planner returns the plan markdown plus one `json` block carrying `contextPack` (the `workRoot`, relevant files, key symbols, conventions, `verificationCommands`, `e2eCommand`) and `riskProfile` — **ignore `riskProfile` here**, it drives gates this pipeline does not have. Forward the `contextPack` into the plan reviewer's, test writer's, coding agent's, code reviewer's, and every verify agent's *first* message, and into the message that hands the test planner the approved plan, so none of them cold-explores the codebase; later `SendMessage` turns already have it.
-
-**Forward it by path**, as `agent-pipeline` says: write the `contextPack` to `context-pack.json`, the plan to `plan.md`, and the test plan to `test-plan.md` in the run folder, `<framework root>/.runs/orchestrate-quick-<n>/`, as each lands or a revision replaces it. In every prompt below, "plan", "approved plan", "contextPack", and "test plan" mean those paths. Every exit deletes the folder. A bare task with no framework root has no run folder: paste the documents instead.
-
-Planner returns nothing → `human_required` (stage `plan`).
-
-### 4. Review the plan — one reviewer, until approved
-Hand the plan to the pre-warmed reviewer:
-
-```
-SendMessage(reviewerId, "Review the plan in <plan.md path> against the checklist. You have
-                         already read the code — re-read only what the plan points at that you
-                         have not seen." + the context pack's path)
-```
-
-One reviewer, on **sonnet**, always. Reviewing a plan against files it has already read is checklist work; the two-lens Opus review is what `/orchestrate` is for.
-
-It ends its review turn with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues`. Nothing returned → `human_required` (stage `review`).
-
-- `APPROVED` → append the plan and plan-review worklog entries and set the assignee to `test-planner-<n>`, in one tool block, then Stage 4.5. The plan entry carries the **direction** the plan settled on and the approach it turned down — the run folder is deleted at the exit, so this is the only trace the plan leaves. The review entry carries the verdict and the issues that forced the revision.
-- `CHANGES_REQUESTED`: `SendMessage(plannerId, "Revise your plan to resolve every issue below. Note in the Context section how each was addressed. Re-emit the full plan markdown + the ```json block." + issues)` — the planner holds the plan, task, and pack, so **send only the issues**. Overwrite `plan.md` with the revision, then `SendMessage(reviewerId, "Re-read <plan.md path>, which now holds the revised plan, and re-review it; the code is unchanged.")`.
-- `CHANGES_REQUESTED`, **stuck**, as `agent-pipeline` defines it → **`human_required`** (stage `review`) with the summary and remaining issues. Write the outcome entry, run `ticket-board`'s *Stopping without finishing* transition — `blocked`, with `blocked_by` naming what a person must decide, the claim and the assignee removed — and stop.
-
-### 4.5 Test plan
-Resume the test planner with the approved plan:
-
-```
-SendMessage(testPlannerId, approved plan + contextPack
-                         + "The plan is approved. Attach your drafted cases to the interfaces it
-                            exposes, cut what it made redundant, and return the full test plan
-                            with its ```json block.")
-```
-
-It returns a `json` block carrying `summary`, `cases`, and `untested`. Nothing returned → `human_required` (stage `test-plan`). Append the `test-planner · test plan` entry — each case in one line and each exclusion with its reason — and set the assignee to `test-writer-<n>`, in one tool block. **An empty `cases` skips Stages 4.6 and 5.5**: record the planner's reason, set the assignee to `coding-<n>`, and go to Stage 5 with no written tests.
-
-### 4.6 Write tests
-Spawn **once** and keep the id:
-
-```
-Agent(subagent_type: "sdlc:test-writer", model: "sonnet",
-      prompt: test plan + approved plan + contextPack
-              + "Write exactly these cases, prove each fails for the expected reason, and stop.")
-```
-
-It returns a `json` block carrying `summary`, `testFiles`, `command`, `cases`, and `blockers`. Nothing returned → `human_required` (stage `write-tests`). Non-empty `blockers` → `human_required` (stage `write-tests`). **Fingerprint every path in `testFiles`**, as `agent-pipeline` says. Append the `test-writer · tests` entry — the files, the command, and each case that did not fail as expected — ending with its test record as `ticket-board` shows it, and set the assignee to `coding-<n>`, in one tool block.
-
-### 5. Implement
-Spawn **once** and keep the id:
-
-```
-Agent(subagent_type: "sdlc:coding", model: "opus",
-      prompt: "Implement the approved plan exactly — no scope creep. Match the context pack
-               conventions. Build until the written tests pass. Targeted self-check only when
-               you are done; the verify stage runs the full gate."
-              + approved plan + contextPack + acceptance criteria
-              + test plan + testFiles + the test command  (or: "No test was written: <summary>"))
-```
-
-It ends every turn with a `json` block carrying `summary`, `workItemsCompleted`, `filesChanged`, `decisions`, `blockers`, `testDisputes`, and `notes`. Act on it in this order:
-
-1. Nothing returned → `human_required` (stage `implement`).
-2. **Compare the fingerprints.** A changed test file goes back to the coding agent to restore.
-3. Non-empty `blockers` → `human_required` (stage `implement`) with them.
-4. Non-empty `testDisputes` → the dispute round below.
-5. Otherwise append the `coding · implement` entry — its `decisions`, which are the code-level calls the plan left open — and set the assignee to `verify-<n>`, in one tool block, then Stage 5.5. With no written tests, set the status to `review` and the assignee to `code-reviewer-<n>`, and go straight to Stage 6. **When the turn was a Stage 6 fix**, skip this step and go back to the Stage 6 re-run.
-
-**The dispute round.** `agent-pipeline` holds the route. `SendMessage(testPlannerId, "The coding agent disputes these tests. Rule on each against the specification." + testDisputes)`. A ruling of `spec-question` → `human_required` (stage `test-dispute`): it is a question about the specification, and this pipeline asks none mid-run. On `revised`, resume the test writer with the revised cases — spawning it now if the empty plan skipped Stage 4.6 — and take the fingerprints again. Then send the coding agent every ruling in one message, and run its reply through steps 1–5. Append the three dispute entries, as the table says.
-
-### 5.5 Targeted verify — until it passes
-Spawn a fresh verify agent:
-
-```
-Agent(subagent_type: "sdlc:verify", model: "sonnet",
-      prompt: "Scope: targeted. Run the written tests, plus the existing tests of the changed
-               files when the runner can select them. Report pass/fail."
-              + the test command + the coding agent's filesChanged + the work root
-              + (re-runs only) "Previously failing: <failures> — run these first and fail fast.")
-```
-
-Nothing returned → `human_required` (stage `targeted-verify`). Passed → append `verify · targeted`, set the status to `review` and the assignee to `code-reviewer-<n>`, in one tool block, then Stage 6. Failed → `SendMessage(codingId, "The written tests still fail. Fix the code, not the tests, then stop; a fresh targeted run follows." + failures)`, run its reply through Stage 5's steps 1–5, then a fresh targeted verify. Failed and **stuck**, as `agent-pipeline` defines it → `human_required` (stage `targeted-verify`).
-
-### 6. Verify and review the code — concurrent, until both pass
-Issue **both `Agent` calls in one tool block**. The verify agent is fresh every run; the code reviewer is spawned once and resumed:
-
-```
-Agent(subagent_type: "sdlc:verify", model: "sonnet",
-      prompt: "Run these verification commands CONCURRENTLY (one parallel Bash batch).
-               Report pass/fail per command.
-               E2E: hold — do not run an end-to-end suite and do not go looking for one.
-               It is offered to the user after this stage."
-              + verificationCommands from the context pack
-              + (re-runs only) "Previously failing commands: <failures> — run these first and fail fast.")
-
-Agent(subagent_type: "sdlc:code-reviewer", model: "sonnet",
-      prompt: "Review the change the coding agent just made, against the approved plan and the
-               acceptance criteria. Verification is running in parallel — do not run the suite."
-              + approved plan + acceptance criteria + contextPack
-              + the test plan + the test writer's testFiles, and each new case it reported as passing
-              + the coding agent's filesChanged + the review target ("the uncommitted changes
-                against HEAD, untracked files included"))
-```
-
-**Withhold `e2eCommand` here and pass the `E2E: hold` line instead.** Keep the pack's `e2eCommand` yourself — Stage 7 needs it. The hold line does the same job the literal `"none"` does in `/orchestrate`: it stops the verify agent globbing for `playwright.config.*`/`cypress/`/`e2e/` on every spawn.
-
-One code reviewer, on **sonnet**, always — this pipeline scales nothing by risk. A change big enough to want the Opus review is a change that wanted `/orchestrate`.
-
-Verify ends with a `json` block carrying `passed`, per-command `results` (`passed`, `skipped`, `output`), and `failures`. The reviewer ends with a `json` block carrying `verdict` (`APPROVED` | `CHANGES_REQUESTED`), `summary`, and `issues`. **Combine them into one gate:**
-- Either agent returned nothing → `human_required` (stage `verify` or `code-review`).
-- `passed == true` **and** `verdict == APPROVED` → success. If any result is `skipped`, still succeed, but name the skipped command and its reason in the report — never present a skipped e2e run as green. Minor review issues go into the report as recommendations; they do not block.
-- Anything else: set the status to `in progress` and the assignee to `coding-<n>`, then send **one** message carrying both sets of defects — `SendMessage(codingId, "Verification and code review found the following. Fix ONLY what is needed to clear them — stay within the approved plan, change no test, then stop; both will re-run." + failures + blocking review issues)`. The coding agent holds the plan and pack, so **send only the defects**. Its reply goes through Stage 5's steps 1–4, so a changed test file goes back and a dispute takes the dispute round. Then re-run: **always** a fresh verify agent — the fix changed code, so a suite that was green before proves nothing now — carrying the previously failing commands so it bails early if the fix did not land. Re-review **after every fix**, as `agent-pipeline` says — an approval covers only the code it read, so a fix for a failed check goes back to the reviewer too: `SendMessage(codeReviewerId, "Re-review the fix below. Judge each prior issue as fixed or still open; with none, judge only what the fix changed." + the coding agent's summary + filesChanged)`. Issue the fresh verify and the re-review **in one tool block**.
-- Anything else, **stuck**, as `agent-pipeline` defines it → **`human_required`** with the remaining failures and issues. Name the stage `verify` when commands still fail, `code-review` when only the review still blocks. Append the verification and code-review entries and the outcome entry, then run `ticket-board`'s *Stopping without finishing* transition — `blocked`, with `blocked_by` naming what a person must decide, the claim and the assignee removed — and stop.
-
-### 7. Offer the end-to-end run
+### 4. Offer the end-to-end run
 **When the test writer wrote end-to-end cases, this stage is not optional.** Ask nothing: run its `e2eCommand` with a fresh verify agent as the **Yes** branch below does, and judge it the same way. A written test never reaches `done` without having passed.
 
 The code is green and approved. Now ask the one question this pipeline asks, **before marking anything complete** — a failing e2e run must not land on a task recorded as done.
 
-**Skip the question and go straight to Stage 8** when the pack's `e2eCommand` is `"none"`. There is no suite to run. Say that in one line of the report.
+**Skip the question and go straight to Stage 5** when the pack's `e2eCommand` is `"none"`. There is no suite to run. Say that in one line of the report.
 
 Otherwise put **one `AskUserQuestion` call** with one question: "Run the end-to-end suite now?", with **Yes — run `<e2eCommand>`** and **No — the change is done without it**. Recommend **Yes** when the change touches a user-facing flow, or when `e2eDecision` was yes; recommend **No** otherwise. Name the command in the option, and say how the answer changes the outcome: a failing run reopens the fix cycle, a decline finishes the task as it stands.
 
-- **No** → go to Stage 8. Record in the report that the suite exists and was not run, and name the command, so the user can run it themselves.
+- **No** → go to Stage 5. Record in the report that the suite exists and was not run, and name the command, so the user can run it themselves.
 - **Yes** → spawn a fresh verify agent with the e2e command alone:
 
 ```
 Agent(subagent_type: "sdlc:verify", model: "sonnet",
       prompt: "Run this end-to-end command only. Report pass/fail."
-              + e2eCommand + contextPack)
+              + e2eCommand + context pack + the work root)
 ```
 
-  Judge its `json` block by the Stage 6 rules: passed → Stage 8; `skipped` → still go to Stage 8, and name the command and the reason in the report, never as green; failed → hand the failures to the coding agent with `SendMessage` exactly as Stage 6 does, then re-run Stage 6 on the fix — a fresh verify and the reviewer's re-review, in one tool block — and, when it passes, a fresh e2e verify. An e2e failure that is stuck is `human_required` with stage `verify`, and the ticket stops as `blocked`, as above.
+  Judge its block as the build stages' Code review and full verification judges the quick `verify` agent's: passed → Stage 5; `skipped` → still go to Stage 5, and name the command and the reason in the report, never as green; nothing returned → `human_required` (stage `verification`); failed → hand the failures to the coding agent exactly as that stage does, then run that stage again on the fix — a fresh verify and the reviewer's re-review, in one tool block — and, when it passes, a fresh e2e verify. An e2e failure that is stuck is `human_required` with stage `verification`, and the ticket stops as `blocked`.
 
-### 8. Finish the ticket (only on success)
-Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block, and delete the run folder. This command's closing entry is `orchestrate-quick-<n> · done`, and the worklog also takes the verification and code-review entries and the Stage 7 end-to-end result. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-quick-<n>`; with no ticket, pass the feature the task belongs to, or show the notes in the report when it has none.
+### 5. Finish the ticket (only on success)
+Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block, and delete the run folder. This command's closing entry is `orchestrate-quick-<n> · done`, after the Stage 4 end-to-end result. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-quick-<n>`; with no ticket, pass the feature the task belongs to, or show the notes in the report when it has none.
 
 Never finish the ticket unless verification passed **and** the code review returned `APPROVED`. Report only after the files are updated.
 
-### 9. Report
+### 6. Report
 ```markdown
 ## Task Complete: [ID or title]
 
@@ -305,21 +124,13 @@ Needs a person: [each note file and its title, or "nothing"]
 
 Omit the status line when there was no ticket or roadmap to mark.
 
-## Failure Handling
-`agent-pipeline` holds the outcome vocabulary and the conditions for `human_required`, and `ticket-board` holds the **Stopping without finishing** transition. No stage has a retry limit: every loop runs until its gate passes or `human_required` stops it.
-
-- Never mark a task complete unless verification passed **and** the code review approved.
-- Every stop deletes the run folder, as the finish does.
-- If a stage stops on `human_required` because the task turned out to need decisions this pipeline cannot make, say so and point at `/orchestrate` — do not improvise an interview here.
+## Failure handling
+The command preamble holds the shared failure rules. What is this command's own: when a stage stops on `human_required` because the task turned out to need decisions this pipeline cannot make, say so and point at `/plan` to settle them, or `/orchestrate` to put the planner's questions to the user. Do not improvise an interview here.
 
 ## Rules
-The four skills carry the rules they own — `agent-pipeline` for the spawn-once, one-tool-block, thin-prompt and no-duplicate-gate mechanics, `ticket-board` for the transitions and the roadmap, `sdlc-structure` for the paths, `technical-writing` for the prose. What is this command's own:
+What is this command's own:
 - **One task at a time.** Do not execute the whole roadmap.
-- **Load every skill in the table before the stage that needs it.** They are the rules; this file is the sequence.
-- **No interview, no gates.** The plan review and the code review each use one reviewer, on sonnet.
-- **One question, at the end.** The only `AskUserQuestion` call is Stage 7's end-to-end offer. No verify run before it touches an e2e suite.
-- **No retry limit.** Revisions, targeted fixes, dispute rounds, and fixes after verification, review, or the end-to-end run all loop until the gate passes. Only `human_required` stops the run.
+- **No answerer, no gates.** The plan review and the code review each use one reviewer, on sonnet.
+- **One question, at the end** — plus the approval of a task you picked from a roadmap. The only other `AskUserQuestion` call is Stage 4's end-to-end offer. No verify run before it touches an e2e suite.
 - **Tests before code, and the coder never touches them.** A test changes only by a `revised` ruling. Only an empty test plan skips the test stages.
-- **You write the status, the assignee, and the worklog** — at the boundaries in the table and at every exit. No agent writes any of them.
 - **Approval is required only when you picked the task from a roadmap.**
-- **Be explicit about failures** and propose next steps.

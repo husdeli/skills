@@ -1,6 +1,6 @@
 ---
 name: setup
-description: Set up the SDLC framework structure for a product, in an Obsidian vault (recommended) or in the repository, and register every code repository the product is built in, without overwriting existing files. Use when a user asks to set up or initialize the plugin documents, choose where the documents live, register a repository, migrate existing root documents, or invokes `$setup` as the Codex equivalent of `/setup`.
+description: "Sets up the SDLC framework structure for a product, in an Obsidian vault or the repository, and registers the repositories it is built in. Use when the user asks to set up or initialize the plugin, or to register a repository."
 ---
 
 # Setup
@@ -14,7 +14,7 @@ Create the project document structure with the shared setup command.
 3. Treat that command as the source of truth for file discovery, migration, and safeguards.
 4. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
 5. Replace `${CLAUDE_PLUGIN_ROOT}` with the plugin root that contains this skill.
-6. Read `../../skills/sdlc-structure/SKILL.md`, `../../skills/ticket-board/SKILL.md`, and `../../skills/feature/SKILL.md` before you create or migrate anything.
+6. Read `../../skills/sdlc-structure/SKILL.md`, `../../skills/ticket-board/SKILL.md`, and `../../skills/feature-folder/SKILL.md` before you create or migrate anything.
 7. Use Codex file and user-input tools to perform the command.
 
 Do not invoke a nested `/setup` command. Execute the shared instructions directly.
@@ -29,8 +29,8 @@ so the user starts the next session in the right place.
 
 In the final handoff, use these Codex skill names:
 
-- `$sdlc:prd`
-- `$sdlc:feature`
+- `$sdlc:prd-doc`
+- `$sdlc:feature-folder`
 - `$sdlc:design-doc`
 - `$sdlc:plan`
 - `$sdlc:orchestrate`

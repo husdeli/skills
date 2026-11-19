@@ -1,6 +1,6 @@
 ---
 name: ticket-board
-description: Rules for the ticket board — the `work/` folder and its three buckets, how a ticket is named and numbered within its feature's epic, the properties it carries (`status`, `assigned`, `claimed`, `blocked_by`, its times and usage), its status transitions, the claim that stops two runs building one ticket, each project's roadmap of the work that is left, and the worklog that records what was decided. Use before reading, writing, moving, assigning, claiming, or finishing a ticket, before adding or deleting a roadmap row, and before writing a worklog entry.
+description: "Defines the ticket board: the work/ buckets, ticket names and properties, status transitions, claims, roadmaps, and worklogs. Use before reading, writing, moving, claiming, or finishing a ticket, editing a roadmap row, or writing a worklog."
 ---
 
 # ticket-board
@@ -12,4 +12,4 @@ Read every reference and template that file requires, and resolve each path agai
 
 Read `../../skills/sdlc-structure/SKILL.md` first when you still have to resolve the framework root: every path in this skill is relative to it.
 
-Read `../../skills/feature/SKILL.md` before you open an epic: the epic and the feature it delivers share one code, and the feature note is what owns it.
+Read `../../skills/feature-folder/SKILL.md` before you open an epic: the epic and the feature it delivers share one code, and the feature note is what owns it.

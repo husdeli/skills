@@ -1,6 +1,6 @@
 ---
-name: prd
-description: "Create or update a product requirements document as a project's prd.md — the file beside the project note in projects/<project-name>/, or in the framework root when it holds one project directly. Use when: asked to write a PRD, draft or revise product requirements, document a new product or feature set, update an existing PRD, or maintain a living spec."
+name: prd-doc
+description: "Writes a project's product requirements document, the prd.md beside its project note. Use when asked to write a PRD, draft or revise product requirements, document a product or feature set, or maintain a living spec."
 ---
 
 # PRD Skill
@@ -83,7 +83,7 @@ Two rules govern how the behavior sections read:
 
 Give each subsection **one stable area-level anchor** — a short uppercase code in the heading (e.g. `### Social platforms & publishing \`SOCIAL\``) — so other specs and tickets can cite the area. That is the granularity of traceability: one code per product area, never one per sentence. Keep a code stable as its area's prose evolves; add a new code only for a genuinely new area.
 
-**An area is not a feature.** An area is a handful of paragraphs describing one part of the product; a **feature** is one thing a customer can do, and several of them usually sit inside one area. Each feature has its own note in the framework root's `features/`, which names this project in its `projects` property and holds the design docs for that feature. The **`feature`** skill governs those notes. The PRD never becomes a list of them: it keeps telling the area's story in prose, and the register in `features/` is where the inventory lives. When the PRD names a part of the product that has no feature note, open the feature rather than decomposing the area into line items.
+**An area is not a feature.** An area is a handful of paragraphs describing one part of the product; a **feature** is one thing a customer can do, and several of them usually sit inside one area. Each feature has its own note in the framework root's `features/`, which names this project in its `projects` property and holds the design docs for that feature. The **`feature-folder`** skill governs those notes. The PRD never becomes a list of them: it keeps telling the area's story in prose, and the register in `features/` is where the inventory lives. When the PRD names a part of the product that has no feature note, open the feature rather than decomposing the area into line items.
 
 **The area says how the parts hold together; the feature says what one customer can do.** That is the line between the two, and it is what keeps them from repeating each other. An area paragraph that could be cut and pasted into a feature note is written at the wrong altitude — raise it until it says something no single feature could say. A feature that needs a paragraph of its area repeated to make sense is a feature whose note should link the area instead.
 
@@ -158,7 +158,7 @@ Bullet list. Concrete unresolved product decisions that block design or implemen
 - **Edit in place; keep it whole.** The PRD is a living document, not an append log. Fold changes into the existing sections — no "changes" or "revisions" section.
 - **State the new requirement as the current truth.** Rewrite the affected passage so it reads as if it were always the target. Do not narrate the change ("previously X, now Y", "supersedes …", "revised") — that history lives in version control.
 - **Keep area names and anchors stable.** When an area's behavior evolves, revise the prose in place under its existing heading so inbound references stay valid. Add a new subsection only for a genuinely new product area. If a behavior is dropped, remove it and reconcile anything that referenced it — including every design doc and ticket that cites the anchor.
-- **Keep the feature register in step.** A new part of the product earns a feature note; a dropped one has its note retired. The `feature` skill holds both.
+- **Keep the feature register in step.** A new part of the product earns a feature note; a dropped one has its note retired. The `feature-folder` skill holds both.
 - **Change a goal, a non-goal, a persona, a problem, or a metric in its note**, never in the PRD's list line. The line carries a few words of the note; when those words change, update both, and when the note's status changes, the line appears or disappears. A dropped goal keeps its note, because a feature may still cite what the product stopped committing to. A non-goal the product adopted is deleted instead, and every citation of it is repointed at the goal in the same change — the `product-intent` skill holds that procedure.
 - **Keep the whole document consistent.** Reflect the change everywhere it lands — overview, goals, personas, related areas, success metrics, open questions — so no two sections disagree.
 - **Keep the glossary in step.** The `glossary` skill says what an added, renamed, or dropped term costs — do that in the same run.

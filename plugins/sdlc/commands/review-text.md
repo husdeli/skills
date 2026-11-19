@@ -1,5 +1,5 @@
 ---
-description: Review a text written for people against the technical-writing rules — returns a report a person can act on and a findings block a tool can consume.
+description: "Reviews a text written for people against the technical-writing or social-writing rules, and returns a report and a findings block. Use when the user asks to review, edit, proofread, or improve a text."
 argument-hint: "[what to review — a path, the text itself, or nothing for the last text in this conversation] [fix]"
 ---
 

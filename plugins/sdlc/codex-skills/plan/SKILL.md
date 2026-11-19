@@ -1,6 +1,6 @@
 ---
 name: plan
-description: Turn a feature request into an updated PRD and design doc, new roadmap tasks, and one ticket per task, after an interview settles the open decisions. Use when a request needs product documents and work items before any code, or when a user invokes `$plan` as the Codex equivalent of `/plan`.
+description: "Turns a request into updated product documents, roadmap tasks, and tickets for /orchestrate to build. Use when a feature or change needs planning before any code is written."
 ---
 
 # Plan
@@ -12,7 +12,7 @@ Turn the request into product documents and work items with the shared plan comm
 1. Resolve `../../commands/plan.md` from this skill directory.
 2. Read the command file completely before you create a subagent or write a document.
 3. Replace `$ARGUMENTS` with the request text that follows the skill invocation.
-4. Create the feature interviewer with the subagent tool of the current runtime, and read every skill the command names — `sdlc-structure`, `ticket-board`, `technical-writing`, `prd`, and `design-doc` — from the plugin's `skills/<name>/SKILL.md` before you resolve a path or write the document each one governs.
+4. Create the feature interviewer with the subagent tool of the current runtime, and read every skill the command names — `sdlc-structure`, `ticket-board`, `technical-writing`, `prd-doc`, and `design-doc` — from the plugin's `skills/<name>/SKILL.md` before you resolve a path or write the document each one governs.
 
 Treat the shared command as the source of truth for the stages, the approval gate, the document rules, and the report.
 

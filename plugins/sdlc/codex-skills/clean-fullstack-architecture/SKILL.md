@@ -1,6 +1,6 @@
 ---
 name: clean-fullstack-architecture
-description: Clean Code and Hexagonal Architecture rules with strict dependency rules across every layer. Use when planning a feature, structuring the project, adding a service, a component, a hook, or domain logic, or writing any production code.
+description: "Enforces Clean Code and Hexagonal Architecture: layers and dependency rules, static-method services that own their DTOs, domain logic on domain models, adapters between them. Use when planning or writing any production code."
 ---
 
 # clean-fullstack-architecture

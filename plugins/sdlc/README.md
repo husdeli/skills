@@ -118,7 +118,7 @@ or `done`, and it carries the uppercase code that numbers the feature's tickets 
 and its epic are one thing seen from two sides. Everything that points at the feature points at
 that note: the roadmap epic, each ticket, and the business plan's table of what the product does,
 which is a Dataview query over `features/` rather than a list anyone maintains by hand. `/feature`
-opens one, and the `feature` skill holds the rules.
+opens one, and the `feature-folder` skill holds the rules.
 
 Each kind of document gets its own folder once there can be more than one of it. A design doc
 covers one subject — a system, a service, a flow, an integration, a rule, or a screen. **Ownership
@@ -338,8 +338,8 @@ tree.
 **It works one feature at a time.** It selects a feature and claims its dependency cluster — every
 ticket of the feature that is not done, and every unfinished ticket they depend on in another
 feature — then builds those tickets in dependency order, one per session, before it selects the
-next feature. A second run never starts work the first is still building towards. A claim another run took sends the run back to select again;
-three lost in a row ends it.
+next feature. A second run never starts work the first is still building towards. A claim another
+run took sends the run back to select again.
 
 **One ticket per session** is what makes a long roadmap possible: the script calls
 `claude -p "/sdlc:run-roadmap --run run-roadmap-<n>"` once per ticket, and each ticket starts with a
@@ -356,14 +356,21 @@ script reads it, and the roadmap itself is the loop counter — the run ends whe
 | A ticket reports `human_required` | A person must act: money, credentials, anything irreversible, the security model, a legal call, a PRD contradiction, a stuck stage the CTO has no new instruction for, a dead agent, or a worktree that cannot be made. Its code is discarded from the worktree; its ticket and worklog are kept |
 | A commit is rejected, or a ticket leaves its worktree dirty | The next ticket must not inherit it |
 | A registered repository is missing or is not a git tree | The registry is machine-local, so it can point at a path this machine does not have |
-| A ticket runs past `--timeout` | The ticket and everything it started are killed, and the run stops |
+| A ticket runs past `--timeout` (2 hours by default), or ends with no valid result line | The session and everything it started are killed. The script stops the ticket itself: its half-built code is saved on `refs/sdlc-wip/<run>/task-<n>` and the worktree cleaned, the ticket becomes `blocked` with the log's path, and the run's other claims are released — exit 4 |
+| A completed ticket names a commit no run branch holds | The session's report and the repository disagree — exit 3 |
 
-Every end releases the run's claims and prints how to resume it with `--run <n>`.
+Every end releases the run's claims and prints how to resume it with `--run <n>`. The per-ticket
+logs and the summary go to `<framework root>/.runs/logs/`, which git ignores, and `--notify CMD`
+(or `SDLC_NOTIFY`) runs a command of yours at the end — a Slack webhook, a push notification —
+with the exit code, the reason, and the summary's path. A run that died without its script, such
+as on a closed laptop, leaves claims that `scripts/board.py recover` clears.
 
 **Before the first run:** know that it commits without asking — on the run branch only, never a
-push, never a merge. It runs with `--permission-mode bypassPermissions`, because a permission prompt
-in a headless session is a dead run, so the tickets it builds get your full tool access without
-asking. Read `--help` first, and read the run branch after; merge what you keep.
+push, never a merge. It runs with `--permission-mode auto` and `--permission-prompts none`: a
+classifier approves routine work, anything it would ask about is denied rather than left waiting,
+and the plugin's hooks hold each agent to what it may write. `--permission-mode bypassPermissions`
+turns every check off; use it only in a sandbox. Read `--help` first, and read the run branch
+after; merge what you keep.
 
 **What you read afterwards** is the worklog beside each ticket in `done/`. Every CTO answer is in
 there — the decision, what it beat, and the cost it accepted — because a run nobody watched is only
@@ -409,7 +416,7 @@ worth as much as its record.
   CSS to the UI library's own transitions to the platform to Motion, stopping at the first rung
   that meets it, and Motion needs a named reason. No hand-rolled animation code, one animation
   library, `transform` and `opacity` only, reduced motion respected, and timing from motion tokens.
-- **design-system** — The UI design layer, in three parts every agent reads before it builds UI.
+- **design-system-rules** — The UI design layer, in three parts every agent reads before it builds UI.
   Tokens: every color, spacing, radius, type, shadow, and motion value named once — DTCG JSON
   under `tokens/`, built by Style Dictionary into CSS variables, the Tailwind theme, the Mantine
   theme, and native outputs — with code naming only semantic tokens and no raw value. Components:
@@ -464,7 +471,7 @@ worth as much as its record.
   `Deferred`, and is deleted rather than restated when the product decides to build it; a metric
   carries its last measured value and the date it was read — and the rule that a citation links the
   note and never repeats its reasoning.
-- **feature** — The feature: one thing a customer can do, with its own folder, a feature note
+- **feature-folder** — The feature: one thing a customer can do, with its own folder, a feature note
   that says what the customer can do and whether it is `backlog`, `in progress`, or `done`, and
   the uppercase code that numbers its tickets — the feature and its epic are one thing. Holds how a
   feature is chosen, named, coded, and retired, the rule that a `done` status is verified
@@ -476,7 +483,7 @@ worth as much as its record.
   or a screen — a user interface is one case, not the default. One file per subject, named
   `<subject>.design.md`, in its feature's folder when it belongs to one feature and in `designs/`
   when it underpins every feature. The doc states the intended end state, not how to build it.
-- **frontend-design** — Agree what a screen looks like before it is built. Reads the PRD, the
+- **mockup-agreement** — Agree what a screen looks like before it is built. Reads the PRD, the
   design doc, and the design system the codebase already has, publishes a static mockup as an
   Artifact — every state, the small screen, placeholder data, nothing wired up — and iterates
   until the user agrees. Then it records the decisions, so the code is written from an agreement
@@ -497,13 +504,13 @@ worth as much as its record.
   writes at a term's first use — a relative anchor in the repository,
   `[[glossary#Workspace owner]]` in a vault. Prose outside the project uses the term with no
   link. Every document skill and every agent reaches the terms through this one skill.
-- **business-plan** — Create or update the business plan and one note per competitor. Every
+- **business-plan-doc** — Create or update the business plan and one note per competitor. Every
   figure is a sourced fact or a numbered assumption in a register, each topic is written once and
   linked everywhere else, competitor prices come from the web with a checked date, and in a vault
   the plan lists the competitors — and the features the product ships — with a Dataview query
   instead of a copied table. What the product does is never typed out here: it comes from
   `features/`, and a status it quotes is checked against the code first.
-- **prd** — Create or update a product requirements document: product-only content,
+- **prd-doc** — Create or update a product requirements document: product-only content,
   cohesive per-area descriptions with stable anchor codes, and positive framing. The terms it
   chooses are defined in `glossary.md`, never in the PRD.
 - **sdlc-structure** — The structure the plugin creates, and where the documents and the code
@@ -570,122 +577,52 @@ what a ticket is, and why changing how a status transition works is one edit rat
   in the ticket and the worklog, which is how an unattended run stays readable afterwards.
 
 ### Commands and Codex skills
-- **/setup** — asks where the framework root goes — in an Obsidian vault, which it recommends, or
-  in the repository as `.sdlc/` — registers every repository the projects are built in as
-  `sdlc.json` at the framework root, then creates it: the glossary, the project note, stub files
-  for the PRD, the design doc, and the roadmap, the `product/` folders, the `features/`,
-  `designs/`, and `diagrams/` folders, and `work/` with its `backlog/`, `in-progress/`, and `done/`
-  buckets. An outside folder gets a `.sdlc.json` pointer file at the repository root, and a vault
-  gets wikilinks and no dot-folders. Never overwrites an existing file, and offers to move a
-  root-level `prd.md`, `glossary.md`, `design.md`, or `tickets/` into the folder with `git mv` —
-  including moving an older `tickets/` board into the `work/` buckets, moving loose `*.design.md` files into
-  `designs/`, and renaming a lone `design.md` to `designs/overview.design.md`. It also offers to
-  **build the feature register** on a project that has none — proposing one feature per roadmap
-  epic, showing you which design docs move into each feature folder and which stay cross-cutting,
-  and moving them once you approve the table — to **split a PRD that still holds its goals,
-  personas, problems, and metrics inline** into notes under `product/`, after it shows you the
-  mapping and you approve it, to
-  migrate a project-wide ticket scheme (`SW-001`, `SW-002`, …) onto epic-prefixed IDs, after it
-  shows you the epic grouping and you approve it, and to clean a roadmap that still holds
-  finished work — deleting the completed rows and folding each per-task detail section into the
-  ticket that should hold it.
-- **/feature** — opens a feature, or keeps an existing one true: the goal it advances and the
-  personas it serves, the folder, the feature note, the
-  code its epic and tickets take, and the status, which it checks against the code rather than the
-  board. Run it before `/design` and `/plan` for anything new a customer can name.
-- **/plan** — turns a request into the documents the rest of the plugin reads: it interviews
-  with the **feature-interviewer** agent, settles the open decisions with you, then updates the
-  PRD, opens or updates the feature, writes the design docs, appends one roadmap row per task under its epic, and writes one
-  ticket per task into `work/backlog/`. The detail goes in the ticket, never in the roadmap. It
-  writes no code and sets no status past pending — `/orchestrate` takes it from there.
-- **/whats-next** — answers what can be worked on right now. It reads the roadmap and the ticket
-  folders, sorts every task into in flight, ready to start, and waiting on a dependency, and
-  names the one to start next. For a task in flight it names who holds it and quotes the last
-  worklog entry, so a task that stopped says where. It writes nothing and moves no
-  ticket: it reports the state and hands off to `/orchestrate`. When a ticket's status and its
-  roadmap row disagree, it says so rather than fixing it.
-- **/orchestrate** — offers you every roadmap task whose dependencies are satisfied, asks which
-  one to build and whether it gets end-to-end tests, then drives it through
-  plan → review (skipped when the risk is low) → plan the tests → write the tests → run each new
-  test → implement → run the feature's tests → code review and full verification at once, using the agents
-  above. `diagrams/workflow.excalidraw.md` draws it. The plan reads the feature folder; there is no
-  interview, because `/plan` settled the decisions. The tests are decided and written before the
-  code, by agents other than the one that writes it, and the orchestrator itself runs every test
-  and check: each new test must fail before the code exists, and the feature's tests — every test
-  its tickets wrote — must pass before the code review. The task is finished only when four
-  reviewers approve and every check passes — then the ticket moves
-  to `done/` with its worklog and the roadmap row is deleted. At each stage boundary it rewrites
-  the ticket's assignee and appends the stage's worklog entry, so a stopped task is left
-  assigned to you with the reason written down.
-- **/orchestrate-quick** — the short pipeline for a task that is already well understood:
-  plan → one review → test plan → write tests → implement → targeted verify → verify and code
-  review, with no interview and no review
-  gating. Takes a task description or a roadmap/ticket path. It asks nothing: end-to-end tests
-  default to no, and it reports that default.
-- **/run-roadmap** — `/orchestrate` with nobody in the loop. It never asks you anything: the **cto**
-  agent picks the feature and calls the end-to-end question, settles any fork the planner finds the
-  documents leave open, and a stuck stage gets a CTO ruling — go on with new guidance, narrow the task, or raise
-  `human_required` — instead of stopping to wait for you. It works one
-  feature at a time, claims the feature's dependency cluster, builds in a run worktree on branch `run-roadmap-<n>` beside
-  each repository, and commits the code there and the documents in the framework root; nothing is
-  pushed, and your checkout is never touched. One invocation is one ticket, and it ends with a
-  machine-readable result line, so [`scripts/run-roadmap.sh`](scripts/run-roadmap.sh) can loop it
-  over a whole roadmap in a fresh session per ticket:
 
-  ```shell
-  plugins/sdlc/scripts/run-roadmap.sh --max 5
-  ```
+Each command file holds its own sequence; this list says what each one is for.
 
-  The script refuses to start outside git, kills a ticket that runs too long, ends the run the
-  moment a person is needed, and prints one line per ticket at the end with the commit each one
-  produced and how to resume. Read `--help` before the first run, and read the run branch after it.
-- **/code** — hands your request straight to the **coding** agent, which loads the coding skills
-  itself. One agent, no planner, no reviewer, no verify agent: it finds the files, writes the
-  change, runs a targeted self-check, and the command reports what it did and what nobody ran.
-  Use it for a fix or a small feature you already understand; it hands off to
-  `/orchestrate-quick` or `/orchestrate` when the request turns out to need a plan. When the
-  request changes what a user sees, it runs the `frontend-design` skill first and waits for you
-  to agree the mockup before the coding agent starts.
-- **/review** — reviews code that already exists with the **code-reviewer** agent: the
-  uncommitted changes by default, or a path, a branch, a commit range, or a ticket you name.
-  Reports the verdict and the defects, each with its file and line. Add `fix` to hand the
-  blocking issues to the coding agent and re-review the result once. Use it for work that never
-  went through an orchestrator — a `/code` change, code you wrote by hand, a branch to read
-  before a pull request.
-- **/design** — loads the `design-doc` skill to create or update a `<subject>.design.md` for a
-  given system, service, flow, integration, or screen — in the feature's folder when it belongs to
-  one feature, in `designs/` when it underpins every feature.
-- **/frontend-design** — loads the `frontend-design` skill to agree the look of a screen, a
-  component, or a flow before it is built: it publishes a static mockup as an Artifact, iterates
-  with you, and records what you agreed. It writes no production code — `/code` builds it after.
-- **/prd** — loads the `prd` skill to create or update a product requirements document for
-  a given product or feature, the `product-intent` skill for the goals, non-goals, personas,
-  problems, and metrics it writes as notes under `product/`, and the `glossary` skill for the
+- **[/setup](commands/setup.md)** — creates the framework root, in an Obsidian vault or in the
+  repository as `.sdlc/`, and registers every repository the projects are built in. It never
+  overwrites a file, and offers to migrate an older layout after you approve the mapping.
+- **[/feature](commands/feature.md)** — opens a feature, or keeps an existing one true: its folder,
+  its note, the code that numbers its tickets, and a status checked against the code. Run it before
+  `/design` and `/plan` for anything new a customer can name.
+- **[/plan](commands/plan.md)** — interviews you with the **feature-interviewer** agent, then turns
+  the request into updated documents, roadmap rows, and tickets in `work/backlog/`. It writes no code.
+- **[/whats-next](commands/whats-next.md)** — shows what is in flight and who holds it, what is ready
+  to start, and what is blocked, and names the task to start next. It writes nothing.
+- **[/orchestrate](commands/orchestrate.md)** — asks which ready task to build and whether it gets
+  end-to-end tests, then drives it through [the build stages](skills/agent-pipeline/references/build-stages.md):
+  plan, a risk-gated review, tests written and proved failing before the code, the implementation, the
+  feature's tests, and four code reviewers beside the full verification. A stopped task becomes
+  `blocked`, unassigned, with the reason in its worklog.
+- **[/orchestrate-quick](commands/orchestrate-quick.md)** — the same stages in quick mode, for a task
+  that is already well understood: one plan review, one code reviewer, and checks run by a `verify`
+  agent. It asks for approval only when it picked the task from a roadmap, and offers the end-to-end
+  run as one question at the end.
+- **[/run-roadmap](commands/run-roadmap.md)** — `/orchestrate` with the **cto** agent in your place,
+  one ticket per session, committed on a run branch in a run worktree. Running the roadmap
+  unattended, above, covers the launcher.
+- **[/code](commands/code.md)** — hands your request straight to the **coding** agent: no planner,
+  no reviewer, no verify agent. When the change is one a user sees, it agrees a mockup with you first.
+- **[/review](commands/review.md)** — reviews existing code with the **code-reviewer** agent. Add
+  `fix` to hand the blocking issues to the coding agent and re-review until it approves.
+- **[/design](commands/design.md)** — creates or updates a `<subject>.design.md` with the
+  `design-doc` skill.
+- **[/frontend-design](commands/frontend-design.md)** — agrees the look of a screen with you through
+  a static mockup published as an Artifact. It writes no production code.
+- **[/prd](commands/prd.md)** — creates or updates the PRD, its `product/` notes, and the glossary
   terms it introduces.
-- **/business-plan** — loads the `business-plan` skill to create or update the business plan in
-  `business/`, and researches one note per competitor into `business/competitors/`. Name a
-  competitor to add or refresh just that note.
-- **/explain** — explains what is happening in plain language: the work you just did, a
-  file, an error, a diff, or a concept. Reads the code before explaining, defines every
-  term of art on first use, and treats code as an anchor rather than the explanation.
-- **/review-text** — reviews a text written for people. It names the register first — technical
-  or social — loads that skill, and judges the text by its own rules, because a post that opens
-  with a hook is right where a document would be wrong. Every finding names a stable rule code,
-  quotes the text as it stands, and carries the sentence that replaces it. The reply ends with a
-  `json` findings block a tool can consume, so the same review can drive a linter later. Add `fix`
-  to apply the findings that have a replacement.
-- **/stack** — reports a web repository's stack against the `web-stack` default, one row per
-  layer: what the project uses, the default, and whether the layer matches, keeps the project's
-  own library, is not set yet, or has two libraries in conflict. It writes nothing.
-  `/stack install` asks which optional layers the project needs — auth, database, forms,
-  design tokens, design board, animation, end-to-end tests — runs `scripts/stack-install.py` for the exact install commands, and runs them
-  on your yes. It never replaces a library the project already chose.
-- **/design-system** — reports how complete a web project's design system is: one row per shared
-  component, whether the `design-system.md` catalog lists it and the board has its stories, then
-  the token source, the generated outputs, the board, and every raw value or bypassed component
-  it finds. It writes nothing. `/design-system board` has the **coding** agent generate or refresh
-  the Storybook design board — its config, the catalog and token pages, and the missing stories —
-  and draft catalog entries for you to confirm. It never deploys the board.
+- **[/business-plan](commands/business-plan.md)** — creates or updates the business plan and one
+  researched note per competitor.
+- **[/explain](commands/explain.md)** — explains the last change, a file, an error, a diff, or a
+  concept in plain language.
+- **[/review-text](commands/review-text.md)** — reviews a text against the technical or the social
+  writing rules, with a stable rule code and a replacement sentence per finding. Add `fix` to apply
+  them.
+- **[/stack](commands/stack.md)** — reports a web repository's stack against the `web-stack`
+  default; `/stack install` adds the optional layers you choose.
+- **[/design-system](commands/design-system.md)** — reports how complete a web project's design
+  system is; `/design-system board` generates or refreshes its Storybook design board.
 
 Use these equivalents in a Codex prompt:
 
@@ -699,11 +636,11 @@ Use these equivalents in a Codex prompt:
 | `/review [target]` | `$sdlc:review [target]` |
 | `/plan [request]` | `$sdlc:plan [request]` |
 | `/design [target]` | `$sdlc:design-doc [target]` |
-| `/feature [target]` | `$sdlc:feature [target]` |
-| `/frontend-design [target]` | `$sdlc:frontend-design [target]` |
-| `/prd [target]` | `$sdlc:prd [target]` |
+| `/feature [target]` | `$sdlc:feature-folder [target]` |
+| `/frontend-design [target]` | `$sdlc:mockup-agreement [target]` |
+| `/prd [target]` | `$sdlc:prd-doc [target]` |
 | (product notes) | `$sdlc:product-intent` |
-| `/business-plan [target]` | `$sdlc:business-plan [target]` |
+| `/business-plan [target]` | `$sdlc:business-plan-doc [target]` |
 | `/explain [target]` | `$sdlc:explain [target]` |
 | `/review-text [target] [fix]` | `$sdlc:review-text [target] [fix]` |
 | `/stack [install] [repository]` | `$sdlc:stack [install] [repository]` |

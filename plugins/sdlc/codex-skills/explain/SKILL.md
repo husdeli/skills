@@ -1,6 +1,6 @@
 ---
 name: explain
-description: Explain code, errors, diffs, changes, systems, or the current session in plain language after reading the evidence. Use when a user asks what happened, why something works, what an error means, or invokes `$explain` as the Codex equivalent of `/explain`.
+description: "Explains in plain language the last thing done, a file, an error, a change, or a concept. Use when the user asks what happened, why something works, or what an error means."
 ---
 
 # Explain
