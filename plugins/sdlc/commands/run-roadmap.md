@@ -338,9 +338,12 @@ stage never runs.
 
 Then run `ticket-board`'s **Finishing a ticket** transition yourself, in one tool block: the status field,
 the closing worklog entry, the move into `done/`, the roadmap row deleted, and the run folder deleted. This command's closing
-entry is `<run name> · done`, and it names each note file. In the same step, write the coding agent's
-latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run <run name>`. A note is
-never a reason to stop: the run goes on, and a person acts on the note later.
+entry is `<run name> · done`, and it names each note file and the review follow-up ticket. In the
+same step, write the coding agent's latest `notes` with `create-note.py`, and file the leftover minor
+issues with `board.py follow-up --claim`, both as `agent-pipeline` says, with `--run <run name>`.
+Leave out `--claim` on `--final`, since the run releases its claims anyway. A note is never a reason
+to stop: the run goes on, and a person acts on the note later. A follow-up ticket is never one
+either: it joins the feature's cluster, sorts last, and a later session of this run builds it.
 
 Do this **before** the documents commit, so that commit holds the ticket in `done/`.
 The ticket's claim goes with it — the rest of the cluster keeps this run's claim.
@@ -369,8 +372,9 @@ a sequence of changes a person can read and merge.
    `--no-verify`.
 
 **Commit the documents in the framework root**, when it is a git tree: `git -C <framework root> add`
-the ticket, its worklog, every roadmap the ticket's row was in, any ticket Stage 6 corrected, and
-each note file `create-note.py` reported as `created` —
+the ticket, its worklog, every roadmap the ticket's row was in, any ticket Stage 6 corrected, the
+review follow-up ticket `board.py follow-up` wrote, and each note file `create-note.py` reported as
+`created` —
 those paths only, because the person may have their own changes there — then one commit with the
 code commit's subject. A framework root in a vault that is no git tree has nothing to commit: the
 files are saved, and the report says so.
@@ -415,16 +419,17 @@ The report is short — a person reads a hundred of these in a log, not one on a
 - [x] Tests written first — [N] failing before the code; [K] sharpened, [P] still passing and recorded
 - [x] Implementation — [N] files; [N] test disputes ([rulings])
 - [x] Feature's tests — passed, [N] files across [M] tickets ([N] fix cycles; [what was skipped and why])
-- [x] Code review — correctness, conventions, security, tests approved ([N] fix cycles)
+- [x] Code review — correctness, conventions, security, tests approved ([N] fix cycles; minor-fix pass: [N] fixed, [M] left, or: no minor issue)
 - [x] Full verification — passed ([the commands], or: [what was skipped and why])
 - [x] Run — [run name] · branch `run-roadmap-<n>` · feature [CODE] · cluster [IDs, done and left]
 - [x] Run worktrees — [code] `[absolute path]`, one per line
 - [x] Commits — code [sha] [subject]; documents [sha], or: the framework root is no git tree
 - [x] Status — ticket Completed and moved to `done/`, roadmap row deleted
 - [x] Needs a person — [each note file and its title], or: nothing
+- [x] Review follow-ups — [the follow-up ticket's ID, created or appended, and the [N] leftovers filed], or: none
 
 [Two or three lines: what shipped, and the decision that shaped it.]
-[Any skipped candidate and its reason. Any recommendation nobody acted on.]
+[Any skipped candidate and its reason. Each leftover that could not be filed, in full.]
 [How to resume: `run-roadmap.sh --run <n>`, and what the resume will build first — the feature's next ticket, or the next feature when this one is done.]
 ```
 

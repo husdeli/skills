@@ -178,14 +178,21 @@ plugins/sdlc/scripts/build-roadmap.py            # rewrite every table from the 
 The pipelines leave the rest of the board's arithmetic to
 [`scripts/board.py`](scripts/board.py), which reads the same tickets with the same parser: the
 ready tickets in roadmap order, a roadmap run's candidate features and their clusters, the next
-free run number, writing a claim and reading it back, releasing a run's claims, and the feature's
-tests from the test records its tickets' worklogs end with. It prints JSON and changes nothing
-but `claimed`.
+free run number, writing a claim and reading it back, releasing a run's claims, the feature's
+tests from the test records its tickets' worklogs end with, and the review follow-up ticket below.
+It prints JSON.
 
 ```shell
 plugins/sdlc/scripts/board.py ready                       # what is ready, in roadmap order
 plugins/sdlc/scripts/board.py feature-tests --ticket CHECKOUT-002
 ```
+
+**A minor review issue is fixed or filed, never only reported.** When every code reviewer approves
+with minor issues, the coding agent gets one turn to fix them, and the checks and the reviewers run
+again on what it changed. What it declines, and what is still open after that, `board.py follow-up`
+files in the epic's review follow-up ticket: one `Low` ticket in `backlog/`, an acceptance criterion
+per issue, that the roadmap builds after the feature's other tickets. A roadmap run claims it and
+builds it before it moves on, so an unattended run does not leave the issues in a done worklog.
 
 **Some work needs a person after the code is done.** When the code the coding agent wrote depends
 on something no agent can do — a WAF rule in AWS, a secret, a DNS record, a webhook in a

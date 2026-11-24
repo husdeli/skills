@@ -176,6 +176,40 @@ NOTES
   path, the array cut short — and run it once more. A second failure goes in the report with the
   notes in full; it never changes the outcome.
 
+## Leftover review issues are filed by the script
+
+The minor-fix pass of the build stages leaves **leftovers**: minor review issues the coding agent
+declined, or that were still open or newly raised when the code review last passed. A run that only
+reports them loses them, so they go into the epic's **review follow-up ticket**, a `Low` ticket in
+`backlog/` that the roadmap builds like any other. **Never write that ticket by hand**; `board.py`
+creates it, appends to it, and rebuilds the roadmap:
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/board.py" follow-up --root <framework root> \
+  --ticket <the finished ticket's ID> --run <the run's claim> [--claim] <<'LEFTOVERS'
+[{ "title": "", "file": "", "line": "", "problem": "", "suggestion": "", "focus": "", "reason": "" }]
+LEFTOVERS
+```
+
+- **Run it once, after the *Finishing a ticket* transition has landed**, in the same step as
+  `create-note.py`. A ticket that stops instead files nothing: the run that resumes it reviews the
+  code again.
+- **`--claim` is a roadmap run's**, so the run builds the follow-up before it leaves the feature. An
+  interactive run leaves it unclaimed for the person to pick.
+- **It appends to the epic's open follow-up ticket** — one in `backlog/` that no other run claims —
+  and opens a new one only when there is none. An issue already filed there, by its title and its
+  file and line, is skipped.
+- **A follow-up ticket's own leftovers are never filed.** The script returns `skipped` and writes
+  nothing, so a follow-up never spawns another one. Name them in the closing worklog entry and the
+  report instead.
+- **An empty list writes nothing; skip the call.** With no ticket — a quick task with no board —
+  there is no epic to file in: name the leftovers in the report.
+- **It prints the ticket's `id` and `path`, `created`, and the `added` and `duplicates` titles.**
+  Name the ticket and how many issues it gained in the closing worklog entry and in the report.
+- **Exit 2 means nothing was written**, and the reason is on stderr. Fix what you passed and run it
+  once more. A second failure, or a missing `python3`, puts the leftovers in full in the closing
+  worklog entry and the report; it never changes the outcome.
+
 ## Never duplicate the gating run
 
 - The **coding agent self-checks** what it touched, and nothing more.

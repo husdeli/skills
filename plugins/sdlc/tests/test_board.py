@@ -194,3 +194,75 @@ def test_ready_offers_unclaimed_backlog_with_done_dependencies_and_resumable_blo
     ready = {r["id"]: r["resume"] for r in result["ready"]}
     assert ready == {"CHECKOUT-002": False, "CHECKOUT-004": True}
     assert result["remaining"] == 5
+
+
+# ------------------------------------------------------------------ review follow-ups
+
+
+LEFTOVERS = """[
+  {"title": "Total is NaN on an empty cart", "file": "src/cart/total.ts", "line": "42",
+   "problem": "parseTotal returns NaN for an empty cart.", "suggestion": "Return 0 before the reduce.",
+   "focus": "correctness", "reason": "raised on the re-review"},
+  {"title": "Unused import", "file": "src/cart/cart.ts", "line": "", "problem": "lodash is imported and unused.",
+   "suggestion": "", "focus": "conventions", "reason": "a test file"}
+]"""
+
+
+def test_follow_up_creates_a_low_priority_backlog_ticket_in_the_epic_and_claims_it(board):
+    board.ticket("CHECKOUT-001", "done", "done")
+    board.ticket("CHECKOUT-002", "backlog", "backlog")
+    result, code = board.board("follow-up", "--ticket", "CHECKOUT-001", "--run", "run-roadmap-3", "--claim", stdin=LEFTOVERS)
+    assert code == 0
+    assert result["ticket"]["id"] == "CHECKOUT-003" and result["ticket"]["created"]
+    assert result["added"] == ["Total is NaN on an empty cart", "Unused import"] and result["claimed"]
+
+    path = Path(result["ticket"]["path"])
+    assert path == board.root / "work" / "backlog" / "CHECKOUT-003-review-follow-ups.md"
+    p = props(path)
+    assert p["status"] == "backlog" and p["priority"] == "Low" and p["depends_on"] == []
+    assert p["follows_up"] == ["CHECKOUT-001"] and p["claimed"] == "run-roadmap-3"
+    assert p["feature"] == "[[checkout.feature]]" and p["repositories"] == ["api"]
+    text = path.read_text()
+    assert "# [CHECKOUT-003] Review follow-ups" in text
+    assert "- [ ] **Total is NaN on an empty cart** — `src/cart/total.ts:42`: parseTotal returns NaN" in text
+    assert "_(CHECKOUT-001, correctness review; left because raised on the re-review)_" in text
+    assert "CHECKOUT-003" in (board.root / "roadmap.md").read_text()
+
+
+def test_follow_up_appends_to_the_open_one_and_skips_an_issue_already_filed(board):
+    board.ticket("CHECKOUT-001", "done", "done")
+    board.ticket("CHECKOUT-002", "done", "done")
+    first, _ = board.board("follow-up", "--ticket", "CHECKOUT-001", "--run", "run-roadmap-3", stdin=LEFTOVERS)
+    more = '[{"title": "Unused import", "file": "src/cart/cart.ts", "problem": "again"},' \
+           ' {"title": "Magic number", "file": "src/cart/fee.ts", "line": "7", "problem": "0.3 is unnamed."}]'
+    second, _ = board.board("follow-up", "--ticket", "CHECKOUT-002", "--run", "run-roadmap-3", stdin=more)
+    assert second["ticket"] == {"id": first["ticket"]["id"], "path": first["ticket"]["path"], "created": False}
+    assert second["added"] == ["Magic number"] and second["duplicates"] == ["Unused import"]
+    path = Path(first["ticket"]["path"])
+    assert props(path)["follows_up"] == ["CHECKOUT-001", "CHECKOUT-002"]
+    criteria = [line for line in path.read_text().splitlines() if line.startswith("- [ ]")]
+    assert len(criteria) == 3 and criteria[-1].startswith("- [ ] **Magic number**")
+
+
+def test_follow_up_opens_a_new_ticket_when_the_open_one_is_another_runs(board):
+    board.ticket("CHECKOUT-001", "done", "done")
+    board.ticket("CHECKOUT-002", "backlog", "backlog", extra="follows_up:\n  - CHECKOUT-009\nclaimed: run-roadmap-1\n")
+    result, _ = board.board("follow-up", "--ticket", "CHECKOUT-001", "--run", "run-roadmap-3", stdin=LEFTOVERS)
+    assert result["ticket"]["id"] == "CHECKOUT-003" and result["ticket"]["created"]
+
+
+def test_a_follow_up_tickets_own_leftovers_are_never_filed(board):
+    board.ticket("CHECKOUT-001", "done", "done", extra="follows_up:\n  - CHECKOUT-000\n")
+    result, code = board.board("follow-up", "--ticket", "CHECKOUT-001", "--run", "run-roadmap-3", stdin=LEFTOVERS)
+    assert code == 0 and result["ticket"] is None and "skipped" in result
+    assert list((board.root / "work" / "backlog").iterdir()) == []
+
+
+def test_follow_up_writes_nothing_for_no_issues_and_refuses_an_issue_with_no_problem(board):
+    board.ticket("CHECKOUT-001", "done", "done")
+    result, code = board.board("follow-up", "--ticket", "CHECKOUT-001", "--run", "run-roadmap-3", stdin="[]")
+    assert code == 0 and result["ticket"] is None
+    _, code = board.board("follow-up", "--ticket", "CHECKOUT-001", "--run", "run-roadmap-3",
+                          stdin='[{"title": "x"}]', check=False)
+    assert code == 2
+    assert list((board.root / "work" / "backlog").iterdir()) == []

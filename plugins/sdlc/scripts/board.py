@@ -15,6 +15,9 @@
 #   ./board.py stop --run run-roadmap-3 --blocked-by "…" # stop the run's in-flight tickets as blocked
 #   ./board.py recover --stale-hours 24                 # stop or release claims of runs that died
 #   ./board.py feature-tests --ticket CHECKOUT-002      # the feature's tests, from the worklogs
+#   ./board.py follow-up --ticket CHECKOUT-002 --run run-roadmap-3 [--claim] < leftovers.json
+#                                                       # file leftover review issues in the epic's
+#                                                       # follow-up ticket
 #
 # It finds the framework root the way `build-roadmap.py` does, and reuses that script's parser for
 # tickets, features, and projects, so the two never read a board two ways.
@@ -22,8 +25,10 @@
 # `claim` and `release` write `claimed` and `claimedAt`, and nothing else. `stop` and `recover` write
 # the one transition a launcher has to make without a model: a ticket in flight becomes `blocked`,
 # as the `ticket-board` skill's *Stopping without finishing* says, with an outcome worklog entry and
-# a rebuilt roadmap. Every write holds the board lock (`<root>/.runs/.board.lock`) and replaces the
-# file atomically, so two runs cannot both win a claim and a kill never leaves half a ticket.
+# a rebuilt roadmap. `follow-up` writes the epic's review follow-up ticket: the minor review issues
+# a finished ticket left open, filed where the roadmap builds them. Every write holds the board lock
+# (`<root>/.runs/.board.lock`) and replaces the file atomically, so two runs cannot both win a claim
+# and a kill never leaves half a ticket.
 #
 # Exit codes: 0 done, 1 a claim was lost (`claim` only; the JSON says which), 2 an error that
 # stopped it — the reason is on stderr.
@@ -47,7 +52,7 @@ try:
 except ImportError:  # pragma: no cover - Windows has no flock; the read-back is all it gets there
     fcntl = None
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 LOCK_WAIT_SECONDS = 60
 IN_FLIGHT = ("in progress", "review")
 
@@ -671,6 +676,210 @@ def command_recover(args: argparse.Namespace) -> dict[str, object]:
     return {"dryRun": args.dry_run, "stopped": stopped, "released": released, "alive": alive, "undated": undated}
 
 
+# ------------------------------------------------------------------------------------ review follow-ups
+
+FOLLOW_UP_PROPERTY = "follows_up"
+FOLLOW_UP_TITLE = "Review follow-ups"
+FOLLOW_UP_SLUG = "review-follow-ups"
+FOLLOW_UP_PRIORITY = "Low"
+CRITERIA_HEADING = "## Acceptance Criteria"
+
+
+def one_line(value: object) -> str:
+    return " ".join(str(value or "").split())
+
+
+def read_leftovers(raw: str) -> list[dict[str, str]]:
+    """The leftover minor issues: an array, or an object holding one under `issues`."""
+    try:
+        data = json.loads(raw, strict=False) if raw.strip() else []
+    except ValueError as error:
+        raise BoardFail(f"the input is not JSON: {error}") from error
+    if isinstance(data, dict):
+        data = data.get("issues", [])
+    if not isinstance(data, list):
+        raise BoardFail("the input is neither an array of issues nor an object holding one under `issues`")
+    issues, problems = [], []
+    for index, entry in enumerate(data):
+        if not isinstance(entry, dict):
+            problems.append(f"issue {index}: not an object")
+            continue
+        issue = {key: one_line(entry.get(key)) for key in ("title", "file", "line", "problem", "suggestion", "focus", "reason")}
+        missing = [key for key in ("title", "problem") if not issue[key]]
+        if missing:
+            problems.append(f"issue {index}: missing {', '.join(missing)}")
+        issues.append(issue)
+    if problems:
+        raise BoardFail("; ".join(problems))
+    return issues
+
+
+def criterion_key(issue: dict[str, str]) -> str:
+    """The part of a criterion that names the issue; the same issue filed twice has the same key."""
+    where = issue["file"] + (f":{issue['line']}" if issue["file"] and issue["line"] else "")
+    return f"**{issue['title']}**" + (f" — `{where}`" if where else "")
+
+
+def criterion(issue: dict[str, str], source: str) -> str:
+    fix = f" {issue['suggestion']}" if issue["suggestion"] else ""
+    origin = ", ".join(part for part in (source, f"{issue['focus']} review" if issue["focus"] else "") if part)
+    left = f"; left because {issue['reason']}" if issue["reason"] else ""
+    return f"- [ ] {criterion_key(issue)}: {issue['problem']}{fix} _({origin}{left})_"
+
+
+def frontmatter_block(text: str, key: str) -> list[str]:
+    """A property's lines exactly as the ticket wrote them, list items included."""
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return []
+    block: list[str] = []
+    for line in lines[1:]:
+        if line.strip() == "---":
+            break
+        match = KEY_LINE.match(line)
+        if match:
+            if block:
+                break
+            if match.group(1) == key:
+                block.append(line)
+        elif block:
+            block.append(line)
+    while block and not block[-1].strip():
+        block.pop()
+    return block
+
+
+def backlog_folder(board: Board) -> Path:
+    for name in ("backlog", "todo"):
+        if (board.folder / name).is_dir():
+            return board.folder / name
+    if board.folder.name == "work":
+        return board.folder / "backlog"
+    return board.folder
+
+
+def new_follow_up(board: Board, source: br.Ticket, criteria: list[str]) -> tuple[str, Path]:
+    source_text = source.path.read_text(encoding="utf-8")
+    feature = frontmatter_block(source_text, "feature")
+    if not feature:
+        raise BoardFail(f"{source.path.name} has no `feature` property to give its follow-up ticket")
+    repositories = frontmatter_block(source_text, "repositories") or ["repositories: []"]
+    number = 1 + max((t.number for t in board.tickets.values() if t.code == source.code), default=0)
+    ticket_id = f"{source.code}-{number:03d}"
+    now = now_property()
+    text = "\n".join([
+        "---",
+        *feature,
+        "status: backlog",
+        f"priority: {FOLLOW_UP_PRIORITY}",
+        *repositories,
+        "depends_on: []",
+        f"{FOLLOW_UP_PROPERTY}:",
+        f"  - {source.ticket_id}",
+        f"createdAt: {now}",
+        f"updatedAt: {now}",
+        "---",
+        "",
+        f"# [{ticket_id}] {FOLLOW_UP_TITLE}",
+        "",
+        "## Description",
+        "",
+        "The minor issues the code review raised on this feature's finished tickets, which their runs "
+        "left open. Each names the code it was raised on, so this ticket names files where others do not.",
+        "",
+        CRITERIA_HEADING,
+        "",
+        "Each issue below is fixed, or the plan says why it no longer applies: the code it names has "
+        "changed or gone.",
+        "",
+        *criteria,
+        "",
+    ])
+    folder = backlog_folder(board)
+    folder.mkdir(parents=True, exist_ok=True)
+    path = folder / f"{ticket_id}-{FOLLOW_UP_SLUG}.md"
+    br.atomic_write_text(path, text)
+    return ticket_id, path
+
+
+def append_criteria(path: Path, source_id: str, criteria: list[str]) -> None:
+    text = path.read_text(encoding="utf-8")
+    newline = "\r\n" if "\r\n" in text else "\n"
+    lines = text.split(newline)
+    start = next((i for i, line in enumerate(lines) if line.strip() == CRITERIA_HEADING), None)
+    if start is None:
+        lines += ["", CRITERIA_HEADING, "", *criteria, ""]
+    else:
+        end = next((i for i in range(start + 1, len(lines)) if lines[i].startswith("## ")), len(lines))
+        while end - 1 > start and not lines[end - 1].strip():
+            end -= 1
+        lines[end:end] = criteria
+    sources = [str(s) for s in br.as_list(Board._properties(path).get(FOLLOW_UP_PROPERTY))]
+    if source_id not in sources:
+        sources.append(source_id)
+    updated = edit_frontmatter(newline.join(lines), {FOLLOW_UP_PROPERTY: sources, "updatedAt": now_property()})
+    br.atomic_write_text(path, updated)
+
+
+def command_follow_up(args: argparse.Namespace, raw: str) -> dict[str, object]:
+    issues = read_leftovers(raw)
+    board = Board(args)
+    with board_lock(board.root):
+        board = Board(args)
+        source = board.find(args.ticket)
+        if FOLLOW_UP_PROPERTY in board.props[source.ticket_id]:
+            return {"ticket": None, "added": [], "duplicates": [], "claimed": False, "roadmapRebuilt": False,
+                    "skipped": f"{source.ticket_id} is a follow-up ticket: its leftovers go in the report, never in another ticket"}
+        if not issues:
+            return {"ticket": None, "added": [], "duplicates": [], "claimed": False, "roadmapRebuilt": False}
+
+        open_follow_ups = sorted(
+            (t for t in board.tickets.values()
+             if t.code == source.code and t.status == "backlog"
+             and FOLLOW_UP_PROPERTY in board.props[t.ticket_id]
+             and board.claimed(t.ticket_id) in ("", args.run)),
+            key=lambda t: t.number,
+        )
+        target = open_follow_ups[0] if open_follow_ups else None
+        existing = target.path.read_text(encoding="utf-8") if target else ""
+
+        added, duplicates, criteria, seen = [], [], [], set()
+        for issue in issues:
+            key = criterion_key(issue)
+            if key in seen or key in existing:
+                duplicates.append(issue["title"])
+                continue
+            seen.add(key)
+            added.append(issue["title"])
+            criteria.append(criterion(issue, source.ticket_id))
+        if not criteria:
+            return {"ticket": {"id": target.ticket_id, "path": str(target.path), "created": False},
+                    "added": [], "duplicates": duplicates, "claimed": False, "roadmapRebuilt": False}
+
+        if target:
+            check_writable([target])
+            append_criteria(target.path, source.ticket_id, criteria)
+            ticket_id, path, created = target.ticket_id, target.path, False
+        else:
+            ticket_id, path = new_follow_up(board, source, criteria)
+            created = True
+
+        claimed = False
+        if args.claim:
+            current = str(Board._properties(path).get("claimed") or "").strip()
+            if current != args.run:
+                set_claim(path, args.run)
+            claimed = True
+        roadmap = rebuild_roadmaps(board.root)
+    return {
+        "ticket": {"id": ticket_id, "path": str(path), "created": created},
+        "added": added,
+        "duplicates": duplicates,
+        "claimed": claimed,
+        "roadmapRebuilt": roadmap != 2,
+    }
+
+
 # ------------------------------------------------------------------------------------ the feature's tests
 
 
@@ -841,6 +1050,11 @@ def main(argv: list[str] | None = None) -> int:
         help="CODE=DIR keeps only that work root's tests and checks their files exist; a bare DIR applies to all",
     )
 
+    follow = add("follow-up", "file a finished ticket's leftover minor review issues in its epic's follow-up ticket")
+    follow.add_argument("--ticket", required=True, help="the ticket the issues were raised on, by ID or path")
+    follow.add_argument("--run", required=True, help="the run filing them, e.g. run-roadmap-3")
+    follow.add_argument("--claim", action="store_true", help="claim the follow-up ticket for --run, so a roadmap run builds it")
+
     args = parser.parse_args(argv)
     if getattr(args, "run", None) and not CLAIM.match(args.run):
         print(f"--run {args.run!r} is not a claim such as orchestrate-2", file=sys.stderr)
@@ -859,6 +1073,8 @@ def main(argv: list[str] | None = None) -> int:
             result = command_stop(args)
         elif args.action == "recover":
             result = command_recover(args)
+        elif args.action == "follow-up":
+            result = command_follow_up(args, sys.stdin.read())
         else:
             result = command_feature_tests(args)
     except BoardFail as error:

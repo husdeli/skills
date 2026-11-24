@@ -100,7 +100,7 @@ Agent(subagent_type: "sdlc:verify", model: "sonnet",
   Judge its block as the build stages' Code review and full verification judges the quick `verify` agent's: passed → Stage 5; `skipped` → still go to Stage 5, and name the command and the reason in the report, never as green; nothing returned → `human_required` (stage `verification`); failed → hand the failures to the coding agent exactly as that stage does, then run that stage again on the fix — a fresh verify and the reviewer's re-review, in one tool block — and, when it passes, a fresh e2e verify. An e2e failure that is stuck is `human_required` with stage `verification`, and the ticket stops as `blocked`.
 
 ### 5. Finish the ticket (only on success)
-Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block, and delete the run folder. This command's closing entry is `orchestrate-quick-<n> · done`, after the Stage 4 end-to-end result. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-quick-<n>`; with no ticket, pass the feature the task belongs to, or show the notes in the report when it has none.
+Run the **`ticket-board`** skill's **Finishing a ticket** transition yourself, with the edits in one tool block, and delete the run folder. This command's closing entry is `orchestrate-quick-<n> · done`, after the Stage 4 end-to-end result. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-quick-<n>`; with no ticket, pass the feature the task belongs to, or show the notes in the report when it has none. File the leftover minor issues with `board.py follow-up`, without `--claim`, as `agent-pipeline` says; with no ticket, name them in the report.
 
 Never finish the ticket unless verification passed **and** the code review returned `APPROVED`. Report only after the files are updated.
 
@@ -113,11 +113,12 @@ Never finish the ticket unless verification passed **and** the code review retur
 - [x] Test plan — [N] cases, [M] left untested on purpose (or: no case — [why])
 - [x] Tests written first — [N] failing before the code; [0 or N] disputes ([rulings])
 - [x] Implementation — written tests pass ([N] targeted fix cycles); full gate verified (tests, lint, typecheck run concurrently)
-- [x] Code review — approved ([N] fix cycles)
+- [x] Code review — approved ([N] fix cycles; minor-fix pass: [N] fixed, [M] left, or: no minor issue)
 - [x] End-to-end — [passed | skipped: reason | not run at your request: `<command>` | no suite in this project]
 - [x] Status — ticket `done`, unassigned, unclaimed, and moved to `done/` with its worklog; roadmap row deleted
 
 Needs a person: [each note file and its title, or "nothing"]
+Review follow-ups: [the follow-up ticket's ID and the [N] leftovers filed in it; "none"; or, with no ticket, each leftover in full]
 
 [Summary of what was accomplished]
 ```

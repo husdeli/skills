@@ -135,7 +135,7 @@ Run every stage of `agent-pipeline`'s `references/build-stages.md`, from Plan to
 - **A ruling** → there is none to give mid-run: a stuck stage, a blocker, and a `spec-question` are each `human_required`, with the stage. The decisions were made before the run; a question about the specification goes back to `/plan`.
 
 #### Finish
-Run the **`ticket-board`** skill's **Finishing a ticket** transition in one step: `status` `done` with `assigned` and `claimed` removed, the usage added, the ticket and its worklog moved to `done/`, the roadmap row deleted, the run folder deleted, and the closing `orchestrate-<n> · done` worklog entry appended: what shipped, each recommendation nobody acted on, and each note file. In the same step, write the coding agent's latest `notes` with `create-note.py`, as `agent-pipeline` says, with `--run orchestrate-<n>`. A correction this run forced on a *remaining* ticket — a constraint the code review found, a dependency that turned out wrong — is rewritten in the same step.
+Run the **`ticket-board`** skill's **Finishing a ticket** transition in one step: `status` `done` with `assigned` and `claimed` removed, the usage added, the ticket and its worklog moved to `done/`, the roadmap row deleted, the run folder deleted, and the closing `orchestrate-<n> · done` worklog entry appended: what shipped, the review follow-up ticket and how many leftovers it gained, and each note file. In the same step, write the coding agent's latest `notes` with `create-note.py`, and file the leftover minor issues with `board.py follow-up`, without `--claim`, both as `agent-pipeline` says, with `--run orchestrate-<n>`. A correction this run forced on a *remaining* ticket — a constraint the code review found, a dependency that turned out wrong — is rewritten in the same step.
 
 **Act on the result.** Whichever it is, the entry of the stage that ended the run goes into the worklog — a run that failed is exactly the run whose record matters. `agent-pipeline` defines the two outcomes and `ticket-board` holds the transition each one writes:
 - **`completed`** → **Finishing a ticket**, as above. Keep whether the review ran, the reviewers' summaries, and the test and verification details for the report.
@@ -151,12 +151,12 @@ Report only after the files are updated.
 - [x] Test plan — [N] cases ([unit / integration / e2e counts]), [M] left untested on purpose (or: no case — [why])
 - [x] Tests written first — [N] failed before the code; [K] still passed after sharpening ([ids])
 - [x] Implementation — the feature's tests pass ([F] commands from [T] tickets; [N] fix cycles); [N] test disputes ([rulings])
-- [x] Code review — correctness, conventions, security, and tests approved ([N] fix cycles)
+- [x] Code review — correctness, conventions, security, and tests approved ([N] fix cycles; minor-fix pass: [N] fixed, [M] left, or: no minor issue)
 - [x] Full verification — [each check]: passed (or: skipped — [reason]); [N] fix cycles
 - [x] Status — ticket `done`, unassigned, unclaimed, and moved to `done/` with its worklog; roadmap row deleted
 
 Work root: `[code]` — `[absolute path]`
-Recommendations: [each minor review issue, or "none"]
+Review follow-ups: [the follow-up ticket's ID and the [N] leftovers filed in it; or "none — the minor-fix pass cleared them"; or each leftover in full when it could not be filed]
 Needs a person: [each note file and its title, or "nothing"]
 
 [Summary of what was accomplished]

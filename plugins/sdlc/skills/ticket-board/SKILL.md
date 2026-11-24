@@ -114,6 +114,7 @@ related:
 | `tokens` | How many tokens they spent, input and output together. |
 | `cost` | What those tokens cost, in US dollars to two decimal places, at the price of the model that spent them. |
 | `related` | The design docs the ticket builds. Never the feature or a dependency again — each has its own property. |
+| `follows_up` | On a [review follow-up ticket](#the-review-follow-up-ticket) only: the IDs of the finished tickets whose leftover review issues it carries. Absent on every other ticket. |
 
 **Both times are local date and time, `YYYY-MM-DDTHH:mm`**, the form Obsidian reads as a
 date-and-time property. Read the clock with `date "+%Y-%m-%dT%H:%M"`; never guess it.
@@ -147,6 +148,27 @@ alone never finishes a ticket.
 
 **Finished work that needs more work gets a new ticket.** A `done` ticket never changes status; the
 new ticket names the change.
+
+### The review follow-up ticket
+
+**A minor review issue a run left open goes into its epic's review follow-up ticket**, so the roadmap
+builds it instead of a done worklog burying it. `board.py follow-up` writes it, as `agent-pipeline`
+says; never by hand.
+
+- **It is named `<CODE>-<NNN>-review-follow-ups.md`**, numbered like any ticket of the epic, and
+  titled *Review follow-ups*. It sits in `backlog/` with `priority: Low`, `depends_on: []`, the
+  finished ticket's `feature` and `repositories`, and `follows_up` naming every ticket it carries
+  issues from.
+- **Each issue is one acceptance criterion**: its title, its file and line, the problem, the
+  suggested fix, and the ticket, review focus, and reason it was left. It is the one kind of ticket
+  that names files, because each issue was raised on code that exists.
+- **Leftovers gather in one ticket.** They append to the epic's follow-up ticket while it sits in
+  `backlog/`, unclaimed or claimed by the run filing them. Once a run starts it, or another run
+  claims it, the next leftovers open a new one.
+- **`Low` and numbered last, it sorts to the bottom of its epic**, so a roadmap run builds it after
+  the feature's other tickets, when no later ticket will move the code it names.
+- **It is planned and built like any ticket.** An issue whose code has changed or gone is met by the
+  plan saying so. Its own leftovers are never filed again; they stay in its closing worklog entry.
 
 ### What blocks a ticket
 
@@ -373,6 +395,9 @@ python3 "$board" stop --run <claim> --blocked-by "<line>" [--release-rest] [<ID>
                                                        # make it itself; the launcher's crash path
 python3 "$board" recover [--stale-hours 24] [--dry-run]  # stop or release the claims of dead runs
 python3 "$board" feature-tests --ticket <ID> [--work-root <code>=<path>]
+python3 "$board" follow-up --ticket <ID> --run <claim> [--claim] < leftovers.json
+                                                       # file leftover minor review issues in the
+                                                       # epic's review follow-up ticket
 ```
 
 - **`ready` lists candidates, not their content.** Open each ticket you offer for its description
@@ -481,7 +506,8 @@ Only when every check passed and the code review returned `APPROVED`. In one ste
 1. **`status`** → `done`, and remove **`assigned`** and **`claimed`**. **`updatedAt`** → now.
 2. **Usage** → add the run's totals to `timing`, `tokens`, and `cost`.
 3. **Move** the ticket and its worklog into `work/done/`.
-4. **Worklog** → the closing entry: what shipped, and each recommendation nobody acted on.
+4. **Worklog** → the closing entry: what shipped, and the review follow-up ticket the leftover minor
+   issues were filed in, with how many — or each leftover in full when they could not be filed.
 5. **Roadmap** → delete the row, by the four steps above.
 6. **Carry corrections forward** — rewrite every remaining ticket this work proved wrong. Write
    nothing about the ticket you just finished.

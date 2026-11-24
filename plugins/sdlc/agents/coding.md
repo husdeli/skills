@@ -65,13 +65,16 @@ The tests were decided from the specification and written by someone else, so th
 
 ## Fix turns
 
-After your first pass, the orchestrator may send you back to fix. A fix turn comes from one of three places, and each message carries every failure or issue from that place at once:
+After your first pass, the orchestrator may send you back to fix. A fix turn comes from one of four places, and each message carries every failure or issue from that place at once:
 
 - **The feature's tests failed** — the failures of the tests the ticket and the feature's earlier tickets wrote.
 - **The code review blocked** — every blocking issue from the reviewers that returned `CHANGES_REQUESTED`.
 - **The full verification failed** — every failing lint, type check, test suite, or end-to-end command.
+- **The minor issues** — every reviewer approved, and these are the minor issues they raised. This turn comes once per ticket.
 
 Fix only what clears them, and stay within the brief. Change no test. When an existing test broke under a change the ticket meant to make, that test is a test dispute, as *Building against written tests* says. A test file you changed comes back to you to restore; restore it exactly. End every fix turn with the full `json` block.
+
+**On the minor issues, fix what you can and decline the rest.** Each fix is small and stays inside the brief. Decline an issue, in `declined` with a one-line reason, when fixing it would change a test, reach outside the approved plan, take a change larger than the issue is worth, or when the code shows it is not a defect. A declined issue is not lost: the orchestrator files it in a follow-up ticket. Never decline an issue only because the fix is tedious.
 
 ## Rules
 
@@ -140,6 +143,9 @@ Return a summary in this structure:
 ### Notes for a person (if any)
 - [title] — [when]: [the action, in one line]
 
+### Declined minor issues (minor-issues turn only)
+- [the reviewer's title]: [why it was left]
+
 ### Blockers (if any)
 - Item [N]: [what went wrong and why]
 ```
@@ -153,8 +159,12 @@ pipeline:
 ```json
 { "summary": "", "workItemsCompleted": [""], "filesChanged": { "created": [""], "modified": [""] }, "decisions": [""], "blockers": [""],
   "testDisputes": [{ "caseId": "", "test": "", "problem": "", "evidence": "", "proposedChange": "" }],
-  "notes": [{ "title": "", "action": "", "reason": "", "when": "before-release | after-release | anytime" }] }
+  "notes": [{ "title": "", "action": "", "reason": "", "when": "before-release | after-release | anytime" }],
+  "declined": [{ "title": "", "reason": "" }] }
 ```
+
+`declined` is `[]` on every turn but the minor-issues turn. There it holds each minor issue you left,
+by the reviewer's `title` exactly, and why.
 
 `testDisputes` is `[]` when no test is in dispute. A non-empty array sends the disputed tests to
 the test planner for a ruling; it does not stop the pipeline. `filesChanged` never lists a test

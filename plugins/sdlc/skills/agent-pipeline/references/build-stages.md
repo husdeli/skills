@@ -69,7 +69,8 @@ for Start, its own answers, Finish, and every stop.
 | The rulings land | `test-planner · test dispute`, then `test-writer · tests` when a test was revised | `coding-<n>` |
 | The feature's tests pass | `<claim> · feature tests` | `review` · `code-reviewer-<n>` |
 | Quick: the targeted run passes | `verify · targeted` | `review` · `code-reviewer-<n>` |
-| The code review and the full verification land | `code-reviewer · code review`, one per focus that reviewed, then `<claim> · verification` — in quick mode `verify · verification` | a defect in either: `in progress` · `coding-<n>`; both pass: unchanged |
+| The code review and the full verification land | `code-reviewer · code review`, one per focus that reviewed, then `<claim> · verification` — in quick mode `verify · verification` | a defect in either: `in progress` · `coding-<n>`; both pass with a minor issue and the minor-fix pass not yet run: `in progress` · `coding-<n>`; otherwise unchanged |
+| The minor-fix pass's reply lands | `coding · minor fixes`: what was fixed, and each issue declined with its reason | unchanged; `review` · `code-reviewer-<n>` again when the stage runs again |
 
 A `test-writer · tests` entry ends with its test record, as `ticket-board` shows it. **The feature's
 later tickets run their tests from that record**, so it must name what is on disk now.
@@ -104,6 +105,8 @@ The full mode:
   └ YOU run full verification: lint, typecheck, full suite, e2e ┤
         ▲                                     │ CHANGES_REQUESTED or a check fails
         └── SendMessage(coding, every defect) ─► feature's tests ─► every reviewer + the checks again  (fix until both pass)
+  both pass with minor issues ─► SendMessage(coding, every minor issue)  ONCE per ticket
+        ─► feature's tests ─► every reviewer + the checks again ─► what is still open: the leftovers
   stuck, a blocker, or a spec-question at any stage ─► a ruling from the answerer
 ```
 
@@ -508,8 +511,10 @@ result, each skipped check and why, and what the last fix changed.
 
 - A reviewer returned nothing → `human_required` (stage `code-review`). In quick mode, a `verify`
   agent that returned nothing → `human_required` (stage `verification`).
-- **Every reviewer `APPROVED` and every check passes** → the command's next stage: Finish, or in
-  quick mode the end-to-end offer. Keep every minor issue as a recommendation; it blocks nothing.
+- **Every reviewer `APPROVED` and every check passes** → with a minor issue in any reviewer's
+  `issues`, and the minor-fix pass not yet run for this ticket, run **the minor-fix pass** below.
+  Otherwise go to the command's next stage: Finish, or in quick mode the end-to-end offer, carrying
+  the leftovers.
 - **Any `CHANGES_REQUESTED`, or a check fails** → in one tool block, append the entries and set
   `status` to `in progress` and the assignee to `coding-<n>`. Then send **one** message carrying
   every blocking issue from every reviewer and every failing check: `SendMessage(codingId, "The code
@@ -524,3 +529,28 @@ result, each skipped check and why, and what the last fix changed.
     that is always a fresh `verify` agent carrying the previously failing commands.
 - **Stuck** → **a ruling** with the remaining issues and failures — stage `verification` when a
   check still fails, `code-review` when only the review still blocks.
+
+### The minor-fix pass
+
+A minor issue blocks nothing, and a run that only reports it loses it: in a roadmap run nobody reads
+the report before the next ticket starts. So once the stage passes, the coding agent gets **one**
+turn at every minor issue, and what it leaves goes to the command to file.
+
+1. **Run it once per ticket**, the first time the stage passes with a minor issue. A pass of the
+   stage after that goes straight on, whatever minor issues it holds.
+2. In one tool block, set `status` to `in progress` and the assignee to `coding-<n>`, and send
+   **one** message with every minor issue from every reviewer: `SendMessage(codingId, "Every
+   reviewer approved, with the minor issues below. Fix each one you can within the approved plan
+   without changing a test. Decline the rest in declined, each with its reason, then stop." + each
+   issue with its focus, file, line, problem, and suggestion)`.
+3. **The reply changed no file** — every issue declined → the stage stands as passed, and nothing
+   runs again. Go on with the declined issues as the leftovers.
+4. **Otherwise** its reply goes through Implement's steps, then this stage runs again as after any
+   fix: every reviewer resumed with the re-review message above, every check run again. A blocking
+   issue or a failing check is a fix cycle like any other, and the pass is not run again.
+5. **The leftovers** are the minor issues still open when the stage passes the last time: each one
+   the coding agent declined, each one a reviewer judged still open, and each minor issue raised on
+   the re-review. Keep each with its `focus`, `file`, `line`, `problem`, and `suggestion`, and a
+   `reason`: the coding agent's, `"still open after the minor-fix pass"`, or `"raised on the
+   re-review"`. Never send them to `coding` again. The command files them at Finish, as
+   `agent-pipeline` says.

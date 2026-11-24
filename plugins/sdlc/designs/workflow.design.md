@@ -129,15 +129,18 @@ A dispute may come from any `coding` turn, including a fix after the code review
 
 **Code review and full verification.** The status becomes `review`. The code review and the [[glossary#Full verification|full verification]] judge the same tree and neither changes it, so they run at once. Four `code-reviewer` agents start on the change, one per focus; see 2.1 Structure. The `tests` reviewer also gets the test plan. At the same time the orchestrator runs every check command in the context pack — lint, type check, and the full test suite — and, when the end-to-end decision says yes, the end-to-end suite: the project's own, or the one the test writer stood up when the project had none — never both. It reads each result. A check the project lacks is reported as skipped, never as passed.
 
-The stage passes when every reviewer approves and every check passes, and it moves the ticket to Finish. Otherwise the status returns to `in progress`, and `coding` receives every blocking issue and every failed check in one message. After the fix the feature's tests run again, then the stage runs again: the failed checks first, then the rest, and **every** reviewer — an approval covers only the code it read. A reviewer that blocked judges its prior issues; one that approved judges only what the fix changed. This repeats until the stage passes or the fix is stuck. A minor issue becomes a recommendation and blocks nothing.
+The stage passes when every reviewer approves and every check passes, and it moves the ticket to Finish. Otherwise the status returns to `in progress`, and `coding` receives every blocking issue and every failed check in one message. After the fix the feature's tests run again, then the stage runs again: the failed checks first, then the rest, and **every** reviewer — an approval covers only the code it read. A reviewer that blocked judges its prior issues; one that approved judges only what the fix changed. This repeats until the stage passes or the fix is stuck. A minor issue blocks nothing.
+
+**The minor-fix pass.** The first time the stage passes with a minor issue, `coding` receives every minor issue in one message, once per ticket. It fixes each one it can within the plan without touching a test, and declines the rest with a reason. When it changed a file, the feature's tests and the stage run again, as after any fix. The minor issues still open when the stage last passes are the **leftovers**: the declined ones, the ones still open, and the ones the re-review raised. No run sends them to `coding` twice.
 
 **Finish.** In one step, the orchestrator:
 
 - sets `status` to `done` and removes `assigned` and `claimed`;
 - writes the usage properties; see 6. Variation and limits;
 - moves the ticket and its worklog to `done/`;
-- appends the closing entry: what shipped, each recommendation nobody acted on, and each note file;
+- appends the closing entry: what shipped, the review follow-up ticket, and each note file;
 - writes each note the coding agent's latest turn reported, through the note script, into the feature's `notes/` folder — a note already there is kept;
+- files the leftovers, through `board.py follow-up`, in the epic's [[glossary#Review follow-up ticket|review follow-up ticket]]: a `Low` ticket in `backlog/` that the roadmap builds after the feature's other tickets. A roadmap run claims it, so the run builds it before it leaves the feature. A follow-up ticket's own leftovers are never filed, so one never spawns another;
 - deletes the roadmap row;
 - corrects every remaining ticket this work proved wrong.
 

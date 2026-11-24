@@ -40,17 +40,17 @@ class BoardFixture:
         path.write_text(ticket_text(status, depends_on, extra).replace("CHECKOUT-000", ticket_id), encoding="utf-8")
         return path
 
-    def run(self, script: str, *args: str, check: bool = True) -> subprocess.CompletedProcess:
+    def run(self, script: str, *args: str, check: bool = True, stdin: str | None = None) -> subprocess.CompletedProcess:
         result = subprocess.run(
             [sys.executable, str(SCRIPTS / script), *args],
-            capture_output=True, text=True, cwd=self.root,
+            capture_output=True, text=True, cwd=self.root, input=stdin,
         )
         if check and result.returncode not in (0, 1):
             raise AssertionError(f"{script} {args} exited {result.returncode}\n{result.stderr}")
         return result
 
-    def board(self, *args: str, check: bool = True) -> tuple[dict, int]:
-        result = self.run("board.py", *args, "--root", str(self.root), check=check)
+    def board(self, *args: str, check: bool = True, stdin: str | None = None) -> tuple[dict, int]:
+        result = self.run("board.py", *args, "--root", str(self.root), check=check, stdin=stdin)
         return (json.loads(result.stdout) if result.stdout.strip() else {}), result.returncode
 
 

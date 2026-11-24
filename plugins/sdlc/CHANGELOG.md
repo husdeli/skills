@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **The minor-fix pass.** When every code reviewer approves and every check passes but a reviewer
+  raised minor issues, the coding agent gets one turn at all of them, once per ticket. It fixes
+  what it can within the plan without touching a test, and declines the rest in a new `declined`
+  field of its block. When it changed a file, the feature's tests, every check, and every reviewer
+  run again. Before this, minor issues went into the closing worklog entry and the report, and no
+  agent ever fixed them. In unattended roadmap runs nobody read them, so they were lost.
+- **The review follow-up ticket**, and `board.py follow-up` (board.py 1.2.0) to write it. The
+  leftovers of the minor-fix pass are filed as acceptance criteria of the epic's one open
+  `<CODE>-<NNN>-review-follow-ups.md`, a `Low` ticket in `backlog/` with a `follows_up` property.
+  It sorts last in its epic. `/run-roadmap` claims it, so the run builds it before it leaves the
+  feature. `/orchestrate` and `/orchestrate-quick` leave it for the person. A follow-up ticket's
+  own leftovers are never filed, so one never spawns another. Five pytest cases cover it.
+
+### Changed
+
+- The reports of `/orchestrate`, `/orchestrate-quick`, and `/run-roadmap` name the follow-up ticket
+  and the minor-fix pass's result in place of a "recommendations" list.
+
 ## [0.74.0] - 2026-11-19
 
 Hardening for unattended runs, from the review in `reports/2026-11-18-sdlc-autonomy-review.md`.

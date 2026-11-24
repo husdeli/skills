@@ -1,6 +1,6 @@
 ---
 type: glossary
-updated: 2026-10-20
+updated: 2026-11-24
 tags:
   - sdlc/glossary
 ---
@@ -126,9 +126,13 @@ A ticket a run may pick: unclaimed, and either in `backlog/` with every dependen
 
 `sdlc.json` at the framework root, naming every work root each project is built in and what belongs in each. It is machine-local and gitignored.
 
+## Review follow-up ticket
+
+The one open ticket per epic that carries the minor code-review issues finished tickets left behind, one acceptance criterion each. `board.py follow-up` writes it as `<CODE>-<NNN>-review-follow-ups.md`, `Low` priority, in `backlog/`, so the roadmap builds it like any other ticket and the issues are not lost in a done worklog. Its own leftovers are never filed again.
+
 ## Roadmap
 
-`roadmap.md`, the work that is left, with one section per epic and one row per open ticket. A row is added when `/plan` writes a ticket and deleted when the ticket is done, and every cell is corrected from the ticket, which is the record.
+`roadmap.md`, the work that is left, with one section per epic and one row per open ticket. A row is added when `/plan` writes a ticket, or `board.py follow-up` opens a review follow-up ticket, and deleted when the ticket is done, and every cell is corrected from the ticket, which is the record.
 
 ## Roadmap run
 
