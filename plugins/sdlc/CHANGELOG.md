@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.75.0] - 2026-11-24
+
 ### Added
 
 - **The minor-fix pass.** When every code reviewer approves and every check passes but a reviewer

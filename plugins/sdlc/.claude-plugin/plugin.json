@@ -1,6 +1,6 @@
 {
   "name": "sdlc",
-  "version": "0.74.0",
+  "version": "0.75.0",
   "description": "Plan, build, and review software with a pipeline of agents: product docs and tickets, tests written before the code, four-focus code review, and an unattended roadmap runner with budgets and crash recovery — plus Clean Architecture, TypeScript, and React rules.",
   "author": {
     "name": "husdeli",
